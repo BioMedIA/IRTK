@@ -1,0 +1,30 @@
+/** 
+
+\page faq Frequently Asked Questions (FAQ)
+
+\section general FAQ:
+
+\subsection platforms What software platforms are supported?
+
+Currently, we offer binaries for the following platforms for download: 
+
+\li Linux 32-bit (kernel 2.6.20, gcc 4.1.2)
+\li Windows XP 32-bit (Visual Studio .NET)
+\li Mac OS 10.4
+
+If you need binaries for a different platform please contact me.
+
+\subsection sources Can I download the source code?
+
+Unfortunately not. The software has been licensed to a spin-off company, 
+IXICO, for commerical purposes and IXICO does not allow us to distribute 
+the sources for IRTK.
+
+\subsection insight What is the difference between the Image Registration Toolkit and the Insight Toolkit? 
+
+The Image Registration Toolkit (called IRTK) is not related to the Insight
+Toolkit (also called IRTK). By coincidence both packages use the same
+acronymn. If you are looking for the Insight Toolkit please visit <A
+HREF="http://www.itk.org">http://www.itk.org</A>.
+
+*/

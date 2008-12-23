@@ -1,0 +1,3214 @@
+/** 
+
+\page usage User guide: Applications
+
+\section introduction Introduction
+
+\par
+The following notes give general guidance on some of the
+different executables available in the project as well as some
+brief examples.  The executables are divided into broad
+categories depending on the type of data they use and generate.
+
+
+\par Image registration
+
+\par
+\li \ref rreg
+\li \ref areg
+\li \ref nreg (\ref nregpars "Example registration parameters")
+
+\par Landmark registration
+
+\par
+\li \ref pareg
+\li \ref pnreg
+\li \ref prreg
+
+\par Surface registration
+
+\par
+\li \ref sareg
+\li \ref snreg
+\li \ref srreg
+
+\par Transforming images, points, etc.
+
+\par
+\li \ref transformation
+\li \ref ptransformation
+\li \ref stransformation
+
+\par Using transformations
+
+\li \ref jacobian
+\li \ref atlas
+\li \ref dof2flirt
+\li \ref dof2image
+\li \ref dof2mat
+\li \ref dofinvert
+\li \ref flirt2dof
+
+\par General image processing
+
+\par
+\li \ref info
+\li \ref dmap
+\li \ref convert
+\li \ref evaluation
+\li \ref threshold
+\li \ref binarize
+\li \ref mcubes
+\li \ref padding
+\li \ref blur
+\li \ref dilation
+\li \ref erosion
+\li \ref closing
+\li \ref opening
+\li \ref reflect
+\li \ref region
+\li \ref resample
+\li \ref rescale
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection rreg rreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  rreg [target] [source] <options>
+  where <options> is one or more of the following:
+  <-parin file>        Read parameter from file
+  <-parout file>       Write parameter to file
+  <-dofin  file>       Read transformation from file
+  <-dofout file>       Write transformation to file
+  <-Rx1 value>         Region of interest in both images
+  <-Ry1 value>         Region of interest in both images
+  <-Rz1 value>         Region of interest in both images
+  <-Rx2 value>         Region of interest in both images
+  <-Ry2 value>         Region of interest in both images
+  <-Rz2 value>         Region of interest in both images
+  <-Tx1 value>         Region of interest in target image
+  <-Ty1 value>         Region of interest in target image
+  <-Tz1 value>         Region of interest in target image
+  <-Tx2 value>         Region of interest in target image
+  <-Ty2 value>         Region of interest in target image
+  <-Tz2 value>         Region of interest in target image
+  <-Sx1 value>         Region of interest in source image
+  <-Sy1 value>         Region of interest in source image
+  <-Sz1 value>         Region of interest in source image
+  <-Sx2 value>         Region of interest in source image
+  <-Sy2 value>         Region of interest in source image
+  <-Sz2 value>         Region of interest in source image
+  <-Tp  value>         Padding value in target
+  <-debug>             Enable debugging information
+\endverbatim
+
+\par Notes:
+
+\par
+Estimate a rigid transformation between two images.  The rigid
+transformation is represented by six degrees of freedom when
+registering 3-D images.  Three degrees of freedom encode
+rotations about the axes and the remainder encode components of a
+translation.  Three degrees of freedom can encode a rigid
+transformation between 2-D images, one for a rotation about the
+origin and two for a translation.
+
+\par
+The mandatory arguments are the file names of two images, the
+first is treated as a `target' image and the second is treated as
+a `source' image.  The transformation that is estimated maps
+locations in the target to locations in the source.  This can be
+achieved by this simple example:
+
+\par
+\verbatim
+  rreg a.nii.gz b.nii.gz -dofout rreg-b-a.dof
+\endverbatim
+
+\par
+In this example, the estimated transformation will be written to
+the file rreg-b-a.dof.  If no file is specified with the -dofout
+flag, the transformation is only written to standard out.
+
+\par
+The -dofin flag can be used to give a initial estimate for the
+rigid transformation.  This is used as a starting point for the
+registration.  The initial estimate could be, for example,
+estimated by a manual alignment:
+
+\par
+\verbatim
+  rreg a.nii.gz b.nii.gz -dofout rreg-b-a.dof -dofin rreg-init-b-a.dof
+\endverbatim
+
+\par
+The -parin flag allows a parameter file to be specified.  This
+file contains a list of parameter names and their corresponding
+values for use during the registration.  Specifying a parameter
+file is optional.  If no file is specified, default values are
+used.  The parameters listed in the file do not need to be
+exhaustive, i.e. only those parameters the user wishes to set
+need to be listed.  See the separate notes on registration
+parameters below.
+
+\par
+The -parout flag is used to specify a file in which to write the
+parameters used during the registration.  This is useful if there
+is a need to record these parameters.  It is possible to identify
+the default parameters used during registration by specifying a
+`-parout' file without specifying a `-parin' file.  The file
+specified is written at the outset of the registration process.
+
+\par
+The -Tp flag can be used to specify a padding value within the
+target image.  If used, all voxels in the target with a value
+less than or equal to the padding value are ignored.  This
+restricts the registration to a region of interest consisting of
+the unpadded voxels.  A padding value can also be specified in a
+parameter file.
+
+\par
+The -debug flag can be used to capture the data used by the
+registration during its intermediate stages.  For example, if
+pre-processing steps such as blurring or resampling are specified
+by the registration parameters, then the pre-processed images are
+saved during the registration.  If more than one image resolution
+is used during registration, the intermediate images and
+transformation files are also saved.
+
+\par
+The flags -Rx1, -Rx2, etc. can be used to restrict the
+registration to a region of interest in both of the images.
+Replacing `R' with `T' or `S' restricts the region of interest to
+the target or source images.  An example is the following:
+
+\par
+\verbatim
+  rreg a.nii.gz b.nii.gz -dofout rreg-b-a.dof -Tx1 20 -Tx2 100
+\endverbatim
+
+\par
+where the registration is restricted to a target region
+corresponding to slices perpendicular to the (image) x-axis.
+Eighty slices are used beginning with the twentieth.
+
+\par
+Registration parameters:
+
+\par
+The registration parameter file contains specifications for a set of
+parameters in the format
+
+\par
+\verbatim
+    <parameter name> = <parameter value>
+\endverbatim
+
+\par
+Lines that start with a `#' character are ignored when the
+parameter file is read and can be used to insert comments into
+the file.  All parameters are optional and only need to be
+specified if the default values are to be overridden.  To
+identify the default values for the parameters, the -parout
+command line option can be used as described above.
+
+\par
+<b>Parameter name :</b> "Padding value"
+
+\par
+<b>Parameter value :</b> A number used to determine if voxels in the
+target image are used during registration.  All voxels with an
+intensity less than or equal to the padding value are ignored.
+
+\par
+<b>Parameter name :</b> "Interpolation mode"
+
+\par
+<b>Parameter value :</b> One of the following options:
+
+\par
+\verbatim
+    NN
+    Linear
+    CSpline
+    BSpline
+    Sinc
+\endverbatim
+
+\par
+This determines how the source image is interpolated during
+registration.  NN represents nearest nearest neighbour interpolation.
+
+\par
+<b>Parameter name :</b> "Similarity measure"
+
+\par
+<b>Parameter value :</b> This can be chosen from the following list, the
+meanings of the abbreviations is written on the right.
+
+\par
+\verbatim
+    SSD	    Sum of squared differences
+    CC	    Cross correlation
+    CR_XY   Correlation ratio of the target given the source
+    CR_YX   Correlation ratio of the source given the target
+    JE	    Joint entropy
+    MI	    Mutual information
+    NMI	    Normalised mutual information
+    LC	    Label consistency
+    K	      Kappa coefficient
+\endverbatim
+ 
+\par
+The LC and K metrics are intended for label images and should be
+used in conjunction with the NN interpolator.  The metrics
+requiring least computation are those that do not require a joint
+histogram to be constructed, these are SSD, CC and LC.
+
+\par
+<b>Parameter name :</b> "No. of bins"
+
+\par
+<b>Parameter value :</b> A Number to determine the number of bins when
+constructing the joint histogram for the target and source.  The
+joint histogram is used to calculate the similarity metric for
+the images based on the current transformation estimate.  This
+parameter is only used if a similarity metric is used that
+requires a joint histogram.
+
+\par
+Setting the number of bins to zero creates a histogram with one
+bin for each of the intensity values in the images.  If no value
+is specified the default value of 64 bins is used.
+
+\par
+<b>Parameter name :</b> "Epsilon"
+
+\par
+<b>Parameter value :</b> A floating point number to determine a stopping
+point for the iterations of the optimisation.  For example, if a
+value of 0.00001 is set, the registration stops when the
+similarity between the images changes by less than 0.00001
+between successive iterations.
+  
+
+\par
+<b>Parameter name :</b> "Optimization method"
+
+\par
+<b>Parameter value :</b> This can be chosen from the following list:
+
+\par
+\verbatim
+    GradientDescent
+    SteepestGradientDescent
+    DownhillDescent
+    ConjugateGradientDescent
+\endverbatim
+
+\par
+Each choice determines the method used to optimise the
+transformation parameters during registration.
+
+\par
+<b>Parameter name :</b> "No. of resolution levels"
+
+\par
+<b>Parameter value :</b> A positive integer.  This determines the number
+of different resolution levels for the target and source images
+during registration.  If the number of resolution levels is not
+specified, one level is used by default.
+
+\par
+If more than one resolution level is required, the registration
+is first run with a blurred and/or down-sampled version of the
+target and source images.  A blurred and down-sampled version of
+an input image represents structures at a coarser scale and
+starting the registration at a larger scale increases the
+likelihood of registration success.
+
+\par
+The transformation estimated at the first coarse scale is then
+used as a starting point for the subsequent (finer) scale and so
+on.  The degree of blurring and the resampled voxel sizes for
+each image are specified by further parameters (see below).
+
+\par
+The resolution levels are numbered in reverse order with respect
+to the order in which they are carried out, e.g. for three
+resolution levels, level number 3 (coarsest) is run first and
+level number 1 (finest) is optimised last.
+
+\par
+<b>Parameter name :</b> "Resolution level"
+
+\par
+<b>Parameter value :</b> A number to indicate that following parameters
+are restricted to a particular image resolution level.  For
+example, if 3 resolution levels are specified, then the values
+that can be used for the "Resolution level" are 1, 2 or 3.
+
+\par
+This is an optional parameter that affects certain other
+registration parameters, allowing them to be specified
+individually for each resolution level.  The parameters that can
+be specified in this way are those that control the blurring and
+resampling of the images, the number of iterations during
+optimisation and the length and number of steps used.  These
+parameters are described below.
+
+\par
+Specifying a resolution level with a line such as 
+
+\par
+\verbatim
+  Resolution level = 2
+\endverbatim
+
+\par
+ties all the affected parameters to the specified resolution
+level until the next appearance of a similar line for a different
+resolution level.
+
+\par
+<b>Parameter name :</b> "Target blurring (in mm)"
+                  "Source blurring (in mm)"
+
+\par
+<b>Parameter value :</b> A floating point number.  These parameters
+determine the size of the Gaussian kernel used to blur the source
+and target images.  A value of zero indicates that no blurring
+should be done.
+
+\par
+The degree of blurring can be specified separately for each
+resolution level using the "Resolution level" parameter as
+described above.  If a blurring parameter is only specified once,
+without specifying a resolution level, then the value is assumed
+to relate to resolution level number 1 (the final level).  The
+values for assigned to the remaining levels are obtained by
+successive doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "Target resolution (in mm)"
+                  "Source resolution (in mm)"
+
+\par
+<b>Parameter value :</b> Floating point number(s).  These parameters
+determine the voxel size of the resampled images during
+registration.  A value of zero indicates that the images should
+not be resampled.  If a single number is specified, the resampled
+voxel size is isotropic, e.g.:
+
+\par
+\verbatim
+  Target resolution (in mm) = 2
+\endverbatim
+
+\par
+Alternatively, giving multiple values allows anisotropic
+resampling to be carried out, e.g., for a 3-D image:
+
+\par
+\verbatim
+  Target resolution (in mm) = 2 2 3
+\endverbatim
+
+\par
+The resampling resolutions can be specified separately for each
+resolution level using the "Resolution level" parameter as
+described above.  If a resolution parameter is specified only
+once, without specifying a resolution level, then the value is
+assumed to relate to resolution level number 1 (the final level)
+with the values for any other levels obtained by successive
+doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "No. of iterations"
+
+\par
+<b>Parameter value :</b> A number to specify the number of iterations to
+use during optimisation.  This is used as a stopping condition.
+The optimisation may stop before the number specified if the
+similarity metric changes by a negligible amount between
+iterations (see the `Epsilon' parameter)
+
+\par
+Different numbers of iterations can be specified for each
+resolution level using the "Resolution level" parameter as
+described above.  Specifying the number of iterations once,
+without specifying a resolution level, means that the same number
+of iterations is used for all resolution levels.
+
+\par
+<b>Parameter name :</b> "Length of steps"
+
+\par
+<b>Parameter value :</b> A positive floating point number to determine
+the amount by which the parameters are incremented when
+optimising the transformation parameters.
+
+\par
+A different step length can be specified for each resolution
+level using the "Resolution level" parameter as described above.
+If a single value is given, without specifying a particular
+resolution level, then the value is assigned to resolution level
+1 (final level) and the values assigned to the remaining levels
+are obtained by successive doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "No. of steps"
+
+\par
+<b>Parameter value :</b> A positive integer.  It is possible to run the
+optimisation in a `coarse-to-fine' manner.  This starts by using
+large parameter steps (see `Length of steps' above) and
+estimating the transformation parameters, the parameter step is
+then halved and the optimisation is continued.  The 'No. of
+steps' parameter determines the number of step sizes used.  For
+example, if, for a particular resolution level, `Length of steps' 
+is set to 8 and 'No. of steps' is set to 3, the optimisation will
+first use a step length of 8 and this is followed by step lengths
+of 4 and 2.
+
+\par
+This parameter can be separately specified for each resolution
+level using the "Resolution level" parameter as described above.
+If a single value is given, without specifying a particular
+resolution level, then the value is applied to all resolution
+levels.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection areg areg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  areg [target] [source] <options>
+
+  where <options> is one or more of the following:
+
+  <-parin file>        Read parameter from file
+  <-parout file>       Write parameter to file
+  <-dofin  file>       Read transformation from file
+  <-dofout file>       Write transformation to file
+  <-p9>                Affine transformation with 9 dofs
+  <-p12>               Affine transformation with 12 dofs
+  <-Rx1 value>         Region of interest in both images
+  <-Ry1 value>         Region of interest in both images
+  <-Rz1 value>         Region of interest in both images
+  <-Rx2 value>         Region of interest in both images
+  <-Ry2 value>         Region of interest in both images
+  <-Rz2 value>         Region of interest in both images
+  <-Tx1 value>         Region of interest in target image
+  <-Ty1 value>         Region of interest in target image
+  <-Tz1 value>         Region of interest in target image
+  <-Tx2 value>         Region of interest in target image
+  <-Ty2 value>         Region of interest in target image
+  <-Tz2 value>         Region of interest in target image
+  <-Sx1 value>         Region of interest in source image
+  <-Sy1 value>         Region of interest in source image
+  <-Sz1 value>         Region of interest in source image
+  <-Sx2 value>         Region of interest in source image
+  <-Sy2 value>         Region of interest in source image
+  <-Sz2 value>         Region of interest in source image
+  <-Tp  value>         Padding value in target
+  <-debug>             Enable debugging information
+\endverbatim
+
+\par Notes:
+
+\par
+Estimate an affine transformation between two images.  The affine
+transformation is represented by 9 or 12 degrees of freedom when
+registering 3-D images.  The degrees of freedom encode rotations
+(3), translation (3), scaling (3) and shears (3).  No shearing is
+used of the -p9 flag is used to specify 9 degrees of freedom.
+Otherwise, all 12 transformation parameters are optimised by
+default or if the -p12 flag is used.
+
+\par
+The mandatory arguments are the file names of two images, the
+first is treated as a `target' image and the second is treated as
+a `source' image.  The transformation that is estimated maps
+locations in the target to locations in the source.  This can be
+achieved by this simple example:
+
+\par
+\verbatim
+  areg a.nii.gz b.nii.gz -dofout areg-b-a.dof
+\endverbatim
+
+\par
+In this example, the estimated transformation will be written to
+the file areg-b-a.dof.  If no file is specified with the -dofout
+flag, the transformation is only written to standard out.
+
+\par
+The -dofin flag can be used to give a initial estimate for the
+affine transformation, which can be either an affine or a rigid
+transformation.  This is used as a starting point for the
+registration.  The initial estimate could be, for example,
+estimated by an earlier rigid registration step:
+
+\par
+\verbatim
+  areg a.nii.gz b.nii.gz -dofout areg-b-a.dof -dofin rreg-b-a.dof
+\endverbatim
+
+\par
+The -parin flag allows a parameter file to be specified.  This
+file contains a list of parameter names and their corresponding
+values for use during the registration.  Specifying a parameter
+file is optional; if no file is given, default parameter values
+are used.  The parameters listed in a specified file do not need
+to be exhaustive, i.e. only those parameters the user wishes to
+set need to be listed.  See the separate notes on registration
+parameters below.
+
+\par
+The -parout flag is used to specify a file in which to write the
+parameters used during the registration.  This is useful if there
+is a need to record these parameters.  It is possible to identify
+the default parameters used during registration by specifying a
+`-parout' file without specifying a `-parin' file.  The file
+specified is written at the outset of the registration process.
+
+\par
+The -Tp flag can be used to specify a padding value within the
+target image.  If used, all voxels in the target with a value
+less than or equal to the padding value are ignored.  This
+restricts the registration to a region of interest consisting of
+the unpadded voxels.  A padding value can also be specified in a
+parameter file.
+
+\par
+The -debug flag can be used to capture the data used by the
+registration during its intermediate stages.  For example, if
+pre-processing steps such as blurring or resampling are specified
+by the registration parameters, then the pre-processed images are
+saved during the registration.  If more than one image resolution
+is used during registration, the intermediate images and
+transformation files are also saved.
+
+\par
+The flags -Rx1, -Rx2, etc. can be used to restrict the
+registration to a region of interest in both of the images.
+Replacing `R' with `T' or `S' restricts the region of interest to
+the target or source images.  An example is the following:
+
+\par
+\verbatim
+  areg a.nii.gz b.nii.gz -dofout areg-b-a.dof -Tx1 20 -Tx2 100
+\endverbatim
+
+\par
+where the registration is restricted to a target region
+corresponding to slices perpendicular to the (image) x-axis.
+Eighty slices are used beginning with the twentieth.
+
+\par
+Registration parameters:
+
+\par
+The registration parameter file contains specifications for a set
+of parameters in the format
+
+\par
+\verbatim
+    <parameter name> = <parameter value>
+\endverbatim
+
+\par
+Lines that start with a `#' character are ignored when the
+parameter file is read and can be used to insert comments into
+the file.  All parameters are optional and only need to be
+specified if the default values are to be overridden.  To
+identify the default values for the parameters, the -parout
+command line option can be used as described above.
+
+\par
+<b>Parameter name :</b> "Padding value"
+
+\par
+<b>Parameter value :</b> A number used to determine if voxels in the
+target image are used during registration.  All voxels with an
+intensity less than or equal to the padding value are ignored.
+
+\par
+<b>Parameter name :</b> "Interpolation mode"
+
+\par
+<b>Parameter value :</b> One of the following options:
+
+\par
+\verbatim
+    NN
+    Linear
+    CSpline
+    BSpline
+    Sinc
+\endverbatim
+
+\par
+This determines how the source image is interpolated during
+registration.  NN represents nearest nearest neighbour interpolation.
+
+\par
+<b>Parameter name :</b> "Similarity measure"
+
+\par
+<b>Parameter value :</b> This can be chosen from the following list, the
+meanings of the abbreviations is written on the right.
+
+\par
+\verbatim
+    SSD	    Sum of squared differences
+    CC	    Cross correlation
+    CR_XY   Correlation ratio of the target given the source
+    CR_YX   Correlation ratio of the source given the target
+    JE	    Joint entropy
+    MI	    Mutual information
+    NMI	    Normalised mutual information
+    LC	    Label consistency
+    K	    Kappa coefficient
+\endverbatim
+
+\par 
+The LC and K metrics are intended for label images and should be
+used in conjunction with the NN interpolator.  The metrics
+requiring least computation are those that do not require a joint
+histogram to be constructed, these are SSD, CC and LC.
+
+\par
+<b>Parameter name :</b> "No. of bins"
+
+\par
+<b>Parameter value :</b> A Number to determine the number of bins when
+constructing the joint histogram for the target and source.  The
+joint histogram is used to calculate the similarity metric for
+the images based on the current transformation estimate.  This
+parameter is only used if a similarity metric is used that
+requires a joint histogram.
+
+\par
+Setting the number of bins to zero creates a histogram with one
+bin for each of the intensity values in the images.  If no value
+is specified the default value of 64 bins is used.
+
+\par
+<b>Parameter name :</b> "Epsilon"
+
+\par
+<b>Parameter value :</b> A floating point number to determine the
+stopping point for the iterations of the optimisation.  For
+example, if a value of 0.00001 is set, the registration stops
+when the similarity between the images changes by less than
+0.00001 between successive iterations.
+
+\par
+<b>Parameter name :</b> "Optimization method"
+
+\par
+<b>Parameter value :</b> This can be chosen from the following list:
+
+\par
+\verbatim
+    GradientDescent
+    SteepestGradientDescent
+    DownhillDescent
+    ConjugateGradientDescent
+\endverbatim
+
+\par
+Each choice determines the method used to optimise the
+transformation parameters during registration.
+
+
+\par
+<b>Parameter name :</b> "No. of resolution levels"
+
+\par
+<b>Parameter value :</b> A positive integer.  This determines the number
+of different resolution levels for the target and source images
+during registration.  If the number of resolution levels is not
+specified, one level is used by default.
+
+\par
+If more than one resolution level is required, the registration
+is first run with a blurred and/or down sampled version of the
+target and source images.  A blurred and down sampled version of
+an input image represents structures at a coarser scale and
+starting the registration at a larger scale increases the
+likelihood of registration success.
+
+\par
+The transformation estimated at the first coarse scale is then
+used as a starting point for the subsequent (finer) scale and so
+on.  The degree of blurring and the resampled voxel sizes for
+each image are specified by further parameters (see below).
+
+\par
+The resolution levels are numbered in reverse order with respect
+to the order in which they are carried out, e.g. for three
+resolution levels, level number 3 (coarsest) is run first and
+level number 1 (finest) is optimised last.
+
+\par
+<b>Parameter name :</b> "Resolution level"
+
+\par
+<b>Parameter value :</b> A number to indicate that following parameters
+are restricted to a particular image resolution level.  For
+example, if 3 resolution levels are specified, then the values
+that can be used for the "Resolution level" are 1, 2 or 3.
+
+\par
+This is an optional parameter that affects certain other
+registration parameters, allowing them to be specified
+individually for each resolution level.  The parameters that can
+be specified in this way are those that control the blurring and
+resampling of the images, the number of iterations during
+optimisation and the length and number of steps used.  These
+parameters are described below.
+
+\par
+Specifying a resolution level with a line such as 
+
+\par
+  Resolution level = 2
+
+\par
+ties all the affected parameters to the specified resolution
+level until the next appearance of a similar line for a different
+resolution level.
+
+\par
+<b>Parameter name :</b> "Target blurring (in mm)"
+                  "Source blurring (in mm)"
+
+\par
+<b>Parameter value :</b> A floating point number.  These parameters
+determine the size of the Gaussian kernel used to blur the source
+and target images.  A value of zero indicates that no blurring
+should be done.
+
+\par
+The degree of blurring can be specified separately for each
+resolution level using the "Resolution level" parameter as
+described above.  If a blurring parameter is only specified once,
+without specifying a resolution level, then the value is assumed
+to relate to resolution level number 1 (the final level).  The
+values for assigned to the remaining levels are obtained by
+successive doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "Target resolution (in mm)"
+                  "Source resolution (in mm)"
+
+\par
+<b>Parameter value :</b> Floating point number(s).  These parameters
+determine the voxel size of the resampled images during
+registration.  A value of zero indicates that the images should
+not be resampled.  If a single number is specified, the resampled
+voxel size is isotropic, e.g.:
+
+\par
+\verbatim
+  Target resolution (in mm) = 2
+\endverbatim
+
+\par
+Alternatively, giving multiple values allows anisotropic
+resampling to be carried out, e.g., for a 3-D image:
+
+\par
+\verbatim
+  Target resolution (in mm) = 2 2 3
+\endverbatim
+
+\par
+The resampling resolutions can be specified separately for each
+resolution level using the "Resolution level" parameter as
+described above.  If a resolution parameter is specified only
+once, without specifying a resolution level, then the value is
+assumed to relate to resolution level number 1 (the final level)
+with the values for any other levels obtained by successive
+doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "No. of iterations"
+
+\par
+<b>Parameter value :</b> A number to specify the number of iterations to
+use during optimisation.  This is used as a stopping condition.
+The optimisation may stop before the number specified if the
+similarity metric changes by a negligible amount between
+iterations (see the `Epsilon' parameter)
+
+\par
+Different numbers of iterations can be specified for each
+resolution level using the "Resolution level" parameter as
+described above.  Specifying the number of iterations once,
+without specifying a resolution level, means that the same number
+of iterations is used for all resolution levels.
+
+\par
+<b>Parameter name :</b> "Length of steps"
+
+\par
+<b>Parameter value :</b> A positive floating point number to determine
+the amount by which the parameters are incremented when
+optimising the transformation parameters.
+
+\par
+A different step length can be specified for each resolution
+level using the "Resolution level" parameter as described above.
+If a single value is given, without specifying a particular
+resolution level, then the value is assigned to resolution level
+1 (final level) and the values assigned to the remaining levels
+are obtained by successive doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "No. of steps"
+
+\par
+<b>Parameter value :</b> A positive integer.  It is possible to run the
+optimisation in a `coarse-to-fine' manner.  This starts by using
+large parameter steps (see `Length of steps' above) and
+estimating the transformation parameters, the parameter step is
+then halved and the optimisation is continued.  The 'No. of steps'
+parameter determines the number of step sizes used.  For example,
+if `Length of steps' is set to 2 and 'No. of steps' is set to 3,
+the optimisation will first use a step length of 8 and this is
+followed by step lengths of 4 and 2.
+
+\par
+This parameter can be separately specified for each resolution
+level using the "Resolution level" parameter as described above.
+If a single value is given, without specifying a particular
+resolution level, then the value is applied to all resolution
+levels.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection nreg nreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  nreg [target] [source] <options>
+
+  where <options> is one or more of the following:
+
+  <-parin file>        Read parameter from file
+  <-parout file>       Write parameter to file
+  <-dofin  file>       Read transformation from file
+  <-dofout file>       Write transformation to file
+  <-Rx1 value>         Region of interest in both images
+  <-Ry1 value>         Region of interest in both images
+  <-Rz1 value>         Region of interest in both images
+  <-Rx2 value>         Region of interest in both images
+  <-Ry2 value>         Region of interest in both images
+  <-Rz2 value>         Region of interest in both images
+  <-Tx1 value>         Region of interest in target image
+  <-Ty1 value>         Region of interest in target image
+  <-Tz1 value>         Region of interest in target image
+  <-Tx2 value>         Region of interest in target image
+  <-Ty2 value>         Region of interest in target image
+  <-Tz2 value>         Region of interest in target image
+  <-Sx1 value>         Region of interest in source image
+  <-Sy1 value>         Region of interest in source image
+  <-Sz1 value>         Region of interest in source image
+  <-Sx2 value>         Region of interest in source image
+  <-Sy2 value>         Region of interest in source image
+  <-Sz2 value>         Region of interest in source image
+  <-Tp  value>         Padding value in target image
+  <-ds  value>         Initial control point spacing
+  <-debug>             Enable debugging information
+\endverbatim
+
+\par Notes:
+
+\par
+Carry out a non-rigid registration for two images.  The resulting
+non-rigid transformation is represented by a free-form
+deformation (FFD) where the transformation parameters are
+represented using a lattice of control point vectors.
+
+\par
+The mandatory arguments are the file names of two images, the
+first is treated as a `target' image and the second is treated as
+a `source' image.  The transformation that is estimated maps
+locations in the target to locations in the source.  This can be
+achieved by this simple example:
+
+\par
+\verbatim
+  nreg a.nii.gz b.nii.gz -dofout nreg-b-a.dof
+\endverbatim
+
+\par
+In this example, the estimated FFD transformation is written to
+the file nreg-b-a.dof.
+
+\par
+The -dofin flag can be used to give a initial estimate for the
+transformation.  This is used as a starting point for the
+registration.  The initial estimate could be, for example,
+estimated by an earlier affine registration step:
+
+\par
+\verbatim
+  nreg a.nii.gz b.nii.gz -dofout nreg-b-a.dof -dofin areg-b-a.dof
+\endverbatim
+
+\par
+The -parin flag allows a parameter file to be specified.  This
+file contains a list of parameter names and their corresponding
+values for use during the registration.  Specifying a parameter
+file is optional; if no file is given, default parameter values
+are used.  The parameters listed in a specified file do not need
+to be exhaustive, i.e. only those parameters the user wishes to
+set need to be listed.  See the separate notes on registration
+parameters below.
+
+\par
+The -parout flag is used to specify a file in which to write the
+parameters used during the registration.  This is useful if there
+is a need to record these parameters.  It is possible to identify
+the default parameters used during registration by specifying a
+`-parout' file without specifying a `-parin' file.  The file
+specified is written at the outset of the registration process.
+
+\par
+The -Tp flag can be used to specify a padding value within the
+target image.  If used, all voxels in the target with a value
+less than or equal to the padding value are ignored.  This
+restricts the registration to a region of interest consisting of
+the unpadded voxels.  A padding value can also be specified in a
+parameter file.
+
+\par
+The -debug flag can be used to capture the data used by the
+registration during its intermediate stages.  For example, if
+pre-processing steps such as blurring or resampling are specified
+by the registration parameters, then the pre-processed images are
+saved during the registration.  If more than one image resolution
+is used during registration, the intermediate images and
+transformation files are also saved.
+
+\par
+The flags -Rx1, -Rx2, etc. can be used to restrict the
+registration to a region of interest in both of the images.
+Replacing `R' with `T' or `S' restricts the region of interest to
+the target or source images.  An example is the following:
+
+\par
+\verbatim
+  nreg a.nii.gz b.nii.gz -dofout nreg-b-a.dof -Tx1 20 -Tx2 100
+\endverbatim
+
+\par
+where the registration is restricted to a target region
+corresponding to slices perpendicular to the (image) x-axis.
+Eighty slices are used beginning with the twentieth.
+
+\par
+Registration parameters:
+
+\par
+The registration parameter file contains specifications for a set
+of parameters in the format
+
+\par
+\verbatim
+    <parameter name\> = \<parameter value\>
+\endverbatim
+
+\par
+Lines that start with a `#' character are ignored when the
+parameter file is read and can be used to insert comments into
+the file.  All parameters are optional and only need to be
+specified if the default values are to be overridden.  To
+identify the default values for the parameters, the -parout
+command line option can be used as described above.  For an
+example parameter file see nreg.par.
+
+\par
+<b>Parameter name :</b> "Padding value"
+
+\par
+<b>Parameter value :</b> A number used to determine if voxels in the
+target image are used during registration.  All voxels with an
+intensity less than or equal to the padding value are ignored.
+
+\par
+<b>Parameter name :</b> "Interpolation mode"
+
+\par
+<b>Parameter value :</b> One of the following options:
+
+\par
+\verbatim
+    NN
+    Linear
+    CSpline
+    BSpline
+    Sinc
+\endverbatim
+
+\par
+This determines how the source image is interpolated during
+registration.  NN represents nearest nearest neighbour interpolation.
+
+\par
+<b>Parameter name :</b> "Similarity measure"
+
+\par
+<b>Parameter value :</b> This can be chosen from the following list, the
+meanings of the abbreviations is written on the right.
+
+\par
+\verbatim
+    SSD	    Sum of squared differences
+    CC	    Cross correlation
+    CR_XY   Correlation ratio of the target given the source
+    CR_YX   Correlation ratio of the source given the target
+    JE	    Joint entropy
+    MI	    Mutual information
+    NMI	    Normalised mutual information
+    LC	    Label consistency
+    K	    Kappa coefficient
+\endverbatim
+
+\par 
+The LC and K metrics are intended for label images and should be
+used in conjunction with the NN interpolator.  The metrics
+requiring least computation are those that do not require a joint
+histogram to be constructed, these are SSD, CC and LC.
+
+\par
+<b>Parameter name :</b> "No. of bins"
+
+\par
+<b>Parameter value :</b> A Number to determine the number of bins when
+constructing the joint histogram for the target and source.  The
+joint histogram is used to calculate the similarity metric for
+the images based on the current transformation estimate.  This
+parameter is only used if a similarity metric is used that
+requires a joint histogram.
+
+\par
+Setting the number of bins to zero creates a histogram with one
+bin for each of the intensity values in the images.  If no value
+is specified the default value of 64 bins is used.
+
+\par
+<b>Parameter name :</b> "Epsilon"
+
+\par
+<b>Parameter value :</b> A floating point number to determine the
+stopping point for the iterations of the optimisation.  For
+example, if a value of 0.00001 is set, the registration stops
+when the similarity between the images changes by less than
+0.00001 between successive iterations.
+
+\par
+<b>Parameter name :</b> "Optimization method"
+
+\par
+<b>Parameter value :</b> This can be chosen from the following list:
+
+\par
+\verbatim
+    GradientDescent
+    SteepestGradientDescent
+    DownhillDescent
+    ConjugateGradientDescent
+\endverbatim
+
+\par
+Each choice determines the method used to optimise the
+transformation parameters during registration.
+
+
+
+\par
+<b>Parameter name :</b> "No. of resolution levels"
+
+\par
+<b>Parameter value :</b> A positive integer.  The resolution levels
+refer to the use of different spacings of control points in FFD
+transformations that are optimised within a multi-resolution
+approach.  This method begins by estimating a transformation
+using a FFD with a relatively large control point spacing.  This
+initial transformation aims to capture the larger scale
+differences between the images.  The resulting FFD is then
+subdivided, generating a new FFD with half the control point
+spacing.  The new FFD is then used as a starting point for a
+second optimisation step that captures a finer level of detail.
+The number of iterations of this process is determined by the
+number of resolution levels chosen by the user.  If the number of
+resolution levels is not specified, one level is used by default.
+
+\par
+For each resolution level, it is possible to specify a range of
+other parameters that relate to the registration.  These
+parameters can be used to set the voxel resolution and blurring
+of the images being registered, and also to set the step length,
+iterations and number of steps during optimisation.  These are
+described in more detail below.
+
+\par
+The resolution levels are numbered in reverse order with respect
+to the order in which they are carried out, e.g. for three
+resolution levels, level number 3 (coarsest) is run first and
+level number 1 (finest) is optimised last.
+
+\par
+<b>Parameter name :</b> "Control point spacing in X"
+                  "Control point spacing in Y"
+                  "Control point spacing in Z"
+
+\par
+<b>Parameter value :</b> Numbers to set the control point spacing during
+registration.  If more than one resolution level is required, the
+values set for these parameters determine the control point
+spacing for the initial (largest scale) FFD that is optimised.
+The control point spacings for subsequent levels are obtained by
+successively halving the given values.  For example, the
+following parameters:
+
+\par
+  No. of resolution levels = 2
+  Control point spacing in X = 5
+  Control point spacing in Y = 5
+  Control point spacing in Z = 10
+
+\par
+will result in a FFD with a control point spacing of 5, 5 and 10
+(mm) being optimised in the first stage.  This is then subdivided
+to give a FFD with a spacing of 2.5, 2.5 and 5 (mm) for the
+second stage.
+
+\par
+<b>Parameter name :</b> "Resolution level"
+
+\par
+<b>Parameter value :</b> A number to indicate that following parameters
+are restricted to a particular image resolution level.  For
+example, if 3 resolution levels are specified, then the values
+that can be used for the "Resolution level" are 1, 2 or 3.
+
+\par
+This is an optional parameter that affects certain other
+registration parameters, allowing them to be specified
+individually for each resolution level.  The parameters that can
+be specified in this way are those that control the blurring and
+resampling of the images, the number of iterations during
+optimisation and the length and number of steps used.  These
+parameters are described below.
+
+\par
+Specifying a resolution level with a line such as 
+
+\par
+\verbatim
+  Resolution level = 2
+\endverbatim
+
+\par
+ties all the affected parameters to the specified resolution
+level until the next appearance of a similar line for a different
+resolution level.
+
+\par
+<b>Parameter name :</b> "Target blurring (in mm)"
+                  "Source blurring (in mm)"
+
+\par
+<b>Parameter value :</b> A floating point number.  These parameters
+determine the size of the Gaussian kernel used to blur the source
+and target images.  A value of zero indicates that no blurring
+should be done.
+
+\par
+The degree of blurring can be specified separately for each
+resolution level using the "Resolution level" parameter as
+described above.  If a blurring parameter is only specified once,
+without specifying a resolution level, then the value is assumed
+to relate to resolution level number 1 (the final level).  The
+values for assigned to the remaining levels are obtained by
+successive doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "Target resolution (in mm)"
+                  "Source resolution (in mm)"
+
+\par
+<b>Parameter value :</b> Floating point number(s).  These parameters
+determine the voxel size of the resampled images during
+registration.  A value of zero indicates that the images should
+not be resampled.  If a single number is specified, the resampled
+voxel size is isotropic, e.g.:
+
+\par
+\verbatim
+  Target resolution (in mm) = 2
+\endverbatim
+
+\par
+Alternatively, giving multiple values allows anisotropic
+resampling to be carried out, e.g., for a 3-D image:
+
+\par
+\verbatim
+  Target resolution (in mm) = 2 2 3
+\endverbatim
+
+\par
+The resampling resolutions can be specified separately for each
+resolution level using the "Resolution level" parameter as
+described above.  If a resolution parameter is specified only
+once, without specifying a resolution level, then the value is
+assumed to relate to resolution level number 1 (the final level)
+with the values for any other levels obtained by successive
+doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "No. of iterations"
+
+\par
+<b>Parameter value :</b> A number to specify the number of iterations to
+use during optimisation.  This is used as a stopping condition.
+The optimisation may stop before the number specified if the
+similarity metric changes by a negligible amount between
+iterations (see the `Epsilon' parameter)
+
+\par
+Different numbers of iterations can be specified for each
+resolution level using the "Resolution level" parameter as
+described above.  Specifying the number of iterations once,
+without specifying a resolution level, means that the same number
+of iterations is used for all resolution levels.
+
+\par
+<b>Parameter name :</b> "Length of steps"
+
+\par
+<b>Parameter value :</b> A positive floating point number to determine
+the amount by which the parameters are incremented when
+optimising the transformation parameters.
+
+\par
+A different step length can be specified for each resolution
+level using the "Resolution level" parameter as described above.
+If a single value is given, without specifying a particular
+resolution level, then the value is assigned to resolution level
+1 (final level) and the values assigned to the remaining levels
+are obtained by successive doubling of the specified value.
+
+\par
+<b>Parameter name :</b> "No. of steps"
+
+\par
+<b>Parameter value :</b> A positive integer.  It is possible to run the
+optimisation in a `coarse-to-fine' manner.  This starts by using
+large parameter steps (see `Length of steps' above) and
+estimating the transformation parameters, the parameter step is
+then halved and the optimisation is continued.  The 'No. of steps'
+parameter determines the number of step sizes used.  For example,
+if `Length of steps' is set to 2 and 'No. of steps' is set to 3,
+the optimisation will first use a step length of 8 and this is
+followed by step lengths of 4 and 2.
+
+\par
+This parameter can be separately specified for each resolution
+level using the "Resolution level" parameter as described above.
+If a single value is given, without specifying a particular
+resolution level, then the value is applied to all resolution
+levels.
+
+\par
+<b>Parameter name :</b> "Lambda1"
+                  "Lambda2"
+                  "Lambda3"
+
+\par
+<b>Parameter value :</b> Floating point numbers.  These three parameters
+represent weighting values for different types of regularisation
+penalty terms that can be added to the similarity metric during
+registration.  Assigning higher values for each weighting value
+results in more regularity in the resulting FFD displacement
+fields.
+
+\par
+If unspecified the default value for each parameter is zero.  The
+values for each of Lambda1, Lambda2 and Lambda3 are used to
+weight penalty terms for smoothness, volume preservation and
+topology preservation respectively.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection nregpars Example parameter file for use with nreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par
+An example parameter file for use with nreg.  The general
+registration parameters are given first, followed by the
+non-rigid registration parameters that are the same for all
+resolution levels.  Finally, parameters specific to each
+resolution level are given in separate groups.
+
+\verbatim
+#
+# Registration parameters
+#
+
+No. of resolution levels          = 3
+
+No. of bins                       = 64
+Epsilon                           = 0.0001
+Padding value                     = -1
+Similarity measure                = NMI
+Interpolation mode                = Linear
+Optimization method               = GradientDescent
+
+#
+# Non-rigid registration parameters
+#
+
+Lambda1                           = 0
+Lambda2                           = 0
+Lambda3                           = 0
+Control point spacing in X        = 40
+Control point spacing in Y        = 40
+Control point spacing in Z        = 40
+Subdivision                       = True
+
+#
+# Registration parameters for resolution level 1
+#
+
+Resolution level                  = 1
+Target blurring (in mm)           = 1.5
+Target resolution (in mm)         = 3 3 3
+Source blurring (in mm)           = 1.5
+Source resolution (in mm)         = 3 3 3
+No. of iterations                 = 10
+No. of steps                      = 4
+Length of steps                   = 5
+
+#
+# Registration parameters for resolution level 2
+#
+
+Resolution level                  = 2
+Target blurring (in mm)           = 3
+Target resolution (in mm)         = 6 6 6
+Source blurring (in mm)           = 3
+Source resolution (in mm)         = 6 6 6
+No. of iterations                 = 10
+No. of steps                      = 4
+Length of steps                   = 10
+
+#
+# Registration parameters for resolution level 3
+#
+
+Resolution level                  = 3
+Target blurring (in mm)           = 6
+Target resolution (in mm)         = 12 12 12
+Source blurring (in mm)           = 6
+Source resolution (in mm)         = 12 12 12
+No. of iterations                 = 10
+No. of steps                      = 4
+Length of steps                   = 20
+\endverbatim
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+
+\subsection prreg prreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  prreg [target] [source] <-dofout file>
+\endverbatim
+
+\par Notes:
+
+\par
+Estimate a rigid transformation between two sets of landmark
+points.  The point sets need to be in VTK format and are assumed
+to contain equal numbers of corresponding points. E.g.
+
+\par
+\verbatim
+  prreg a.vtk b.vtk -dofout prreg-a-b.vtk
+\endverbatim
+
+\par
+The resulting transformation maps locations in the target point
+set (a.vtk) to locations in the source point set (b.vtk).
+
+\par
+The registration uses a closed form optimisation that is based on
+singular value decomposition applied to a matrix derived from the
+point locations.  This method finds the least squares fit for the
+distance between corresponding points.
+
+\par
+The accuracy of the transformation, measured by root-mean-square
+RMS distance between corresponding points, is calculated and
+written to standard out.  If the -dofout flag is not used, the
+transformation is estimated in order to give the accuracy but it
+is not written to a file.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection pareg pareg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  pareg [target] [source] <options>
+
+  Where options are:
+  <-dofout    file>    Final transformation estimate
+  <-dofin     file>    Start transformation estimate
+\endverbatim
+
+\par Notes:
+
+\par
+Estimate an affine transformation between two sets of landmark
+points.  The point sets need to be in VTK format and are assumed
+to contain equal numbers of corresponding points. E.g.
+
+\par
+\verbatim
+  pareg a.vtk b.vtk -dofin prreg-a-b.vtk -dofout pareg-a-b.vtk
+\endverbatim
+
+\par
+Gives the affine transformation pareg-a-b.vtk based on an initial
+rigid estimate given by prreg-a-b.vtk.  The resulting
+transformation maps locations in the target point set (a.vtk) to
+locations in the source point set (b.vtk).
+
+\par
+The registration uses a conjugate gradient descent to optimise
+the affine transformation parameters so that the sum of squared
+distances between corresponding points is minimal.
+
+\par
+The accuracy of the transformation, measured by root-mean-square
+RMS distance between corresponding points, is calculated and
+written to standard out.  If the -dofout flag is not used, the
+transformation is estimated in order to give the accuracy but it
+is not written to a file.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection pnreg pnreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  pareg [target] [source] <options>
+
+  <-dofout file>       Final transformation estimate
+  <-dofin  file>       Start transformation estimate
+  <-ds spacing>        Control point spacing
+\endverbatim
+
+
+\par Notes:
+
+\par
+Estimate an non-rigid transformation between two sets of landmark
+points.  The non-rigid transformation is represented by a
+free-form deformation (FFD).  The point sets need to be in VTK
+format and are assumed to contain equal numbers of corresponding
+points. E.g.
+
+\par
+\verbatim
+  pnreg a.vtk b.vtk -dofin pareg-a-b.vtk -dofout pnreg-a-b.vtk -ds 10
+\endverbatim
+
+\par
+estimates the non-rigid FFD pnreg-a-b.vtk based on an initial
+affine estimate given by pareg-a-b.vtk.  The lattice of control
+points within the output FFD has a spacing of 10mm and covers the
+bounding box of the target points.  The resulting transformation
+maps locations in the target point set (a.vtk) to locations in
+the source point set (b.vtk).
+
+\par
+The registration optimises the control point vectors of the FFD
+so that the sum of squared distances between corresponding points
+is minimal.
+
+\par
+The accuracy of the transformation, measured by root-mean-square
+RMS distance between corresponding points, is calculated and
+written to standard out.  If the -dofout flag is not used, the
+transformation is estimated in order to give the accuracy but it
+is not written to a file.
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection srreg srreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  srreg [target] [source] <options>
+
+  where <options> is one or more of the following:
+
+  <-locator>          Locator: 0 = cell locator,
+                               1 = point locator, (default)
+                               2 = kd-tree locator
+  <-dofin name>       Name of input file
+  <-dofout name>      Name of output file
+  <-epsilon>          Value for espilon (default=0.01)
+  <-clean>            Clean polydata (default OFF)
+  <-symmetric>        Use symmetric distance (default OFF)
+  <-ignoreedges>      Ignores edges in ICP (default OFF)
+  <-invert>           Save the inverse transformation (default OFF)
+  <-iterations>       Number of iterations (default 100)
+\endverbatim
+
+\par Notes:
+
+\par
+Run a rigid surface registration for a pair of input meshes.  The
+meshes provided need to be in VTK format.  There is no
+restriction on the points contained in the input meshes,
+i.e. they do not need to be in correspondence.
+
+\par
+During registration, however, two sets of corresponding points
+are estimated from the meshes by finding, for each target point,
+the closest location in the source surface.  These point sets are
+then registered using a landmark-based rigid registration (see
+prreg).  The resulting transformation is then used to transform
+the target mesh and the process is iterated.
+
+\par
+A stopping condition for this process is determined by the
+maximum number of iterations, 100 iterations are used by default
+but this can be varied using the `-iterations' flag.
+
+\par
+Another stopping condition is met when `epsilon', the difference
+between the root-mean square error for corresponding points for
+successive iterations, falls below a specified value.  By
+default, registration halts when the difference between
+successive iterations is less than 0.01 and the value used can be
+varied using the -epsilon flag.
+
+\par
+An input transformation estimate can be specified with the
+`-dofin' flag and the resulting transformation estimate can be
+written to a file using the `-dofout' flag.  An example call
+might be:
+
+\par
+  srreg mesh-a.vtk mesh-b.vtk -dofout srreg-b-a.vtk -epsilon 0.001
+
+\par
+The resulting transformation maps locations in the target mesh to
+locations in the source mesh.
+
+\par
+By default, a point locator is used when estimating the
+corresponding point sets (`-locator 1') - this uses the nearest
+vertex in the source mesh for each target vertex.  Specifying a
+cell locator (`-locator 0') results in the identification of the
+nearest source locations from within the faces (cells) of the
+source mesh.  A kd-tree locator (`-locator 2') gives the same
+result as a point locator but uses a more efficient search
+method, which can be useful for large datasets.
+
+\par
+If the `-symmetric' flag is used, the corresponding point sets
+are estimated using both the nearest source locations to each
+target point and the nearest target locations for each source
+point.
+
+\par
+The `-invert' flag results in the inverse transformation being
+written to the file specified by dofout, i.e. the transformation
+that maps source mesh locations to the target mesh.
+
+\par
+The `-ignoreedges' flag is used for open meshes where a subset of
+the edges can be defined as boundary edges.  If specified, the
+boundary edges are identified and are not used during the
+registration.  This flag is not appropriate for closed meshes,
+for example spheres or topologically equivalent structures.
+
+\par
+The `-clean' flag results in the removal of duplicate or
+redundant vertices and degenerate faces from the input meshes.
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection sareg sareg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  sareg [target] [source] <options>
+
+  where <options> is one or more of the following:
+
+  <-locator>          Locator: 0 = cell locator,
+                               1 = point locator, (default)
+                               2 = kd-tree locator
+  <-dofin name>       Name of input file
+  <-dofout name>      Name of output file
+  <-epsilon>          Value for espilon (default=0.01)
+  <-clean>            Clean polydata (default OFF)
+  <-symmetric>        Use symmetric distance (default OFF)
+  <-ignoreedges>      Ignores edges in ICP (default OFF)
+  <-invert>           Save the inverse transformation (default OFF)
+  <-iterations>       Number of iterations (default 100)
+\endverbatim
+
+\par Notes:
+
+\par
+Run an affine surface registration for a pair of input meshes.
+The meshes provided need to be in VTK format.  There is no
+restriction on the points contained in the input meshes,
+i.e. they do not need to be in correspondence.
+
+\par
+During registration, however, two sets of corresponding points
+are estimated from the meshes by finding, for each target point,
+the closest location in the source surface.  These point sets are
+then registered using a landmark-based affine registration (see
+pareg).  The resulting transformation is then used to transform
+the target mesh and the process is iterated.
+
+\par
+A stopping condition for this process is determined by the
+maximum number of iterations, 100 iterations are used by default
+but this can be varied using the `-iterations' flag.
+
+\par
+Another stopping condition is met when `epsilon', the difference
+between the root-mean square error for corresponding points for
+successive iterations, falls below a specified value.  By
+default, registration halts when the difference between
+successive iterations is less than 0.01 and the value used can be
+varied using the -epsilon flag.
+
+\par
+An input transformation estimate can be specified with the
+`-dofin' flag and the resulting transformation estimate can be
+written to a file using the `-dofout' flag.  An example call
+might be:
+
+\par
+\verbatim
+  sareg mesh-a.vtk mesh-b.vtk -dofin srreg-b-a.vtk -dofout sareg-b-a.vtk
+\endverbatim
+
+\par
+The resulting transformation maps locations in the target mesh to
+locations in the source mesh.
+
+\par
+By default, a point locator is used when estimating the
+corresponding point sets (`-locator 1') - this uses the nearest
+vertex in the source mesh for each target vertex.  Specifying a
+cell locator (`-locator 0') results in the identification of the
+nearest source locations from within the faces (cells) of the
+source mesh.  A kd-tree locator (`-locator 2') gives the same
+result as a point locator but uses a more efficient search
+method, which can be useful for large datasets.
+
+\par
+If the `-symmetric' flag is used, the corresponding point sets
+are estimated using both the nearest source locations to each
+target point and the nearest target locations for each source
+point.
+
+\par
+The `-invert' flag results in the inverse transformation being
+written to the file specified by dofout, i.e. the transformation
+that maps source mesh locations to the target mesh.
+
+\par
+The `-ignoreedges' flag is used for open meshes where a subset of
+the edges can be defined as boundary edges.  If specified, the
+boundary edges are identified and are not used during the
+registration.  This flag is not appropriate for closed meshes,
+for example spheres or topologically equivalent structures.
+
+\par
+The `-clean' flag results in the removal of duplicate or
+redundant vertices and degenerate faces from the input meshes.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection snreg snreg
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  snreg [target] [source] <options>
+
+  where <options> is one or more of the following:
+
+  <-locator>          Locator: 0 = cell locator
+                               1 = point locator (default)
+                               2 = kd-tree locator
+  <-dofin name>       Name of input file
+  <-dofout name>      Name of output file
+  <-epsilon>          Value for espilon (default=0.01)
+  <-symmetric>        Use symmetric distance (default OFF)
+  <-ignoreedges>      Ignores edges in ICP (default OFF)
+  <-iterations>       Number of iterations (default 100)
+  <-ds spacing>       Control point spacing
+\endverbatim
+
+\par Notes:
+
+\par
+Run a non-rigid surface registration for a pair of input meshes.
+The non-rigid transformation is modelled using a free-form
+deformation (FFD).  The meshes provided need to be in VTK format.
+There is no restriction on the points contained in the input
+meshes, i.e. they do not need to be in correspondence.
+
+\par
+During registration, however, two sets of corresponding points
+are estimated from the meshes by finding, for each target point,
+the closest location in the source surface.  These point sets are
+then registered using a landmark-based non-rigid registration
+(see pnreg).  The resulting transformation is then used to
+transform the target mesh and the process is iterated.
+
+\par
+A stopping condition for this process is determined by the
+maximum number of iterations, 100 iterations are used by default
+but this can be varied using the `-iterations' flag.
+
+\par
+Another stopping condition is met when `epsilon', the difference
+between the root-mean square error for corresponding points for
+successive iterations, falls below a specified value.  By
+default, registration halts when the difference between
+successive iterations is less than 0.01 and the value used can be
+varied using the -epsilon flag.
+
+\par
+An input transformation estimate can be specified with the
+`-dofin' flag and the resulting transformation estimate can be
+written to a file using the `-dofout' flag.  The `-ds' flag
+determines the control point spacing of the FFD transformation.
+An example call might be:
+
+\par
+\verbatim
+  snreg mesh-a.vtk mesh-b.vtk -dofin sareg-b-a.vtk -dofout snreg-b-a.vtk -ds 10
+\endverbatim
+
+\par
+The resulting transformation maps locations in the target mesh to
+locations in the source mesh and is represented by a FFD with a
+10mm control point spacing.
+
+\par
+By default, a point locator is used when estimating the
+corresponding point sets (`-locator 1') - this uses the nearest
+vertex in the source mesh for each target vertex.  Specifying a
+cell locator (`-locator 0') results in the identification of the
+nearest source locations from within the faces (cells) of the
+source mesh.  A kd-tree locator (`-locator 2') gives the same
+result as a point locator but uses a more efficient search
+method, which can be useful for large datasets.
+
+\par
+If the `-symmetric' flag is used, the corresponding point sets
+are estimated using both the nearest source locations to each
+target point and the nearest target locations for each source
+point.
+
+\par
+The `-ignoreedges' flag is used for open meshes where a subset of
+the edges can be defined as boundary edges.  If specified, the
+boundary edges are identified and are not used during the
+registration.  This flag is not appropriate for closed meshes,
+for example spheres or topologically equivalent structures.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection transformation transformation
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  transformation [source] [output] <options>
+
+  where <options> is one or more of the following:
+
+  <-dofin file>      Transformation
+  <-target file>     Target image
+  <-Rx1 value>       Region of interest
+  <-Ry1 value>       Region of interest
+  <-Rz1 value>       Region of interest
+  <-Rx2 value>       Region of interest
+  <-Ry2 value>       Region of interest
+  <-Rz2 value>       Region of interest
+  <-Tx1 value>       Region of interest in target image
+  <-Ty1 value>       Region of interest in target image
+  <-Tz1 value>       Region of interest in target image
+  <-Tx2 value>       Region of interest in target image
+  <-Ty2 value>       Region of interest in target image
+  <-Tz2 value>       Region of interest in target image
+  <-Sx1 value>       Region of interest in source image
+  <-Sy1 value>       Region of interest in source image
+  <-Sz1 value>       Region of interest in source image
+  <-Sx2 value>       Region of interest in source image
+  <-Sy2 value>       Region of interest in source image
+  <-Sz2 value>       Region of interest in source image
+  <-Tp value>        Target padding value
+  <-Sp value>        Source padding value
+  <-invert>          Invert transformation
+  <-linear>          Linear interpolation
+  <-bspline>         B-spline interpolation
+  <-cspline>         Cubic spline interpolation
+  <-sinc>            Sinc interpolation
+\endverbatim
+
+\par Notes:
+
+\par
+Transform one image (the source) onto the voxel lattice of a
+second image (the target) using a transformation estimate.  A
+typical set of command line arguments might be as follows:
+
+\par
+\verbatim
+  transformation a.nii.gz out.nii.gz -dofin tr-a-b.dof -target b.nii.gz -linear
+\endverbatim
+
+\par
+In this example the image being transformed is a.nii.gz, the
+voxel lattice of the resulting image (out.nii.gz) will match that
+of the target image (b.nii.gz).
+
+\par
+The transformation given, tr-a-b.dof, is used to transform the
+source intensities to the target but it should be noted that this
+transformation maps locations in the target image to locations in
+the source image.  The intensity at each voxel of out.nii.gz is
+`pulled-back' from the corresponding source location.
+
+\par
+If no file is given for the transformation, a default identity
+transformation is used.  I.e. it is assumed that the target and
+source images share the same world coordinate system (although
+they need not share the same voxel lattice).
+
+\par
+An interpolation method (`-linear' in the above example) is
+usually required because the source locations corresponding to
+target voxels may not coincide with the source voxel lattice.  If
+no interpolation scheme is specified, nearest neighbour
+interpolation is used by default.
+
+\par
+If no target image is specified, the voxel lattice of the source
+is used as a default.
+
+\par
+Specifying a region of interest can be achieved by using the
+flags -Rx1, -Rx2, etc (replacing `R' with `T' or `S' if the
+region of interest is specific to the target or source images).
+An example could be:
+
+\par
+\verbatim
+  transformation a.nii.gz out.nii.gz -dofin tr-a-b.dof -target b.nii.gz -Rz1 50 -Rz2 60
+\endverbatim
+
+\par
+In this case, the voxel lattice for out.nii.gz will contain 10
+z-slices, these correspond to the ten slices in the target image
+starting with the 50th.
+
+\par
+A padding value can be used to restrict the target voxel
+locations at which the transformation is estimated.  In this case
+the padding value is assigned directly to the corresponding
+output voxels without calculating the transformation, for
+example:
+
+\par
+\verbatim
+  transformation a.nii.gz out.nii.gz -dofin tr-a-b.dof -target b.nii.gz -Tp -1 -linear
+\endverbatim
+
+\par
+In this example, all voxels in out.nii.gz will be assigned a
+value of -1 where the intensity in target image (b.nii.gz) is
+less than or equal to -1.
+
+\par
+The invert flag can be used if the direction of the
+transformation is to be reversed.  For example, using the same
+images and transformation from the examples above:
+
+\par
+\verbatim
+  transformation b.nii.gz out.nii.gz -dofin tr-a-b.dof -target a.nii.gz -invert
+\endverbatim
+
+\par
+This will transform the image b.nii.gz onto the voxel lattice of
+a.nii.gz.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection jacobian jacobian
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  jacobian [input] [output] [ffd]
+
+  where <options> is one or more of the following:
+
+  <-total>                 Total jacobian (default)
+  <-local>                 Local jacobian only
+  <-global>                Global jacobian only
+  <-relative>              Local jacobian divided by global Jacobian
+  <-padding value>         Padding value
+\endverbatim
+
+\par Notes:
+
+\par
+Generate a map of Jacobian determinants for a given free-form
+deformation transformation (FFD).  The Jacobian determinants can
+be used as a measure of the volume change induced by the
+transformation.  These can be regions of expansion (>1),
+contraction (<1) and volume preservation (=1).
+
+\par
+The transformation for which the Jacobian values are calculated
+is specified by the [ffd] argument.  The locations at which the
+Jacobians are calculated are on the voxel lattice of the image
+specified by the [input] argument.  The resulting Jacobian
+determinant values are written to an image specified by the
+[output] argument, i.e. the [input] and [output] images share the
+same voxel lattice.
+
+\par
+The [input] image needs to be appropriate for the transformation.
+For example, if the transformation is a result of a registration
+step between a pair of images, then the target image used during
+the registration may be used as the [input] image for
+ffdjacobian.  This is due to the transformation being defined
+with respect to the target voxel lattice (see nreg).
+
+\par
+The `-padding' flag can be used to restrict the number of voxels
+over which the calculations are carried out.  For example, if the
+image a.nii.gz has a value of -1 for all voxels outside a region
+of interest, then a typical call might be:
+
+\par
+\verbatim
+  ffdjacobian a.nii.gz jac-ffd-b-a.nii.gz ffd-b-a.nii.gz -padding -1
+\endverbatim
+
+\par
+where ffd-b-a.nii.gz represents the result of non-rigidly
+registering a source image b.nii.gz to the target image a.nii.gz.
+
+\par
+By default, the total Jacobian is calculated for the FFD, this
+represents the volume change induced by both the global affine
+component and the local non-rigid component of the FFD
+transformation.  The global and local Jacobian determinants can
+be obtained separately by using the `-global' and `-local' flags
+respectively.  The `-relative' flag produces estimates of the
+local Jacobian expressed as a fraction of the global Jacobian.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection atlas atlas
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  atlas [output] [input1..inputN] <options>
+
+  where <options> is one or more of the following:
+  <-scale factor>  Scaling factor (0 means no normalisation)
+\endverbatim
+
+\par Notes:
+
+\par
+Generate an atlas image based on averaging a set of input
+images.
+
+\par
+The averaging is carried out on a per-voxel basis so the input
+images need to occupy the same voxel lattice.  One way to achieve
+this is through a set of registration and transformation steps.
+
+\par
+For example, if images a.nii.gz, b.nii.gz, c.nii.gz are to be
+atlased in the space of a target or reference image r.nii.gz, the
+process might be started with an affine registration step:
+
+\par
+\verbatim
+  areg r.nii.gz a.nii.gz -dofout areg-a-r.dof
+  areg r.nii.gz b.nii.gz -dofout areg-b-r.dof
+  areg r.nii.gz c.nii.gz -dofout areg-c-r.dof
+\endverbatim
+
+\par
+the source images can then be transformed so that they are
+resampled onto the lattice of the reference image:
+
+\par
+\verbatim
+  transformation a.nii.gz tr-a.nii.gz -dofin areg-a-r.dof -target r.nii.gz
+  transformation b.nii.gz tr-b.nii.gz -dofin areg-b-r.dof -target r.nii.gz
+  transformation c.nii.gz tr-c.nii.gz -dofin areg-c-r.dof -target r.nii.gz
+\endverbatim
+
+\par
+now the transformed images may be averaged to produce an atlas:
+
+\par
+\verbatim
+  atlas atlas-abc.nii.gz tr-a.nii.gz tr-b.nii.gz tr-c.nii.gz
+\endverbatim
+
+\par
+If many images are to be averaged then it is possible to use the
+`*' symbol as a wild card if they share the same name format,
+e.g.:
+
+\par
+\verbatim
+  atlas atlas-many-images.nii.gz tr-*.nii.gz
+\endverbatim
+
+\par
+The `-scale' flag allows for variations in the intensity ranges
+of the input images to be accommodated.  If it used to specify a
+factor, then, prior to averaging, each image's intensities are
+linearly scaled to have mean zero and standard deviation one.
+After averaging, the resulting values are multiplied by the
+factor specified with the `-scale' flag.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection dof2flirt dof2flirt
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  dof2flirt [dofin] [target] [source] [matrix_out.raw] <options>
+  where <options> can be one or more of the following:
+  <-info>           Print transformation info
+  <-print>          Print matrix to screen
+\endverbatim
+
+\par Notes:
+
+\par
+Convert a transformation (.dof) file to the FSL flirt format.
+The flirt format is represented by a matrix that transforms
+target world locations (measured in mm) to source world
+locations.  The format assumes that the origin of each image is
+represented by the centre of the voxel with lattice index
+(0,0,0).  This means that, as well as the transformation file to
+be converted, [dofin], the target and source images also need to
+be given in the argument list.  The resulting matrix is written
+out to [matrix_out.raw].
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection dof2image dof2image
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  dof2image [image] [dof] [dx] [dy] [dz]
+\endverbatim
+
+\par Notes:
+
+\par
+Calculate the x, y and z components of the displacements of the
+transformation represented by [dof].  These displacements are
+calculated at the voxel locations of the input [image].  The
+components of resulting displacements are written to three
+separate images with names specified by the arguments [dx], [dy]
+and [dz].
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection dof2mat dof2mat
+
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  dof2mat [doffile] [-matout matrixfile] [-invert]
+\endverbatim
+
+\par Notes:
+
+\par
+Convert a transformation represented by the file [doffile] to the
+IRTK project matrix format.  The output is represented a
+homogeneous transformation matrix.  E.g.:
+
+\par
+\verbatim
+  dof2mat areg-a-b.dof -matout areg-a-b.mat
+\endverbatim
+
+\par
+If the '-matout' argument is not used, the homogeneous matrix is
+written to standard out.
+
+\par
+If the '-invert' is used, the transformation is inverted prior to
+conversion.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection dofinvert dofinvert
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  dofinvert [dofin] [dofout]
+\endverbatim
+
+\par Notes:
+
+\par
+Invert an affine transformation, [dofin], and write the result to
+[dofout].
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection flirt2dof flirt2dof
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  flirt2dof [matrix_in.raw] [target] [source] [dofout] <options>
+\endverbatim
+
+\par Notes:
+
+\par
+Convert a transformation from the FSL flirt format to DOF format.
+The flirt format is represented by a matrix that transforms
+target world locations (measured in mm) to source world
+locations.  The format assumes that the origin of each image is
+represented by the centre of the voxel with lattice index
+(0,0,0).  This means that, as well as the transformation file to
+be converted, [matrix_in.raw], the target and source images also 
+need to be given in the argument list.  The resulting DOF file 
+is written out to [dofout].
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection info info
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  info [image] [-real] [-grey] [-byte]
+\endverbatim
+
+\par Notes:
+
+\par
+Returns general information about an image, most of this
+information is obtained from the image header.  The flags are
+used to control how the voxel intensity data are interpreted:
+`-real' treats the data as floating point values, `-grey' treats
+them as 2 byte integers and `-byte' treats them as single byte
+integers.
+
+\par
+The fields returned by info include the following:
+
+\li Image size (dimensions): The number of voxels along each
+dimension of the image.
+
+
+\li Voxel size (dimensions): The size (in mm) of each voxel.
+
+\li Bytes per voxel: This depends on the data type.  Images in Byte,
+Short and Floating Point format use 1, 2 and 4 bytes per voxel
+respectively.
+
+\li Voxel type: E.g. Byte, Float, Short.
+
+\li Image origin: The location of the origin used to measure the
+world (mm) coordinates of the image.  This is represented as the
+offset, in mm, of the origin from the centre of the voxel
+lattice.  I.e. an origin of (0, 0, 0) corresponds to a world
+coordinate origin at the centre of the image.
+
+\li X, Y and Z axes: Three vectors that determine the orientation of
+the world coordinate axes with respect to the voxel lattice.
+
+\li The minimum and maximum intensities: This is written as two
+numbers on a single line.
+
+\li Coordinate matrices: Two matrices are printed, these are used to
+convert between image coordinates (i.e. with respect to the voxel
+lattice) to world (mm) coordinates.
+
+
+\par
+The NIFTI format also has the following additional fields:
+
+\li Transformation specification: The conversions between world and
+image coordinates can be encoded using an affine transformation
+matrix or a quaternion form.
+
+\li Order: Neurological or Radiological.
+
+\li Scale slope: A multiplying factor for the stored image data.
+
+\li Intercept : An offset for the stored image data.  For example, a
+scale slope of 2 and an intercept of 10 means that the intensity
+data in the file are multiplied by 2 and increased by 10 before
+processing.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection convert convert
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  convert [in] [out] <options>
+
+     where <options can be one or more of the following:
+         <-real|-grey|-byte>       Output voxel type
+         <-minmax value value>     Output min and max intensity
+     The following input formats are supported:
+         .pgm
+         generic 2D/3D byte, short, float
+         .rrep .gipl .vtk .unc
+     The following output formats are supported:
+         .gipl .vtk .unc .nii .gipl.gz .nii.gz
+\endverbatim
+
+\par Notes:
+
+\par
+`convert' allows images to be converted between different
+formats.  E.g.
+
+\par
+\verbatim
+  convert old.hdr new.nii
+\endverbatim
+
+\par
+converts an Analyze image to a NIFTI image.  It is possible to
+compress the output image in the same step by appending a `gz'
+suffix:
+
+\par
+\verbatim
+  convert old.hdr new.nii.gz
+\endverbatim
+
+\par
+The output data type can be set by the appropriate
+flags, e.g. a binary mask image using integer shorts can be
+converted to byte format by:
+
+\par
+\verbatim
+  convert mask.nii.gz byteMask.nii.gz -byte
+\endverbatim
+
+\par
+If floating point calculations are to be applied, an image can be
+converted to this format by:
+
+\par
+\verbatim
+  convert image.nii.gz image.nii.gz -real
+\endverbatim
+
+\par
+In this example, the output image over-writes the input image.
+
+\par
+Note that formats consisting of a single file e.g. gipl or NIFTI,
+can have a `gz' suffix when used as input or output.  Images in
+Analyze format have separate header and data files (`hdr' and
+`img').  When setting an Analyze image as output (deprecated), it
+is not possible to compress the data (`.img') file in the same
+step.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection threshold threshold
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  threshold [input] [output] [threshold]
+\endverbatim
+
+\par Notes:
+
+\par
+Generate a binary image based on thresholding the intensities of
+the input image. E.g.
+
+\par
+\verbatim
+  threshold input.nii.gz output.nii.gz 50
+\endverbatim
+
+\par
+means output.nii.gz will have a value of one for all voxels where
+input.nii.gz is greater than 50.  All other voxels in input will
+have an intensity of zero.
+
+\par
+This command interprets input data and writes output data as two
+byte integers.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection binarize binarize
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  binarize [in] [out] [threshold] [value1] [value2]
+\endverbatim
+
+\par Notes:
+
+\par
+Generate a binary image based on thresholding the intensities of
+the input image.  This performs a similar function to the
+`threshold' application except that the output image will have
+user set values instead of zero and one.  E.g.
+
+\par
+\verbatim
+  binarize input.nii.gz output.nii.gz  0  -10  10
+\endverbatim
+
+\par
+will create output.nii.gz that has a value of ten for all voxels
+where the corresponding input intensity is positive and a value
+of -10 for all other voxels.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection mcubes mcubes
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  mcubes [image] [polydata] [threshold] <options>
+
+  where options can be selected from the following:
+
+  <-decimate>
+  <-smooth>
+  <-normals on|off>
+  <-gradients on|off>
+  <-blur sigma>
+  <-isotropic>
+  <-size x y z>
+  <-ascii>
+\endverbatim
+
+\par Notes:
+
+\par
+Apply the marching cubes algorithm to an image in order to
+produce a mesh representation.  The mesh represents a selected
+iso-intensity surface within the image and is produced in VTK
+format.
+
+\par
+A typical application for mcubes may be to generate a mesh
+representation for a structure given a binary (0/1) mask for the
+structure.  For example:
+
+\par
+\verbatim
+  mcubes mask.nii.gz surf.vtk 0.5 
+\endverbatim
+
+\par
+generates a surface based that estimates the 0.5 iso-surface
+within the image.
+
+\par
+If a discrete binary image is used, the resulting mesh may
+contain a significant number of irregularities.  A smoother
+result may be required and this can be achieved using either of
+the `-blur' or `-smooth' flags.
+
+\par
+If the `-blur' flag is specified, the input image is first
+blurred using a Gaussian kernel with a standard deviation given
+after the flag, e.g.:
+
+\par
+\verbatim
+  mcubes mask.nii.gz surf.vtk 0.5 -blur 1
+\endverbatim
+
+\par
+The iso-surface is estimated after the blurring step.
+
+\par
+If the `-smooth' flag is used, the mesh is smoothed directly
+after it has been generated by the marching cubes algorithm.
+
+\par
+By default, the normal vectors at each vertex location in the
+mesh are calculated and included in the output file.  This can be
+set explicitly by using `-normals on' at the command line or
+prevented by using `-normals off'.
+
+\par
+Selection of whether the gradient of the input image is
+associated with the vertex in the mesh can be controlled by using
+`-gradient on' or `-gradient off' at the command line.  By
+default these are not included in the output.
+
+\par
+If the input image contains anisotropic voxels, it is possible to
+resample it prior to extracting the surface using the
+`-isotropic' flag.  The voxel dimensions of the resulting image
+will correspond to the minimum dimension of the input image
+voxels.  It is possible to separately specify the voxel
+dimensions at the resampling stage by using the `-size' option
+followed by three numbers representing the voxel size in mm.
+
+\par
+By default, the output is written in VTK binary format.  This can
+be overridden by using the `-ascii' flag.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection padding padding
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  padding [imageA] [mask] [output] [maskPaddingValue] [outputPaddingValue]
+\endverbatim
+
+\par Notes:
+
+\par
+Pads a region in an image with a chosen value.  This can be done
+to restrict the region of interest within the image to the
+unpadded voxels.  For example if scan.nii.gz represents a head
+scan for a subject and brainMask.nii.gz represents a binary mask
+for the brain (with a value of one for brain and zero elsewhere),
+then
+
+\par
+\verbatim
+  padding scan.nii.gz brainMask.nii.gz scan_pad.nii.gz 0 -1
+\endverbatim
+
+\par
+generates the image scan_pad.nii.gz which is identical to
+scan.nii.gz within the brain region but has a value of -1 outside
+the brain.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection blur blur
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  blur [in] [out] [sigma]
+\endverbatim
+
+\par Notes:
+
+\par
+Apply Gaussian blurring to input image [in] and write the result
+to output image [out].  The standard deviation of the kernel used
+to blur the image is given by the [sigma] parameter which is
+measured in mm.  Higher values of sigma result in a higher degree
+of blurring.  An example:
+
+\par
+\verbatim
+  blur a.nii.gz a-blur.nii.gz 2
+\endverbatim
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection dilation dilation
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  dilation [in] [out] <options>
+  Where <options> are one or more of the following:
+	  <-iterations n>    Number of iterations
+\endverbatim
+
+\par Notes:
+
+\par
+Apply the morphological dilation operator to the input image and
+write the result to an output image.  For example, if in.nii.gz
+represents a binary image where background is zero and foreground
+is one, then the call
+
+\par
+\verbatim
+  dilation in.nii.gz out.nii.gz
+\endverbatim
+
+\par
+produces out.nii.gz which contains an enlarged set of input
+foreground voxels.  The dilation operator converts to foreground
+any background voxels that were adjacent to a foreground voxel.
+Adjacency in this case means within the 26-neighbourhood for 3-D
+images and within the 8-neighbourhood for 2-D images.
+
+\par
+Repeated dilations can be achieved by using the -iterations flag.
+
+\par
+The operator can also be applied to grey-level images
+(non-binary) but the effect is beyond the scope of these notes.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection erosion erosion
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  erosion [in] [out] <options>
+  Where <options> are one or more of the following:
+	  <-iterations n>    Number of iterations
+\endverbatim
+
+\par Notes:
+
+\par
+Apply the morphological erosion operator to the input image and
+write the result to an output image.  For example, if in.nii.gz
+represents a binary image where background is zero and foreground
+is one, then the call
+
+\par
+\verbatim
+  erosion in.nii.gz out.nii.gz
+\endverbatim
+
+\par
+produces out.nii.gz which contains a reduced set of input
+foreground voxels.  The erosion operator converts to background
+any foreground voxels that were adjacent to a background voxel.
+Adjacency in this case means within the 26-neighbourhood for 3-D
+images and within the 8-neighbourhood for 2-D images.
+
+\par
+Repeated erosions can be achieved by using the -iterations flag.
+
+\par
+The operator can also be applied to grey-level images
+(non-binary) but the effect is beyond the scope of these notes.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection closing closing
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  closing [in] [out] <options>
+  Where <options> are one or more of the following:
+	  <-iterations n>    Number of iterations
+\endverbatim
+
+\par Notes:
+
+\par
+Produces the result of applying a dilation operator followed by an
+erosion operator to the image.  When applied to a binary image
+this tends to remove small `holes' within the foreground voxels.
+
+\par
+See notes on `erosion' and `dilation'.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection opening opening
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  opening [in] [out] <options>
+  Where <options> are one or more of the following:
+	  <-iterations n>    Number of iterations
+\endverbatim
+
+\par Notes:
+
+\par
+Produces the result of applying an erosion operator followed by
+a dilation operator to the image.  When applied to a binary image
+this tends to remove small regions of foreground voxels.
+
+\par
+See notes on `erosion and `dilation'.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection reflect reflect
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  reflect [in] [out] [-x/-y/-z]
+\endverbatim
+
+\par Notes:
+
+\par
+Reflects the image data matrix along the specified axis:
+
+\par
+\verbatim
+  reflect first.nii.gz second.nii.gz -y
+\endverbatim
+
+\par
+Will result in two images with image data related by a reflection
+in the y = 0 plane (x-z plane).
+
+\par
+This command interprets input data and writes output data as two
+byte integers.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection region region
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  region [in] [out] <-Rx1 x1> <-Ry1 y1> <-Rz1 z1> <-Rx2 x2> <-Ry2 y2> <-Rz2 z2>
+\endverbatim
+
+\par Notes:
+
+\par
+Extract a region from input image [in] and write the result to
+output image [out].  The bounds for x are given by the optional
+parameters -Rx1 and -Rx2, with the bounds for y and z similarly
+defined.  The bounds specify a region with respect to the voxel
+lattice (or image coordinates) of the input image.  Indices for
+the voxel lattice are indexed from zero.  The following example:
+
+\par
+\verbatim
+  region a.nii.gz a-crop.nii.gz -Ry1 20 -Ry2 50
+\endverbatim
+
+\par
+will generate an image formed by taking 30 slices perpendicular
+to the y-dimension from the input voxel lattice, starting with
+the slice at index 20 (i.e. the 21st slice).  The bounds for x
+and z are unspecified in this example, which results in an output
+image with the same x and z dimensions as the input image.
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection resample resample
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  resample [in] [out] <options>
+  Where <options> are one or more of the following:
+         <-size x y z>      New voxel size in mm (default: 1 1 1)
+         <-linear>          Linear interpolation
+         <-bspline>         B-spline interpolation
+         <-cspline>         Cubic spline interpolation
+         <-sinc>            Truncated sinc interpolation
+         <-padding value>   Background padding (default: MIN_SHRT)
+                            Only linear interpolation for padding!
+\endverbatim
+
+\par Notes:
+
+\par
+Create a new image with a different voxel spacing.  The fields of
+view for the input and output images are the same.  The
+difference between the voxel spacings on the new and old voxel
+lattices means that an interpolation scheme is required as the
+new image's voxels are unlikely to coincide with those in the old
+image.
+
+\par
+For example, if input.nii.gz is an image with isotropic 2mm voxels,
+
+\par
+\verbatim
+  resample input.nii.gz output.nii.gz -size 3 3 3 -bspline
+\endverbatim
+
+\par
+applies B-Spline based interpolation to the data in input.nii.gz
+to generate a new image with 3mm isotropically spaced voxels.
+
+\par
+\verbatim
+  resample input.nii.gz output.nii.gz -size 3 3 3 -bspline -padding 0
+\endverbatim
+
+\par
+applies B-Spline interpolation only in regions where the
+intensity is greater than zero.  Less computationally expensive
+linear interpolation is used elsewhere.
+
+\par
+This command interprets input data and writes output data as two
+byte integers.
+
+
+\htmlonly
+<HR>
+\endhtmlonly
+
+\subsection rescale rescale
+
+\htmlonly
+<P Align="right">
+\endhtmlonly
+\ref introduction "top"
+\htmlonly
+</P>
+\endhtmlonly
+
+\par Usage:
+
+\par
+\verbatim
+  rescale [in] [out] [min] [max]
+\endverbatim
+
+\par Notes:
+
+\par
+The intensities in the input image are multiplied and a shift is
+added so that the new minimum and maximum values match those
+given on the command line.
+
+\par
+This command interprets input data and writes output data as two
+byte integers.
+
+**/

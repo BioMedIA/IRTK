@@ -1,0 +1,1 @@
+./configure  --enable-gcc --with-vtk=/staff/dr38/packages/vtk-2.2b --with-xgl=/opt/SUNWits/Graphics-sw/xgl
