@@ -259,7 +259,7 @@ int main(int argc, char **argv)
 
 #else
 
-#include <iostream>
+#include <irtkImage.h>
 
 int main( int argc, char *argv[] )
 {
