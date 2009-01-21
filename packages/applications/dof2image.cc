@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   x2 = image.GetX();
   y2 = image.GetY();
   z2 = image.GetZ();
-  t2 = image.GetY();
+  t2 = image.GetT();
 
   // Initialize parameters
   scale   = 1;
