@@ -161,6 +161,8 @@ public:
 
   friend irtkMatrix FrechetMean(irtkMatrix *, int, int = 10);
 
+  friend irtkMatrix FrechetMean(irtkMatrix *, double *, int, int = 10);
+
 #ifndef USE_STL
   /// Comparison operator != (if USE_STL is defined, negate == operator)
   int operator!=(const irtkMatrix &);
