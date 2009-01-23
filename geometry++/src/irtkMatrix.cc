@@ -412,6 +412,59 @@ irtkMatrix FrechetMean (irtkMatrix *matrices, int number, int iterations)
   return mu;
 }
 
+irtkMatrix FrechetMean (irtkMatrix *matrices, double *weights, int number, int iterations)
+{
+
+  int i, n = 0;
+  double normLogDeltaMu = 0;
+  double tolerance = 0.0000000000001;
+  double totalWeight = 0.0f;
+
+  irtkMatrix mu(4, 4);
+  irtkMatrix muInv(4, 4);
+  irtkMatrix deltaMu(4, 4);
+  irtkMatrix logDeltaMu(4, 4);
+
+  irtkMatrix deltaM(4, 4);
+  irtkMatrix sumLogs(4, 4);
+
+  for (i = 0; i < number; i++){
+    totalWeight += weights[i];
+  }
+
+  if (totalWeight <= 0.0){
+    cerr << "itkMatrix::FrechetMean : Weight sum must be positive." << endl;
+    exit(1);
+  }
+
+  mu = matrices[0];
+
+  do {
+
+    muInv = mu; muInv.Invert();
+    // Reset sum to zero.
+    sumLogs.Initialize(4, 4);
+
+    for (i = 0; i < number; i++) {
+      deltaM = muInv * matrices[i];
+      sumLogs += logm( deltaM ) * weights[i];
+    }
+
+    sumLogs /= ((double) totalWeight);
+    deltaMu = expm(sumLogs);
+
+    mu = mu * deltaMu;
+
+    logDeltaMu = logm(deltaMu);
+    normLogDeltaMu = logDeltaMu.InfinityNorm();
+
+    n++;
+
+  } while (normLogDeltaMu > tolerance && n < iterations);
+
+  return mu;
+}
+
 irtkMatrix irtkMatrix::operator~ (void)
 {
   irtkMatrix m;
