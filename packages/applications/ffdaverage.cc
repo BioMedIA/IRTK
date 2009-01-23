@@ -131,6 +131,10 @@ int main(int argc, char **argv)
     argc--;
     argv++;
   }
+  
+  if (dofCount > 0){
+    cout << "Read " << dofCount << " transformations from command line." << endl;
+  }
 
   // Default: No kernel smoothing
   mean  = 0;
@@ -209,6 +213,12 @@ int main(int argc, char **argv)
   }
 
   if (textfile != NULL) {
+
+    if (dofCount > 0){
+      cerr << "ffdaverage : Text file specified for transformations but " << dofCount << " have already been read." << endl;
+      exit(1);
+    }
+
     ifstream in(textfile);
     if (in.is_open()) {
       while (!in.eof()) {
@@ -216,11 +226,15 @@ int main(int argc, char **argv)
         in >> dofin_name[dofCount] >> dofin_value[dofCount];
         if (strlen(dofin_name[dofCount]) > 0) {
           dofin_weight[dofCount] = 1.0 / sqrt(2.0) / sigma * exp(-pow((mean - dofin_value[dofCount])/sigma, 2.0)/2);
+
           if (dofin_weight[dofCount] > epsilon) {
             total_weight   += dofin_weight[dofCount];
             cout << dofin_value[dofCount] << " " << dofin_weight[dofCount] << " " << total_weight << endl;
-            dofCount++;
+          } else {
+            dofin_weight[dofCount] = 0.0f;
           }
+
+          dofCount++;
         }
       }
       in.close();
@@ -228,7 +242,12 @@ int main(int argc, char **argv)
       cout << "ffdaverage: Unable to open file " << textfile << endl;
       exit(1);
     }
+
+    cout << "Read " << dofCount << " transformations from file " << textfile << endl;
+
   }
+
+  dofin_weight[dofCount] = identity_weight;
   total_weight += identity_weight;
 
   for (i = 0; i < dofCount; ++i) {
@@ -304,9 +323,9 @@ int main(int argc, char **argv)
       // Put the identity matrix at the end.
       globMats[dofCount].Initialize(4, 4);
       globMats[dofCount].Ident();
-      globMatAv = FrechetMean(globMats, dofCount + 1, 20);
+      globMatAv = FrechetMean(globMats, dofin_weight, dofCount + 1, 20);
     } else {
-      globMatAv = FrechetMean(globMats, dofCount, 20);
+      globMatAv = FrechetMean(globMats, dofin_weight, dofCount, 20);
     }
   }
 
