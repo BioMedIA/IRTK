@@ -37,7 +37,7 @@ int main(int argc, char **argv)
   Bool ok, padding;
   double xsize, ysize, zsize;
   irtkGreyImage image;
-  irtkImageFunction<irtkGreyPixel> *interpolator = NULL;
+  irtkImageFunction *interpolator = NULL;
   irtkGreyPixel padding_value = MIN_GREY;
 
   // Check command line
@@ -80,31 +80,31 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkLinearInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkLinearInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkBSplineInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkBSplineInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkCSplineInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkCSplineInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkSincInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkSincInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkGaussianInterpolateImageFunction<irtkGreyPixel>(atof(argv[1]));
+      interpolator = new irtkGaussianInterpolateImageFunction(atof(argv[1]));
       argc--;
       argv++;
       ok = True;
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
   // Create default interpolator
   if (interpolator == NULL) {
-    interpolator = new irtkNearestNeighborInterpolateImageFunction<irtkGreyPixel>;
+    interpolator = new irtkNearestNeighborInterpolateImageFunction;
   }
 
   // Resample

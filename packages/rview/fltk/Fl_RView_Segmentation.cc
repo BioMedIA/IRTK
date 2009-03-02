@@ -439,10 +439,10 @@ void Fl_RViewUI::UpdateSegmentationBrowser()
 
 void Fl_RViewUI::UpdateSegmentationControlWindow()
 {
-  regionGrowingMin->minimum(rview->GetTargetLookupTable()->minData);
-  regionGrowingMin->maximum(rview->GetTargetLookupTable()->maxData);
-  regionGrowingMax->minimum(rview->GetTargetLookupTable()->minData);
-  regionGrowingMax->maximum(rview->GetTargetLookupTable()->maxData);
+  regionGrowingMin->minimum(rview->GetTargetMin());
+  regionGrowingMin->maximum(rview->GetTargetMax());
+  regionGrowingMax->minimum(rview->GetTargetMin());
+  regionGrowingMax->maximum(rview->GetTargetMax());
   regionGrowingMin->value(rview->GetRegionGrowingThresholdMinimum());
   regionGrowingMax->value(rview->GetRegionGrowingThresholdMaximum());
 
@@ -599,13 +599,13 @@ void Fl_RViewUI::InitializeSegmentationControlWindow()
     o->labeltype(FL_NO_LABEL);
     o->box(FL_ENGRAVED_BOX);
     {
-      regionGrowingMin = new Fl_Value_Slider(10, 570, 380, 20, "Minimum threshold for region growing");
+      regionGrowingMin = new Fl_Value_Slider2(10, 570, 380, 20, "Minimum threshold for region growing");
       regionGrowingMin->type(5);
       regionGrowingMin->box(FL_EMBOSSED_BOX);
       regionGrowingMin->step(1);
       regionGrowingMin->callback((Fl_Callback*)cb_SetRegionGrowingThresholdMinimum);
       regionGrowingMin->align(FL_ALIGN_BOTTOM_LEFT);
-      regionGrowingMax = new Fl_Value_Slider(10, 610, 380, 20, "Maximum threshold for region growing");
+      regionGrowingMax = new Fl_Value_Slider2(10, 610, 380, 20, "Maximum threshold for region growing");
       regionGrowingMax->type(5);
       regionGrowingMax->box(FL_EMBOSSED_BOX);
       regionGrowingMax->step(1);

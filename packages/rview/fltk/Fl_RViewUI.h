@@ -54,6 +54,7 @@
 // FLU
 #include <Fl_Simple_Group.h>
 #include <Fl_Simple_Browser.h>
+#include <Fl_Value_Slider2.h>
 
 // Local includes
 #include <Fl_RView.h>

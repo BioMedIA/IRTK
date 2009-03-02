@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,7 +7,7 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -32,11 +32,13 @@
 
 #include <irtkRView.h>
 
-typedef struct {
+typedef struct
+{
   int x;
   int y;
   int z;
-} irtkLocation;
+}
+irtkLocation;
 
 irtkVoxelContour::irtkVoxelContour()
 {
@@ -49,7 +51,7 @@ irtkVoxelContour::irtkVoxelContour()
 
 void irtkVoxelContour::Initialise(irtkRView *rview, irtkGreyImage* viewer)
 {
-  int i1, j1, k1, i2, j2, k2, axis[3];
+  int i, i1, j1, k1, i2, j2, k2, axis[3];
   double x1, y1, z1, x2, y2, z2;
 
   // Pointer to rview
@@ -62,182 +64,230 @@ void irtkVoxelContour::Initialise(irtkRView *rview, irtkGreyImage* viewer)
   axis[1] = 1;
   axis[2] = 2;
   switch (i1) {
-  case IRTK_L2R:
-  case IRTK_R2L:
-    if ((i2 == IRTK_L2R) || (i2 == IRTK_R2L)) {
-      axis[0] = 0;
-    }
-    if ((j2 == IRTK_L2R) || (j2 == IRTK_R2L)) {
-      axis[0] = 1;
-    }
-    if ((k2 == IRTK_L2R) || (k2 == IRTK_R2L)) {
-      axis[0] = 2;
-    }
-    break;
-  case IRTK_A2P:
-  case IRTK_P2A:
-    if ((i2 == IRTK_A2P) || (i2 == IRTK_P2A)) {
-      axis[0] = 0;
-    }
-    if ((j2 == IRTK_A2P) || (j2 == IRTK_P2A)) {
-      axis[0] = 1;
-    }
-    if ((k2 == IRTK_A2P) || (k2 == IRTK_P2A)) {
-      axis[0] = 2;
-    }
-    break;
-  case IRTK_S2I:
-  case IRTK_I2S:
-    if ((i2 == IRTK_S2I) || (i2 == IRTK_I2S)) {
-      axis[0] = 0;
-    }
-    if ((j2 == IRTK_S2I) || (j2 == IRTK_I2S)) {
-      axis[0] = 1;
-    }
-    if ((k2 == IRTK_S2I) || (k2 == IRTK_I2S)) {
-      axis[0] = 2;
-    }
-    break;
+    case IRTK_L2R:
+    case IRTK_R2L:
+      if ((i2 == IRTK_L2R) || (i2 == IRTK_R2L)) {
+        axis[0] = 0;
+      }
+      if ((j2 == IRTK_L2R) || (j2 == IRTK_R2L)) {
+        axis[0] = 1;
+      }
+      if ((k2 == IRTK_L2R) || (k2 == IRTK_R2L)) {
+        axis[0] = 2;
+      }
+      break;
+    case IRTK_A2P:
+    case IRTK_P2A:
+      if ((i2 == IRTK_A2P) || (i2 == IRTK_P2A)) {
+        axis[0] = 0;
+      }
+      if ((j2 == IRTK_A2P) || (j2 == IRTK_P2A)) {
+        axis[0] = 1;
+      }
+      if ((k2 == IRTK_A2P) || (k2 == IRTK_P2A)) {
+        axis[0] = 2;
+      }
+      break;
+    case IRTK_S2I:
+    case IRTK_I2S:
+      if ((i2 == IRTK_S2I) || (i2 == IRTK_I2S)) {
+        axis[0] = 0;
+      }
+      if ((j2 == IRTK_S2I) || (j2 == IRTK_I2S)) {
+        axis[0] = 1;
+      }
+      if ((k2 == IRTK_S2I) || (k2 == IRTK_I2S)) {
+        axis[0] = 2;
+      }
+      break;
   }
   switch (j1) {
-  case IRTK_L2R:
-  case IRTK_R2L:
-    if ((i2 == IRTK_L2R) || (i2 == IRTK_R2L)) {
-      axis[1] = 0;
-    }
-    if ((j2 == IRTK_L2R) || (j2 == IRTK_R2L)) {
-      axis[1] = 1;
-    }
-    if ((k2 == IRTK_L2R) || (k2 == IRTK_R2L)) {
-      axis[1] = 2;
-    }
-    break;
-  case IRTK_A2P:
-  case IRTK_P2A:
-    if ((i2 == IRTK_A2P) || (i2 == IRTK_P2A)) {
-      axis[1] = 0;
-    }
-    if ((j2 == IRTK_A2P) || (j2 == IRTK_P2A)) {
-      axis[1] = 1;
-    }
-    if ((k2 == IRTK_A2P) || (k2 == IRTK_P2A)) {
-      axis[1] = 2;
-    }
-    break;
-  case IRTK_S2I:
-  case IRTK_I2S:
-    if ((i2 == IRTK_S2I) || (i2 == IRTK_I2S)) {
-      axis[1] = 0;
-    }
-    if ((j2 == IRTK_S2I) || (j2 == IRTK_I2S)) {
-      axis[1] = 1;
-    }
-    if ((k2 == IRTK_S2I) || (k2 == IRTK_I2S)) {
-      axis[1] = 2;
-    }
-    break;
+    case IRTK_L2R:
+    case IRTK_R2L:
+      if ((i2 == IRTK_L2R) || (i2 == IRTK_R2L)) {
+        axis[1] = 0;
+      }
+      if ((j2 == IRTK_L2R) || (j2 == IRTK_R2L)) {
+        axis[1] = 1;
+      }
+      if ((k2 == IRTK_L2R) || (k2 == IRTK_R2L)) {
+        axis[1] = 2;
+      }
+      break;
+    case IRTK_A2P:
+    case IRTK_P2A:
+      if ((i2 == IRTK_A2P) || (i2 == IRTK_P2A)) {
+        axis[1] = 0;
+      }
+      if ((j2 == IRTK_A2P) || (j2 == IRTK_P2A)) {
+        axis[1] = 1;
+      }
+      if ((k2 == IRTK_A2P) || (k2 == IRTK_P2A)) {
+        axis[1] = 2;
+      }
+      break;
+    case IRTK_S2I:
+    case IRTK_I2S:
+      if ((i2 == IRTK_S2I) || (i2 == IRTK_I2S)) {
+        axis[1] = 0;
+      }
+      if ((j2 == IRTK_S2I) || (j2 == IRTK_I2S)) {
+        axis[1] = 1;
+      }
+      if ((k2 == IRTK_S2I) || (k2 == IRTK_I2S)) {
+        axis[1] = 2;
+      }
+      break;
   }
   switch (k1) {
-  case IRTK_L2R:
-  case IRTK_R2L:
-    if ((i2 == IRTK_L2R) || (i2 == IRTK_R2L)) {
-      axis[2] = 0;
-    }
-    if ((j2 == IRTK_L2R) || (j2 == IRTK_R2L)) {
-      axis[2] = 1;
-    }
-    if ((k2 == IRTK_L2R) || (k2 == IRTK_R2L)) {
-      axis[2] = 2;
-    }
-    break;
-  case IRTK_A2P:
-  case IRTK_P2A:
-    if ((i2 == IRTK_A2P) || (i2 == IRTK_P2A)) {
-      axis[2] = 0;
-    }
-    if ((j2 == IRTK_A2P) || (j2 == IRTK_P2A)) {
-      axis[2] = 1;
-    }
-    if ((k2 == IRTK_A2P) || (k2 == IRTK_P2A)) {
-      axis[2] = 2;
-    }
-    break;
-  case IRTK_S2I:
-  case IRTK_I2S:
-    if ((i2 == IRTK_S2I) || (i2 == IRTK_I2S)) {
-      axis[2] = 0;
-    }
-    if ((j2 == IRTK_S2I) || (j2 == IRTK_I2S)) {
-      axis[2] = 1;
-    }
-    if ((k2 == IRTK_S2I) || (k2 == IRTK_I2S)) {
-      axis[2] = 2;
-    }
-    break;
+    case IRTK_L2R:
+    case IRTK_R2L:
+      if ((i2 == IRTK_L2R) || (i2 == IRTK_R2L)) {
+        axis[2] = 0;
+      }
+      if ((j2 == IRTK_L2R) || (j2 == IRTK_R2L)) {
+        axis[2] = 1;
+      }
+      if ((k2 == IRTK_L2R) || (k2 == IRTK_R2L)) {
+        axis[2] = 2;
+      }
+      break;
+    case IRTK_A2P:
+    case IRTK_P2A:
+      if ((i2 == IRTK_A2P) || (i2 == IRTK_P2A)) {
+        axis[2] = 0;
+      }
+      if ((j2 == IRTK_A2P) || (j2 == IRTK_P2A)) {
+        axis[2] = 1;
+      }
+      if ((k2 == IRTK_A2P) || (k2 == IRTK_P2A)) {
+        axis[2] = 2;
+      }
+      break;
+    case IRTK_S2I:
+    case IRTK_I2S:
+      if ((i2 == IRTK_S2I) || (i2 == IRTK_I2S)) {
+        axis[2] = 0;
+      }
+      if ((j2 == IRTK_S2I) || (j2 == IRTK_I2S)) {
+        axis[2] = 1;
+      }
+      if ((k2 == IRTK_S2I) || (k2 == IRTK_I2S)) {
+        axis[2] = 2;
+      }
+      break;
   }
 
-  // Get orientation of target
-  double xaxis[3], yaxis[3], zaxis[3];
-  rview->_targetImage->GetOrientation(xaxis, yaxis, zaxis);
-
-  // Get origin of viewer
-  double xorigin, yorigin, zorigin;
-  rview->_targetImage->GetOrigin(xorigin, yorigin, zorigin);
+  // Get attributes of viewer
+  irtkImageAttributes attr = _rview->_targetImage->GetImageAttributes();
 
   // Compute position of origin in target voxel coordinates
-  x1 = xorigin;
-  y1 = yorigin;
-  z1 = zorigin;
+  x1 = attr._xorigin;
+  y1 = attr._yorigin;
+  z1 = attr._zorigin;
   _rview->_targetImage->WorldToImage(x1, y1, z1);
-  x2 = xorigin;
-  y2 = yorigin;
-  z2 = zorigin;
+  x2 = attr._xorigin;
+  y2 = attr._yorigin;
+  z2 = attr._zorigin;
   _rview->_targetImage->WorldToImage(x2, y2, z2);
 
   // Create image
   if ((axis[0] == 0) && (axis[1] == 1)) {
-    _raster->Initialize(_rview->_targetImage->GetX(), _rview->_targetImage->GetY(), _rview->_targetImage->GetZ(), _rview->_targetImage->GetXSize(), _rview->_targetImage->GetYSize(), _rview->_targetImage->GetZSize(),
-                        xaxis, yaxis, zaxis);
+    _raster->Initialize(attr);
     x1 = x2;
     y1 = y2;
     z1 = z2;
   }
   if ((axis[0] == 1) && (axis[1] == 0)) {
-    _raster->Initialize(_rview->_targetImage->GetY(), _rview->_targetImage->GetX(), _rview->_targetImage->GetZ(), _rview->_targetImage->GetYSize(), _rview->_targetImage->GetXSize(), _rview->_targetImage->GetZSize(),
-                        yaxis, xaxis, zaxis);
+    irtkImageAttributes tmp;
+    tmp._y = attr._x;
+    tmp._x = attr._y;
+    tmp._z = attr._z;
+    tmp._dy = attr._dx;
+    tmp._dx = attr._dy;
+    tmp._dz = attr._dz;
+    for (i = 0; i < 3; i++) {
+      tmp._yaxis[i] = attr._xaxis[i];
+      tmp._xaxis[i] = attr._yaxis[i];
+      tmp._zaxis[i] = attr._zaxis[i];
+    }
+    _raster->Initialize(tmp);
     x1 = y2;
     y1 = x2;
     z1 = z2;
   }
   if ((axis[0] == 0) && (axis[1] == 2)) {
-    _raster->Initialize(_rview->_targetImage->GetX(), _rview->_targetImage->GetZ(), _rview->_targetImage->GetY(), _rview->_targetImage->GetXSize(), _rview->_targetImage->GetZSize(), _rview->_targetImage->GetYSize(),
-                        xaxis, zaxis, yaxis);
+    irtkImageAttributes tmp;
+    tmp._x = attr._x;
+    tmp._z = attr._y;
+    tmp._y = attr._z;
+    tmp._dx = attr._dx;
+    tmp._dz = attr._dy;
+    tmp._dy = attr._dz;
+    for (i = 0; i < 3; i++) {
+      tmp._xaxis[i] = attr._xaxis[i];
+      tmp._zaxis[i] = attr._yaxis[i];
+      tmp._yaxis[i] = attr._zaxis[i];
+    }
+    _raster->Initialize(tmp);
     x1 = x2;
     y1 = z2;
     z1 = y2;
   }
   if ((axis[0] == 2) && (axis[1] == 0)) {
-    _raster->Initialize(_rview->_targetImage->GetZ(), _rview->_targetImage->GetX(), _rview->_targetImage->GetY(), _rview->_targetImage->GetZSize(), _rview->_targetImage->GetXSize(), _rview->_targetImage->GetYSize(),
-                        zaxis, xaxis, yaxis);
+    irtkImageAttributes tmp;
+    tmp._z = attr._x;
+    tmp._x = attr._y;
+    tmp._y = attr._z;
+    tmp._dz = attr._dx;
+    tmp._dx = attr._dy;
+    tmp._dy = attr._dz;
+    for (i = 0; i < 3; i++) {
+      tmp._zaxis[i] = attr._xaxis[i];
+      tmp._xaxis[i] = attr._yaxis[i];
+      tmp._yaxis[i] = attr._zaxis[i];
+    }
+    _raster->Initialize(tmp);
     x1 = z2;
     y1 = x2;
     z1 = y2;
   }
   if ((axis[0] == 1) && (axis[1] == 2)) {
-    _raster->Initialize(_rview->_targetImage->GetY(), _rview->_targetImage->GetZ(), _rview->_targetImage->GetX(), _rview->_targetImage->GetYSize(), _rview->_targetImage->GetZSize(), _rview->_targetImage->GetXSize(),
-                        yaxis, zaxis, xaxis);
+    irtkImageAttributes tmp;
+    tmp._y = attr._x;
+    tmp._z = attr._y;
+    tmp._x = attr._z;
+    tmp._dy = attr._dx;
+    tmp._dz = attr._dy;
+    tmp._dx = attr._dz;
+    for (i = 0; i < 3; i++) {
+      tmp._yaxis[i] = attr._xaxis[i];
+      tmp._zaxis[i] = attr._yaxis[i];
+      tmp._xaxis[i] = attr._zaxis[i];
+    }
+    _raster->Initialize(tmp);
     x1 = y2;
     y1 = z2;
     z1 = x2;
   }
   if ((axis[0] == 2) && (axis[1] == 1)) {
-    _raster->Initialize(_rview->_targetImage->GetZ(), _rview->_targetImage->GetY(), _rview->_targetImage->GetX(), _rview->_targetImage->GetZSize(), _rview->_targetImage->GetYSize(), _rview->_targetImage->GetXSize(),
-                        zaxis, yaxis, xaxis);
+    irtkImageAttributes tmp;
+    tmp._z = attr._x;
+    tmp._y = attr._y;
+    tmp._x = attr._z;
+    tmp._dz = attr._dx;
+    tmp._dy = attr._dy;
+    tmp._dx = attr._dz;
+    for (i = 0; i < 3; i++) {
+      tmp._zaxis[i] = attr._xaxis[i];
+      tmp._yaxis[i] = attr._yaxis[i];
+      tmp._xaxis[i] = attr._zaxis[i];
+    }
+    _raster->Initialize(tmp);
     x1 = z2;
     y1 = y2;
     z1 = x2;
   }
-
   _raster->ImageToWorld(x1, y1, z1);
   _rview->_targetImage->ImageToWorld(x2, y2, z2);
   _raster->PutOrigin(x2 - x1, y2 - y1, z2 - z1);
@@ -321,7 +371,7 @@ void irtkVoxelContour::FillArea(irtkPoint p)
 {
   int x, y, z;
 
-// Add the filled area as a new point set
+  // Add the filled area as a new point set
   this->AddPointSet();
 
   // Make sure the point set has at least one point
@@ -353,7 +403,7 @@ void irtkVoxelContour::RegionGrowing(irtkPoint p, int thresholdMin, int threshol
 {
   int x, y, z;
 
-// Add the filled area as a new point set
+  // Add the filled area as a new point set
   this->AddPointSet();
 
   // Make sure the point set has at least one point
@@ -481,7 +531,7 @@ bool inline irtkVoxelContour::RegionGrowingCriteria(int i, int j, int k, double 
   i = round(x);
   j = round(y);
   k = round(z);
-  return ((_rview->_targetImage->Get(i, j, k) >= lowT) && (_rview->_targetImage->Get(i, j, k) <= highT));
+  return ((_rview->_targetImage->GetAsDouble(i, j, k) >= lowT) && (_rview->_targetImage->GetAsDouble(i, j, k) <= highT));
 }
 
 void irtkVoxelContour::Fill(int seedX, int seedY, int seedZ)

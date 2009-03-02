@@ -18,7 +18,7 @@
 
 #include <irtkTransformation.h>
 
-template <class VoxelType> class irtkImageHomogeneousTransformation  : public irtkImageTransformation<VoxelType>
+class irtkImageHomogeneousTransformation  : public irtkImageTransformation
 {
 
 public:

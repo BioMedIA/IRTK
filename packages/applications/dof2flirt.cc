@@ -93,13 +93,11 @@ int main(int argc, char **argv)
   argv++;
 
   // Read in image pairs to deal with different coordinate systems
-  irtkFileToImage<irtkGreyPixel> *target_reader =
-    irtkFileToImage<irtkGreyPixel>::New(argv[1]);
+  irtkFileToImage *target_reader = irtkFileToImage::New(argv[1]);
   irtkGreyImage target(argv[1]);
   argc--;
   argv++;
-  irtkFileToImage<irtkGreyPixel> *source_reader =
-    irtkFileToImage<irtkGreyPixel>::New(argv[1]);
+  irtkFileToImage *source_reader = irtkFileToImage::New(argv[1]);
   irtkGreyImage source(argv[1]);
   argc--;
   argv++;

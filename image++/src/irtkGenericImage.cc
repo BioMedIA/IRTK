@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,7 +7,7 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #define _IMPLEMENTS_GENERICIMAGE_
@@ -17,58 +17,88 @@
 #include <irtkFileToImage.h>
 #include <irtkImageToFile.h>
 
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, int t)
+template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(void) : irtkBaseImage()
 {
-  _matrix = NULL;
-  this->Initialize(x, y, z, t);
+  _attr._x = 0;
+  _attr._y = 0;
+  _attr._z = 0;
+  _attr._t = 0;
+
+  // Initialize data
+  _matrix  = NULL;
 }
 
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, double dx, double dy, double dz)
+template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, int t) : irtkBaseImage()
 {
+	irtkImageAttributes attr;
+	
+	attr._x = x;
+	attr._y = y;
+	attr._z = z;
+	attr._t = t;
+	
+	// Initialize data
   _matrix = NULL;
-  this->Initialize(x, y, z, dx, dy, dz);
-}
 
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, int t, double dx, double dy, double dz, double dt)
-{
-  _matrix = NULL;
-  this->Initialize(x, y, z, t, dx, dy, dz, dt);
-}
-
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, double dx, double dy, double dz, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _matrix = NULL;
-  this->Initialize(x, y, z, dx, dy, dz, xaxis, yaxis, zaxis);
-}
-
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, int t, double dx, double dy, double dz, double dt, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _matrix = NULL;
-  this->Initialize(x, y, z, t, dx, dy, dz, dt, xaxis, yaxis, zaxis);
-}
-
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, double dx, double dy, double dz, irtkPoint origin, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _matrix = NULL;
-  this->Initialize(x, y, z, dx, dy, dz, origin, xaxis, yaxis, zaxis);
-}
-
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, int t, double dx, double dy, double dz, double dt, irtkPoint origin, double torigin, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _matrix = NULL;
-  this->Initialize(x, y, z, t, dx, dy, dz, dt, origin, torigin, xaxis, yaxis, zaxis);
+	// Initialize rest of class
+  this->Initialize(attr);
 }
 
 template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(char *filename)
 {
+	// Initialize data
   _matrix = NULL;
+
   // Read image
-  Read(filename);
+  this->Read(filename);
 }
 
-template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(void)
+template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(const irtkImageAttributes &attr) : irtkBaseImage()
 {
+	// Initialize data
+  _matrix  = NULL;
+
+	// Initialize rest of class
+  this->Initialize(attr);
+}
+
+template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(const irtkGenericImage &image) : irtkBaseImage()
+{
+  int i, n;
+  VoxelType *ptr1, *ptr2;
+
+	// Initialize data
   _matrix = NULL;
+
+	// Initialize rest of class
+  this->Initialize(image._attr);
+  
+  n    = this->GetNumberOfVoxels();
+  ptr1 = this->GetPointerToVoxels();
+  ptr2 = image.GetPointerToVoxels();
+  for (i = 0; i < n; i++) {
+    ptr1[i] = ptr2[i];
+  }
+}
+ 
+template <class VoxelType> template <class VoxelType2> irtkGenericImage<VoxelType>::irtkGenericImage(const irtkGenericImage<VoxelType2> &image)
+{
+  int i, n;
+  VoxelType  *ptr1;
+  VoxelType2 *ptr2;
+
+	// Initialize data
+  _matrix = NULL;
+  
+	// Initialize rest of class
+  this->Initialize(image.GetImageAttributes());
+  
+  n    = this->GetNumberOfVoxels();
+  ptr1 = this->GetPointerToVoxels();
+  ptr2 = image.GetPointerToVoxels();
+  for (i = 0; i < n; i++) {
+    ptr1[i] = static_cast<VoxelType>(ptr2[i]);
+  }
 }
 
 template <class VoxelType> irtkGenericImage<VoxelType>::~irtkGenericImage(void)
@@ -77,63 +107,61 @@ template <class VoxelType> irtkGenericImage<VoxelType>::~irtkGenericImage(void)
     Deallocate<VoxelType>(_matrix);
     _matrix = NULL;
   }
+  _attr._x = 0;
+  _attr._y = 0;
+  _attr._z = 0;
+  _attr._t = 0;
 }
 
-template <> const char *irtkGenericImage<irtkBytePixel>::NameOfClass()
+template <> const char *irtkGenericImage<char>::NameOfClass()
 {
-  return "irtkGenericImage<BytePixel>";
+  return "irtkGenericImage<char>";
 }
 
-template <> const char *irtkGenericImage<irtkGreyPixel>::NameOfClass()
+template <> const char *irtkGenericImage<unsigned char>::NameOfClass()
 {
-  return "irtkGenericImage<GreyPixel>";
+  return "irtkGenericImage<unsigned char>";
 }
 
-template <> const char *irtkGenericImage<irtkRealPixel>::NameOfClass()
+template <> const char *irtkGenericImage<short>::NameOfClass()
 {
-  return "irtkGenericImage<RealPixel>";
+  return "irtkGenericImage<short>";
 }
 
-template <> const char *irtkGenericImage<irtkRGBPixel>::NameOfClass()
+template <> const char *irtkGenericImage<unsigned short>::NameOfClass()
 {
-  return "irtkGenericImage<RGBPixel>";
+  return "irtkGenericImage<unsigned short>";
 }
 
-template <> const char *irtkGenericImage<irtkVector3D<char> >::NameOfClass()
+template <> const char *irtkGenericImage<float>::NameOfClass()
 {
-  return "irtkGenericImage<irtkVector3D<char> >";
+  return "irtkGenericImage<float>";
 }
 
-template <> const char *irtkGenericImage<irtkVector3D<short> >::NameOfClass()
+template <> const char *irtkGenericImage<double>::NameOfClass()
 {
-  return "irtkGenericImage<irtkVector3D<short> >";
+  return "irtkGenericImage<double>";
 }
 
-template <> const char *irtkGenericImage<irtkVector3D<float> >::NameOfClass()
-{
-  return "irtkGenericImage<irtkVector3D<float> >";
-}
-
-template <> const char *irtkGenericImage<irtkVector3D<double> >::NameOfClass()
-{
-  return "irtkGenericImage<irtkVector3D<double> >";
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, int t)
+template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const irtkImageAttributes &attr)
 {
   int i, n;
   VoxelType *ptr;
 
   // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != t)) {
+  if ((_attr._x != attr._x) || (_attr._y != attr._y) || (_attr._z != attr._z) || (_attr._t != _attr._t)) {
     // Free old memory
     if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
     // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, t);
+    if (attr._x*attr._y*attr._z*attr._t > 0){
+    	_matrix = Allocate(_matrix, attr._x, attr._y, attr._z, attr._t);
+    } else {
+    	_matrix = NULL;
+    }
   }
 
   // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, t);
+  this->irtkBaseImage::Initialize(attr);
 
   // Initialize voxels
   n   = this->GetNumberOfVoxels();
@@ -142,199 +170,46 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, i
     ptr[i] = VoxelType();
   }
 }
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, double dx, double dy, double dz)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != 1)) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, 1);
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, dx, dy, dz);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, int t, double dx, double dy, double dz, double dt)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != t)) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, t);
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, t, dx, dy, dz, dt);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, double dx, double dy, double dz, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != 1)) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, 1);
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, dx, dy, dz, xaxis, yaxis, zaxis);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, int t, double dx, double dy, double dz, double dt, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != t)) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, t);
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, t, dx, dy, dz, dt, xaxis, yaxis, zaxis);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, double dx, double dy, double dz, irtkPoint origin, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != 1)) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, 1);
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, dx, dy, dz, origin, xaxis, yaxis, zaxis);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(int x, int y, int z, int t, double dx, double dy, double dz, double dt, irtkPoint origin, double torigin, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != x) || (_y != y) || (_z != z) || (_t != t)) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, x, y, z, t);
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(x, y, z, t, dx, dy, dz, dt, origin, torigin, xaxis, yaxis, zaxis);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const irtkBaseImage &image)
-{
-  int i, n;
-  VoxelType *ptr;
-
-  // Free memory
-  if ((_x != image.GetX()) || (_y != image.GetY()) || (_z != image.GetZ()) || (_t != image.GetT())) {
-    // Free old memory
-    if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
-    // Allocate new memory
-    _matrix = Allocate(_matrix, image.GetX(), image.GetY(), image.GetZ(), image.GetT());
-  }
-
-  // Initialize base class
-  this->irtkBaseImage::Initialize(image);
-
-  // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
-}
-
-template <> void irtkGenericImage<irtkRGBPixel>::Read(const char *filename)
-{}
 
 template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *filename)
 {
+  irtkBaseImage *image;
+
   // Allocate file reader
-  irtkFileToImage<VoxelType> *reader =
-    irtkFileToImage<VoxelType>::New(filename);
+  irtkFileToImage *reader = irtkFileToImage::New(filename);
 
-  // Set output
-  reader->SetOutput(this);
-
-  // Run reader
-  reader->Run();
+  // Get output
+  image = reader->GetOutput();
 
   // Delete reader
   delete reader;
+
+  // Convert image
+  if (dynamic_cast<irtkGenericImage<char> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<char> *>(image));
+  } else if (dynamic_cast<irtkGenericImage<unsigned char> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<unsigned char> *>(image));
+  } else  if (dynamic_cast<irtkGenericImage<short> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<short> *>(image));
+  } else if (dynamic_cast<irtkGenericImage<unsigned short> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<unsigned short> *>(image));
+  } else if (dynamic_cast<irtkGenericImage<float> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<float> *>(image));
+  } else if (dynamic_cast<irtkGenericImage<double> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<double> *>(image));
+  } else {
+  	cerr << "irtkGenericImage<VoxelType>::Read: Cannot convert image to desired type" << endl;
+  	exit(1);
+  }
+
+  // Delete image
+  delete image;
 }
 
 template <class VoxelType> void irtkGenericImage<VoxelType>::Write(const char *filename)
 {
   // Allocate file reader
-  irtkImageToFile<VoxelType> *writer =
-    irtkImageToFile<VoxelType>::New(filename);
+  irtkImageToFile *writer = irtkImageToFile::New(filename);
 
   // Set input
   writer->SetInput(this);
@@ -397,242 +272,6 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::GetMinMaxPad(VoxelT
   }
 }
 
-template <> void irtkGenericImage<irtkBytePixel>::PutMinMax(irtkBytePixel min, irtkBytePixel max)
-{
-  int i, n;
-  irtkBytePixel *ptr, min_val, max_val;
-
-  // Get lower and upper bound
-  this->GetMinMax(&min_val, &max_val);
-
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = round(((ptr[i] - min_val) / double(max_val - min_val)) *
-                   (max - min) + min);
-  }
-}
-
-template <> void irtkGenericImage<irtkGreyPixel>::PutMinMax(irtkGreyPixel min, irtkGreyPixel max)
-{
-  int i, n;
-  irtkGreyPixel *ptr, min_val, max_val;
-
-  // Get lower and upper bound
-  this->GetMinMax(&min_val, &max_val);
-
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = round(((ptr[i] - min_val) / double(max_val - min_val)) *
-                   (max - min) + min);
-  }
-}
-
-template <> void irtkGenericImage<irtkVector3D<char> >::PutMinMax(irtkVector3D<char> min, irtkVector3D<char> max)
-{
-  irtkVector3D<char> min_val, max_val;
-  min_val._x = CHAR_MAX;
-  min_val._y = CHAR_MAX;
-  min_val._z = CHAR_MAX;
-  max_val._x = CHAR_MIN;
-  max_val._y = CHAR_MIN;
-  max_val._z = CHAR_MIN;
-
-  // Get lower and upper bound of components.
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          if (_matrix[t][z][y][x]._x < min_val._x) {
-            min_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y < min_val._y) {
-            min_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z < min_val._z) {
-            min_val._z = _matrix[t][z][y][x]._z;
-          }
-          if (_matrix[t][z][y][x]._x > max_val._x) {
-            max_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y > max_val._y) {
-            max_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z > max_val._z) {
-            max_val._z = _matrix[t][z][y][x]._z;
-          }
-        }
-      }
-    }
-  }
-
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x = static_cast<char>((_matrix[t][z][y][x]._x - min_val._x)*(max._x - min._x)/static_cast<double>(max_val._x - min_val._x) + min._x);
-          _matrix[t][z][y][x]._y = static_cast<char>((_matrix[t][z][y][x]._y - min_val._y)*(max._y - min._y)/static_cast<double>(max_val._y - min_val._y) + min._y);
-          _matrix[t][z][y][x]._z = static_cast<char>((_matrix[t][z][y][x]._z - min_val._z)*(max._z - min._z)/static_cast<double>(max_val._z - min_val._z) + min._z);
-        }
-      }
-    }
-  }
-}
-
-template <> void irtkGenericImage<irtkVector3D<short> >::PutMinMax(irtkVector3D<short> min, irtkVector3D<short> max)
-{
-  irtkVector3D<short> min_val, max_val;
-  min_val._x = SHRT_MAX;
-  min_val._y = SHRT_MAX;
-  min_val._z = SHRT_MAX;
-  max_val._x = SHRT_MIN;
-  max_val._y = SHRT_MIN;
-  max_val._z = SHRT_MIN;
-
-  // Get lower and upper bound of components.
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          if (_matrix[t][z][y][x]._x < min_val._x) {
-            min_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y < min_val._y) {
-            min_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z < min_val._z) {
-            min_val._z = _matrix[t][z][y][x]._z;
-          }
-          if (_matrix[t][z][y][x]._x > max_val._x) {
-            max_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y > max_val._y) {
-            max_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z > max_val._z) {
-            max_val._z = _matrix[t][z][y][x]._z;
-          }
-        }
-      }
-    }
-  }
-
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x = static_cast<short>((_matrix[t][z][y][x]._x - min_val._x)*(max._x - min._x)/static_cast<double>(max_val._x - min_val._x) + min._x);
-          _matrix[t][z][y][x]._y = static_cast<short>((_matrix[t][z][y][x]._y - min_val._y)*(max._y - min._y)/static_cast<double>(max_val._y - min_val._y) + min._y);
-          _matrix[t][z][y][x]._z = static_cast<short>((_matrix[t][z][y][x]._z - min_val._z)*(max._z - min._z)/static_cast<double>(max_val._z - min_val._z) + min._z);
-        }
-      }
-    }
-  }
-}
-
-template <> void irtkGenericImage<irtkVector3D<float> >::PutMinMax(irtkVector3D<float> min, irtkVector3D<float> max)
-{
-  irtkVector3D<float> min_val, max_val;
-  min_val._x = FLT_MAX;
-  min_val._y = FLT_MAX;
-  min_val._z = FLT_MAX;
-  max_val._x = FLT_MIN;
-  max_val._y = FLT_MIN;
-  max_val._z = FLT_MIN;
-
-  // Get lower and upper bound of components.
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          if (_matrix[t][z][y][x]._x < min_val._x) {
-            min_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y < min_val._y) {
-            min_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z < min_val._z) {
-            min_val._z = _matrix[t][z][y][x]._z;
-          }
-          if (_matrix[t][z][y][x]._x > max_val._x) {
-            max_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y > max_val._y) {
-            max_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z > max_val._z) {
-            max_val._z = _matrix[t][z][y][x]._z;
-          }
-        }
-      }
-    }
-  }
-
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x = static_cast<float>((_matrix[t][z][y][x]._x - min_val._x)*(max._x - min._x)/static_cast<double>(max_val._x - min_val._x) + min._x);
-          _matrix[t][z][y][x]._y = static_cast<float>((_matrix[t][z][y][x]._y - min_val._y)*(max._y - min._y)/static_cast<double>(max_val._y - min_val._y) + min._y);
-          _matrix[t][z][y][x]._z = static_cast<float>((_matrix[t][z][y][x]._z - min_val._z)*(max._z - min._z)/static_cast<double>(max_val._z - min_val._z) + min._z);
-        }
-      }
-    }
-  }
-}
-
-template <> void irtkGenericImage<irtkVector3D<double> >::PutMinMax(irtkVector3D<double> min, irtkVector3D<double> max)
-{
-  irtkVector3D<double> min_val, max_val;
-  min_val._x = DBL_MAX;
-  min_val._y = DBL_MAX;
-  min_val._z = DBL_MAX;
-  max_val._x = DBL_MIN;
-  max_val._y = DBL_MIN;
-  max_val._z = DBL_MIN;
-
-  // Get lower and upper bound of components.
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          if (_matrix[t][z][y][x]._x < min_val._x) {
-            min_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y < min_val._y) {
-            min_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z < min_val._z) {
-            min_val._z = _matrix[t][z][y][x]._z;
-          }
-          if (_matrix[t][z][y][x]._x > max_val._x) {
-            max_val._x = _matrix[t][z][y][x]._x;
-          }
-          if (_matrix[t][z][y][x]._y > max_val._y) {
-            max_val._y = _matrix[t][z][y][x]._y;
-          }
-          if (_matrix[t][z][y][x]._z > max_val._z) {
-            max_val._z = _matrix[t][z][y][x]._z;
-          }
-        }
-      }
-    }
-  }
-
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x = static_cast<double>((_matrix[t][z][y][x]._x - min_val._x)*(max._x - min._x)/static_cast<double>(max_val._x - min_val._x) + min._x);
-          _matrix[t][z][y][x]._y = static_cast<double>((_matrix[t][z][y][x]._y - min_val._y)*(max._y - min._y)/static_cast<double>(max_val._y - min_val._y) + min._y);
-          _matrix[t][z][y][x]._z = static_cast<double>((_matrix[t][z][y][x]._z - min_val._z)*(max._z - min._z)/static_cast<double>(max_val._z - min_val._z) + min._z);
-        }
-      }
-    }
-  }
-}
-
 template <class VoxelType> void irtkGenericImage<VoxelType>::PutMinMax(VoxelType min, VoxelType max)
 {
   int i, n;
@@ -654,13 +293,16 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   int i, j;
   double x1, y1, z1, t1, x2, y2, z2, t2;
 
-  if ((k < 0) || (k >= _z) || (m < 0) || (m >= _t)) {
+  if ((k < 0) || (k >= _attr._z) || (m < 0) || (m >= _attr._t)) {
     cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
     exit(1);
   }
 
-  // Init
-  irtkGenericImage<VoxelType> image(_x, _y, 1, 1, _dx, _dy, _dz, _dt, _xaxis, _yaxis, _zaxis);
+  // Initialize
+  irtkImageAttributes attr = this->_attr;
+  attr._z = 1;
+  attr._t = 1;
+  irtkGenericImage<VoxelType> image(attr);
 
   // Calculate position of first voxel in roi in original image
   x1 = 0;
@@ -681,8 +323,8 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   image.PutOrigin(x1 - x2, y1 - y2, z1 - z2, t1 - t2);
 
   // Copy region
-  for (j = 0; j < _y; j++) {
-    for (i = 0; i < _x; i++) {
+  for (j = 0; j < _attr._y; j++) {
+    for (i = 0; i < _attr._x; i++) {
       image._matrix[0][0][j][i] = _matrix[m][k][j][i];
     }
   }
@@ -693,19 +335,20 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
 {
   int i, j, k;
 
-  if ((l < 0) || (l >= _t)) {
+  if ((l < 0) || (l >= _attr._t)) {
     cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
     exit(1);
   }
 
-  // Init
-  irtkGenericImage<VoxelType> image(_x, _y, _z, 1, _dx, _dy, _dz, _dt, _origin, _torigin, _xaxis, _yaxis, _zaxis);
-  image.PutOrigin(_origin);
+  // Initialize
+  irtkImageAttributes attr = this->_attr;
+  attr._t = 1;
+  irtkGenericImage<VoxelType> image(attr);
 
   // Copy region
-  for (k = 0; k < _z; k++) {
-    for (j = 0; j < _y; j++) {
-      for (i = 0; i < _x; i++) {
+  for (k = 0; k < _attr._z; k++) {
+    for (j = 0; j < _attr._y; j++) {
+      for (i = 0; i < _attr._x; i++) {
         image._matrix[0][k][j][i] = _matrix[l][k][j][i];
       }
     }
@@ -721,13 +364,17 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   if ((i1 < 0) || (i1 >= i2) ||
       (j1 < 0) || (j1 >= j2) ||
       (k1 < 0) || (k1 >= k2) ||
-      (i2 > _x) || (j2 > _y) || (k2 > _z)) {
+      (i2 > _attr._x) || (j2 > _attr._y) || (k2 > _attr._z)) {
     cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
     exit(1);
   }
 
-  // Init
-  irtkGenericImage<VoxelType> image(i2 - i1, j2 - j1, k2 - k1, _t, _dx, _dy, _dz, _dt, _xaxis, _yaxis, _zaxis);
+  // Initialize
+  irtkImageAttributes attr = this->_attr;
+  attr._x = i2 - i1;
+  attr._y = j2 - j1;
+  attr._z = k2 - k1;
+  irtkGenericImage<VoxelType> image(attr);
 
   // Calculate position of first voxel in roi in original image
   x1 = i1;
@@ -745,7 +392,7 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   image.PutOrigin(x1 - x2, y1 - y2, z1 - z2);
 
   // Copy region
-  for (l = 0; l < _t; l++) {
+  for (l = 0; l < _attr._t; l++) {
     for (k = k1; k < k2; k++) {
       for (j = j1; j < j2; j++) {
         for (i = i1; i < i2; i++) {
@@ -766,13 +413,18 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
       (j1 < 0) || (j1 >= j2) ||
       (k1 < 0) || (k1 >= k2) ||
       (l1 < 0) || (l1 >= l2) ||
-      (i2 > _x) || (j2 > _y) || (k2 > _z) || (l2 > _t)) {
+      (i2 > _attr._x) || (j2 > _attr._y) || (k2 > _attr._z) || (l2 > _attr._t)) {
     cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
     exit(1);
   }
 
-  // Init
-  irtkGenericImage<VoxelType> image(i2 - i1, j2 - j1, k2 - k1, l2 - l1, _dx, _dy, _dz, _dt, _xaxis, _yaxis, _zaxis);
+  // Initialize
+  irtkImageAttributes attr = this->_attr;
+  attr._x = i2 - i1;
+  attr._y = j2 - j1;
+  attr._z = k2 - k1;
+  attr._t = l2 - l1;
+  irtkGenericImage<VoxelType> image(attr);
 
   // Calculate position of first voxel in roi in original image
   x1 = i1;
@@ -802,12 +454,45 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   return image;
 }
 
+template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelType>::operator=(const irtkGenericImage<VoxelType> &image)
+{
+  int i, n;
+  VoxelType  *ptr1, *ptr2;
+
+  if (this == &image) return *this;
+  
+  this->Initialize(image._attr);
+  n    = this->GetNumberOfVoxels();
+  ptr1 = this->GetPointerToVoxels();
+  ptr2 = image.GetPointerToVoxels();
+  for (i = 0; i < n; i++) {
+    ptr1[i] = ptr2[i];
+  }
+  return *this;
+}
+
+template <class VoxelType> template <class VoxelType2> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelType>::operator=(const irtkGenericImage<VoxelType2> &image)
+{
+  int i, n;
+  VoxelType  *ptr1;
+  VoxelType2 *ptr2;
+  
+  this->Initialize(image.GetImageAttributes());
+  n    = this->GetNumberOfVoxels();
+  ptr1 = this->GetPointerToVoxels();
+  ptr2 = image.GetPointerToVoxels();
+  for (i = 0; i < n; i++) {
+    ptr1[i] = static_cast<VoxelType>(ptr2[i]);
+  }
+  return *this;
+}
+
 template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelType>::operator+=(const irtkGenericImage<VoxelType> &image)
 {
   int i, n;
   VoxelType *ptr1, *ptr2;
 
-  if (! (this->irtkBaseImage::operator==(image))) {
+  if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
     cerr << "irtkGenericImage<VoxelType>::operator+=: Size mismatch in images\n";
     exit(1);
   }
@@ -831,7 +516,7 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   int i, n;
   VoxelType *ptr1, *ptr2;
 
-  if (! (this->irtkBaseImage::operator==(image))) {
+  if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
     cerr << "irtkGenericImage<VoxelType>::operator-=: Size mismatch in images\n";
     exit(1);
   }
@@ -855,7 +540,7 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   int i, n;
   VoxelType *ptr1, *ptr2;
 
-  if (! (this->irtkBaseImage::operator==(image))) {
+  if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
     cerr << "irtkGenericImage<VoxelType>::operator*=: Size mismatch in images\n";
     exit(1);
   }
@@ -879,7 +564,7 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   int i, n;
   VoxelType *ptr1, *ptr2;
 
-  if (! (this->irtkBaseImage::operator==(image))) {
+  if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
     cerr << "irtkGenericImage<VoxelType>::operator/=: Size mismatch in images\n";
     exit(1);
   }
@@ -907,7 +592,7 @@ template <class VoxelType> Bool irtkGenericImage<VoxelType>::operator==(const ir
   int i, n;
   VoxelType *ptr1, *ptr2;
 
-  if (! (this->irtkBaseImage::operator==(image))) {
+  if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
     return False;
   }
 
@@ -991,74 +676,6 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   return *this;
 }
 
-template <> irtkGenericImage<irtkVector3D<char> >& irtkGenericImage<irtkVector3D<char> >::operator/=(irtkVector3D<char> pixel)
-{
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x /= pixel._x;
-          _matrix[t][z][y][x]._y /= pixel._y;
-          _matrix[t][z][y][x]._z /= pixel._z;
-        }
-      }
-    }
-  }
-
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >& irtkGenericImage<irtkVector3D<short> >::operator/=(irtkVector3D<short> pixel)
-{
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x /= pixel._x;
-          _matrix[t][z][y][x]._y /= pixel._y;
-          _matrix[t][z][y][x]._z /= pixel._z;
-        }
-      }
-    }
-  }
-
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >& irtkGenericImage<irtkVector3D<float> >::operator/=(irtkVector3D<float> pixel)
-{
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x /= pixel._x;
-          _matrix[t][z][y][x]._y /= pixel._y;
-          _matrix[t][z][y][x]._z /= pixel._z;
-        }
-      }
-    }
-  }
-
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >& irtkGenericImage<irtkVector3D<double> >::operator/=(irtkVector3D<double> pixel)
-{
-  for (int t = 0; t < _t; t++) {
-    for (int z = 0; z < _z; z++) {
-      for (int y = 0; y < _y; y++) {
-        for (int x = 0; x < _x; x++) {
-          _matrix[t][z][y][x]._x /= pixel._x;
-          _matrix[t][z][y][x]._y /= pixel._y;
-          _matrix[t][z][y][x]._z /= pixel._z;
-        }
-      }
-    }
-  }
-
-  return *this;
-}
-
 template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelType>::operator/(VoxelType pixel)
 {
   irtkGenericImage<VoxelType> tmp(*this); tmp /= pixel; return tmp;
@@ -1138,11 +755,11 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::ReflectX()
 {
   int x, y, z, t;
 
-  for (t = 0; t < _t; t++) {
-    for (z = 0; z < _z; z++) {
-      for (y = 0; y < _y; y++) {
-        for (x = 0; x < _x / 2; x++) {
-          swap(_matrix[t][z][y][x], _matrix[t][z][y][_x-(x+1)]);
+  for (t = 0; t < _attr._t; t++) {
+    for (z = 0; z < _attr._z; z++) {
+      for (y = 0; y < _attr._y; y++) {
+        for (x = 0; x < _attr._x / 2; x++) {
+          swap(_matrix[t][z][y][x], _matrix[t][z][y][_attr._x-(x+1)]);
         }
       }
     }
@@ -1153,11 +770,11 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::ReflectY()
 {
   int x, y, z, t;
 
-  for (t = 0; t < _t; t++) {
-    for (z = 0; z < _z; z++) {
-      for (y = 0; y < _y / 2; y++) {
-        for (x = 0; x < _x; x++) {
-          swap(_matrix[t][z][y][x], _matrix[t][z][_y-(y+1)][x]);
+  for (t = 0; t < _attr._t; t++) {
+    for (z = 0; z < _attr._z; z++) {
+      for (y = 0; y < _attr._y / 2; y++) {
+        for (x = 0; x < _attr._x; x++) {
+          swap(_matrix[t][z][y][x], _matrix[t][z][_attr._y-(y+1)][x]);
         }
       }
     }
@@ -1168,11 +785,11 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::ReflectZ()
 {
   int x, y, z, t;
 
-  for (t = 0; t < _t; t++) {
-    for (z = 0; z < _z / 2; z++) {
-      for (y = 0; y < _y; y++) {
-        for (x = 0; x < _x; x++) {
-          swap(_matrix[t][z][y][x], _matrix[t][_z-(z+1)][y][x]);
+  for (t = 0; t < _attr._t; t++) {
+    for (z = 0; z < _attr._z / 2; z++) {
+      for (y = 0; y < _attr._y; y++) {
+        for (x = 0; x < _attr._x; x++) {
+          swap(_matrix[t][z][y][x], _matrix[t][_attr._z-(z+1)][y][x]);
         }
       }
     }
@@ -1185,12 +802,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXY()
   VoxelType ****matrix = NULL;
 
   // Allocate memory
-  matrix = Allocate(matrix, _y, _x, _z, _t);
+  matrix = Allocate(matrix, _attr._y, _attr._x, _attr._z, _attr._t);
 
-  for (m = 0; m < _t; m++) {
-    for (k = 0; k < _z; k++) {
-      for (j = 0; j < _y; j++) {
-        for (i = 0; i < _x; i++) {
+  for (m = 0; m < _attr._t; m++) {
+    for (k = 0; k < _attr._z; k++) {
+      for (j = 0; j < _attr._y; j++) {
+        for (i = 0; i < _attr._x; i++) {
           matrix[m][k][i][j] = _matrix[m][k][j][i];
         }
       }
@@ -1204,13 +821,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXY()
   matrix = Deallocate<VoxelType>(matrix);
 
   // Swap image dimensions
-  swap(_x, _y);
+  swap(_attr._x, _attr._y);
 
   // Swap voxel dimensions
-  swap(_dx, _dy);
+  swap(_attr._dx, _attr._dy);
 
   // Swap voxel dimensions
-  swap(_origin._x, _origin._y);
+  swap(_attr._xorigin, _attr._yorigin);
 
   // Update transformation matrix
   this->UpdateMatrix();
@@ -1223,12 +840,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXZ()
   VoxelType ****matrix = NULL;
 
   // Allocate memory
-  matrix = Allocate(matrix, _z, _y, _x, _t);
+  matrix = Allocate(matrix, _attr._z, _attr._y, _attr._x, _attr._t);
 
-  for (l = 0; l < _t; l++) {
-    for (k = 0; k < _z; k++) {
-      for (j = 0; j < _y; j++) {
-        for (i = 0; i < _x; i++) {
+  for (l = 0; l < _attr._t; l++) {
+    for (k = 0; k < _attr._z; k++) {
+      for (j = 0; j < _attr._y; j++) {
+        for (i = 0; i < _attr._x; i++) {
           matrix[l][i][j][k] = _matrix[l][k][j][i];
         }
       }
@@ -1242,13 +859,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXZ()
   matrix = Deallocate<VoxelType>(matrix);
 
   // Swap image dimensions
-  swap(_x, _z);
+  swap(_attr._x, _attr._z);
 
   // Swap voxel dimensions
-  swap(_dx, _dz);
+  swap(_attr._dx, _attr._dz);
 
   // Swap voxel dimensions
-  swap(_origin._x, _origin._z);
+  swap(_attr._xorigin, _attr._zorigin);
 
   // Update transformation matrix
   this->UpdateMatrix();
@@ -1260,12 +877,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYZ()
   VoxelType ****matrix = NULL;
 
   // Allocate memory
-  matrix = Allocate(matrix, _x, _z, _y, _t);
+  matrix = Allocate(matrix, _attr._x, _attr._z, _attr._y, _attr._t);
 
-  for (l = 0; l < _t; l++) {
-    for (k = 0; k < _z; k++) {
-      for (j = 0; j < _y; j++) {
-        for (i = 0; i < _x; i++) {
+  for (l = 0; l < _attr._t; l++) {
+    for (k = 0; k < _attr._z; k++) {
+      for (j = 0; j < _attr._y; j++) {
+        for (i = 0; i < _attr._x; i++) {
           matrix[l][j][k][i] = _matrix[l][k][j][i];
         }
       }
@@ -1279,13 +896,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYZ()
   matrix = Deallocate<VoxelType>(matrix);
 
   // Swap image dimensions
-  swap(_y, _z);
+  swap(_attr._y, _attr._z);
 
   // Swap voxel dimensions
-  swap(_dy, _dz);
+  swap(_attr._dy, _attr._dz);
 
   // Swap voxel dimensions
-  swap(_origin._y, _origin._z);
+  swap(_attr._yorigin, _attr._zorigin);
 
   // Update transformation matrix
   this->UpdateMatrix();
@@ -1297,12 +914,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXT()
   VoxelType ****matrix = NULL;
 
   // Allocate memory
-  matrix = Allocate(matrix, _t, _y, _z, _x);
+  matrix = Allocate(matrix, _attr._t, _attr._y, _attr._z, _attr._x);
 
-  for (m = 0; m < _t; m++) {
-    for (k = 0; k < _z; k++) {
-      for (j = 0; j < _y; j++) {
-        for (i = 0; i < _x; i++) {
+  for (m = 0; m < _attr._t; m++) {
+    for (k = 0; k < _attr._z; k++) {
+      for (j = 0; j < _attr._y; j++) {
+        for (i = 0; i < _attr._x; i++) {
           matrix[i][k][j][m] = _matrix[m][k][j][i];
         }
       }
@@ -1316,13 +933,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXT()
   matrix = Deallocate<VoxelType>(matrix);
 
   // Swap image dimensions
-  swap(_x, _t);
+  swap(_attr._x, _attr._t);
 
   // Swap voxel dimensions
-  swap(_dx, _dt);
+  swap(_attr._dx, _attr._dt);
 
   // Swap voxel dimensions
-  swap(_origin._x, _torigin);
+  swap(_attr._xorigin, _attr._torigin);
 
   // Update transformation matrix
   this->UpdateMatrix();
@@ -1335,12 +952,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYT()
   VoxelType ****matrix = NULL;
 
   // Allocate memory
-  matrix = Allocate(matrix, _x, _t, _z, _y);
+  matrix = Allocate(matrix, _attr._x, _attr._t, _attr._z, _attr._y);
 
-  for (m = 0; m < _t; m++) {
-    for (k = 0; k < _z; k++) {
-      for (j = 0; j < _y; j++) {
-        for (i = 0; i < _x; i++) {
+  for (m = 0; m < _attr._t; m++) {
+    for (k = 0; k < _attr._z; k++) {
+      for (j = 0; j < _attr._y; j++) {
+        for (i = 0; i < _attr._x; i++) {
           matrix[j][k][m][i] = _matrix[m][k][j][i];
         }
       }
@@ -1354,13 +971,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYT()
   matrix = Deallocate<VoxelType>(matrix);
 
   // Swap image dimensions
-  swap(_y, _t);
+  swap(_attr._y, _attr._t);
 
   // Swap voxel dimensions
-  swap(_dy, _dt);
+  swap(_attr._dy, _attr._dt);
 
   // Swap voxel dimensions
-  swap(_origin._y, _torigin);
+  swap(_attr._yorigin, _attr._torigin);
 
   // Update transformation matrix
   this->UpdateMatrix();
@@ -1373,12 +990,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipZT()
   VoxelType ****matrix = NULL;
 
   // Allocate memory
-  matrix = Allocate(matrix, _x, _y, _t, _z);
+  matrix = Allocate(matrix, _attr._x, _attr._y, _attr._t, _attr._z);
 
-  for (m = 0; m < _t; m++) {
-    for (k = 0; k < _z; k++) {
-      for (j = 0; j < _y; j++) {
-        for (i = 0; i < _x; i++) {
+  for (m = 0; m < _attr._t; m++) {
+    for (k = 0; k < _attr._z; k++) {
+      for (j = 0; j < _attr._y; j++) {
+        for (i = 0; i < _attr._x; i++) {
           matrix[k][m][j][i] = _matrix[m][k][j][i];
         }
       }
@@ -1392,1593 +1009,49 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipZT()
   matrix = Deallocate<VoxelType>(matrix);
 
   // Swap image dimensions
-  swap(_z, _t);
+  swap(_attr._z, _attr._t);
 
   // Swap voxel dimensions
-  swap(_dz, _dt);
+  swap(_attr._dz, _attr._dt);
 
   // Swap voxel dimensions
-  swap(_origin._z, _torigin);
+  swap(_attr._zorigin, _attr._torigin);
 
   // Update transformation matrix
   this->UpdateMatrix();
 
 }
 
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkBytePixel *ptr1, *ptr2;
-
-  if (this == &image) return *this;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkBytePixel *ptr1;
-  irtkGreyPixel *ptr2, min, max;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = round(MAX_BYTE*(ptr2[i] - min)/(double)(max - min));
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkBytePixel *ptr1;
-  irtkRealPixel *ptr2, min, max;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = round(MAX_BYTE*(ptr2[i] - min)/(double)(max - min));
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<char>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<short>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<float>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>& irtkGenericImage<irtkBytePixel>::operator=
-(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<double>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(min._x*min._x + min._y*min._y + min._z*min._z);
-  lmax = sqrt(max._x*max._x + max._y*max._y + max._z*max._z);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-  return *this;
-}
-
-template <>  irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkGreyPixel *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkGreyPixel *ptr1, *ptr2;
-
-  if (this == &image) return *this;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkGreyPixel *ptr1;
-  irtkRealPixel *ptr2, min, max;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = round(((ptr2[i] - min)/(double)(max - min)) *
-                    (MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<char>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round((l - lmin)/(double)(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<short>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round((l - lmin)/(double)(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<float>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round((l - lmin)/(double)(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkGreyPixel>& irtkGenericImage<irtkGreyPixel>::operator=
-(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<double>* ptr2, min, max;
-  double lmin, lmax;
-
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(min._x*min._x + min._y*min._y + min._z*min._z);
-  lmax = sqrt(max._x*max._x + max._y*max._y + max._z*max._z);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z);
-    ptr1[i] = round((l - lmin)/(double)(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkGreyPixel *ptr2;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkRealPixel *ptr1, *ptr2;
-
-  if (this == &image) return *this;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkVector3D<char> *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = static_cast<irtkRealPixel>(l);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkVector3D<short> *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = static_cast<irtkRealPixel>(l);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkVector3D<float> *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z);
-    ptr1[i] = static_cast<irtkRealPixel>(l);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRealPixel>& irtkGenericImage<irtkRealPixel>::operator=
-(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkVector3D<double> *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z);
-    ptr1[i] = static_cast<irtkRealPixel>(l);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRGBPixel>& irtkGenericImage<irtkRGBPixel>::operator=
-(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkRGBPixel *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._r = ptr2[i];
-    ptr1[i]._g = ptr2[i];
-    ptr1[i]._b = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRGBPixel>& irtkGenericImage<irtkRGBPixel>::operator=
-(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkRGBPixel *ptr1;
-  irtkGreyPixel *ptr2;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    if ((ptr2[i] >= 0) && (ptr2[i] < 256)) {
-      ptr1[i]._r = ptr2[i];
-      ptr1[i]._g = ptr2[i];
-      ptr1[i]._b = ptr2[i];
-    } else {
-      if (ptr2[i] < 0) {
-        ptr1[i]._r = 0;
-        ptr1[i]._g = 0;
-        ptr1[i]._b = 0;
-      } else {
-        ptr1[i]._r = 255;
-        ptr1[i]._g = 255;
-        ptr1[i]._b = 255;
-      }
-    }
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRGBPixel>& irtkGenericImage<irtkRGBPixel>::operator=
-(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkRGBPixel *ptr1;
-  irtkRealPixel *ptr2;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    if ((ptr2[i] >= 0) && (ptr2[i] < 256)) {
-      ptr1[i]._r = round(ptr2[i]);
-      ptr1[i]._g = round(ptr2[i]);
-      ptr1[i]._b = round(ptr2[i]);
-    } else {
-      if (ptr2[i] < 0) {
-        ptr1[i]._r = 0;
-        ptr1[i]._g = 0;
-        ptr1[i]._b = 0;
-      } else {
-        ptr1[i]._r = 255;
-        ptr1[i]._g = 255;
-        ptr1[i]._b = 255;
-      }
-    }
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkRGBPixel>& irtkGenericImage<irtkRGBPixel>::operator=
-(const irtkGenericImage<irtkRGBPixel> &image)
-{
-  int i, n;
-  irtkRGBPixel *ptr1, *ptr2;
-
-  if (this == &image) return *this;
-
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >& irtkGenericImage<irtkVector3D<char> >::operator=
-(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<char> *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >& irtkGenericImage<irtkVector3D<short> >::operator=
-(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<short> *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >& irtkGenericImage<irtkVector3D<float> >::operator=
-(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<float> *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >& irtkGenericImage<irtkVector3D<double> >::operator=
-(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<double> *ptr1;
-  irtkBytePixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >& irtkGenericImage<irtkVector3D<char> >::operator=
-(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<char> *ptr1;
-  irtkGreyPixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<char>(ptr2[i]);
-    ptr1[i]._y = static_cast<char>(ptr2[i]);
-    ptr1[i]._z = static_cast<char>(ptr2[i]);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >& irtkGenericImage<irtkVector3D<short> >::operator=
-(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<short> *ptr1;
-  irtkGreyPixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >& irtkGenericImage<irtkVector3D<float> >::operator=
-(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<float> *ptr1;
-  irtkGreyPixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >& irtkGenericImage<irtkVector3D<double> >::operator=
-(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<double> *ptr1;
-  irtkGreyPixel *ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >& irtkGenericImage<irtkVector3D<char> >::operator=
-(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<char>* ptr1;
-  irtkRealPixel* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<char>(ptr2[i]);
-    ptr1[i]._y = static_cast<char>(ptr2[i]);
-    ptr1[i]._z = static_cast<char>(ptr2[i]);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >& irtkGenericImage<irtkVector3D<short> >::operator=
-(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<short>* ptr1;
-  irtkRealPixel* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<short>(ptr2[i]);
-    ptr1[i]._y = static_cast<short>(ptr2[i]);
-    ptr1[i]._z = static_cast<short>(ptr2[i]);
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >& irtkGenericImage<irtkVector3D<float> >::operator=
-(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<float>* ptr1;
-  irtkRealPixel* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >& irtkGenericImage<irtkVector3D<double> >::operator=
-(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<double>* ptr1;
-  irtkRealPixel* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >& irtkGenericImage<irtkVector3D<char> >::operator=
-(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkVector3D<char>* ptr1;
-  irtkVector3D<char>* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >& irtkGenericImage<irtkVector3D<short> >::operator=
-(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkVector3D<short>* ptr1;
-  irtkVector3D<short>* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >& irtkGenericImage<irtkVector3D<float> >::operator=
-(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkVector3D<float>* ptr1;
-  irtkVector3D<float>* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >& irtkGenericImage<irtkVector3D<double> >::operator=
-(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkVector3D<double>* ptr1;
-  irtkVector3D<double>* ptr2;
-
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-  return *this;
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkBytePixel *ptr1, *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkBytePixel *ptr1;
-  irtkGreyPixel *ptr2, min, max;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = round(MAX_BYTE*(ptr2[i] - min)/(double)(max - min));
-  }
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkBytePixel *ptr1;
-  irtkRealPixel *ptr2, min, max;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = round(MAX_BYTE*(ptr2[i] - min)/(double)(max - min));
-  }
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<char>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<short>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<float>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-}
-
-template <> irtkGenericImage<irtkBytePixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkBytePixel* ptr1;
-  irtkVector3D<double>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(min._x*min._x + min._y*min._y + min._z*min._z);
-  lmax = sqrt(max._x*max._x + max._y*max._y + max._z*max._z);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z);
-    ptr1[i] = round(MAX_BYTE*(l - lmin)/(lmax - lmin));
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkGreyPixel *ptr1;
-  irtkBytePixel *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkGreyPixel *ptr1, *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkGreyPixel *ptr1;
-  irtkRealPixel *ptr2, min, max;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = round(((ptr2[i] - min)/(double)(max - min)) *
-                    (MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<char>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round((l - lmin)/(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<short>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(static_cast<double>(min._x*min._x + min._y*min._y + min._z*min._z));
-  lmax = sqrt(static_cast<double>(max._x*max._x + max._y*max._y + max._z*max._z));
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z));
-    ptr1[i] = round((l - lmin)/(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<float>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(min._x*min._x + min._y*min._y + min._z*min._z);
-  lmax = sqrt(max._x*max._x + max._y*max._y + max._z*max._z);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z);
-    ptr1[i] = round((l - lmin)/(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-}
-
-template <> irtkGenericImage<irtkGreyPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkGreyPixel* ptr1;
-  irtkVector3D<double>* ptr2, min, max;
-  double lmin, lmax;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  image.GetMinMax(&min, &max);
-  lmin = sqrt(min._x*min._x + min._y*min._y + min._z*min._z);
-  lmax = sqrt(max._x*max._x + max._y*max._y + max._z*max._z);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    double l = sqrt(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z);
-    ptr1[i] = round((l - lmin)/(lmax - lmin)*(MAX_GREY - MIN_GREY) + MIN_GREY);
-  }
-}
-
-template <> irtkGenericImage<irtkRealPixel>::irtkGenericImage(const irtkGenericImage<irtkBytePixel> &image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkBytePixel *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkRealPixel>::irtkGenericImage(const irtkGenericImage<irtkGreyPixel> &image)
-{
-  int i, n;
-  irtkRealPixel *ptr1;
-  irtkGreyPixel *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkRealPixel>::irtkGenericImage(const irtkGenericImage<irtkRealPixel> &image)
-{
-  int i, n;
-  irtkRealPixel *ptr1, *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n    = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkRealPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkRealPixel* ptr1;
-  irtkVector3D<char>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = static_cast<irtkRealPixel>(sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z)));
-  }
-}
-
-template <> irtkGenericImage<irtkRealPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkRealPixel* ptr1;
-  irtkVector3D<short>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = static_cast<irtkRealPixel>(sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z)));
-  }
-}
-
-template <> irtkGenericImage<irtkRealPixel>::irtkGenericImage(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkRealPixel* ptr1;
-  irtkVector3D<float>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = static_cast<irtkRealPixel>(sqrt(static_cast<double>(ptr2[i]._x*ptr2[i]._x + ptr2[i]._y*ptr2[i]._y + ptr2[i]._z*ptr2[i]._z)));
-  }
-}
-
-template <> irtkGenericImage<irtkRGBPixel >::irtkGenericImage(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkRGBPixel*  ptr1;
-  irtkBytePixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._r = ptr2[i];
-    ptr1[i]._g = ptr2[i];
-    ptr1[i]._b = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkRGBPixel >::irtkGenericImage(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkRGBPixel*  ptr1;
-  irtkGreyPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._r = ptr2[i];
-    ptr1[i]._g = ptr2[i];
-    ptr1[i]._b = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkRGBPixel>::irtkGenericImage(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkRGBPixel*  ptr1;
-  irtkRealPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    if ((round(ptr2[i]) >= 0) && (round(ptr2[i]) < 256)) {
-      ptr1[i]._r = round(ptr2[i]);
-      ptr1[i]._g = round(ptr2[i]);
-      ptr1[i]._b = round(ptr2[i]);
-    } else {
-      if (ptr2[i] < 0) {
-        ptr1[i]._r = 0;
-        ptr1[i]._g = 0;
-        ptr1[i]._b = 0;
-      } else {
-        ptr1[i]._r = 255;
-        ptr1[i]._g = 255;
-        ptr1[i]._b = 255;
-      }
-    }
-  }
-}
-
-template <> irtkGenericImage<irtkRGBPixel >::irtkGenericImage(const irtkGenericImage<irtkRGBPixel>& image)
-{
-  int i, n;
-  irtkRGBPixel *ptr1, *ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._r = ptr2[i]._r;
-    ptr1[i]._g = ptr2[i]._g;
-    ptr1[i]._b = ptr2[i]._b;
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >::irtkGenericImage(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<char>* ptr1;
-  irtkBytePixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >::irtkGenericImage(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<short>* ptr1;
-  irtkBytePixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >::irtkGenericImage(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<float>* ptr1;
-  irtkBytePixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >::irtkGenericImage(const irtkGenericImage<irtkBytePixel>& image)
-{
-  int i, n;
-  irtkVector3D<double>* ptr1;
-  irtkBytePixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >::irtkGenericImage(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<char>* ptr1;
-  irtkGreyPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<char>(ptr2[i]);
-    ptr1[i]._y = static_cast<char>(ptr2[i]);
-    ptr1[i]._z = static_cast<char>(ptr2[i]);
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >::irtkGenericImage(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<short>* ptr1;
-  irtkGreyPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >::irtkGenericImage(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<float>* ptr1;
-  irtkGreyPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >::irtkGenericImage(const irtkGenericImage<irtkGreyPixel>& image)
-{
-  int i, n;
-  irtkVector3D<double>* ptr1;
-  irtkGreyPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >::irtkGenericImage(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<char>* ptr1;
-  irtkRealPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<char>(ptr2[i]);
-    ptr1[i]._y = static_cast<char>(ptr2[i]);
-    ptr1[i]._z = static_cast<char>(ptr2[i]);
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >::irtkGenericImage(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<short>* ptr1;
-  irtkRealPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<short>(ptr2[i]);
-    ptr1[i]._y = static_cast<short>(ptr2[i]);
-    ptr1[i]._z = static_cast<short>(ptr2[i]);
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >::irtkGenericImage(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<float>* ptr1;
-  irtkRealPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = static_cast<float>(ptr2[i]);
-    ptr1[i]._y = static_cast<float>(ptr2[i]);
-    ptr1[i]._z = static_cast<float>(ptr2[i]);
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >::irtkGenericImage(const irtkGenericImage<irtkRealPixel>& image)
-{
-  int i, n;
-  irtkVector3D<double>* ptr1;
-  irtkRealPixel* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i]._x = ptr2[i];
-    ptr1[i]._y = ptr2[i];
-    ptr1[i]._z = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<char> >::irtkGenericImage(const irtkGenericImage<irtkVector3D<char> >& image)
-{
-  int i, n;
-  irtkVector3D<char>* ptr1;
-  irtkVector3D<char>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<short> >::irtkGenericImage(const irtkGenericImage<irtkVector3D<short> >& image)
-{
-  int i, n;
-  irtkVector3D<short>* ptr1;
-  irtkVector3D<short>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<float> >::irtkGenericImage(const irtkGenericImage<irtkVector3D<float> >& image)
-{
-  int i, n;
-  irtkVector3D<float>* ptr1;
-  irtkVector3D<float>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-template <> irtkGenericImage<irtkVector3D<double> >::irtkGenericImage(const irtkGenericImage<irtkVector3D<double> >& image)
-{
-  int i, n;
-  irtkVector3D<double>* ptr1;
-  irtkVector3D<double>* ptr2;
-
-  _matrix = NULL;
-  this->Initialize(image);
-  n = this->GetNumberOfVoxels();
-  ptr1 = this->GetPointerToVoxels();
-  ptr2 = image.GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr1[i] = ptr2[i];
-  }
-}
-
-
-
 #ifdef HAS_VTK
 
-template <> int irtkGenericImage<irtkBytePixel>::ImageToVTKScalarType()
+template <> int irtkGenericImage<char>::ImageToVTKScalarType()
+{
+  return VTK_CHAR;
+}
+
+template <> int irtkGenericImage<unsigned char>::ImageToVTKScalarType()
 {
   return VTK_UNSIGNED_CHAR;
 }
 
-template <> int irtkGenericImage<irtkGreyPixel>::ImageToVTKScalarType()
+template <> int irtkGenericImage<short>::ImageToVTKScalarType()
 {
   return VTK_SHORT;
 }
 
-template <> int irtkGenericImage<irtkRealPixel>::ImageToVTKScalarType()
+template <> int irtkGenericImage<unsigned short>::ImageToVTKScalarType()
+{
+  return VTK_UNSIGNED_SHORT;
+}
+
+template <> int irtkGenericImage<float>::ImageToVTKScalarType()
 {
   return VTK_FLOAT;
 }
 
-template <> int irtkGenericImage<irtkRGBPixel>::ImageToVTKScalarType()
+template <> int irtkGenericImage<double>::ImageToVTKScalarType()
 {
-  cerr << "irtkGenericImage<irtkRGBPixel>::ImageToVTKScalarType: Not a scalar" << endl;
-  exit(1);
-}
-
-template <> int irtkGenericImage<irtkVector3D<char> >::ImageToVTKScalarType()
-{
-  std::cerr << "irtkGenericImage<irtkVector3D<char> >::ImageToVTKScalarType: Not a scalar." << std::endl;
-  exit(1);
-}
-
-template <> int irtkGenericImage<irtkVector3D<short> >::ImageToVTKScalarType()
-{
-  std::cerr << "irtkGenericImage<irtkVector3D<short> >::ImageToVTKScalarType: Not a scalar." << std::endl;
-  exit(1);
-}
-
-template <> int irtkGenericImage<irtkVector3D<float> >::ImageToVTKScalarType()
-{
-  std::cerr << "irtkGenericImage<irtkVector3D<float> >::ImageToVTKScalarType: Not a scalar." << std::endl;
-  exit(1);
-}
-
-template <> int irtkGenericImage<irtkVector3D<double> >::ImageToVTKScalarType()
-{
-  std::cerr << "irtkGenericImage<irtkVector3D<double> >::ImageToVTKScalarType: Not a scalar." << std::endl;
-  exit(1);
+  return VTK_DOUBLE;
 }
 
 template <class Type> void irtkGenericImage<Type>::ImageToVTK(vtkStructuredPoints *vtk)
@@ -2995,8 +1068,8 @@ template <class Type> void irtkGenericImage<Type>::ImageToVTK(vtkStructuredPoint
 
   // Allocate the VTK image
   vtk->SetOrigin(x, y, z);
-  vtk->SetDimensions(_x, _y, _z);
-  vtk->SetSpacing(_dx, _dy, _dz);
+  vtk->SetDimensions(_attr._x, _attr._y, _attr._z);
+  vtk->SetSpacing(_attr._dx, _attr._dy, _attr._dz);
   vtk->SetScalarType(this->ImageToVTKScalarType());
   vtk->AllocateScalars();
 

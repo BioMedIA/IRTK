@@ -30,31 +30,26 @@ typedef enum { ColorMode_Custom,
                ColorMode_Rainbow
              } irtkColorMode;
 
-
+             
 class irtkLookupTable
 {
 
-public:
+	friend class irtkRView;
+	
+  /// Min value of data
+  int _minData;
+
+  /// Max value of data
+  int _maxData;
+
+  /// Min value of display
+  int _minDisplay;
+
+  /// Max value of display
+  int _maxDisplay;
 
   /// Color mode
   irtkColorMode _mode;
-
-  /// Min and max value of data
-  int minData;
-  int maxData;
-
-  /// Min and max value of display
-  int minDisplay;
-  int maxDisplay;
-
-  /// Lookup table
-  irtkColorRGBA *lookupTable;
-
-  /// Constructor
-  irtkLookupTable();
-
-  /// Destructor
-  ~irtkLookupTable();
 
   /// Update lookup table
   void Update();
@@ -62,23 +57,41 @@ public:
   /// Initialize lookup table with min and max values
   void Initialize(int, int);
 
-  /// Set minimum and maximum intensities
-  void SetMinMaxIntensity(int,   int);
+  /// Set minimum and maximum display intensities
+  void SetMinMaxDisplayIntensity(int,   int);
 
-  /// Get minimum and maximum intensities
-  void GetMinMaxIntensity(int &, int &);
+  /// Get minimum and maximum display intensities
+  void GetMinMaxDisplayIntensity(int &, int &);
 
-  /// Set minimum intensity
-  void SetMinIntensity(int);
+  /// Set minimum display intensity
+  void SetMinDisplayIntensity(int);
+
+  /// Get minimum display intensity
+  int  GetMinDisplayIntensity();
+
+  /// Set maximum display intensity
+  void SetMaxDisplayIntensity(int);
+
+  /// Get maximum display intensity
+  int  GetMaxDisplayIntensity();
 
   /// Get minimum intensity
   int  GetMinIntensity();
 
-  /// Set maximum intensity
-  void SetMaxIntensity(int);
-
   /// Get maximum intensity
   int  GetMaxIntensity();
+
+ 
+public:
+
+  /// Lookup table
+  irtkColorRGBA *lookupTable;
+
+  /// Constructor
+  irtkLookupTable(int = 0, int = 1);
+
+  /// Destructor
+  ~irtkLookupTable();
 
   /// Color scheme functions
   void SetColorModeToLuminance();
@@ -105,46 +118,56 @@ public:
 
 inline int irtkLookupTable::GetMinIntensity()
 {
-  return minDisplay;
+  return _minData;
 }
 
 inline int irtkLookupTable::GetMaxIntensity()
 {
-  return maxDisplay;
+  return _maxData;
 }
 
-inline void irtkLookupTable::SetMinIntensity(int value)
+inline int irtkLookupTable::GetMinDisplayIntensity()
 {
-  if (value > maxData) {
-    minDisplay = maxData;
+  return _minDisplay;
+}
+
+inline int irtkLookupTable::GetMaxDisplayIntensity()
+{
+  return _maxDisplay;
+}
+
+inline void irtkLookupTable::SetMinDisplayIntensity(int value)
+{
+  if (value > _maxData) {
+    _minDisplay = _maxData;
   } else {
-    minDisplay = value;
+    _minDisplay = value;
   }
   this->Update();
 }
 
-inline void irtkLookupTable::SetMaxIntensity(int value)
+inline void irtkLookupTable::SetMaxDisplayIntensity(int value)
 {
-  if (value < minData) {
-    maxDisplay = minData;
+  if (value < _minData) {
+    _maxDisplay = _minData;
   } else {
-    maxDisplay = value;
+    _maxDisplay = value;
   }
   this->Update();
 }
 
-inline void irtkLookupTable::SetMinMaxIntensity(int value1, int value2)
+inline void irtkLookupTable::SetMinMaxDisplayIntensity(int value1, int value2)
 {
-  if (value1 > maxData) {
-    minDisplay = maxData;
+  if (value1 > _maxData) {
+    _minDisplay = _maxData;
   } else {
-    minDisplay = value1;
+    _minDisplay = value1;
   }
   this->Update();
-  if (value2 < minData) {
-    maxDisplay = minData;
+  if (value2 < _minData) {
+    _maxDisplay = _minData;
   } else {
-    maxDisplay = value2;
+    _maxDisplay = value2;
   }
   this->Update();
 }

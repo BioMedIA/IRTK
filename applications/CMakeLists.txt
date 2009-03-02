@@ -67,8 +67,7 @@ ELSE(BUILD_CONDOR_EXE)
 INSTALL_TARGETS(/bin binarize blur closing convert dilation
 dicom2image dmap edgedetect erosion flip giplmagic headertool info lcc
 lcc_iterative makesequence makevolume mcubes noise opening padding 
-raw2image reflect region resample threshold voxelsize histogram 
-sbig)
+raw2image reflect region resample threshold voxelsize histogram sbig)
 
 ENDIF (BUILD_CONDOR_EXE)
 

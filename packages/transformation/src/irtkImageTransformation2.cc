@@ -12,7 +12,7 @@
 
 #include <irtkTransformation.h>
 
-template <class VoxelType> irtkImageTransformation2<VoxelType>::irtkImageTransformation2()
+irtkImageTransformation2::irtkImageTransformation2()
 {
   // Set input and output
   _input  = NULL;
@@ -26,16 +26,22 @@ template <class VoxelType> irtkImageTransformation2<VoxelType>::irtkImageTransfo
   _interpolator = NULL;
 
   // Set padding value
-  _TargetPaddingValue = std::numeric_limits<VoxelType>::min();
+  _TargetPaddingValue = -std::numeric_limits<double>::max();
 
   // Set padding value
   _SourcePaddingValue = 0;
 
+  // Scale factor
+  _ScaleFactor = 1;
+  
+  // Offset
+  _Offset = 0;
+  
   // Set invert mode
   _Invert = False;
 }
 
-template <class VoxelType> irtkImageTransformation2<VoxelType>::~irtkImageTransformation2()
+irtkImageTransformation2::~irtkImageTransformation2()
 {
   // Set input and output
   _input  = NULL;
@@ -49,7 +55,7 @@ template <class VoxelType> irtkImageTransformation2<VoxelType>::~irtkImageTransf
   _interpolator = NULL;
 
   // Set padding value
-  _TargetPaddingValue = std::numeric_limits<VoxelType>::min();
+  _TargetPaddingValue = -std::numeric_limits<double>::max();
 
   // Set padding value
   _SourcePaddingValue = 0;
@@ -58,7 +64,7 @@ template <class VoxelType> irtkImageTransformation2<VoxelType>::~irtkImageTransf
   _Invert = False;
 }
 
-template <class VoxelType> void irtkImageTransformation2<VoxelType>::SetTransformation(irtkTransformation *transformation, irtkTransformation *transformation2)
+void irtkImageTransformation2::SetTransformation(irtkTransformation *transformation, irtkTransformation *transformation2)
 {
   if ((transformation != NULL) || (transformation2 != NULL)) {
     _transformation = transformation;
@@ -69,7 +75,7 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::SetTransfor
   }
 }
 
-template <class VoxelType> void irtkImageTransformation2<VoxelType>::SetInput(irtkGenericImage<VoxelType> *image)
+void irtkImageTransformation2::SetInput(irtkImage *image)
 {
   if (image != NULL) {
     _input = image;
@@ -79,7 +85,7 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::SetInput(ir
   }
 }
 
-template <class VoxelType> void irtkImageTransformation2<VoxelType>::SetOutput(irtkGenericImage<VoxelType> *image)
+void irtkImageTransformation2::SetOutput(irtkImage *image)
 {
   if (image != NULL) {
     _output = image;
@@ -89,11 +95,10 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::SetOutput(i
   }
 }
 
-template <class VoxelType> void irtkImageTransformation2<VoxelType>::Run()
+void irtkImageTransformation2::Run()
 {
   int i, j, k, l, t;
   double x, y, z;
-  VoxelType *ptr2output;
 
   // Check inputs and outputs
   if (_input == NULL) {
@@ -135,9 +140,6 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::Run()
   _interpolator->SetInput(_input);
   _interpolator->Initialize();
 
-  // Pointer to voxels in output image
-  ptr2output = _output->GetPointerToVoxels();
-
   // Calculate transformation
   for (l = 0; l < _output->GetT(); l++) {
     t = round(this->_input->TimeToImage(this->_output->ImageToTime(l)));
@@ -151,7 +153,7 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::Run()
       for (k = 0; k < _output->GetZ(); k++) {
         for (j = 0; j < _output->GetY(); j++) {
           for (i = 0; i < _output->GetX(); i++) {
-            if (*ptr2output > _TargetPaddingValue) {
+            if (this->_output->GetAsDouble(i, j, k, l) > _TargetPaddingValue) {
               x = i;
               y = j;
               z = k;
@@ -172,16 +174,15 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::Run()
               if ((x > -0.5) && (x < _input->GetX()-0.5) &&
                   (y > -0.5) && (y < _input->GetY()-0.5) &&
                   (z > -0.5) && (z < _input->GetZ()-0.5)) {
-                *ptr2output = round(_interpolator->Evaluate(x, y, z, t));
+              	this->_output->PutAsDouble(i, j, k, l, _ScaleFactor * _interpolator->Evaluate(x, y, z, t) + _Offset);
               } else {
                 // Fill with padding value
-                *ptr2output = _SourcePaddingValue;
+              	this->_output->PutAsDouble(i, j, k, l, _SourcePaddingValue);
               }
             } else {
               // Fill with padding value
-              *ptr2output = _SourcePaddingValue;
+            	this->_output->PutAsDouble(i, j, k, l, _SourcePaddingValue);
             }
-            ptr2output++;
           }
         }
       }
@@ -189,15 +190,10 @@ template <class VoxelType> void irtkImageTransformation2<VoxelType>::Run()
       for (k = 0; k < this->_output->GetZ(); k++) {
         for (j = 0; j < this->_output->GetY(); j++) {
           for (i = 0; i < this->_output->GetX(); i++) {
-            *ptr2output = this->_SourcePaddingValue;
-            ptr2output++;
+          	this->_output->PutAsDouble(i, j, k, l, this->_SourcePaddingValue);
           }
         }
       }
     }
   }
 }
-
-template class irtkImageTransformation2<irtkRealPixel>;
-template class irtkImageTransformation2<irtkGreyPixel>;
-template class irtkImageTransformation2<irtkBytePixel>;

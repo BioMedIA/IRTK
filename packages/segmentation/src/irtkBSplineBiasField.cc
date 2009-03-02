@@ -1000,7 +1000,7 @@ void irtkBSplineBiasField::ComputeCoefficients(double* dbias, irtkRealImage& coe
   Pole[0] = sqrt(3.0) - 2.0;
 
   // Initialize coefficient images.
-  coeffs.Initialize(_x, _y, _z);
+  coeffs = irtkRealImage(_x, _y, _z);
 
   // Convert the displacements into interpolation coefficients for each
   // direction.

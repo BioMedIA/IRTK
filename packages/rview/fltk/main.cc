@@ -278,7 +278,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-tmax") == 0)) {
       argc--;
       argv++;
-      rview->GetTargetLookupTable()->SetMaxIntensity(atoi(argv[1]));
+      rview->SetDisplayMaxTarget(atof(argv[1]));
       argc--;
       argv++;
       ok = True;
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-tmin") == 0)) {
       argc--;
       argv++;
-      rview->GetTargetLookupTable()->SetMinIntensity(atoi(argv[1]));
+      rview->SetDisplayMinTarget(atof(argv[1]));
       argc--;
       argv++;
       ok = True;
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-smax") == 0)) {
       argc--;
       argv++;
-      rview->GetSourceLookupTable()->SetMaxIntensity(atoi(argv[1]));
+      rview->SetDisplayMaxSource(atof(argv[1]));
       argc--;
       argv++;
       ok = True;
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-smin") == 0)) {
       argc--;
       argv++;
-      rview->GetSourceLookupTable()->SetMinIntensity(atoi(argv[1]));
+      rview->SetDisplayMinSource(atof(argv[1]));
       argc--;
       argv++;
       ok = True;
@@ -310,7 +310,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-sub_max") == 0)) {
       argc--;
       argv++;
-      rview->GetSubtractionLookupTable()->SetMaxIntensity(atoi(argv[1]));
+      rview->SetDisplayMaxSubtraction(atof(argv[1]));
       argc--;
       argv++;
       ok = True;
@@ -318,7 +318,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-sub_min") == 0)) {
       argc--;
       argv++;
-      rview->GetSubtractionLookupTable()->SetMinIntensity(atoi(argv[1]));
+      rview->SetDisplayMinSubtraction(atof(argv[1]));
       argc--;
       argv++;
       ok = True;

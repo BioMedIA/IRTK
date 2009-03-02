@@ -23,7 +23,7 @@
  * in PNG file format. Note that PNG file formats support only 2D images!!!
  */
 
-template <class VoxelType> class irtkImageToFilePNG : public irtkImageToFile<VoxelType>
+class irtkImageToFilePNG : public irtkImageToFile
 {
 
 protected:

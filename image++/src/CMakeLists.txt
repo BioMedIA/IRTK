@@ -3,7 +3,6 @@ SET(IMAGE_INCLUDES
 ../include/irtkBaseImage.h
 ../include/irtkBSplineInterpolateImageFunction2D.h
 ../include/irtkBSplineInterpolateImageFunction.h
-../include/irtkBytePixel.h
 ../include/irtkConvolution_1D.h
 ../include/irtkConvolution_2D.h
 ../include/irtkConvolution_3D.h
@@ -34,13 +33,13 @@ SET(IMAGE_INCLUDES
 ../include/irtkGradientImageX.h
 ../include/irtkGradientImageY.h
 ../include/irtkGradientImageZ.h
-../include/irtkGreyPixel.h
 ../include/irtkHistogram_1D.h
 ../include/irtkHistogram_2D.h
 ../include/irtkHistogram.h
 ../include/irtkDensity.h
 ../include/irtkImageFunction.h
 ../include/irtkImage.h
+../include/irtkImageAttributes.h
 ../include/irtkImageToFileANALYZE.h
 ../include/irtkImageToFileGIPL.h
 ../include/irtkImageToFile.h
@@ -59,10 +58,8 @@ SET(IMAGE_INCLUDES
 ../include/irtkNIFTI.h
 ../include/irtkNoise.h
 ../include/irtkPointToImage.h
-../include/irtkRealPixel.h
 ../include/irtkResampling.h
 ../include/irtkResamplingWithPadding.h
-../include/irtkRGBPixel.h
 ../include/irtkRicianNoise.h
 ../include/irtkRicianNoiseWithPadding.h
 ../include/irtkScalarFunctionToImage.h
@@ -71,6 +68,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkTemplate.h
 ../include/irtkUniformNoise.h
 ../include/irtkUniformNoiseWithPadding.h
+../include/irtkVoxel.h
 ../include/irtkVTK.h)
 
 SET(IMAGE_SRCS 

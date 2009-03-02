@@ -23,7 +23,7 @@
  * voxel types are char, unsigned char, short and unsigned short.
  */
 
-template <class VoxelType> class irtkFileVTKToImage : public irtkFileToImage<VoxelType>
+class irtkFileVTKToImage : public irtkFileToImage
 {
 
 protected:

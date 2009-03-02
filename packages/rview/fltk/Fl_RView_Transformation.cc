@@ -22,22 +22,6 @@
 
 #ifdef HAS_TRANSFORMATION_PANEL
 
-// Bitmaps
-//#include <bitmaps/grid.xbm>
-//#include <bitmaps/arrow.xbm>
-//#include <bitmaps/point.xbm>
-
-char deformationPropertyStrings[5][255] = { "none", "displacement", "jacobian", "jacobian_expansion", "jacobian_contraction" };
-
-Fl_Menu_Item Fl_RViewUI::menu_deformationProperty[] = {
-  {"None",            				0, (Fl_Callback*)cb_DeformationProperty, deformationPropertyStrings[0]},
-  {"Displacement",    				0, (Fl_Callback*)cb_DeformationProperty, deformationPropertyStrings[1]},
-  {"Jacobian",        				0, (Fl_Callback*)cb_DeformationProperty, deformationPropertyStrings[2]},
-  {"Jacobian (expansion)",    0, (Fl_Callback*)cb_DeformationProperty, deformationPropertyStrings[3]},
-  {"Jacobian (contraction)",  0, (Fl_Callback*)cb_DeformationProperty, deformationPropertyStrings[4]},
-  {0}
-};
-
 extern Fl_RViewUI  *rviewUI;
 extern Fl_RView    *viewer;
 extern irtkRView    *rview;
@@ -369,47 +353,6 @@ void Fl_RViewUI::cb_viewDeformationPoints(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_DeformationProperty(Fl_Menu_*, void* v)
-{
-  if (strcmp((char *)v, "none") == 0) {
-    rview->SetDeformationProperty(None);
-  }
-  if (strcmp((char *)v, "displacement") == 0) {
-    rview->SetDeformationProperty(Displacement);
-  }
-  if (strcmp((char *)v, "jacobian") == 0) {
-    rview->SetDeformationProperty(Jacobian);
-  }
-  if (strcmp((char *)v, "jacobian_expansion") == 0) {
-    rview->SetDeformationProperty(Jacobian_Expansion);
-  }
-  if (strcmp((char *)v, "jacobian_contraction") == 0) {
-    rview->SetDeformationProperty(Jacobian_Contraction);
-  }
-  rview->Update();
-  rviewUI->update();
-  viewer->redraw();
-}
-
-void Fl_RViewUI::cb_deformationMinMax(Fl_Value_Slider* o, void* v)
-{
-  rview->GetDeformationLookupTable()->SetMinIntensity(round(rviewUI->deformationMin->value()));
-  rviewUI->deformationMin->value(rview->GetDeformationLookupTable()->GetMinIntensity());
-  rview->GetDeformationLookupTable()->SetMaxIntensity(round(rviewUI->deformationMax->value()));
-  rviewUI->deformationMax->value(rview->GetDeformationLookupTable()->GetMaxIntensity());
-  rview->Update();
-  rviewUI->update();
-  viewer->redraw();
-}
-
-void Fl_RViewUI::cb_deformationBlending(Fl_Value_Slider* o, void* v)
-{
-  rview->SetDeformationBlending(rviewUI->deformationBlending->value());
-  rview->Update();
-  rviewUI->update();
-  viewer->redraw();
-}
-
 void Fl_RViewUI::UpdateTransformationControlWindow()
 {
   int j;
@@ -442,14 +385,6 @@ void Fl_RViewUI::UpdateTransformationControlWindow()
   for (j = 0; j < transform->NumberOfDOFs(); j++) {
     rviewUI->transformationValuator[j]->value(transform->Get(j));
   }
-
-  deformationMin->minimum(rview->GetDeformationLookupTable()->minData);
-  deformationMin->maximum(rview->GetDeformationLookupTable()->maxData);
-  deformationMin->value(rview->GetDeformationLookupTable()->minDisplay);
-  deformationMax->minimum(rview->GetDeformationLookupTable()->minData);
-  deformationMax->maximum(rview->GetDeformationLookupTable()->maxData);
-  deformationMax->value(rview->GetDeformationLookupTable()->maxDisplay);
-  deformationBlending->value(rview->GetDeformationBlending());
 }
 
 void Fl_RViewUI::ShowTransformationControlWindow()
@@ -459,106 +394,71 @@ void Fl_RViewUI::InitializeTransformationControlWindow()
 {
   {
     // Create transformation controls
-    Fl_Group* o = new Fl_Group(0, 30, 400, 410, "Transformation controls");
+    Fl_Group* o = new Fl_Group(0, 30, 400, 460, "Transformation controls");
     o->user_data((void*)(this));
     o->box(FL_ENGRAVED_BOX);
     o->labeltype(FL_NO_LABEL);
     {
-      transformationBrowser = new Fl_Simple_Browser(10, 40, 370, 130, "Transformations");
+      transformationBrowser = new Fl_Simple_Browser(10, 40, 370, 180, "Transformations");
       transformationBrowser->callback((Fl_Callback*)cb_browseTransformation);
       {
-        Fl_Button  *o = new Fl_Button(15,  190,  100,  30, "Move up");
+        Fl_Button  *o = new Fl_Button(15,  240,  100,  30, "Move up");
         o->callback((Fl_Callback*)cb_moveupTransformation);
       }
       {
-        Fl_Button  *o = new Fl_Button(145, 190,  100,  30, "Edit");
+        Fl_Button  *o = new Fl_Button(145, 240,  100,  30, "Edit");
         o->callback((Fl_Callback*)cb_editTransformation);
       }
       {
-        Fl_Button  *o = new Fl_Button(275, 190,  100,  30, "Reset");
+        Fl_Button  *o = new Fl_Button(275, 240,  100,  30, "Reset");
         o->callback((Fl_Callback*)cb_editTransformationReset);
       }
       {
-        Fl_Button  *o = new Fl_Button(15,  230,  100,  30, "Move down");
+        Fl_Button  *o = new Fl_Button(15,  280,  100,  30, "Move down");
         o->callback((Fl_Callback*)cb_movedownTransformation);
       }
       {
-        Fl_Button  *o = new Fl_Button(145, 230,  100,  30, "Delete");
+        Fl_Button  *o = new Fl_Button(145, 280,  100,  30, "Delete");
         o->callback((Fl_Callback*)cb_deleteTransformation);
       }
       {
-        Fl_Button  *o = new Fl_Button(275, 230,  100,  30, "Movie");
+        Fl_Button  *o = new Fl_Button(275, 280,  100,  30, "Movie");
         o->callback((Fl_Callback*)cb_movieTransformation);
       }
 
-      transformApply = new Fl_Check_Button(20, 270, 170, 20, "  Apply transformation");
+      transformApply = new Fl_Check_Button(20, 320, 170, 20, "  Apply transformation");
       transformApply->callback((Fl_Callback*)cb_applyTransformation);
 
-      transformInvert = new Fl_Check_Button(200, 270, 170, 20, "  Invert transformation");
+      transformInvert = new Fl_Check_Button(200, 320, 170, 20, "  Invert transformation");
       transformInvert->callback((Fl_Callback*)cb_invertTransformation);
 
-      info_trans_filename = new Fl_Output(150, 300, 230, 20, "Transform filename = ");
+      info_trans_filename = new Fl_Output(150, 350, 230, 20, "Transform filename = ");
       info_trans_filename->box(FL_FLAT_BOX);
-      info_trans_details = new Fl_Hold_Browser(150, 330, 230, 100, "Transform details    = ");
+      info_trans_details = new Fl_Hold_Browser(150, 380, 230, 100, "Transform details    = ");
       info_trans_details->align(FL_ALIGN_LEFT);
     }
     o->end(); // End of transformation controls
   }
   {
     // Create deformation display controls
-    Fl_Group* o = new Fl_Group(0, 440, 400, 220, "Deformation Display");
+    Fl_Group* o = new Fl_Group(0, 490, 400, 220, "Deformation Display");
     o->user_data((void*)(this));
     o->box(FL_ENGRAVED_BOX);
     o->labeltype(FL_NO_LABEL);
     {
-      Fl_Check_Button *o  = viewDeformationArrows = new Fl_Check_Button(20, 455, 60, 20, "Vectors");
+      Fl_Check_Button *o  = viewDeformationArrows = new Fl_Check_Button(20, 510, 60, 20, "Deformation vectors");
       o->callback((Fl_Callback*)cb_viewDeformationArrows);
     }
     {
-      Fl_Check_Button *o  = viewDeformationGrid = new Fl_Check_Button(90, 455, 60, 20, "Grid");
+      Fl_Check_Button *o  = viewDeformationGrid = new Fl_Check_Button(210, 510, 60, 20, "Deformation grid");
       o->callback((Fl_Callback*)cb_viewDeformationGrid);
     }
     {
-      Fl_Check_Button *o  = viewDeformationPoints = new Fl_Check_Button(140, 455, 120, 20, "Control points");
+      Fl_Check_Button *o  = viewDeformationPoints = new Fl_Check_Button(20, 550, 120, 20, "Control points");
       o->callback((Fl_Callback*)cb_viewDeformationPoints);
     }
     {
-      Fl_Choice* o = deformationProperty = new Fl_Choice(260, 450, 120, 30);
-      o->align(FL_ALIGN_BOTTOM);
-      o->menu(menu_deformationProperty);
-    }
-    {
-      Fl_Value_Slider* o = deformationMin = new Fl_Value_Slider(10, 500, 380, 20, "Min. value");
-      o->step(1);
-      o->minimum(rview->GetDeformationLookupTable()->minData);
-      o->maximum(rview->GetDeformationLookupTable()->maxData);
-      o->type(5);
-      o->box(FL_EMBOSSED_BOX);
-      o->align(FL_ALIGN_TOP_LEFT);
-      o->callback((Fl_Callback*)cb_deformationMinMax);
-    }
-    {
-      Fl_Value_Slider* o = deformationMax = new Fl_Value_Slider(10, 540, 380, 20, "Max. value");
-      o->step(1);
-      o->minimum(rview->GetDeformationLookupTable()->minData);
-      o->maximum(rview->GetDeformationLookupTable()->maxData);
-      o->type(5);
-      o->box(FL_EMBOSSED_BOX);
-      o->align(FL_ALIGN_TOP_LEFT);
-      o->callback((Fl_Callback*)cb_deformationMinMax);
-    }
-    {
-      Fl_Value_Slider* o = deformationBlending = new Fl_Value_Slider(10, 580, 380, 20, "Blending");
-      o->step(0.01);
-      o->minimum(0);
-      o->maximum(1);
-      o->type(5);
-      o->box(FL_EMBOSSED_BOX);
-      o->align(FL_ALIGN_TOP_LEFT);
-      o->callback((Fl_Callback*)cb_deformationBlending);
-    }
-    {
-      Fl_Value_Slider* o = viewDeformationGridResolution = new Fl_Value_Slider(10, 620, 380, 20, "Deformation field resolution");
+      Fl_Value_Slider* o = viewDeformationGridResolution = new Fl_Value_Slider(10, 610, 380, 20, "Deformation field resolution");
       o->step(1);
       o->minimum(0);
       o->maximum(40);

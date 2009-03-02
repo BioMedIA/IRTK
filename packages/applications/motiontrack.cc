@@ -65,7 +65,7 @@ int main(int argc, char **argv)
   filenames++;
 
   // Read image sequence
-  cout << "Reading image sequences ... "; cout.flush();
+  cout << "Reading image sequence ... "; cout.flush();
   irtkGreyImage **image = new irtkGreyImage *[n];
   for (i = 0; i < n; i++) {
     cout << filenames[i] << endl;
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   x2 = image[0]->GetX();
   y2 = image[0]->GetY();
   z2 = image[0]->GetZ();
-  t2 = image[0]->GetY();
+  t2 = image[0]->GetT();
 
   // Default parameters
   padding   = MIN_GREY;
@@ -262,8 +262,12 @@ int main(int argc, char **argv)
     }
 
     // Combine images
-    irtkGreyImage *target = new irtkGreyImage(image[0]->GetX(), image[0]->GetY(), image[0]->GetZ(), n, image[0]->GetXSize(), image[0]->GetYSize(), image[0]->GetZSize(), 1, image[0]->GetOrigin(), 0, xaxis, yaxis, zaxis);
-    irtkGreyImage *source = new irtkGreyImage(image[0]->GetX(), image[0]->GetY(), image[0]->GetZ(), n, image[0]->GetXSize(), image[0]->GetYSize(), image[0]->GetZSize(), 1, image[0]->GetOrigin(), 0, xaxis, yaxis, zaxis);
+    irtkImageAttributes attr = image[0]->GetImageAttributes();
+    attr._t = 1;
+    irtkGreyImage *target = new irtkGreyImage(attr);
+    target->Print();
+    irtkGreyImage *source = new irtkGreyImage(attr);
+    source->Print();
     for (i = 0; i < target->GetT(); i++) {
       for (z = 0; z < target->GetZ(); z++) {
         for (y = 0; y < target->GetY(); y++) {

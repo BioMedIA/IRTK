@@ -343,7 +343,7 @@ void irtkImageRegistration::Initialize(int level)
   }
 
   // Setup the interpolator
-  _interpolator = irtkInterpolateImageFunction<irtkGreyPixel>::New(_InterpolationMode, _source);
+  _interpolator = irtkInterpolateImageFunction::New(_InterpolationMode, _source);
 
   // Setup interpolation for the source image
   _interpolator->SetInput(_source);

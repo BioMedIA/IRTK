@@ -1149,9 +1149,9 @@ void irtkBSplineFreeFormTransformation3D::ComputeCoefficients(double* dxs, doubl
   Pole[0] = sqrt(3.0) - 2.0;
 
   // Initialize coefficient images.
-  xCoeffs.Initialize(_x, _y, _z);
-  yCoeffs.Initialize(_x, _y, _z);
-  zCoeffs.Initialize(_x, _y, _z);
+  xCoeffs = irtkRealImage(_x, _y, _z);
+  yCoeffs = irtkRealImage(_x, _y, _z);
+  zCoeffs = irtkRealImage(_x, _y, _z);
 
   // Convert the displacements into interpolation coefficients for each
   // direction.

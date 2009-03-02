@@ -364,17 +364,11 @@ void Fl_RViewUI::cb_SourceColor(Fl_Menu_ *, void *v)
 void Fl_RViewUI::cb_targetMinMax(Fl_Value_Slider* o, void* v)
 {
   if (rview->GetViewMode() != View_Subtraction) {
-    irtkLookupTable *lut = rview->GetTargetLookupTable();
-    lut->SetMinIntensity(round(rviewUI->targetMin->value()));
-    rviewUI->targetMin->value(lut->GetMinIntensity());
-    lut->SetMaxIntensity(round(rviewUI->targetMax->value()));
-    rviewUI->targetMax->value(lut->GetMaxIntensity());
+    rview->SetDisplayMinTarget(rviewUI->targetMin->value());
+    rview->SetDisplayMaxTarget(rviewUI->targetMax->value());
   } else {
-    irtkLookupTable *lut = rview->GetSubtractionLookupTable();
-    lut->SetMinIntensity(round(rviewUI->targetMin->value()));
-    rviewUI->targetMin->value(lut->GetMinIntensity());
-    lut->SetMaxIntensity(round(rviewUI->targetMax->value()));
-    rviewUI->targetMax->value(lut->GetMaxIntensity());
+    rview->SetDisplayMinSubtraction(rviewUI->targetMin->value());
+    rview->SetDisplayMaxSubtraction(rviewUI->targetMax->value());
   }
   rview->Update();
   viewer->redraw();
@@ -382,10 +376,8 @@ void Fl_RViewUI::cb_targetMinMax(Fl_Value_Slider* o, void* v)
 
 void Fl_RViewUI::cb_sourceMinMax(Fl_Value_Slider* o, void* v)
 {
-  rview->GetSourceLookupTable()->SetMinIntensity(round(rviewUI->sourceMin->value()));
-  rviewUI->sourceMin->value(rview->GetSourceLookupTable()->GetMinIntensity());
-  rview->GetSourceLookupTable()->SetMaxIntensity(round(rviewUI->sourceMax->value()));
-  rviewUI->sourceMax->value(rview->GetSourceLookupTable()->GetMaxIntensity());
+  rview->SetDisplayMinSource(rviewUI->sourceMin->value());
+  rview->SetDisplayMaxSource(rviewUI->sourceMax->value());
   rview->Update();
   viewer->redraw();
 }
@@ -436,12 +428,12 @@ void Fl_RViewUI::cb_viewMix(Fl_Value_Slider* o, void* v)
 void Fl_RViewUI::cb_viewTarget(Fl_Button*, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_A);
   rview->Update();
@@ -451,12 +443,12 @@ void Fl_RViewUI::cb_viewTarget(Fl_Button*, void* v)
 void Fl_RViewUI::cb_viewSource(Fl_Button*, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_B);
   rview->Update();
@@ -466,12 +458,12 @@ void Fl_RViewUI::cb_viewSource(Fl_Button*, void* v)
 void Fl_RViewUI::cb_viewHShutter(Fl_Button*, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_HShutter);
   rview->Update();
@@ -481,12 +473,12 @@ void Fl_RViewUI::cb_viewHShutter(Fl_Button*, void* v)
 void Fl_RViewUI::cb_viewVShutter(Fl_Button*, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_VShutter);
   rview->Update();
@@ -496,12 +488,12 @@ void Fl_RViewUI::cb_viewVShutter(Fl_Button*, void* v)
 void Fl_RViewUI::cb_viewSubtraction(Fl_Button*, void* v)
 {
   if (rview->GetViewMode() != View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetSubtractionLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetSubtractionLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetSubtractionLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetSubtractionLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetSubtractionLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetSubtractionLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetSubtractionMin());
+    rviewUI->targetMin->maximum(rview->GetSubtractionMax());
+    rviewUI->targetMax->minimum(rview->GetSubtractionMin());
+    rviewUI->targetMax->maximum(rview->GetSubtractionMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinSubtraction());
+    rviewUI->targetMax->value(rview->GetDisplayMaxSubtraction());
   }
   rview->SetViewMode(View_Subtraction);
   rview->Update();
@@ -511,12 +503,12 @@ void Fl_RViewUI::cb_viewSubtraction(Fl_Button*, void* v)
 void Fl_RViewUI::cb_viewCheckerboard(Fl_Button*b, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_Checkerboard);
   rview->Update();
@@ -526,12 +518,12 @@ void Fl_RViewUI::cb_viewCheckerboard(Fl_Button*b, void* v)
 void Fl_RViewUI::cb_viewAoverB(Fl_Button*b, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_AoverB);
   rview->Update();
@@ -541,12 +533,12 @@ void Fl_RViewUI::cb_viewAoverB(Fl_Button*b, void* v)
 void Fl_RViewUI::cb_viewBoverA(Fl_Button*b, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
-    rviewUI->targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    rviewUI->targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    rviewUI->targetMin->value(rview->GetTargetLookupTable()->minDisplay);
-    rviewUI->targetMax->value(rview->GetTargetLookupTable()->maxDisplay);
+    rviewUI->targetMin->minimum(rview->GetTargetMin());
+    rviewUI->targetMin->maximum(rview->GetTargetMax());
+    rviewUI->targetMax->minimum(rview->GetTargetMin());
+    rviewUI->targetMax->maximum(rview->GetTargetMax());
+    rviewUI->targetMin->value(rview->GetDisplayMinTarget());
+    rviewUI->targetMax->value(rview->GetDisplayMaxTarget());
   }
   rview->SetViewMode(View_BoverA);
   rview->Update();
@@ -555,18 +547,21 @@ void Fl_RViewUI::cb_viewBoverA(Fl_Button*b, void* v)
 
 void Fl_RViewUI::ShowImageControlWindow()
 {
-  targetMin->minimum(rview->GetTargetLookupTable()->minData);
-  targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-  targetMax->minimum(rview->GetTargetLookupTable()->minData);
-  targetMax->maximum(rview->GetTargetLookupTable()->maxData);
+  targetMin->minimum(rview->GetTargetMin());
+  targetMin->maximum(rview->GetTargetMax());
+  targetMax->minimum(rview->GetTargetMin());
+  targetMax->maximum(rview->GetTargetMax());
+  targetMin->value(rview->GetDisplayMinSource());
+  targetMax->value(rview->GetDisplayMaxSource());
 
   // Set up correct min and max values for all source widgets
-  sourceMin->minimum(rview->GetSourceLookupTable()->minData);
-  sourceMin->maximum(rview->GetSourceLookupTable()->maxData);
-  sourceMax->minimum(rview->GetSourceLookupTable()->minData);
-  sourceMax->maximum(rview->GetSourceLookupTable()->maxData);
-  sourceMin->value(rview->GetSourceLookupTable()->minDisplay);
-  sourceMax->value(rview->GetSourceLookupTable()->maxDisplay);
+  sourceMin->minimum(rview->GetSourceMin());
+  sourceMin->maximum(rview->GetSourceMax());
+  sourceMax->minimum(rview->GetSourceMin());
+  sourceMax->maximum(rview->GetSourceMax());
+  sourceMin->value(rview->GetDisplayMinSource());
+  sourceMax->value(rview->GetDisplayMaxSource());
+
 }
 
 void Fl_RViewUI::UpdateImageControlWindow()
@@ -746,28 +741,28 @@ void Fl_RViewUI::UpdateImageControlWindow()
 
   // Set up correct min and max values for all target widgets
   if (rview->GetViewMode() != View_Subtraction) {
-    targetMin->minimum(rview->GetTargetLookupTable()->minData);
-    targetMin->maximum(rview->GetTargetLookupTable()->maxData);
-    targetMax->minimum(rview->GetTargetLookupTable()->minData);
-    targetMax->maximum(rview->GetTargetLookupTable()->maxData);
-    targetMin->value(rview->GetTargetLookupTable()->GetMinIntensity());
-    targetMax->value(rview->GetTargetLookupTable()->GetMaxIntensity());
+    targetMin->minimum(rview->GetTargetMin());
+    targetMin->maximum(rview->GetTargetMax());
+    targetMax->minimum(rview->GetTargetMin());
+    targetMax->maximum(rview->GetTargetMax());
+    targetMin->value(rview->GetDisplayMinTarget());
+    targetMax->value(rview->GetDisplayMaxTarget());
   } else {
-    targetMin->minimum(rview->GetSubtractionLookupTable()->minData);
-    targetMin->maximum(rview->GetSubtractionLookupTable()->maxData);
-    targetMax->minimum(rview->GetSubtractionLookupTable()->minData);
-    targetMax->maximum(rview->GetSubtractionLookupTable()->maxData);
-    targetMin->value(rview->GetSubtractionLookupTable()->GetMinIntensity());
-    targetMax->value(rview->GetSubtractionLookupTable()->GetMaxIntensity());
+    targetMin->minimum(rview->GetSubtractionMin());
+    targetMin->maximum(rview->GetSubtractionMax());
+    targetMax->minimum(rview->GetSubtractionMin());
+    targetMax->maximum(rview->GetSubtractionMax());
+    targetMin->value(rview->GetDisplayMinSubtraction());
+    targetMax->value(rview->GetDisplayMaxSubtraction());
   }
 
   // Set up correct min and max values for all source widgets
-  sourceMin->minimum(rview->GetSourceLookupTable()->minData);
-  sourceMin->maximum(rview->GetSourceLookupTable()->maxData);
-  sourceMax->minimum(rview->GetSourceLookupTable()->minData);
-  sourceMax->maximum(rview->GetSourceLookupTable()->maxData);
-  sourceMin->value(rview->GetSourceLookupTable()->minDisplay);
-  sourceMax->value(rview->GetSourceLookupTable()->maxDisplay);
+  sourceMin->minimum(rview->GetSourceMin());
+  sourceMin->maximum(rview->GetSourceMax());
+  sourceMax->minimum(rview->GetSourceMin());
+  sourceMax->maximum(rview->GetSourceMax());
+  sourceMin->value(rview->GetDisplayMinSource());
+  sourceMax->value(rview->GetDisplayMaxSource());
 
   // Set up correct min and max values for time frames
   targetFrame->minimum(0);
@@ -787,20 +782,18 @@ void Fl_RViewUI::InitializeImageControlWindow()
     o->box(FL_ENGRAVED_BOX);
     o->labeltype(FL_NO_LABEL);
     {
-      Fl_Value_Slider* o = targetMin =
-                             new Fl_Value_Slider(10, 50, 380, 20, "Min. greyvalue:");
+      Fl_Value_Slider2* o = targetMin =
+                             new Fl_Value_Slider2(10, 50, 380, 20, "Min. greyvalue:");
       o->type(5);
       o->box(FL_EMBOSSED_BOX);
-      o->step(1);
       o->callback((Fl_Callback*)cb_targetMinMax);
       o->align(133);
     }
     {
-      Fl_Value_Slider* o = targetMax =
-                             new Fl_Value_Slider(10, 90, 380, 20, "Max. greyvalue:");
+      Fl_Value_Slider2* o = targetMax =
+                             new Fl_Value_Slider2(10, 90, 380, 20, "Max. greyvalue:");
       o->type(5);
       o->box(FL_EMBOSSED_BOX);
-      o->step(1);
       o->callback((Fl_Callback*)cb_targetMinMax);
       o->align(FL_ALIGN_TOP_LEFT);
     }
@@ -840,20 +833,16 @@ void Fl_RViewUI::InitializeImageControlWindow()
     o->box(FL_ENGRAVED_BOX);
     o->labeltype(FL_NO_LABEL);
     {
-      Fl_Value_Slider* o = sourceMin = new Fl_Value_Slider(10, 250, 380, 20, "Min. greyvalue:");
+      Fl_Value_Slider2* o = sourceMin = new Fl_Value_Slider2(10, 250, 380, 20, "Min. greyvalue:");
       o->type(5);
       o->box(FL_EMBOSSED_BOX);
-      o->step(1);
       o->callback((Fl_Callback*)cb_sourceMinMax);
       o->align(FL_ALIGN_TOP_LEFT);
     }
     {
-      Fl_Value_Slider* o = sourceMax = new Fl_Value_Slider(10, 290, 380, 20, "Max. greyvalue:");
+      Fl_Value_Slider2* o = sourceMax = new Fl_Value_Slider2(10, 290, 380, 20, "Max. greyvalue:");
       o->type(5);
       o->box(FL_EMBOSSED_BOX);
-      o->maximum(255);
-      o->step(1);
-      o->value(255);
       o->callback((Fl_Callback*)cb_sourceMinMax);
       o->align(FL_ALIGN_TOP_LEFT);
     }

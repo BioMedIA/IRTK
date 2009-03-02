@@ -72,10 +72,10 @@ Fl_Button *drawPaintBrush;
 Fl_Button *drawContour;
 
 /// Slider for region growing
-Fl_Value_Slider *regionGrowingMin;
+Fl_Value_Slider2 *regionGrowingMin;
 
 /// Slider for region growing
-Fl_Value_Slider *regionGrowingMax;
+Fl_Value_Slider2 *regionGrowingMax;
 
 /// Menu for paint brush width
 Fl_Choice *paintBrushWidth;

@@ -24,7 +24,7 @@
  * int, unsigned int and float.
  */
 
-template <class VoxelType> class irtkFileGIPLToImage : public irtkFileToImage<VoxelType>
+class irtkFileGIPLToImage : public irtkFileToImage
 {
 
 protected:

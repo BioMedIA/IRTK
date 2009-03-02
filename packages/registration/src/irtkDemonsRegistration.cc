@@ -48,7 +48,7 @@ irtkDemonsRegistration::irtkDemonsRegistration()
   _transformation = NULL;
 
   // Allocate interpolation object
-  _interpolator = new irtkLinearInterpolateImageFunction<irtkGreyPixel>;
+  _interpolator = new irtkLinearInterpolateImageFunction;
 }
 
 irtkDemonsRegistration::~irtkDemonsRegistration()
@@ -138,13 +138,16 @@ void irtkDemonsRegistration::Initialize(int level)
   int i, j, k;
   double x, y, z;
 
+  // Extract image attributes
+  irtkImageAttributes attr = _target->GetImageAttributes();
+
   // Push local transformation back on transformation stack
   _transformation->PushLocalTransformation(_ffd);
 
   // Create global displacement field with same size as target
-  _globalDX.Initialize(*_target);
-  _globalDY.Initialize(*_target);
-  _globalDZ.Initialize(*_target);
+  _globalDX.Initialize(attr);
+  _globalDY.Initialize(attr);
+  _globalDZ.Initialize(attr);
 
   // Calculate global displacement field
   for (k = 0; k < _target->GetZ(); k++) {
@@ -170,9 +173,9 @@ void irtkDemonsRegistration::Initialize(int level)
   _ffd = (irtkLinearFreeFormTransformation *)_transformation->PopLocalTransformation();
 
   // Create global displacement field with same size as target
-  _localDX.Initialize(*_target);
-  _localDY.Initialize(*_target);
-  _localDZ.Initialize(*_target);
+  _localDX.Initialize(attr);
+  _localDY.Initialize(attr);
+  _localDZ.Initialize(attr);
 
   // Setup interpolation for the source image
   _interpolator->SetInput(_source);
@@ -214,9 +217,9 @@ void irtkDemonsRegistration::Initialize(int level)
   }
 
   // Create images for gradient
-  _targetGradientX.Initialize(*_target);
-  _targetGradientY.Initialize(*_target);
-  _targetGradientZ.Initialize(*_target);
+  _targetGradientX.Initialize(attr);
+  _targetGradientY.Initialize(attr);
+  _targetGradientZ.Initialize(attr);
 
   // Calculate gradient
   for (k = 1; k < _target->GetZ()-1; k++) {
@@ -245,16 +248,13 @@ void irtkDemonsRegistration::Finalize(int level)
   double x, y, z, x1, y1, z1, x2, y2, z2;
 
   // Create interpolators for displacement fields
-  irtkLinearInterpolateImageFunction<irtkRealPixel> *interpolatorDX =
-    new irtkLinearInterpolateImageFunction<irtkRealPixel>;
+  irtkLinearInterpolateImageFunction *interpolatorDX = new irtkLinearInterpolateImageFunction;
   interpolatorDX->SetInput(&_globalDX);
   interpolatorDX->Initialize();
-  irtkLinearInterpolateImageFunction<irtkRealPixel> *interpolatorDY =
-    new irtkLinearInterpolateImageFunction<irtkRealPixel>;
+  irtkLinearInterpolateImageFunction *interpolatorDY = new irtkLinearInterpolateImageFunction;
   interpolatorDY->SetInput(&_globalDY);
   interpolatorDY->Initialize();
-  irtkLinearInterpolateImageFunction<irtkRealPixel> *interpolatorDZ =
-    new irtkLinearInterpolateImageFunction<irtkRealPixel>;
+  irtkLinearInterpolateImageFunction *interpolatorDZ = new irtkLinearInterpolateImageFunction;
   interpolatorDZ->SetInput(&_globalDZ);
   interpolatorDZ->Initialize();
 

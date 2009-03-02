@@ -21,7 +21,7 @@
  * images.
  */
 
-template <class VoxelType> class irtkNearestNeighborInterpolateImageFunction2D : public irtkInterpolateImageFunction<VoxelType>
+class irtkNearestNeighborInterpolateImageFunction2D : public irtkInterpolateImageFunction
 {
 
 private:

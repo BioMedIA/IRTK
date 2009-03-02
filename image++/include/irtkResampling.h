@@ -50,7 +50,7 @@ protected:
   double _ZSize;
 
   /// Interpolation used to interpolate output
-  irtkImageFunction<VoxelType> *_Interpolator;
+  irtkImageFunction *_Interpolator;
 
   /// Returns whether the filter requires buffering
   virtual Bool RequiresBuffering();
@@ -85,7 +85,7 @@ public:
   GetMacro(ZSize, double);
 
   /// Set interpolator
-  SetMacro(Interpolator, irtkImageFunction<VoxelType> *);
+  SetMacro(Interpolator, irtkImageFunction *);
 
   /// Run the resampling filter
   virtual void   Run();

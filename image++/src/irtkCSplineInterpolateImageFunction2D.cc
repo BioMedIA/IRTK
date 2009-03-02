@@ -32,21 +32,21 @@ inline double cspline(double x)
   }
 }
 
-template <class VoxelType> irtkCSplineInterpolateImageFunction2D<VoxelType>::irtkCSplineInterpolateImageFunction2D()
+irtkCSplineInterpolateImageFunction2D::irtkCSplineInterpolateImageFunction2D()
 {}
 
-template <class VoxelType> irtkCSplineInterpolateImageFunction2D<VoxelType>::~irtkCSplineInterpolateImageFunction2D(void)
+irtkCSplineInterpolateImageFunction2D::~irtkCSplineInterpolateImageFunction2D(void)
 {}
 
-template <class VoxelType> const char *irtkCSplineInterpolateImageFunction2D<VoxelType>::NameOfClass()
+const char *irtkCSplineInterpolateImageFunction2D::NameOfClass()
 {
   return "irtkCSplineInterpolateImageFunction";
 }
 
-template <class VoxelType> void irtkCSplineInterpolateImageFunction2D<VoxelType>::Initialize()
+void irtkCSplineInterpolateImageFunction2D::Initialize()
 {
   /// Initialize baseclass
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   // Check if image is 2D
   if (this->_input->GetZ() != 1) {
@@ -66,10 +66,10 @@ template <class VoxelType> void irtkCSplineInterpolateImageFunction2D<VoxelType>
   this->_y2 = this->_input->GetY()-2;
 
   // Compute min and max values
-  this->_input->GetMinMax(&this->_min, &this->_max);
+  this->_input->GetMinMaxAsDouble(&this->_min, &this->_max);
 }
 
-template <class VoxelType> double irtkCSplineInterpolateImageFunction2D<VoxelType>::Evaluate(double x, double y, double z, double time)
+double irtkCSplineInterpolateImageFunction2D::Evaluate(double x, double y, double z, double time)
 {
   double wx, wy, val, sum;
   int i, j, k, l, m, t;
@@ -87,7 +87,7 @@ template <class VoxelType> double irtkCSplineInterpolateImageFunction2D<VoxelTyp
       for (m = -1; m < 3; m++) {
         if ((m+j >= 0) && (m+j < this->_y)) {
           wy = cspline(m+j-y);
-          val += wx*wy*this->_input->Get(l+i, m+j, k, t);
+          val += wx*wy*this->_input->GetAsDouble(l+i, m+j, k, t);
           sum += wx*wy;
         }
       }
@@ -108,7 +108,7 @@ template <class VoxelType> double irtkCSplineInterpolateImageFunction2D<VoxelTyp
   return(val);
 }
 
-template <class VoxelType> double irtkCSplineInterpolateImageFunction2D<VoxelType>::EvaluateInside(double x, double y, double z, double time)
+double irtkCSplineInterpolateImageFunction2D::EvaluateInside(double x, double y, double z, double time)
 {
   double wx, wy, val, sum;
   int i, j, k, l, m, t;
@@ -125,7 +125,7 @@ template <class VoxelType> double irtkCSplineInterpolateImageFunction2D<VoxelTyp
     wx = cspline(l+i-x);
     for (m = -1; m < 3; m++) {
       wy = cspline(m+j-y);
-      val += wx*wy*this->_input->Get(l+i, m+j, k, t);
+      val += wx*wy*this->_input->GetAsDouble(l+i, m+j, k, t);
       sum += wx*wy;
     }
   }
@@ -143,7 +143,3 @@ template <class VoxelType> double irtkCSplineInterpolateImageFunction2D<VoxelTyp
 
   return(val);
 }
-
-template class irtkCSplineInterpolateImageFunction2D<irtkBytePixel>;
-template class irtkCSplineInterpolateImageFunction2D<irtkGreyPixel>;
-template class irtkCSplineInterpolateImageFunction2D<irtkRealPixel>;

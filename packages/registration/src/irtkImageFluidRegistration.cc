@@ -431,7 +431,7 @@ void irtkImageFluidRegistration::Run()
       _optimizer->SetTransformation(_affd);
 
       // Create image transformation
-      irtkImageTransformation<irtkGreyPixel> *imagetransformation = new irtkImageTransformation<irtkGreyPixel>;
+      irtkImageTransformation *imagetransformation = new irtkImageTransformation;
       imagetransformation->SetInput (_source, _mffd);
       imagetransformation->SetOutput(_tmpSource);
       imagetransformation->PutInterpolator(_interpolator);

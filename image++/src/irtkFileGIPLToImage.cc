@@ -16,12 +16,12 @@
 
 #include <irtkGIPL.h>
 
-template <class VoxelType> const char *irtkFileGIPLToImage<VoxelType>::NameOfClass()
+const char *irtkFileGIPLToImage::NameOfClass()
 {
   return "irtkFileGIPLToImage";
 }
 
-template <class VoxelType> int irtkFileGIPLToImage<VoxelType>::CheckHeader(const char *filename)
+int irtkFileGIPLToImage::CheckHeader(const char *filename)
 {
   unsigned int magic_number;
 
@@ -45,9 +45,8 @@ template <class VoxelType> int irtkFileGIPLToImage<VoxelType>::CheckHeader(const
   }
 }
 
-template <class VoxelType> void irtkFileGIPLToImage<VoxelType>::ReadHeader()
+void irtkFileGIPLToImage::ReadHeader()
 {
-  int i;
   float size;
   double origin;
   unsigned short dim, type;
@@ -65,21 +64,21 @@ template <class VoxelType> void irtkFileGIPLToImage<VoxelType>::ReadHeader()
 
   // Read image dimensions
   this->ReadAsUShort(&dim, 1, 0);
-  this->_x = dim;
+  this->_attr._x = dim;
   this->ReadAsUShort(&dim, 1, 2);
-  this->_y = dim;
+  this->_attr._y = dim;
   this->ReadAsUShort(&dim, 1, 4);
-  this->_z = dim;
-  this->_t = 1;
+  this->_attr._z = dim;
+  this->_attr._t = 1;
 
   // Read voxel dimensions
   this->ReadAsFloat(&size, 1, 10);
-  this->_xsize = size;
+  this->_attr._dx = size;
   this->ReadAsFloat(&size, 1, 14);
-  this->_ysize = size;
+  this->_attr._dy = size;
   this->ReadAsFloat(&size, 1, 18);
-  this->_zsize = size;
-  this->_tsize = 1;
+  this->_attr._dz = size;
+  this->_attr._dt = 1;
 
   // Read extension flag
   this->ReadAsUInt(&magic_ext, 1, 244);
@@ -89,31 +88,31 @@ template <class VoxelType> void irtkFileGIPLToImage<VoxelType>::ReadHeader()
 
     // Read image orientation if available
     this->ReadAsFloat(&size, 1, 106);
-    this->_xaxis[0] = size;
+    this->_attr._xaxis[0] = size;
     this->ReadAsFloat(&size, 1, 110);
-    this->_xaxis[1] = size;
+    this->_attr._xaxis[1] = size;
     this->ReadAsFloat(&size, 1, 114);
-    this->_xaxis[2] = size;
+    this->_attr._xaxis[2] = size;
     this->ReadAsFloat(&size, 1, 122);
-    this->_yaxis[0] = size;
+    this->_attr._yaxis[0] = size;
     this->ReadAsFloat(&size, 1, 126);
-    this->_yaxis[1] = size;
+    this->_attr._yaxis[1] = size;
     this->ReadAsFloat(&size, 1, 130);
-    this->_yaxis[2] = size;
+    this->_attr._yaxis[2] = size;
 
     // Construct the z-axis.
     // Assume a right handed (`neurological') set of axes!
-    this->_zaxis[0] = this->_xaxis[1]*this->_yaxis[2] - this->_xaxis[2]*this->_yaxis[1];
-    this->_zaxis[1] = this->_xaxis[2]*this->_yaxis[0] - this->_xaxis[0]*this->_yaxis[2];
-    this->_zaxis[2] = this->_xaxis[0]*this->_yaxis[1] - this->_xaxis[1]*this->_yaxis[0];
+    this->_attr._zaxis[0] = this->_attr._xaxis[1]*this->_attr._yaxis[2] - this->_attr._xaxis[2]*this->_attr._yaxis[1];
+    this->_attr._zaxis[1] = this->_attr._xaxis[2]*this->_attr._yaxis[0] - this->_attr._xaxis[0]*this->_attr._yaxis[2];
+    this->_attr._zaxis[2] = this->_attr._xaxis[0]*this->_attr._yaxis[1] - this->_attr._xaxis[1]*this->_attr._yaxis[0];
 
     // Read image origin if available
     this->ReadAsDouble(&origin, 1, 204);
-    this->_xorigin = origin;
+    this->_attr._xorigin = origin;
     this->ReadAsDouble(&origin, 1, 212);
-    this->_yorigin = origin;
+    this->_attr._yorigin = origin;
     this->ReadAsDouble(&origin, 1, 220);
-    this->_zorigin = origin;
+    this->_attr._zorigin = origin;
   }
 
   // Read type of voxels
@@ -122,48 +121,36 @@ template <class VoxelType> void irtkFileGIPLToImage<VoxelType>::ReadHeader()
   // Calculate type of voxels and number of bytes per voxel
   switch (type) {
   case GIPL_CHAR:
-    this->_type  = VOXEL_CHAR;
+    this->_type  = IRTK_VOXEL_CHAR;
     this->_bytes = 1;
     break;
   case GIPL_U_CHAR:
-    this->_type  = VOXEL_U_CHAR;
+    this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
     this->_bytes = 1;
     break;
   case GIPL_SHORT:
-    this->_type  = VOXEL_SHORT;
+    this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
     break;
   case GIPL_U_SHORT:
-    this->_type  = VOXEL_U_SHORT;
+    this->_type  = IRTK_VOXEL_UNSIGNED_SHORT;
     this->_bytes = 2;
     break;
   case GIPL_INT:
-    this->_type  = VOXEL_INT;
+    this->_type  = IRTK_VOXEL_INT;
     this->_bytes = 4;
     break;
   case GIPL_U_INT:
-    this->_type  = VOXEL_U_INT;
+    this->_type  = IRTK_VOXEL_UNSIGNED_INT;
     this->_bytes = 4;
     break;
   case GIPL_FLOAT:
-    this->_type  = VOXEL_FLOAT;
+    this->_type  = IRTK_VOXEL_FLOAT;
     this->_bytes = 4;
     break;
-  case GIPL_VECTOR_3D_CHAR:
-    this->_type = VOXEL_VECTOR_3D_CHAR;
-    this->_bytes = 3;
-    break;
-  case GIPL_VECTOR_3D_SHORT:
-    this->_type = VOXEL_VECTOR_3D_SHORT;
-    this->_bytes = 6;
-    break;
-  case GIPL_VECTOR_3D_FLOAT:
-    this->_type = VOXEL_VECTOR_3D_FLOAT;
-    this->_bytes = 12;
-    break;
-  case GIPL_VECTOR_3D_DOUBLE:
-    this->_type = VOXEL_VECTOR_3D_DOUBLE;
-    this->_bytes = 24;
+  case GIPL_DOUBLE:
+    this->_type  = IRTK_VOXEL_DOUBLE;
+    this->_bytes = 8;
     break;
   default:
     cerr << this->NameOfClass() << "::Read_Header(): Unknown voxel type"
@@ -171,21 +158,6 @@ template <class VoxelType> void irtkFileGIPLToImage<VoxelType>::ReadHeader()
     exit(1);
   }
 
-  // Allocate memory for data address
-  if (this->_addr != 0) delete []this->_addr;
-  this->_addr = new int[this->_z];
-
-  // Calculate data address
-  for (i = 0; i < this->_z; i++) {
-    this->_addr[i] = GIPL_HEADERSIZE + i * this->_x * this->_y * this->_bytes;
-  }
+  // Data starts here
+  this->_start = GIPL_HEADERSIZE;
 }
-
-template class irtkFileGIPLToImage<irtkBytePixel>;
-template class irtkFileGIPLToImage<irtkGreyPixel>;
-template class irtkFileGIPLToImage<irtkRealPixel>;
-template class irtkFileGIPLToImage<irtkVector3D<char> >;
-template class irtkFileGIPLToImage<irtkVector3D<short> >;
-template class irtkFileGIPLToImage<irtkVector3D<float> >;
-template class irtkFileGIPLToImage<irtkVector3D<double> >;
-

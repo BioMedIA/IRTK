@@ -79,7 +79,7 @@ protected:
   irtkLinearFreeFormTransformation *_ffd;
 
   /// Interpolator
-  irtkInterpolateImageFunction<irtkGreyPixel> *_interpolator;
+  irtkInterpolateImageFunction *_interpolator;
 
   /// Blurring of target image (in mm)
   double _TargetBlurring;

@@ -26,7 +26,7 @@
  *
  */
 
-template <class VoxelType> class irtkBSplineInterpolateImageFunction2D : public irtkInterpolateImageFunction<VoxelType>
+class irtkBSplineInterpolateImageFunction2D : public irtkInterpolateImageFunction
 {
 
 private:
@@ -97,7 +97,7 @@ public:
 
 };
 
-template <class VoxelType> inline void irtkBSplineInterpolateImageFunction2D<VoxelType>::PutSplineDegree(int SplineDegree)
+inline void irtkBSplineInterpolateImageFunction2D::PutSplineDegree(int SplineDegree)
 {
   if ((SplineDegree < 2) || (SplineDegree > 5)) {
     cerr << "irtkBSplineInterpolateImageFunction2D::PutSplineDegree: Unsupported spline degree\n";
@@ -106,7 +106,7 @@ template <class VoxelType> inline void irtkBSplineInterpolateImageFunction2D<Vox
   _SplineDegree = SplineDegree;
 }
 
-template <class VoxelType> inline int irtkBSplineInterpolateImageFunction2D<VoxelType>::GetSplineDegree()
+inline int irtkBSplineInterpolateImageFunction2D::GetSplineDegree()
 {
   return _SplineDegree;
 }

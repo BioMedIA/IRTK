@@ -89,7 +89,7 @@ public:
   //
 
   /// Comparison operator ==
-  int    operator==(const irtkPoint&);
+  int    operator==(const irtkPoint&) const;
 
   /// Comparison operator != (if USE_STL is defined, negate == operator)
   int    operator!=(const irtkPoint&);
@@ -319,7 +319,7 @@ inline irtkPoint irtkPoint::operator/ (const irtkPoint& p)
   return tmp;
 }
 
-inline int irtkPoint::operator==(irtkPoint const &p)
+inline int irtkPoint::operator==(irtkPoint const &p) const
 {
   return ((_x == p._x) && (_y == p._y) && (_z == p._z));
 }

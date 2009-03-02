@@ -24,7 +24,7 @@
  * a file with with extension ".img".
  */
 
-template <class VoxelType> class irtkFileANALYZEToImage : public irtkFileToImage<VoxelType>
+class irtkFileANALYZEToImage : public irtkFileToImage
 {
 
   /// Filename of header

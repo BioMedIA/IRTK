@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,219 +7,18 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkImage.h>
 
+#include <irtkFileToImage.h>
 #include <irtkNIFTI.h>
 
 irtkBaseImage::irtkBaseImage()
 {
-  _x  = 0;
-  _y  = 0;
-  _z  = 0;
-  _t  = 0;
-
-  // Default voxel size
-  _dx = 1;
-  _dy = 1;
-  _dz = 1;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
   _matI2W = irtkMatrix(4, 4);
   _matW2I = irtkMatrix(4, 4);
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-irtkBaseImage::irtkBaseImage(int x, int y, int z, int t)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = t;
-
-  // Default voxel size
-  _dx = 1;
-  _dy = 1;
-  _dz = 1;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  _matI2W = irtkMatrix(4, 4);
-  _matW2I = irtkMatrix(4, 4);
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-irtkBaseImage::irtkBaseImage(int x, int y, int z, double dx, double dy, double dz)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = 1;
-
-  // Default voxel size
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  _matI2W = irtkMatrix(4, 4);
-  _matW2I = irtkMatrix(4, 4);
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-irtkBaseImage::irtkBaseImage(int x, int y, int z, double dx, double dy, double dz,
-                             double *xaxis, double *yaxis, double *zaxis)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _z  = 1;
-
-  // Default voxel size
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dz = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  _matI2W = irtkMatrix(4, 4);
-  _matW2I = irtkMatrix(4, 4);
-
-  // Default x-axis
-  _xaxis[0] = xaxis[0];
-  _xaxis[1] = xaxis[1];
-  _xaxis[2] = xaxis[2];
-
-  // Default y-axis
-  _yaxis[0] = yaxis[0];
-  _yaxis[1] = yaxis[1];
-  _yaxis[2] = yaxis[2];
-
-  // Default z-axis
-  if (zaxis != NULL) {
-    _zaxis[0] = zaxis[0];
-    _zaxis[1] = zaxis[1];
-    _zaxis[2] = zaxis[2];
-  } else {
-    // Update z-axis
-    _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-    _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-    _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-  }
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-irtkBaseImage::irtkBaseImage(int x, int y, int z, double dx, double dy, double dz, irtkPoint origin,
-                             double *xaxis, double *yaxis, double *zaxis)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = 1;
-
-  // Default voxel size
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = 1;
-
-  // Default origin
-  _origin = origin;
-  _torigin = 0;
-
-  _matI2W = irtkMatrix(4, 4);
-  _matW2I = irtkMatrix(4, 4);
-
-  // Default x-axis
-  _xaxis[0] = xaxis[0];
-  _xaxis[1] = xaxis[1];
-  _xaxis[2] = xaxis[2];
-
-  // Default y-axis
-  _yaxis[0] = yaxis[0];
-  _yaxis[1] = yaxis[1];
-  _yaxis[2] = yaxis[2];
-
-  // Default z-axis
-  if (zaxis != NULL) {
-    _zaxis[0] = zaxis[0];
-    _zaxis[1] = zaxis[1];
-    _zaxis[2] = zaxis[2];
-  } else {
-    // Update z-axis
-    _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-    _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-    _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-  }
 
   // Update transformation matrix
   this->UpdateMatrix();
@@ -227,77 +26,29 @@ irtkBaseImage::irtkBaseImage(int x, int y, int z, double dx, double dy, double d
 
 irtkBaseImage::irtkBaseImage(const irtkBaseImage &image)
 {
-  // Copy image dimensions
-  _x = image._x;
-  _y = image._y;
-  _z = image._z;
-  _t = image._t;
-
-  // Copy voxel dimensions
-  _dx = image._dx;
-  _dy = image._dy;
-  _dz = image._dz;
-  _dt = image._dt;
-
-  // Copy origin
-  _origin = image._origin;
-  _torigin = image._torigin;
+  _attr   = image._attr;
   _matI2W = image._matI2W;
   _matW2I = image._matW2I;
-
-  // Copy x-axis
-  _xaxis[0] = image._xaxis[0];
-  _xaxis[1] = image._xaxis[1];
-  _xaxis[2] = image._xaxis[2];
-
-  // Copy y-axis
-  _yaxis[0] = image._yaxis[0];
-  _yaxis[1] = image._yaxis[1];
-  _yaxis[2] = image._yaxis[2];
-
-  // Copy z-axis
-  _zaxis[0] = image._zaxis[0];
-  _zaxis[1] = image._zaxis[1];
-  _zaxis[2] = image._zaxis[2];
 }
 
 irtkBaseImage::~irtkBaseImage()
 {
-  _x  = 0;
-  _y  = 0;
-  _z  = 0;
-  _t  = 0;
-
-  // Default voxel size
-  _dx = 1;
-  _dy = 1;
-  _dz = 1;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  _matI2W = irtkMatrix(4, 4);
-  _matW2I = irtkMatrix(4, 4);
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
+	// Update image attributes
+	_attr = irtkImageAttributes();
 
   // Update transformation matrix
   this->UpdateMatrix();
+}
+
+irtkBaseImage *irtkBaseImage::New(const char *filename)
+{
+  irtkBaseImage *image;
+
+  irtkFileToImage *reader = irtkFileToImage::New(filename);
+  image = reader->GetOutput();
+  delete reader;
+
+  return image;
 }
 
 void irtkBaseImage::UpdateMatrix()
@@ -307,377 +58,72 @@ void irtkBaseImage::UpdateMatrix()
 
   // Update image to world coordinate system matrix
   _matI2W.Ident();
-  _matI2W(0, 0) = _xaxis[0];
-  _matI2W(1, 0) = _xaxis[1];
-  _matI2W(2, 0) = _xaxis[2];
-  _matI2W(0, 1) = _yaxis[0];
-  _matI2W(1, 1) = _yaxis[1];
-  _matI2W(2, 1) = _yaxis[2];
-  _matI2W(0, 2) = _zaxis[0];
-  _matI2W(1, 2) = _zaxis[1];
-  _matI2W(2, 2) = _zaxis[2];
+  _matI2W(0, 0) = _attr._xaxis[0];
+  _matI2W(1, 0) = _attr._xaxis[1];
+  _matI2W(2, 0) = _attr._xaxis[2];
+  _matI2W(0, 1) = _attr._yaxis[0];
+  _matI2W(1, 1) = _attr._yaxis[1];
+  _matI2W(2, 1) = _attr._yaxis[2];
+  _matI2W(0, 2) = _attr._zaxis[0];
+  _matI2W(1, 2) = _attr._zaxis[1];
+  _matI2W(2, 2) = _attr._zaxis[2];
 
   irtkMatrix tmp1(4, 4);
   tmp1.Ident();
-  tmp1(0, 3) = - (_x - 1) / 2.0;
-  tmp1(1, 3) = - (_y - 1) / 2.0;
-  tmp1(2, 3) = - (_z - 1) / 2.0;
+  tmp1(0, 3) = - (_attr._x - 1) / 2.0;
+  tmp1(1, 3) = - (_attr._y - 1) / 2.0;
+  tmp1(2, 3) = - (_attr._z - 1) / 2.0;
 
   irtkMatrix tmp2(4, 4);
   tmp2.Ident();
-  tmp2(0, 0) = _dx;
-  tmp2(1, 1) = _dy;
-  tmp2(2, 2) = _dz;
+  tmp2(0, 0) = _attr._dx;
+  tmp2(1, 1) = _attr._dy;
+  tmp2(2, 2) = _attr._dz;
 
   irtkMatrix tmp3(4, 4);
   tmp3.Ident();
-  tmp3(0, 3) = _origin._x;
-  tmp3(1, 3) = _origin._y;
-  tmp3(2, 3) = _origin._z;
+  tmp3(0, 3) = _attr._xorigin;
+  tmp3(1, 3) = _attr._yorigin;
+  tmp3(2, 3) = _attr._zorigin;
 
   _matI2W = tmp3 * (_matI2W * (tmp2 * tmp1));
 
   // Update world to image coordinate system matrix
   _matW2I.Ident();
-  _matW2I(0, 0) = _xaxis[0];
-  _matW2I(0, 1) = _xaxis[1];
-  _matW2I(0, 2) = _xaxis[2];
-  _matW2I(1, 0) = _yaxis[0];
-  _matW2I(1, 1) = _yaxis[1];
-  _matW2I(1, 2) = _yaxis[2];
-  _matW2I(2, 0) = _zaxis[0];
-  _matW2I(2, 1) = _zaxis[1];
-  _matW2I(2, 2) = _zaxis[2];
+  _matW2I(0, 0) = _attr._xaxis[0];
+  _matW2I(0, 1) = _attr._xaxis[1];
+  _matW2I(0, 2) = _attr._xaxis[2];
+  _matW2I(1, 0) = _attr._yaxis[0];
+  _matW2I(1, 1) = _attr._yaxis[1];
+  _matW2I(1, 2) = _attr._yaxis[2];
+  _matW2I(2, 0) = _attr._zaxis[0];
+  _matW2I(2, 1) = _attr._zaxis[1];
+  _matW2I(2, 2) = _attr._zaxis[2];
 
   tmp1.Ident();
-  tmp1(0, 3) = (_x - 1) / 2.0;
-  tmp1(1, 3) = (_y - 1) / 2.0;
-  tmp1(2, 3) = (_z - 1) / 2.0;
+  tmp1(0, 3) = (_attr._x - 1) / 2.0;
+  tmp1(1, 3) = (_attr._y - 1) / 2.0;
+  tmp1(2, 3) = (_attr._z - 1) / 2.0;
 
   tmp2.Ident();
-  tmp2(0, 0) = 1.0 / _dx;
-  tmp2(1, 1) = 1.0 / _dy;
-  tmp2(2, 2) = 1.0 / _dz;
+  tmp2(0, 0) = 1.0 / _attr._dx;
+  tmp2(1, 1) = 1.0 / _attr._dy;
+  tmp2(2, 2) = 1.0 / _attr._dz;
 
   tmp3.Ident();
-  tmp3(0, 3) = - _origin._x;
-  tmp3(1, 3) = - _origin._y;
-  tmp3(2, 3) = - _origin._z;
+  tmp3(0, 3) = - _attr._xorigin;
+  tmp3(1, 3) = - _attr._yorigin;
+  tmp3(2, 3) = - _attr._zorigin;
 
   _matW2I = tmp1 * (tmp2 * (_matW2I * tmp3));
 }
 
-void irtkBaseImage::Initialize(int x, int y, int z, int t)
+void irtkBaseImage::Initialize(const irtkImageAttributes &attr)
 {
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = t;
-
-  // Default voxel size
-  _dx = 1;
-  _dy = 1;
-  _dz = 1;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-
+  _attr = attr;
+ 
   // Update transformation matrix
   this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(int x, int y, int z, double dx, double dy, double dz)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = 1;
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(int x, int y, int z, int t, double dx, double dy, double dz, double dt)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = t;
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = dt;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  // Default x-axis
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-
-  // Default y-axis
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-
-  // Default z-axis
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(int x, int y, int z, double dx, double dy, double dz, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = 1;
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = 1;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  // Default x-axis
-  _xaxis[0] = xaxis[0];
-  _xaxis[1] = xaxis[1];
-  _xaxis[2] = xaxis[2];
-
-  // Default y-axis
-  _yaxis[0] = yaxis[0];
-  _yaxis[1] = yaxis[1];
-  _yaxis[2] = yaxis[2];
-
-  // Default z-axis
-  if (zaxis != NULL) {
-    _zaxis[0] = zaxis[0];
-    _zaxis[1] = zaxis[1];
-    _zaxis[2] = zaxis[2];
-  } else {
-    // Update z-axis
-    _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-    _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-    _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-  }
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(int x, int y, int z, int t, double dx, double dy, double dz, double dt, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = t;
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = dt;
-
-  // Default origin
-  _origin = irtkPoint();
-  _torigin = 0;
-
-  // Default x-axis
-  _xaxis[0] = xaxis[0];
-  _xaxis[1] = xaxis[1];
-  _xaxis[2] = xaxis[2];
-
-  // Default y-axis
-  _yaxis[0] = yaxis[0];
-  _yaxis[1] = yaxis[1];
-  _yaxis[2] = yaxis[2];
-
-  // Default z-axis
-  if (zaxis != NULL) {
-    _zaxis[0] = zaxis[0];
-    _zaxis[1] = zaxis[1];
-    _zaxis[2] = zaxis[2];
-  } else {
-    // Update z-axis
-    _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-    _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-    _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-  }
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(int x, int y, int z, double dx, double dy, double dz, irtkPoint origin,
-                               const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = 1;
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = 1;
-
-  // Default origin
-  _origin = origin;
-  _torigin = 0;
-
-  // Default x-axis
-  _xaxis[0] = xaxis[0];
-  _xaxis[1] = xaxis[1];
-  _xaxis[2] = xaxis[2];
-
-  // Default y-axis
-  _yaxis[0] = yaxis[0];
-  _yaxis[1] = yaxis[1];
-  _yaxis[2] = yaxis[2];
-
-  // Default z-axis
-  if (zaxis != NULL) {
-    _zaxis[0] = zaxis[0];
-    _zaxis[1] = zaxis[1];
-    _zaxis[2] = zaxis[2];
-  } else {
-    // Update z-axis
-    _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-    _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-    _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-  }
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(int x, int y, int z, int t, double dx, double dy, double dz, double dt, irtkPoint origin, double torigin, const double *xaxis, const double *yaxis, const double *zaxis)
-{
-  _x  = x;
-  _y  = y;
-  _z  = z;
-  _t  = t;
-  _dx = dx;
-  _dy = dy;
-  _dz = dz;
-  _dt = dt;
-
-  // Default origin
-  _origin = origin;
-  _torigin = torigin;
-
-  // Default x-axis
-  _xaxis[0] = xaxis[0];
-  _xaxis[1] = xaxis[1];
-  _xaxis[2] = xaxis[2];
-
-  // Default y-axis
-  _yaxis[0] = yaxis[0];
-  _yaxis[1] = yaxis[1];
-  _yaxis[2] = yaxis[2];
-
-  // Default z-axis
-  if (zaxis != NULL) {
-    _zaxis[0] = zaxis[0];
-    _zaxis[1] = zaxis[1];
-    _zaxis[2] = zaxis[2];
-  } else {
-    // Update z-axis
-    _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-    _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-    _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-  }
-
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
-void irtkBaseImage::Initialize(const irtkBaseImage &image)
-{
-  // Copy image dimensions
-  _x = image._x;
-  _y = image._y;
-  _z = image._z;
-  _t = image._t;
-
-  // Copy voxel dimensions
-  _dx = image._dx;
-  _dy = image._dy;
-  _dz = image._dz;
-  _dt = image._dt;
-
-  // Copy origin and matrix
-  _origin = image._origin;
-  _matI2W = image._matI2W;
-  _matW2I = image._matW2I;
-
-  // Copy axes
-  _xaxis[0] = image._xaxis[0];
-  _xaxis[1] = image._xaxis[1];
-  _xaxis[2] = image._xaxis[2];
-  _yaxis[0] = image._yaxis[0];
-  _yaxis[1] = image._yaxis[1];
-  _yaxis[2] = image._yaxis[2];
-  _zaxis[0] = image._zaxis[0];
-  _zaxis[1] = image._zaxis[1];
-  _zaxis[2] = image._zaxis[2];
-}
-
-irtkBaseImage &irtkBaseImage::operator=(const irtkBaseImage &image)
-{
-  this->Initialize(image);
-  return *this;
-}
-
-Bool irtkBaseImage::operator==(const irtkBaseImage &image)
-{
-  return ((_x  == image._x)  && (_y  == image._y)  && (_z  == image._z) && (_t  == image._t) &&
-          (_dx == image._dx) && (_dy == image._dy) && (_dz == image._dz) && (_dt == image._dt) &&
-          (_origin == image._origin) && (_torigin == image._torigin));
 }
 
 void irtkBaseImage::Orientation(int &i, int &j, int &k) const
@@ -702,19 +148,70 @@ void irtkBaseImage::Orientation(int &i, int &j, int &k) const
 #endif
 }
 
+void irtkBaseImage::GetMinMaxAsDouble(double *min, double *max) const
+{
+  int x, y, z, t;
+
+  *min = 0;
+  *max = 0;
+
+  if (this->GetNumberOfVoxels() > 0) {
+    *min = this->GetAsDouble(0, 0, 0, 0);
+    *max = this->GetAsDouble(0, 0, 0, 0);
+  }
+
+  for (t = 0; t < this->GetT(); t++) {
+    for (z = 0; z < this->GetZ(); z++) {
+      for (y = 0; y < this->GetY(); y++) {
+        for (x = 0; x < this->GetX(); x++) {
+          if (this->GetAsDouble(x, y, z, t) < *min) *min = this->GetAsDouble(x, y, z, t);
+          if (this->GetAsDouble(x, y, z, t) > *max) *max = this->GetAsDouble(x, y, z, t);
+        }
+      }
+    }
+  }
+}
+
+void irtkBaseImage::PutMinMaxAsDouble(double min, double max)
+{
+  int x, y, z, t;
+  double min_val, max_val;
+
+  // Get lower and upper bound
+  this->GetMinMaxAsDouble(&min_val, &max_val);
+
+  for (t = 0; t < this->GetT(); t++) {
+    for (z = 0; z < this->GetZ(); z++) {
+      for (y = 0; y < this->GetY(); y++) {
+        for (x = 0; x < this->GetX(); x++) {
+          this->PutAsDouble(x, y, z, t, ((this->GetAsDouble(x, y, z, t) - min_val) / (max_val - min_val)) * (max - min) + min);
+        }
+      }
+    }
+  }
+}
+
+void irtkBaseImage::PutImageAttributes(const irtkImageAttributes &attr)
+{
+	if ((_attr._x != attr._x) || (_attr._y != attr._y) || (_attr._z != attr._z) || (_attr._t != attr._t)){
+		cerr << "rtkBaseImage::PutImageAttributes: Warning, changing image size here" << endl;
+	}
+	_attr = attr;
+}
+
 void irtkBaseImage::Print()
 {
   // Print image dimensions
-  cout << "Image size is " << _x << " " << _y << " " << _z << " " << _t << endl;
+  cout << "Image size is " << _attr._x << " " << _attr._y << " " << _attr._z << " " << _attr._t << endl;
   // Print voxel dimensions
-  cout << "Voxel size is " << _dx << " " << _dy << " "
-       << _dz << " " << _dt << endl;
+  cout << "Voxel size is " << _attr._dx << " " << _attr._dy << " "
+  << _attr._dz << " " << _attr._dt << endl;
   // Print origin
-  cout << "Image origin is " << _origin << " " << _torigin << endl;
+  cout << "Image origin is " << _attr._xorigin << " " << _attr._yorigin << " " << _attr._zorigin << " " << _attr._torigin << endl;
   // Print x-axis
-  cout << "X-axis is " << _xaxis[0] << " " << _xaxis[1] << " " << _xaxis[2] << endl;
+  cout << "X-axis is " << _attr._xaxis[0] << " " << _attr._xaxis[1] << " " << _attr._xaxis[2] << endl;
   // Print x-axis
-  cout << "Y-axis is " << _yaxis[0] << " " << _yaxis[1] << " " << _yaxis[2] << endl;
+  cout << "Y-axis is " << _attr._yaxis[0] << " " << _attr._yaxis[1] << " " << _attr._yaxis[2] << endl;
   // Print x-axis
-  cout << "Z-axis is " << _zaxis[0] << " " << _zaxis[1] << " " << _zaxis[2] << endl;
+  cout << "Z-axis is " << _attr._zaxis[0] << " " << _attr._zaxis[1] << " " << _attr._zaxis[2] << endl;
 }

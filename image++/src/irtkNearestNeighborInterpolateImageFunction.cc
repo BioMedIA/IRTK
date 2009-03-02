@@ -14,23 +14,23 @@
 
 #include <irtkImageFunction.h>
 
-template <class VoxelType> irtkNearestNeighborInterpolateImageFunction<VoxelType>::irtkNearestNeighborInterpolateImageFunction()
+irtkNearestNeighborInterpolateImageFunction::irtkNearestNeighborInterpolateImageFunction()
 {
 }
 
-template <class VoxelType> irtkNearestNeighborInterpolateImageFunction<VoxelType>::~irtkNearestNeighborInterpolateImageFunction(void)
+irtkNearestNeighborInterpolateImageFunction::~irtkNearestNeighborInterpolateImageFunction(void)
 {
 }
 
-template <class VoxelType> const char *irtkNearestNeighborInterpolateImageFunction<VoxelType>::NameOfClass()
+const char *irtkNearestNeighborInterpolateImageFunction::NameOfClass()
 {
   return "irtkNearestNeighborInterpolateImageFunction";
 }
 
-template <class VoxelType> void irtkNearestNeighborInterpolateImageFunction<VoxelType>::Initialize()
+void irtkNearestNeighborInterpolateImageFunction::Initialize()
 {
   /// Initialize baseclass
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   // Compute image domain
   this->_x = this->_input->GetX();
@@ -46,7 +46,7 @@ template <class VoxelType> void irtkNearestNeighborInterpolateImageFunction<Voxe
   this->_z2 = this->_input->GetZ()-0.5;
 }
 
-template <class VoxelType> double irtkNearestNeighborInterpolateImageFunction<VoxelType>::EvaluateInside(double x, double y, double z, double t)
+double irtkNearestNeighborInterpolateImageFunction::EvaluateInside(double x, double y, double z, double t)
 {
   int i, j, k, l;
 
@@ -55,10 +55,10 @@ template <class VoxelType> double irtkNearestNeighborInterpolateImageFunction<Vo
   k = round(z);
   l = round(t);
 
-  return this->_input->operator()(i, j, k, l);
+  return this->_input->GetAsDouble(i, j, k, l);
 }
 
-template <class VoxelType> double irtkNearestNeighborInterpolateImageFunction<VoxelType>::Evaluate(double x, double y, double z, double t)
+double irtkNearestNeighborInterpolateImageFunction::Evaluate(double x, double y, double z, double t)
 {
   int i, j, k, l;
 
@@ -70,10 +70,7 @@ template <class VoxelType> double irtkNearestNeighborInterpolateImageFunction<Vo
   if ((i < 0) || (i >= this->_x) || (j < 0) || (j >= this->_y) || (k < 0) || (k >= this->_z)) {
     return this->_DefaultValue;
   } else {
-    return this->_input->operator()(i, j, k, l);
+    return this->_input->GetAsDouble(i, j, k, l);
   }
 }
 
-template class irtkNearestNeighborInterpolateImageFunction<irtkBytePixel>;
-template class irtkNearestNeighborInterpolateImageFunction<irtkGreyPixel>;
-template class irtkNearestNeighborInterpolateImageFunction<irtkRealPixel>;

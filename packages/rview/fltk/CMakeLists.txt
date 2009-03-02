@@ -6,6 +6,7 @@ common++ recipes)
 SET(RVIEW_FLTK_SRCS
 Fl_Simple_Group.cc
 Fl_Simple_Browser.cc
+Fl_Value_Slider2.cc
 Fl_RView.cc
 Fl_RViewUI.cc
 Fl_RView_Landmark.cc

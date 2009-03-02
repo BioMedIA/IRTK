@@ -374,7 +374,7 @@ void irtkSymmetricImageRegistration::Initialize(int level)
   }
 
   // Setup the interpolator for the source image
-  _interpolator1 = irtkInterpolateImageFunction<irtkGreyPixel>::New(_InterpolationMode, _source);
+  _interpolator1 = irtkInterpolateImageFunction::New(_InterpolationMode, _source);
 
   // Setup interpolation for the source image
   _interpolator1->SetInput(_source);
@@ -385,7 +385,7 @@ void irtkSymmetricImageRegistration::Initialize(int level)
                          _source_x2, _source_y2, _source_z2);
 
   // Setup the interpolator for the target image
-  _interpolator2 = irtkInterpolateImageFunction<irtkGreyPixel>::New(_InterpolationMode, _target);
+  _interpolator2 = irtkInterpolateImageFunction::New(_InterpolationMode, _target);
 
   // Setup interpolation for the source image
   _interpolator2->SetInput(_target);

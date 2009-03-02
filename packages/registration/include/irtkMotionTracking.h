@@ -50,7 +50,7 @@ protected:
   irtkSimilarityMetric *_metric;
 
   /// Interpolator
-  irtkInterpolateImageFunction<irtkGreyPixel> *_interpolator;
+  irtkInterpolateImageFunction *_interpolator;
 
   /// Optimizer
   irtkOptimizer *_optimizer;

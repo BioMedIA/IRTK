@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,7 +7,7 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #ifdef HAS_NIFTI
@@ -18,17 +18,17 @@
 
 #include <irtkNIFTI.h>
 
-template <class VoxelType> irtkImageToFileNIFTI<VoxelType>::irtkImageToFileNIFTI() : irtkImageToFile<VoxelType>()
+irtkImageToFileNIFTI::irtkImageToFileNIFTI() : irtkImageToFile()
 {
   this->_headername = NULL;
 }
 
-template <class VoxelType> irtkImageToFileNIFTI<VoxelType>::~irtkImageToFileNIFTI()
+irtkImageToFileNIFTI::~irtkImageToFileNIFTI()
 {
   if (this->_headername != NULL) free(this->_headername);
 }
 
-template <class VoxelType> void irtkImageToFileNIFTI<VoxelType>::SetOutput(const char *name)
+void irtkImageToFileNIFTI::SetOutput(const char *name)
 {
   int length;
   char *imagename;
@@ -49,21 +49,21 @@ template <class VoxelType> void irtkImageToFileNIFTI<VoxelType>::SetOutput(const
     imagename[length-5] = 'i';
     imagename[length-6] = 'n';
   }
-  this->irtkImageToFile<VoxelType>::SetOutput(imagename);
+  this->irtkImageToFile::SetOutput(imagename);
 }
 
-template <class VoxelType> const char *irtkImageToFileNIFTI<VoxelType>::NameOfClass()
+const char *irtkImageToFileNIFTI::NameOfClass()
 {
   return "irtkImageToFileNIFTI";
 }
 
-template <class VoxelType> void irtkImageToFileNIFTI<VoxelType>::Finalize()
+void irtkImageToFileNIFTI::Finalize()
 {
   // Empty method
   return;
 }
 
-template <> void irtkImageToFileNIFTI<irtkBytePixel>::Initialize()
+void irtkImageToFileNIFTI::Initialize()
 {
   int x, y, z, t;
   double xsize, ysize, zsize, tsize;
@@ -80,81 +80,35 @@ template <> void irtkImageToFileNIFTI<irtkBytePixel>::Initialize()
   i2w = this->_input->GetImageToWorldMatrix();
 
   // Init header
-  _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT8, i2w);
+  switch (this->_input->GetScalarType()) {
+    case IRTK_VOXEL_UNSIGNED_CHAR: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT8, i2w);
+        break;
+      }
+    case IRTK_VOXEL_SHORT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT16, i2w);
+        break;
+      }
+    case IRTK_VOXEL_UNSIGNED_SHORT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT16, i2w);
+        break;
+      }
+    case IRTK_VOXEL_FLOAT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT32, i2w);
+        break;
+      }
+    case IRTK_VOXEL_DOUBLE: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT64, i2w);
+        break;
+      }
+    default:
+      cerr << "irtkImageToFileNIFTI::Run(): Unknown voxel type" << endl;
+      exit(1);
+  }
+
 }
 
-template <> void irtkImageToFileNIFTI<irtkGreyPixel>::Initialize()
-{
-  int x, y, z, t;
-  double xsize, ysize, zsize, tsize;
-  irtkMatrix i2w;
-
-  // Get image info
-  x = this->_input->GetX();
-  y = this->_input->GetY();
-  z = this->_input->GetZ();
-  t = this->_input->GetT();
-
-  this->_input->GetPixelSize(&xsize, &ysize, &zsize, &tsize);
-
-  i2w = this->_input->GetImageToWorldMatrix();
-
-  // Init and write header
-  _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT16, i2w);
-
-}
-
-template <> void irtkImageToFileNIFTI<irtkRealPixel>::Initialize()
-{
-  int x, y, z, t;
-  double xsize, ysize, zsize, tsize;
-  irtkMatrix i2w;
-
-  // Get image info
-  x = this->_input->GetX();
-  y = this->_input->GetY();
-  z = this->_input->GetZ();
-  t = this->_input->GetT();
-
-  this->_input->GetPixelSize(&xsize, &ysize, &zsize, &tsize);
-
-  i2w = this->_input->GetImageToWorldMatrix();
-
-  // Init header
-  _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT32, i2w);
-}
-
-template <> void irtkImageToFileNIFTI<irtkRGBPixel>::Initialize()
-{
-  cerr << "irtkImageToFileNIFTI<irtkRGBPixel>::Run: Not supported" << endl;
-  exit(1);
-}
-
-template <> void irtkImageToFileNIFTI<irtkVector3D<char> >::Initialize()
-{
-  cerr << "irtkImageToFileNIFTI<irtkVector3D<char> >::Run: Not supported" << endl;
-  exit(1);
-}
-
-template <> void irtkImageToFileNIFTI<irtkVector3D<short> >::Initialize()
-{
-  cerr << "irtkImageToFileNIFTI<irtkVector3D<short> >::Run: Not supported" << endl;
-  exit(1);
-}
-
-template <> void irtkImageToFileNIFTI<irtkVector3D<float> >::Initialize()
-{
-  cerr << "irtkImageToFileNIFTI<irtkVector3D<float> >::Run: Not supported" << endl;
-  exit(1);
-}
-
-template <> void irtkImageToFileNIFTI<irtkVector3D<double> >::Initialize()
-{
-  cerr << "irtkImageToFileNIFTI<irtkVector3D<double> >::Run: Not supported" << endl;
-  exit(1);
-}
-
-template <class VoxelType> void irtkImageToFileNIFTI<VoxelType>::Run()
+void irtkImageToFileNIFTI::Run()
 {
   // Initialize filter
   this->Initialize();
@@ -165,7 +119,7 @@ template <class VoxelType> void irtkImageToFileNIFTI<VoxelType>::Run()
   _hdr.nim->iname_offset = 352;                           // Some nifti versions lose this on the way!
 
   /// Set data pointer in nifti image struct
-  _hdr.nim->data = this->_input->GetPointerToVoxels();
+  _hdr.nim->data = this->_input->GetScalarPointer();
 
   // Write hdr and data
   nifti_image_write(_hdr.nim);
@@ -173,15 +127,5 @@ template <class VoxelType> void irtkImageToFileNIFTI<VoxelType>::Run()
   // Finalize filter
   this->Finalize();
 }
-
-
-template class irtkImageToFileNIFTI<irtkBytePixel>;
-template class irtkImageToFileNIFTI<irtkGreyPixel>;
-template class irtkImageToFileNIFTI<irtkRealPixel>;
-template class irtkImageToFileNIFTI<irtkRGBPixel>;
-template class irtkImageToFileNIFTI<irtkVector3D<char> >;
-template class irtkImageToFileNIFTI<irtkVector3D<short> >;
-template class irtkImageToFileNIFTI<irtkVector3D<float> >;
-template class irtkImageToFileNIFTI<irtkVector3D<double> >;
 
 #endif

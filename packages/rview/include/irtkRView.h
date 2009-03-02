@@ -128,10 +128,10 @@ protected:
   irtkViewer **_viewer;
 
   /// Target image
-  irtkGreyImage *_targetImage;
+  irtkImage *_targetImage;
 
   /// Source image
-  irtkGreyImage *_sourceImage;
+  irtkImage *_sourceImage;
 
   /// Segmentation image
   irtkGreyImage *_segmentationImage;
@@ -155,16 +155,16 @@ protected:
   irtkTransformation *_selectionTransform;
 
   /// Transformation filter for reslicing of target image
-  irtkImageTransformation<irtkGreyPixel> **_targetTransformFilter;
+  irtkImageTransformation **_targetTransformFilter;
 
   /// Transformation filter for reslicing of source image
-  irtkImageTransformation<irtkGreyPixel> **_sourceTransformFilter;
+  irtkImageTransformation **_sourceTransformFilter;
 
   /// Transformation filter for reslicing of segmentation image
-  irtkImageTransformation<irtkGreyPixel> **_segmentationTransformFilter;
+  irtkImageTransformation **_segmentationTransformFilter;
 
   /// Transformation filter for reslicing of selection image
-  irtkImageTransformation<irtkGreyPixel> **_selectionTransformFilter;
+  irtkImageTransformation **_selectionTransformFilter;
 
   /// Target image
   irtkGreyImage **_targetImageOutput;
@@ -177,9 +177,6 @@ protected:
 
   /// Selection image
   irtkGreyImage **_selectionImageOutput;
-
-  /// Deformation image
-  irtkGreyImage **_deformationImageOutput;
 
   /// Target landmarks (pointset)
   irtkPointSet _targetLandmarks;
@@ -213,14 +210,23 @@ protected:
   /// Color lookup table for subtraction of target and source image
   irtkLookupTable *_subtractionLookupTable;
 
-  /// Color lookup table for deformation
-  irtkLookupTable *_deformationLookupTable;
-
   /// Target value range
-  irtkGreyPixel _targetMin, _targetMax;
+  double _targetMin, _targetMax;
 
   /// Source value range
-  irtkGreyPixel _sourceMin, _sourceMax;
+  double _sourceMin, _sourceMax;
+
+  /// Subtraction value range
+  double _subtractionMin, _subtractionMax;
+
+  /// Target display value range
+  double _targetDisplayMin, _targetDisplayMax;
+  
+  /// Source display value range
+  double _sourceDisplayMin, _sourceDisplayMax;
+
+  /// Subtraction display value range
+  double _subtractionDisplayMin, _subtractionDisplayMax;
 
   /// Target frame
   int _targetFrame;
@@ -239,9 +245,6 @@ protected:
 
   /// Flag to indicate whether selection image must be updated
   int _selectionUpdate;
-
-  /// Flag to indicate whether deformation image must be updated
-  int _deformationUpdate;
 
   /// Width of viewer  (in pixels)
   int _screenX;
@@ -269,16 +272,16 @@ protected:
 
   /// Current mouse
   /// Interpolator for target image
-  irtkImageFunction<irtkGreyPixel> *_targetInterpolator;
+  irtkImageFunction *_targetInterpolator;
 
   /// Interpolator for source image
-  irtkImageFunction<irtkGreyPixel> *_sourceInterpolator;
+  irtkImageFunction *_sourceInterpolator;
 
   /// Interpolator for segmentation image
-  irtkImageFunction<irtkGreyPixel> *_segmentationInterpolator;
+  irtkImageFunction *_segmentationInterpolator;
 
   /// Interpolator for selection image
-  irtkImageFunction<irtkGreyPixel> *_selectionInterpolator;
+  irtkImageFunction *_selectionInterpolator;
 
   /// Flag whether transformation for reslicing of source image should be applied
   Bool _sourceTransformApply;
@@ -371,7 +374,7 @@ protected:
   int _mouseX, _mouseY, _mouseZ;
 
   /// Current intensity at mouse position
-  int _mouseTargetIntensity;
+  double _mouseTargetIntensity;
 
   /// Current viewer in which the mouse is
   int _mouseViewer;
@@ -512,6 +515,24 @@ public:
   /// Get source frame
   int GetSourceFrame();
 
+  /// Get minimum target intensity
+  double GetTargetMin();
+  
+  /// Get maximum target intensity
+  double GetTargetMax();
+  
+  /// Get minimum source intensity
+  double GetSourceMin();
+  
+  /// Get maximum source intensity
+  double GetSourceMax();
+  
+  /// Get minimum subtraction intensity
+  double GetSubtractionMin();
+  
+  /// Get maximum subtraction intensity
+  double GetSubtractionMax();
+  
   /// Set ROI to default parameters
   void ResetROI();
 
@@ -575,18 +596,6 @@ public:
   /// Return display of source iso-contours
   int GetDisplaySourceContours();
 
-  /// Return deformation blending
-  double GetDeformationBlending();
-
-  /// Set deformation blending
-  void SetDeformationBlending(double);
-
-  /// Return deformation property
-  irtkDeformationProperty GetDeformationProperty();
-
-  /// Set display mode
-  void SetDeformationProperty(irtkDeformationProperty);
-
   /// Return display mode
   irtkDisplayMode GetDisplayMode();
 
@@ -616,6 +625,54 @@ public:
 
   /// Set cursor mode
   void SetCursorMode(irtkCursorMode mode);
+
+  /// Return minimum display intensity of target image
+  double GetDisplayMinTarget();
+
+  /// Sets minimum display intensity of target image
+  void SetDisplayMinTarget(double);
+
+  /// Return maximum display intensity of target image
+  double GetDisplayMaxTarget();
+
+  /// Sets maximum display intensity of target image
+  void SetDisplayMaxTarget(double);
+
+  /// Return minimum display intensity of source image
+  double GetDisplayMinSource();
+
+  /// Sets minimum display intensity of source image
+  void SetDisplayMinSource(double);
+
+  /// Return maximum display intensity of source image
+  double GetDisplayMaxSource();
+
+  /// Sets maximum display intensity of source image
+  void SetDisplayMaxSource(double);
+
+  /// Return minimum display intensity of subtraction image
+  double GetDisplayMinSubtraction();
+
+  /// Sets minimum display intensity of subtraction image
+  void SetDisplayMinSubtraction(double);
+
+  /// Return maximum display intensity of subtraction image
+  double GetDisplayMaxSubtraction();
+
+  /// Sets maximum display intensity of subtraction image
+  void SetDisplayMaxSubtraction(double);
+
+  /// Return minimum display intensity of deformation 
+  double GetDisplayMinDeformation();
+
+  /// Sets minimum display intensity of deformation 
+  void SetDisplayMinDeformation(double);
+
+  /// Return maximum display intensity of deformation
+  double GetDisplayMaxDeformation();
+
+  /// Sets maximum display intensity of deformation
+  void SetDisplayMaxDeformation(double);
 
   /// Turn cross hair on
   void DisplayCursorOn();
@@ -773,10 +830,10 @@ public:
   Bool GetSourceTransformInvert();
 
   /// Get a pointer to target image
-  irtkGreyImage *GetTarget();
+  irtkImage *GetTarget();
 
   /// Get a pointer to source image
-  irtkGreyImage *GetSource();
+  irtkImage *GetSource();
 
   /// Get a pointer to the lookup table of the target image
   irtkLookupTable *GetTargetLookupTable();
@@ -1090,21 +1147,6 @@ inline void irtkRView::DisplayAxisLabelsOff()
   _DisplayAxisLabels = False;
 }
 
-inline irtkDeformationProperty irtkRView::GetDeformationProperty()
-{
-  return _DeformationProperty;
-}
-
-inline void irtkRView::SetDeformationBlending(double value)
-{
-  _DeformationBlending = value;
-}
-
-inline double irtkRView::GetDeformationBlending()
-{
-  return _DeformationBlending;
-}
-
 inline irtkDisplayMode irtkRView::GetDisplayMode()
 {
   return _DisplayMode;
@@ -1407,12 +1449,12 @@ inline void irtkRView::GetROI(double &x1, double &y1, double &z1, double &x2, do
   z2 = _z2;
 }
 
-inline irtkGreyImage *irtkRView::GetTarget()
+inline irtkImage *irtkRView::GetTarget()
 {
   return _targetImage;
 }
 
-inline irtkGreyImage *irtkRView::GetSource()
+inline irtkImage *irtkRView::GetSource()
 {
   return _sourceImage;
 }
@@ -1445,11 +1487,6 @@ inline irtkLookupTable *irtkRView::GetSourceLookupTable()
 inline irtkLookupTable *irtkRView::GetSubtractionLookupTable()
 {
   return _subtractionLookupTable;
-}
-
-inline irtkLookupTable *irtkRView::GetDeformationLookupTable()
-{
-  return _deformationLookupTable;
 }
 
 inline irtkTransformation *irtkRView::GetTransformation()
@@ -1620,5 +1657,100 @@ inline void irtkRView::SegmentationContoursOff()
   _DisplaySegmentationContours = False;
 }
 
-#endif
+inline double irtkRView::GetTargetMin()
+{
+  return _targetMin;
+}
 
+inline double irtkRView::GetTargetMax()
+{
+  return _targetMax;
+}
+
+inline double irtkRView::GetSourceMin()
+{
+  return _sourceMin;
+}
+
+inline double irtkRView::GetSourceMax()
+{
+  return _sourceMax;
+}
+
+inline double irtkRView::GetSubtractionMin()
+{
+  return _subtractionMin;
+}
+
+inline double irtkRView::GetSubtractionMax()
+{
+  return _subtractionMax;
+}
+
+inline double irtkRView::GetDisplayMinTarget()
+{
+	return _targetDisplayMin;
+}
+
+inline double irtkRView::GetDisplayMaxTarget()
+{
+	return _targetDisplayMax;
+}
+
+inline void irtkRView::SetDisplayMinTarget(double value)
+{
+	_targetDisplayMin = value;
+	_targetLookupTable->SetMinDisplayIntensity((value - _targetMin) * 10000.0 / (_targetMax - _targetMin));
+}
+
+inline void irtkRView::SetDisplayMaxTarget(double value)
+{
+	_targetDisplayMax = value;
+	_targetLookupTable->SetMaxDisplayIntensity((value - _targetMin) * 10000.0 / (_targetMax - _targetMin));
+}
+
+inline double irtkRView::GetDisplayMinSource()
+{
+	return _sourceDisplayMin;
+}
+
+inline double irtkRView::GetDisplayMaxSource()
+{
+	return _sourceDisplayMax;
+}
+
+inline void irtkRView::SetDisplayMinSource(double value)
+{
+	_sourceDisplayMin = value;
+	_sourceLookupTable->SetMinDisplayIntensity((value - _sourceMin) * 10000.0 / (_sourceMax - _sourceMin));
+}
+
+inline void irtkRView::SetDisplayMaxSource(double value)
+{
+	_sourceDisplayMax = value;
+	_sourceLookupTable->SetMaxDisplayIntensity((value - _sourceMin) * 10000.0 / (_sourceMax - _sourceMin));
+}
+
+inline double irtkRView::GetDisplayMinSubtraction()
+{
+	return _subtractionDisplayMin;
+}
+
+inline double irtkRView::GetDisplayMaxSubtraction()
+{
+	return _subtractionDisplayMax;
+}
+
+inline void irtkRView::SetDisplayMinSubtraction(double value)
+{
+	_subtractionDisplayMin = value;
+	_subtractionLookupTable->SetMinDisplayIntensity(value * 20000.0 / (_subtractionMax - _subtractionMin));
+}
+
+inline void irtkRView::SetDisplayMaxSubtraction(double value)
+{
+	_subtractionDisplayMax = value;
+	_subtractionLookupTable->SetMaxDisplayIntensity(value * 20000.0 / (_subtractionMax - _subtractionMin));
+}
+
+#endif

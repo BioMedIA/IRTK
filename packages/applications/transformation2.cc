@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   irtkTransformation *transformation2 = NULL;
   irtkGreyImage *source = NULL;
   irtkGreyImage *target = NULL;
-  irtkImageFunction<irtkGreyPixel> *interpolator = NULL;
+  irtkImageFunction *interpolator = NULL;
 
   // Check command line
   if (argc < 3) {
@@ -296,25 +296,25 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkLinearInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkLinearInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkBSplineInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkBSplineInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkCSplineInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkCSplineInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkSincInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkSincInterpolateImageFunction;
       ok = True;
     }
     if (ok == False) {
@@ -325,7 +325,7 @@ int main(int argc, char **argv)
 
   // Create default interpolator
   if (interpolator == NULL) {
-    interpolator = new irtkNearestNeighborInterpolateImageFunction<irtkGreyPixel>;
+    interpolator = new irtkNearestNeighborInterpolateImageFunction;
   }
 
   // If there is no target image use copy of source image as target image
@@ -383,8 +383,7 @@ int main(int argc, char **argv)
 
 
   // Create image transformation
-  irtkImageTransformation2<irtkGreyPixel> *imagetransformation =
-    new irtkImageTransformation2<irtkGreyPixel>;
+  irtkImageTransformation2 *imagetransformation = new irtkImageTransformation2;
 
   imagetransformation->SetInput (source);
   imagetransformation->SetTransformation(transformation1, transformation2);

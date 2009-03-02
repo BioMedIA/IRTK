@@ -21,7 +21,7 @@
  * images.
  */
 
-template <class VoxelType> class irtkSincInterpolateImageFunction : public irtkInterpolateImageFunction<VoxelType>
+class irtkSincInterpolateImageFunction : public irtkInterpolateImageFunction
 {
 
 private:

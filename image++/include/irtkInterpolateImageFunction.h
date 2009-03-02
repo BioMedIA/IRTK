@@ -31,7 +31,7 @@ typedef enum { Interpolation_NN,
  * location. Each derived class has to implement all abstract member functions.
  */
 
-template <class VoxelType> class irtkInterpolateImageFunction : public irtkImageFunction<VoxelType>
+class irtkInterpolateImageFunction : public irtkImageFunction
 {
 
 protected:
@@ -41,7 +41,7 @@ protected:
   int _clamped;
 
   /// Min and max range of original data
-  VoxelType _min, _max;
+  double _min, _max;
 
   /** Domain of input image for which this image interpolation function can
    *  be used without handling any form of boundary conditions. */
@@ -83,13 +83,13 @@ public:
 
 };
 
-template <class VoxelType> inline Bool irtkInterpolateImageFunction<VoxelType>::IsInside(double x, double y, double z)
+inline Bool irtkInterpolateImageFunction::IsInside(double x, double y, double z)
 {
   return ((x > _x1) && (x < _x2) && (y > _y1) && (y < _y2) &&
           (z > _z1) && (z < _z2));
 }
 
-template <class VoxelType> inline void irtkInterpolateImageFunction<VoxelType>::Inside(double &x1, double &y1, double &z1, double &x2, double &y2, double &z2)
+inline void irtkInterpolateImageFunction::Inside(double &x1, double &y1, double &z1, double &x2, double &y2, double &z2)
 {
   x1 = _x1;
   y1 = _y1;

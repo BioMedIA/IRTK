@@ -49,10 +49,10 @@ class irtkEMAffineRegistrationBiasCorrection : public irtkEMClassificationTempla
   irtkTransformation *_transformation;
 
   ///Interpolator
-  irtkImageFunction<irtkRealPixel> *_interpolator;
+  irtkImageFunction *_interpolator;
 
   ///Image transformation
-  irtkImageTransformation<irtkRealPixel> *_imagetransformation;
+  irtkImageTransformation *_imagetransformation;
 
   irtkMLSimilarityMetric *_metric;
 

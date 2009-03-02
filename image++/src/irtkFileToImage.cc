@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,115 +7,77 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkImage.h>
 
 #include <irtkFileToImage.h>
 
-template <class VoxelType> irtkFileToImage<VoxelType>::irtkFileToImage()
+irtkFileToImage::irtkFileToImage()
 {
-  _x = 0;
-  _y = 0;
-  _z = 0;
-  _t = 0;
-  _xsize = 0;
-  _ysize = 0;
-  _zsize = 0;
-  _tsize = 0;
-  _xorigin = 0;
-  _yorigin = 0;
-  _zorigin = 0;
-  _torigin = 0;
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-  _type  = VOXEL_UNKNOWN;
+  _type  = IRTK_VOXEL_UNKNOWN;
   _slope = 1.;
   _intercept = 0.;
   _reflectX = False;
   _reflectY = False;
   _reflectZ = False;
   _debug = True;
-  _addr  = NULL;
+  _start = 0;
   _imagename = NULL;
 
 }
 
-template <class VoxelType> irtkFileToImage<VoxelType>::~irtkFileToImage()
+irtkFileToImage::~irtkFileToImage()
 {
-  _x = 0;
-  _y = 0;
-  _z = 0;
-  _t = 0;
-  _xsize = 0;
-  _ysize = 0;
-  _zsize = 0;
-  _tsize = 0;
-  _xorigin = 0;
-  _yorigin = 0;
-  _zorigin = 0;
-  _torigin = 0;
-  _xaxis[0] = 1;
-  _xaxis[1] = 0;
-  _xaxis[2] = 0;
-  _yaxis[0] = 0;
-  _yaxis[1] = 1;
-  _yaxis[2] = 0;
-  _zaxis[0] = 0;
-  _zaxis[1] = 0;
-  _zaxis[2] = 1;
-  _bytes = 0;
-  _type  = VOXEL_UNKNOWN;
+  _type  = IRTK_VOXEL_UNKNOWN;
+  _slope = 1.;
+  _intercept = 0.;
+  _reflectX = False;
+  _reflectY = False;
+  _reflectZ = False;
   _debug = True;
-  if (_addr != NULL) delete []_addr;
+  _start = 0;
   if (_imagename != NULL) free(_imagename);
 }
 
-template <class VoxelType> irtkFileToImage<VoxelType> *irtkFileToImage<VoxelType>::New(const char *imagename)
+irtkFileToImage *irtkFileToImage::New(const char *imagename)
 {
   irtkFileToImage *reader = NULL;
 
   // Check format for GIPL
-  if (irtkFileGIPLToImage<VoxelType>::CheckHeader(imagename)) {
-    reader = new irtkFileGIPLToImage<VoxelType>;
+  if (irtkFileGIPLToImage::CheckHeader(imagename)) {
+    reader = new irtkFileGIPLToImage;
     reader->SetInput(imagename);
     return reader;
   }
 
 #ifdef HAS_NIFTI
   // Check format for NIFTI
-  if (irtkFileNIFTIToImage<VoxelType>::CheckHeader(imagename)) {
-    reader = new irtkFileNIFTIToImage<VoxelType>;
+  if (irtkFileNIFTIToImage::CheckHeader(imagename)) {
+    reader = new irtkFileNIFTIToImage;
     reader->SetInput(imagename);
     return reader;
   }
 #endif
 
   // Check format for ANALYZE
-  if (irtkFileANALYZEToImage<VoxelType>::CheckHeader(imagename)) {
-    reader = new irtkFileANALYZEToImage<VoxelType>;
+  if (irtkFileANALYZEToImage::CheckHeader(imagename)) {
+    reader = new irtkFileANALYZEToImage;
     reader->SetInput(imagename);
     return reader;
   }
 
   // Check format for VTK
-  if (irtkFileVTKToImage<VoxelType>::CheckHeader(imagename)) {
-    reader = new irtkFileVTKToImage<VoxelType>;
+  if (irtkFileVTKToImage::CheckHeader(imagename)) {
+    reader = new irtkFileVTKToImage;
     reader->SetInput(imagename);
     return reader;
   }
 
   // Check format for PGM
-  if (irtkFilePGMToImage<VoxelType>::CheckHeader(imagename)) {
-    reader = new irtkFilePGMToImage<VoxelType>;
+  if (irtkFilePGMToImage::CheckHeader(imagename)) {
+    reader = new irtkFilePGMToImage;
     reader->SetInput(imagename);
     return reader;
   }
@@ -123,29 +85,29 @@ template <class VoxelType> irtkFileToImage<VoxelType> *irtkFileToImage<VoxelType
   // Check for error
   if (reader == NULL) {
     cerr << "irtkFileToImage::New: Unknown file format " << imagename
-         << endl;
+    << endl;
     exit(1);
   }
 
   return reader;
 }
 
-template <class VoxelType> int irtkFileToImage<VoxelType>::GetDebugFlag()
+int irtkFileToImage::GetDebugFlag()
 {
   return _debug;
 }
 
-template <class VoxelType> void irtkFileToImage<VoxelType>::PutDebugFlag(int debug)
+void irtkFileToImage::PutDebugFlag(int debug)
 {
   _debug = debug;
 }
 
-template <class VoxelType> const char *irtkFileToImage<VoxelType>::NameOfClass()
+const char *irtkFileToImage::NameOfClass()
 {
   return "irtkFileToImage";
 }
 
-template <class VoxelType> void irtkFileToImage<VoxelType>::SetInput(const char *imagename)
+void irtkFileToImage::SetInput(const char *imagename)
 {
   // Close old file
   this->Close();
@@ -163,1495 +125,204 @@ template <class VoxelType> void irtkFileToImage<VoxelType>::SetInput(const char 
   this->ReadHeader();
 }
 
-template <class VoxelType> void irtkFileToImage<VoxelType>::SetOutput(irtkGenericImage<VoxelType> *image)
+irtkImage *irtkFileToImage::GetOutput()
 {
-  if (image != NULL) {
-    _output = image;
-  } else {
-    cerr << this->NameOfClass() << "::SetOutput: Output is not an image\n";
-    exit(1);
-  }
-}
-
-template <class VoxelType> void irtkFileToImage<VoxelType>::Run()
-{
-  char *data;
   int x, y, z, t;
-  VoxelType *ptr1;
+  irtkImage *output = NULL;
 
   // Bring image to correct size
-  _output->Initialize(_x, _y, _z, _t, _xsize, _ysize, _zsize, _tsize, _xaxis, _yaxis, _zaxis);
-  _output->PutOrigin(_xorigin, _yorigin, _zorigin, _torigin);
-
-  // Allocate memory for tempory data
-  data = new char[_x*_y*_z*_t*_bytes];
-
-  // Get pointer to image data
-  ptr1 = _output->GetPointerToVoxels();
-
-  // Convert data
   switch (_type) {
-  case VOXEL_CHAR: {
-    char *ptr2 = &(data[0]);
+  case IRTK_VOXEL_CHAR: {
 
-    // Read data
-    this->ReadAsChar((char *)data, _x*_y*_z*_t, _addr[0]);
+      // Allocate image
+      output = new irtkGenericImage<char>(_attr);
 
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
+      // Read data
+      this->ReadAsChar((char *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+      // Scale data
+      char *ptr = (char *)output->GetScalarPointer();
+      for (t = 0; t < _attr._t; t++) {
+        for (z = 0; z < _attr._z; z++) {
+          for (y = 0; y < _attr._y; y++) {
+            for (x = 0; x < _attr._x; x++) {
+              *ptr = *ptr * _slope + _intercept;
+              ptr++;
+            }
           }
         }
       }
     }
-  }
-  break;
-  case VOXEL_U_CHAR: {
-    unsigned char *ptr2 = (unsigned char *)&(data[0]);
+    break;
 
-    // Read data
-    this->ReadAsUChar((unsigned char *)data, _x*_y*_z*_t, _addr[0]);
+  case IRTK_VOXEL_UNSIGNED_CHAR: {
 
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
+      // Allocate image
+      output = new irtkGenericImage<unsigned char>(_attr);
+
+      // Read data
+      this->ReadAsUChar((unsigned char *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+      // Scale data
+      unsigned char *ptr = (unsigned char *)output->GetScalarPointer();
+      for (t = 0; t < _attr._t; t++) {
+        for (z = 0; z < _attr._z; z++) {
+          for (y = 0; y < _attr._y; y++) {
+            for (x = 0; x < _attr._x; x++) {
+              *ptr = *ptr * _slope + _intercept;
+              ptr++;
+            }
           }
         }
       }
     }
-  }
-  break;
-  case VOXEL_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
+    break;
 
-    // Read data
-    this->ReadAsShort((short *)data, _x*_y*_z*_t, _addr[0]);
+  case IRTK_VOXEL_SHORT: {
 
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
+      // Allocate image
+      output = new irtkGenericImage<short>(_attr);
+
+      // Read data
+      this->ReadAsShort((short *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+      // Scale data
+      short *ptr = (short *)output->GetScalarPointer();
+      for (t = 0; t < _attr._t; t++) {
+        for (z = 0; z < _attr._z; z++) {
+          for (y = 0; y < _attr._y; y++) {
+            for (x = 0; x < _attr._x; x++) {
+              *ptr = *ptr * _slope + _intercept;
+              ptr++;
+            }
           }
         }
       }
     }
-  }
-  break;
-  case VOXEL_U_SHORT: {
-    unsigned short *ptr2 = (unsigned short *)&(data[0]);
+    break;
 
-    // Read data
-    this->ReadAsUShort((unsigned short *)data, _x*_y*_z*_t, _addr[0]);
+  case IRTK_VOXEL_UNSIGNED_SHORT: {
 
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
+      // Allocate image
+      output = new irtkGenericImage<unsigned short>(_attr);
+
+      // Read data
+      this->ReadAsUShort((unsigned short *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+      // Scale data
+      unsigned short *ptr = (unsigned short *)output->GetScalarPointer();
+      for (t = 0; t < _attr._t; t++) {
+        for (z = 0; z < _attr._z; z++) {
+          for (y = 0; y < _attr._y; y++) {
+            for (x = 0; x < _attr._x; x++) {
+              *ptr = *ptr * _slope + _intercept;
+              ptr++;
+            }
           }
         }
       }
     }
-  }
-  break;
-  case VOXEL_INT: {
-    int *ptr2 = (int *)&(data[0]);
+    break;
 
-    // Read data
-    this->ReadAsInt((int *)data, _x*_y*_z*_t, _addr[0]);
+  case IRTK_VOXEL_FLOAT: {
 
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
+      // Allocate image
+      output = new irtkGenericImage<float>(_attr);
+
+      // Read data
+      this->ReadAsFloat((float *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+      // Scale data
+      float *ptr = (float *)output->GetScalarPointer();
+      for (t = 0; t < _attr._t; t++) {
+        for (z = 0; z < _attr._z; z++) {
+          for (y = 0; y < _attr._y; y++) {
+            for (x = 0; x < _attr._x; x++) {
+              *ptr = *ptr * _slope + _intercept;
+              ptr++;
+            }
           }
         }
       }
     }
-  }
-  break;
-  case VOXEL_U_INT: {
-    unsigned int *ptr2 = (unsigned int *)&(data[0]);
+    break;
 
-    // Read data
-    this->ReadAsUInt((unsigned int *)data, _x*_y*_z*_t, _addr[0]);
+  case IRTK_VOXEL_DOUBLE: {
 
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
+      // Allocate image
+      output = new irtkGenericImage<double>(_attr);
+
+      // Read data
+      this->ReadAsDouble((double *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+      // Scale data
+      double *ptr = (double *)output->GetScalarPointer();
+      for (t = 0; t < _attr._t; t++) {
+        for (z = 0; z < _attr._z; z++) {
+          for (y = 0; y < _attr._y; y++) {
+            for (x = 0; x < _attr._x; x++) {
+              *ptr = *ptr * _slope + _intercept;
+              ptr++;
+            }
           }
         }
       }
     }
+    break;
+
+   default:
+      cout << "irtkFileToImage::GetOutput: Unknown voxel type" << endl;
   }
-  break;
-  case VOXEL_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            *ptr1 = (VoxelType)(*ptr2 * _slope + _intercept);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_CHAR: {
-    char *ptr2 = (char *)&(data[0]);
-
-    // Read data.
-    this->ReadAsChar((char *)data, _x*_y*_z*3*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            double dx = *ptr2;
-            double dy = *(ptr2 + 1);
-            double dz = *(ptr2 + 2);
-
-            *ptr1 = (VoxelType)(sqrt(dx*dx + dy*dy + dz*dz));
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data.
-    this->ReadAsShort((short *)data, _x*_y*_z*3*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            double dx = *ptr2;
-            double dy = *(ptr2 + 1);
-            double dz = *(ptr2 + 2);
-
-            *ptr1 = (VoxelType)(sqrt(dx*dx + dy*dy + dz*dz));
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data.
-    this->ReadAsFloat((float *)data, _x*_y*_z*3*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            double dx = *ptr2;
-            double dy = *(ptr2 + 1);
-            double dz = *(ptr2 + 2);
-
-            *ptr1 = (VoxelType)(sqrt(dx*dx + dy*dy + dz*dz));
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data.
-    this->ReadAsDouble((double *)data, _x*_y*_z*3*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            double dx = *ptr2;
-            double dy = *(ptr2 + 1);
-            double dz = *(ptr2 + 2);
-
-            *ptr1 = (VoxelType)(sqrt(dx*dx + dy*dy + dz*dz));
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  default:
-    cout << "unknown" << endl;
-  }
-
-  // Delete data
-  delete []data;
 
   // Reflect if necessary
-  if (_reflectX == True) _output->ReflectX();
-  if (_reflectY == True) _output->ReflectY();
-  if (_reflectZ == True) _output->ReflectZ();
+  if (_reflectX == True) output->ReflectX();
+  if (_reflectY == True) output->ReflectY();
+  if (_reflectZ == True) output->ReflectZ();
+
+  return output;
 }
 
-template <> void irtkFileToImage<irtkVector3D<char> >::Run()
-{
-  char *data;
-  int x, y, z, t;
-  irtkVector3D<char> *ptr1;
-
-  // Bring image to correct size
-  _output->Initialize(_x, _y, _z, _t, _xsize, _ysize, _zsize, _tsize, _xaxis, _yaxis, _zaxis);
-  _output->PutOrigin(_xorigin, _yorigin, _zorigin, _torigin);
-
-  // Allocate memory for tempory data
-  data = new char[_x*_y*_z*_t*_bytes];
-
-  // Get pointer to image data
-  ptr1 = _output->GetPointerToVoxels();
-
-  // Convert data
-  switch (_type) {
-  case VOXEL_CHAR: {
-    char *ptr2 = &(data[0]);
-
-    // Read data
-    this->ReadAsChar((char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_CHAR: {
-    unsigned char *ptr2 = (unsigned char *)&(data[0]);
-
-    // Read data
-    this->ReadAsUChar((unsigned char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data
-    this->ReadAsShort((short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_SHORT: {
-    unsigned short *ptr2 = (unsigned short *)&(data[0]);
-
-    // Read data
-    this->ReadAsUShort((unsigned short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_INT: {
-    int *ptr2 = (int *)&(data[0]);
-
-    // Read data
-    this->ReadAsInt((int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_INT: {
-    unsigned int *ptr2 = (unsigned int *)&(data[0]);
-
-    // Read data
-    this->ReadAsUInt((unsigned int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = *ptr2;
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<char>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_CHAR: {
-    char *ptr2 = (char *)&(data[0]);
-
-    // Read data.
-    this->ReadAsChar((char *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<char>(*ptr2);
-            ptr1->_y = static_cast<char>(*(ptr2 + 1));
-            ptr1->_z = static_cast<char>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data.
-    this->ReadAsShort((short *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<char>(*ptr2);
-            ptr1->_y = static_cast<char>(*(ptr2 + 1));
-            ptr1->_z = static_cast<char>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data.
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<char>(*ptr2);
-            ptr1->_y = static_cast<char>(*(ptr2 + 1));
-            ptr1->_z = static_cast<char>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data.
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<char>(*ptr2);
-            ptr1->_y = static_cast<char>(*(ptr2 + 1));
-            ptr1->_z = static_cast<char>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  default:
-    cout << "unknown" << endl;
-  }
-
-  // Delete data
-  delete []data;
-
-  // Reflect if necessary
-  if (_reflectX == True) _output->ReflectX();
-  if (_reflectY == True) _output->ReflectY();
-  if (_reflectZ == True) _output->ReflectZ();
-}
-
-template <> void irtkFileToImage<irtkVector3D<short> >::Run()
-{
-  char *data;
-  int x, y, z, t;
-  irtkVector3D<short> *ptr1;
-
-  // Bring image to correct size
-  _output->Initialize(_x, _y, _z, _t, _xsize, _ysize, _zsize, _tsize, _xaxis, _yaxis, _zaxis);
-  _output->PutOrigin(_xorigin, _yorigin, _zorigin, _torigin);
-
-  // Allocate memory for tempory data
-  data = new char[_x*_y*_z*_t*_bytes];
-
-  // Get pointer to image data
-  ptr1 = _output->GetPointerToVoxels();
-
-  // Convert data
-  switch (_type) {
-  case VOXEL_CHAR: {
-    char *ptr2 = &(data[0]);
-
-    // Read data
-    this->ReadAsChar((char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_CHAR: {
-    unsigned char *ptr2 = (unsigned char *)&(data[0]);
-
-    // Read data
-    this->ReadAsUChar((unsigned char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data
-    this->ReadAsShort((short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_SHORT: {
-    unsigned short *ptr2 = (unsigned short *)&(data[0]);
-
-    // Read data
-    this->ReadAsUShort((unsigned short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_INT: {
-    int *ptr2 = (int *)&(data[0]);
-
-    // Read data
-    this->ReadAsInt((int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_INT: {
-    unsigned int *ptr2 = (unsigned int *)&(data[0]);
-
-    // Read data
-    this->ReadAsUInt((unsigned int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<short>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_CHAR: {
-    char *ptr2 = (char *)&(data[0]);
-
-    // Read data.
-    this->ReadAsChar((char *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<short>(*ptr2);
-            ptr1->_y = static_cast<short>(*(ptr2 + 1));
-            ptr1->_z = static_cast<short>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data.
-    this->ReadAsShort((short *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<short>(*ptr2);
-            ptr1->_y = static_cast<short>(*(ptr2 + 1));
-            ptr1->_z = static_cast<short>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data.
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<short>(*ptr2);
-            ptr1->_y = static_cast<short>(*(ptr2 + 1));
-            ptr1->_z = static_cast<short>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data.
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<short>(*ptr2);
-            ptr1->_y = static_cast<short>(*(ptr2 + 1));
-            ptr1->_z = static_cast<short>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  default:
-    cout << "unknown" << endl;
-  }
-
-  // Delete data
-  delete []data;
-
-  // Reflect if necessary
-  if (_reflectX == True) _output->ReflectX();
-  if (_reflectY == True) _output->ReflectY();
-  if (_reflectZ == True) _output->ReflectZ();
-}
-
-template <> void irtkFileToImage<irtkVector3D<float> >::Run()
-{
-  char *data;
-  int x, y, z, t;
-  irtkVector3D<float> *ptr1;
-
-  // Bring image to correct size
-  _output->Initialize(_x, _y, _z, _t, _xsize, _ysize, _zsize, _tsize, _xaxis, _yaxis, _zaxis);
-  _output->PutOrigin(_xorigin, _yorigin, _zorigin, _torigin);
-
-  // Allocate memory for tempory data
-  data = new char[_x*_y*_z*_t*_bytes];
-
-  // Get pointer to image data
-  ptr1 = _output->GetPointerToVoxels();
-
-  // Convert data
-  switch (_type) {
-  case VOXEL_CHAR: {
-    char *ptr2 = &(data[0]);
-
-    // Read data
-    this->ReadAsChar((char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_CHAR: {
-    unsigned char *ptr2 = (unsigned char *)&(data[0]);
-
-    // Read data
-    this->ReadAsUChar((unsigned char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data
-    this->ReadAsShort((short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_SHORT: {
-    unsigned short *ptr2 = (unsigned short *)&(data[0]);
-
-    // Read data
-    this->ReadAsUShort((unsigned short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_INT: {
-    int *ptr2 = (int *)&(data[0]);
-
-    // Read data
-    this->ReadAsInt((int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_INT: {
-    unsigned int *ptr2 = (unsigned int *)&(data[0]);
-
-    // Read data
-    this->ReadAsUInt((unsigned int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<float>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_CHAR: {
-    char *ptr2 = (char *)&(data[0]);
-
-    // Read data.
-    this->ReadAsChar((char *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<float>(*ptr2);
-            ptr1->_y = static_cast<float>(*(ptr2 + 1));
-            ptr1->_z = static_cast<float>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data.
-    this->ReadAsShort((short *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<float>(*ptr2);
-            ptr1->_y = static_cast<float>(*(ptr2 + 1));
-            ptr1->_z = static_cast<float>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data.
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<float>(*ptr2);
-            ptr1->_y = static_cast<float>(*(ptr2 + 1));
-            ptr1->_z = static_cast<float>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data.
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<float>(*ptr2);
-            ptr1->_y = static_cast<float>(*(ptr2 + 1));
-            ptr1->_z = static_cast<float>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  default:
-    cout << "unknown" << endl;
-  }
-
-  // Delete data
-  delete []data;
-
-  // Reflect if necessary
-  if (_reflectX == True) _output->ReflectX();
-  if (_reflectY == True) _output->ReflectY();
-  if (_reflectZ == True) _output->ReflectZ();
-}
-
-template <> void irtkFileToImage<irtkVector3D<double> >::Run()
-{
-  char *data;
-  int x, y, z, t;
-  irtkVector3D<double> *ptr1;
-
-  // Bring image to correct size
-  _output->Initialize(_x, _y, _z, _t, _xsize, _ysize, _zsize, _tsize, _xaxis, _yaxis, _zaxis);
-  _output->PutOrigin(_xorigin, _yorigin, _zorigin, _torigin);
-
-  // Allocate memory for tempory data
-  data = new char[_x*_y*_z*_t*_bytes];
-
-  // Get pointer to image data
-  ptr1 = _output->GetPointerToVoxels();
-
-  // Convert data
-  switch (_type) {
-  case VOXEL_CHAR: {
-    char *ptr2 = &(data[0]);
-
-    // Read data
-    this->ReadAsChar((char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_CHAR: {
-    unsigned char *ptr2 = (unsigned char *)&(data[0]);
-
-    // Read data
-    this->ReadAsUChar((unsigned char *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data
-    this->ReadAsShort((short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_SHORT: {
-    unsigned short *ptr2 = (unsigned short *)&(data[0]);
-
-    // Read data
-    this->ReadAsUShort((unsigned short *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_INT: {
-    int *ptr2 = (int *)&(data[0]);
-
-    // Read data
-    this->ReadAsInt((int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_U_INT: {
-    unsigned int *ptr2 = (unsigned int *)&(data[0]);
-
-    // Read data
-    this->ReadAsUInt((unsigned int *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = ptr1->_y = ptr1->_z = static_cast<double>(*ptr2);
-            ptr1++;
-            ptr2++;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_CHAR: {
-    char *ptr2 = (char *)&(data[0]);
-
-    // Read data.
-    this->ReadAsChar((char *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<double>(*ptr2);
-            ptr1->_y = static_cast<double>(*(ptr2 + 1));
-            ptr1->_z = static_cast<double>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_SHORT: {
-    short *ptr2 = (short *)&(data[0]);
-
-    // Read data.
-    this->ReadAsShort((short *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<double>(*ptr2);
-            ptr1->_y = static_cast<double>(*(ptr2 + 1));
-            ptr1->_z = static_cast<double>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_FLOAT: {
-    float *ptr2 = (float *)&(data[0]);
-
-    // Read data.
-    this->ReadAsFloat((float *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<double>(*ptr2);
-            ptr1->_y = static_cast<double>(*(ptr2 + 1));
-            ptr1->_z = static_cast<double>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  case VOXEL_VECTOR_3D_DOUBLE: {
-    double *ptr2 = (double *)&(data[0]);
-
-    // Read data.
-    this->ReadAsDouble((double *)data, _x*_y*_z*_t*3, _addr[0]);
-
-    // Copy data
-    for (t = 0; t < _t; t++) {
-      for (z = 0; z < _z; z++) {
-        for (y = 0; y < _y; y++) {
-          for (x = 0; x < _x; x++) {
-            ptr1->_x = static_cast<double>(*ptr2);
-            ptr1->_y = static_cast<double>(*(ptr2 + 1));
-            ptr1->_z = static_cast<double>(*(ptr2 + 2));
-
-            ptr1++;
-            ptr2 += 3;
-          }
-        }
-      }
-    }
-  }
-  break;
-  default:
-    cout << "unknown" << endl;
-  }
-
-  // Delete data
-  delete []data;
-
-  // Reflect if necessary
-  if (_reflectX == True) _output->ReflectX();
-  if (_reflectY == True) _output->ReflectY();
-  if (_reflectZ == True) _output->ReflectZ();
-}
-
-template <class VoxelType> void irtkFileToImage<VoxelType>::Print()
+void irtkFileToImage::Print()
 {
   cout << "Name of class is " << this->NameOfClass() << endl;
   cout << "File name is " << _imagename << endl;
-  cout << "Image dimensions are " << _x << " " << _y << " " << _z << " " << _t << endl;
+  cout << "Image dimensions are " << _attr._x << " " << _attr._y << " " << _attr._z << " " << _attr._t << endl;
   cout << "Image has " << _bytes << " bytes per voxel" << endl;
-  cout << "Voxel dimensions are " << _xsize << " " << _ysize << " "
-       << _zsize << " " << _tsize << endl;
+  cout << "Voxel dimensions are " << _attr._dx << " " << _attr._dy << " "
+  << _attr._dz << " " << _attr._dt << endl;
   cout << "Voxel type is ";
   switch (_type) {
-  case VOXEL_CHAR:
-    cout << "char" << endl;
-    break;
-  case VOXEL_U_CHAR:
-    cout << "unsigned char" << endl;
-    break;
-  case VOXEL_SHORT:
-    cout << "short" << endl;
-    break;
-  case VOXEL_U_SHORT:
-    cout << "unsigned short" << endl;
-    break;
-  case VOXEL_INT:
-    cout << "int" << endl;
-    break;
-  case VOXEL_U_INT:
-    cout << "unsigned int" << endl;
-    break;
-  case VOXEL_FLOAT:
-    cout << "float" << endl;
-    break;
-  case VOXEL_DOUBLE:
-    cout << "double" << endl;
-    break;
-  case VOXEL_VECTOR_3D_CHAR:
-    cout << "vector 3d char" << endl;
-    break;
-  case VOXEL_VECTOR_3D_SHORT:
-    cout << "vector 3d short" << endl;
-    break;
-  case VOXEL_VECTOR_3D_FLOAT:
-    cout << "vector 3d float" << endl;
-    break;
-  case VOXEL_VECTOR_3D_DOUBLE:
-    cout << "vector 3d double" << endl;
-    break;
-  default:
-    cout << "unknown" << endl;
+    case IRTK_VOXEL_CHAR:
+      cout << "char" << endl;
+      break;
+    case IRTK_VOXEL_UNSIGNED_CHAR:
+      cout << "unsigned char" << endl;
+      break;
+    case IRTK_VOXEL_SHORT:
+      cout << "short" << endl;
+      break;
+    case IRTK_VOXEL_UNSIGNED_SHORT:
+      cout << "unsigned short" << endl;
+      break;
+    case IRTK_VOXEL_INT:
+      cout << "int" << endl;
+      break;
+    case IRTK_VOXEL_UNSIGNED_INT:
+      cout << "unsigned int" << endl;
+      break;
+    case IRTK_VOXEL_FLOAT:
+      cout << "float" << endl;
+      break;
+    case IRTK_VOXEL_DOUBLE:
+      cout << "double" << endl;
+      break;
+    default:
+      cout << "unknown" << endl;
   }
 }
 
-template <class VoxelType> void irtkFileToImage<VoxelType>::Debug(char *message)
+void irtkFileToImage::Debug(char *message)
 {
   if (_debug) cerr << message << endl;
 }
 
-template class irtkFileToImage<irtkBytePixel>;
-template class irtkFileToImage<irtkGreyPixel>;
-template class irtkFileToImage<irtkRealPixel>;
-template class irtkFileToImage<irtkVector3D<char> >;
-template class irtkFileToImage<irtkVector3D<short> >;
-template class irtkFileToImage<irtkVector3D<float> >;
-template class irtkFileToImage<irtkVector3D<double> >;

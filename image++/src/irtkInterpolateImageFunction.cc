@@ -14,60 +14,60 @@
 
 #include <irtkImageFunction.h>
 
-template <class VoxelType> irtkInterpolateImageFunction<VoxelType>::irtkInterpolateImageFunction() : irtkImageFunction<VoxelType>()
+irtkInterpolateImageFunction::irtkInterpolateImageFunction() : irtkImageFunction()
 {
   // Default parameters
   _clamped = True;
 }
 
-template <class VoxelType> irtkInterpolateImageFunction<VoxelType>::~irtkInterpolateImageFunction()
+irtkInterpolateImageFunction::~irtkInterpolateImageFunction()
 {
   // Set input
   this->_input  = NULL;
 }
 
-template <class VoxelType> irtkInterpolateImageFunction<VoxelType> *irtkInterpolateImageFunction<VoxelType>::New(irtkInterpolationMode interpolationMode, irtkBaseImage *image)
+irtkInterpolateImageFunction *irtkInterpolateImageFunction::New(irtkInterpolationMode interpolationMode, irtkBaseImage *image)
 {
   if (image->GetZ() == 1) {
     switch (interpolationMode) {
     case Interpolation_NN:
-      return new irtkNearestNeighborInterpolateImageFunction2D<VoxelType>;
+      return new irtkNearestNeighborInterpolateImageFunction2D;
       break;
     case Interpolation_Linear:
-      return new irtkLinearInterpolateImageFunction2D<VoxelType>;
+      return new irtkLinearInterpolateImageFunction2D;
       break;
     case Interpolation_CSpline:
-      return new irtkCSplineInterpolateImageFunction2D<VoxelType>;
+      return new irtkCSplineInterpolateImageFunction2D;
       break;
     case Interpolation_BSpline:
-      return new irtkBSplineInterpolateImageFunction2D<VoxelType>;
+      return new irtkBSplineInterpolateImageFunction2D;
       break;
     case Interpolation_Sinc:
-      return new irtkSincInterpolateImageFunction2D<VoxelType>;
+      return new irtkSincInterpolateImageFunction2D;
       break;
     case Interpolation_Gaussian:
-      return new irtkGaussianInterpolateImageFunction2D<VoxelType>;
+      return new irtkGaussianInterpolateImageFunction2D;
       break;
     }
   } else {
     switch (interpolationMode) {
     case Interpolation_NN:
-      return new irtkNearestNeighborInterpolateImageFunction<VoxelType>;
+      return new irtkNearestNeighborInterpolateImageFunction;
       break;
     case Interpolation_Linear:
-      return new irtkLinearInterpolateImageFunction<VoxelType>;
+      return new irtkLinearInterpolateImageFunction;
       break;
     case Interpolation_CSpline:
-      return new irtkCSplineInterpolateImageFunction<VoxelType>;
+      return new irtkCSplineInterpolateImageFunction;
       break;
     case Interpolation_BSpline:
-      return new irtkBSplineInterpolateImageFunction<VoxelType>;
+      return new irtkBSplineInterpolateImageFunction;
       break;
     case Interpolation_Sinc:
-      return new irtkSincInterpolateImageFunction<VoxelType>;
+      return new irtkSincInterpolateImageFunction;
       break;
     case Interpolation_Gaussian:
-      return new irtkGaussianInterpolateImageFunction<VoxelType>;
+      return new irtkGaussianInterpolateImageFunction;
       break;
     default:
       break;
@@ -76,16 +76,13 @@ template <class VoxelType> irtkInterpolateImageFunction<VoxelType> *irtkInterpol
   return NULL;
 }
 
-template <class VoxelType> void irtkInterpolateImageFunction<VoxelType>::Initialize()
+void irtkInterpolateImageFunction::Initialize()
 {
   // Initialize base class
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   // Set default input image domain
   this->_z1 = -0.5;
   this->_z2 = +0.5;
 }
 
-template class irtkInterpolateImageFunction<irtkBytePixel>;
-template class irtkInterpolateImageFunction<irtkGreyPixel>;
-template class irtkInterpolateImageFunction<irtkRealPixel>;

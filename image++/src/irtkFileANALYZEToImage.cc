@@ -19,7 +19,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-template <class VoxelType> irtkFileANALYZEToImage<VoxelType>::irtkFileANALYZEToImage()
+irtkFileANALYZEToImage::irtkFileANALYZEToImage()
 {
   _headername = NULL;
 
@@ -27,17 +27,17 @@ template <class VoxelType> irtkFileANALYZEToImage<VoxelType>::irtkFileANALYZEToI
   this->_reflectY = True;
 }
 
-template <class VoxelType> irtkFileANALYZEToImage<VoxelType>::~irtkFileANALYZEToImage()
+irtkFileANALYZEToImage::~irtkFileANALYZEToImage()
 {
   if (this->_headername != NULL) free(this->_headername);
 }
 
-template <class VoxelType> const char *irtkFileANALYZEToImage<VoxelType>::NameOfClass()
+const char *irtkFileANALYZEToImage::NameOfClass()
 {
   return "irtkFileANALYZEToImage";
 }
 
-template <class VoxelType> int irtkFileANALYZEToImage<VoxelType>::CheckHeader(const char *filename)
+int irtkFileANALYZEToImage::CheckHeader(const char *filename)
 {
   if ((strstr(basename2(filename), ".hdr") == NULL) && (strstr(basename2(filename), ".HDR") == NULL)) {
     return False;
@@ -46,7 +46,7 @@ template <class VoxelType> int irtkFileANALYZEToImage<VoxelType>::CheckHeader(co
   }
 }
 
-template <class VoxelType> void irtkFileANALYZEToImage<VoxelType>::SetInput(const char *headername)
+void irtkFileANALYZEToImage::SetInput(const char *headername)
 {
   int length;
   char imagename[255];
@@ -102,12 +102,11 @@ template <class VoxelType> void irtkFileANALYZEToImage<VoxelType>::SetInput(cons
     }
   }
 
-  this->irtkFileToImage<VoxelType>::SetInput(imagename);
+  this->irtkFileToImage::SetInput(imagename);
 }
 
-template <class VoxelType> void irtkFileANALYZEToImage<VoxelType>::ReadHeader()
+void irtkFileANALYZEToImage::ReadHeader()
 {
-  int i;
   irtkANALYZEHeader hdr;
 
   // Read header
@@ -115,31 +114,31 @@ template <class VoxelType> void irtkFileANALYZEToImage<VoxelType>::ReadHeader()
 
   // Copy header information
   if (hdr.dims[0] == 3) {
-    this->_x     = hdr.dims[1];
-    this->_y     = hdr.dims[2];
-    this->_z     = hdr.dims[3];
-    this->_t     = 1;
-    this->_xsize = hdr.pixdims[1];
-    this->_ysize = hdr.pixdims[2];
-    this->_zsize = hdr.pixdims[3];
-    this->_tsize = 1;
+    this->_attr._x  = hdr.dims[1];
+    this->_attr._y  = hdr.dims[2];
+    this->_attr._z  = hdr.dims[3];
+    this->_attr._t  = 1;
+    this->_attr._dx = hdr.pixdims[1];
+    this->_attr._dy = hdr.pixdims[2];
+    this->_attr._dy = hdr.pixdims[3];
+    this->_attr._dt = 1;
   } else {
     if (hdr.dims[0] == 4) {
-      this->_x     = hdr.dims[1];
-      this->_y     = hdr.dims[2];
-      this->_z     = hdr.dims[3];
-      this->_xsize = hdr.pixdims[1];
-      this->_ysize = hdr.pixdims[2];
-      this->_zsize = hdr.pixdims[3];
+      this->_attr._x  = hdr.dims[1];
+      this->_attr._y  = hdr.dims[2];
+      this->_attr._z  = hdr.dims[3];
+      this->_attr._dx = hdr.pixdims[1];
+      this->_attr._dy = hdr.pixdims[2];
+      this->_attr._dz = hdr.pixdims[3];
       if (hdr.dims[4] == 0) {
-        this->_t     = 1;
-        this->_tsize = 1;
+        this->_attr._t  = 1;
+        this->_attr._dt = 1;
       } else {
-        this->_t     = hdr.dims[4];
-        this->_tsize = hdr.pixdims[4];
+        this->_attr._t  = hdr.dims[4];
+        this->_attr._dt = hdr.pixdims[4];
       }
     } else {
-      cerr << "irtkFileANALYZEToImage<VoxelType>::ReadHeader: Invalid no. of dimensions in image" << endl;
+      cerr << "irtkFileANALYZEToImage::ReadHeader: Invalid no. of dimensions in image" << endl;
       exit(1);
     }
   }
@@ -151,37 +150,27 @@ template <class VoxelType> void irtkFileANALYZEToImage<VoxelType>::ReadHeader()
 
   switch (hdr.data_type) {
   case ANALYZE_UNSIGNED_CHAR:
-    this->_type  = VOXEL_U_CHAR;
+    this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
     this->_bytes = 1;
     break;
   case ANALYZE_SIGNED_SHORT:
-    this->_type  = VOXEL_SHORT;
+    this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
     break;
   case ANALYZE_FLOAT:
-    this->_type  = VOXEL_FLOAT;
+    this->_type  = IRTK_VOXEL_FLOAT;
     this->_bytes = 4;
+    break;
+  case ANALYZE_DOUBLE:
+    this->_type  = IRTK_VOXEL_DOUBLE;
+    this->_bytes = 8;
     break;
   default:
     cerr << this->NameOfClass() << ": Data type " << hdr.data_type << " not supported, trying signed short data type" << endl;
-    this->_type  = VOXEL_SHORT;
+    this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
   }
 
-  // Allocate memory for data address
-  if (this->_addr != 0) delete []this->_addr;
-  this->_addr = new int[this->_z];
-
-  // Calculate data address
-  for (i = 0; i < this->_z; i++) {
-    this->_addr[i] = i * this->_x * this->_y * this->_bytes;
-  }
+  // Data starts at 0
+  this->_start = 0;
 }
-
-template class irtkFileANALYZEToImage<irtkBytePixel>;
-template class irtkFileANALYZEToImage<irtkGreyPixel>;
-template class irtkFileANALYZEToImage<irtkRealPixel>;
-template class irtkFileANALYZEToImage<irtkVector3D<char> >;
-template class irtkFileANALYZEToImage<irtkVector3D<short> >;
-template class irtkFileANALYZEToImage<irtkVector3D<float> >;
-template class irtkFileANALYZEToImage<irtkVector3D<double> >;

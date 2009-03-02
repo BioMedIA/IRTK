@@ -21,7 +21,7 @@
  * in ANALYZE file format.
  */
 
-template <class VoxelType> class irtkImageToFileANALYZE : public irtkImageToFile<VoxelType>
+class irtkImageToFileANALYZE : public irtkImageToFile
 {
 
   /// Filename of header

@@ -21,7 +21,7 @@
  *
  */
 
-template <class VoxelType> class irtkGaussianInterpolateImageFunction2D : public irtkInterpolateImageFunction<VoxelType>
+class irtkGaussianInterpolateImageFunction2D : public irtkInterpolateImageFunction
 {
 
 private:

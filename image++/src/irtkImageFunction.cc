@@ -14,7 +14,7 @@
 
 #include <irtkImageFunction.h>
 
-template <class VoxelType> irtkImageFunction<VoxelType>::irtkImageFunction()
+irtkImageFunction::irtkImageFunction()
 {
   // Set input
   _input  = NULL;
@@ -24,13 +24,13 @@ template <class VoxelType> irtkImageFunction<VoxelType>::irtkImageFunction()
   _DefaultValue = 0;
 }
 
-template <class VoxelType> irtkImageFunction<VoxelType>::~irtkImageFunction()
+irtkImageFunction::~irtkImageFunction()
 {
   // Set input
   _input  = NULL;
 }
 
-template <class VoxelType> void irtkImageFunction<VoxelType>::SetInput(irtkGenericImage<VoxelType> *image)
+void irtkImageFunction::SetInput(irtkImage *image)
 {
   if (image != NULL) {
     _input = image;
@@ -40,12 +40,12 @@ template <class VoxelType> void irtkImageFunction<VoxelType>::SetInput(irtkGener
   }
 }
 
-template <class VoxelType> void irtkImageFunction<VoxelType>::Debug(const char *message)
+void irtkImageFunction::Debug(const char *message)
 {
   if (_DebugFlag == True) cout << message << endl;
 }
 
-template <class VoxelType> void irtkImageFunction<VoxelType>::Initialize()
+void irtkImageFunction::Initialize()
 {
   // Print debugging information
   this->Debug("irtkImageFunction::Initialize");
@@ -57,6 +57,3 @@ template <class VoxelType> void irtkImageFunction<VoxelType>::Initialize()
   }
 }
 
-template class irtkImageFunction<irtkBytePixel>;
-template class irtkImageFunction<irtkGreyPixel>;
-template class irtkImageFunction<irtkRealPixel>;

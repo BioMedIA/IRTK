@@ -21,7 +21,7 @@
  * in VTK file format.
  */
 
-template <class VoxelType> class irtkImageToFileVTK : public irtkImageToFile<VoxelType>
+class irtkImageToFileVTK : public irtkImageToFile
 {
 
 protected:

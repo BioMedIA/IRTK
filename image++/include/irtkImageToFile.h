@@ -24,21 +24,21 @@
  * Each derived class has to implement all of the abstract member functions.
  */
 
-template <class VoxelType> class irtkImageToFile : protected irtkCofstream
+class irtkImageToFile : protected irtkCofstream
 {
 
 protected:
 
   /// Pointer to image for input
-  irtkGenericImage<VoxelType> *_input;
+  irtkImage *_input;
 
   // Pointer to filename for output
   char *_output;
 
-  /** Lookup table which data address (in bytes) for each slice. Should be
+  /** Start address of the data in the image file. Should be
    *  initialized by calling Initialize().
    */
-  int *_addr;
+  int _start;
 
   /// Flag whether to reflect X axis
   int _reflectX;
@@ -71,7 +71,7 @@ public:
   static irtkImageToFile *New(const char *);
 
   /// Set input
-  virtual void SetInput (irtkGenericImage<VoxelType> *);
+  virtual void SetInput (irtkImage *);
 
   /// Set output
   virtual void SetOutput(const char *);

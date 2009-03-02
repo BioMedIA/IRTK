@@ -905,7 +905,7 @@ large parameter steps (see `Length of steps' above) and
 estimating the transformation parameters, the parameter step is
 then halved and the optimisation is continued.  The 'No. of steps'
 parameter determines the number of step sizes used.  For example,
-if `Length of steps' is set to 2 and 'No. of steps' is set to 3,
+if `Length of steps' is set to 8 and 'No. of steps' is set to 3,
 the optimisation will first use a step length of 8 and this is
 followed by step lengths of 4 and 2.
 
@@ -1357,7 +1357,7 @@ large parameter steps (see `Length of steps' above) and
 estimating the transformation parameters, the parameter step is
 then halved and the optimisation is continued.  The 'No. of steps'
 parameter determines the number of step sizes used.  For example,
-if `Length of steps' is set to 2 and 'No. of steps' is set to 3,
+if `Length of steps' is set to 8 and 'No. of steps' is set to 3,
 the optimisation will first use a step length of 8 and this is
 followed by step lengths of 4 and 2.
 

@@ -21,7 +21,7 @@
  * in PGM file format. Note that PGM file formats support only 2D images!!!
  */
 
-template <class VoxelType> class irtkImageToFilePGM : public irtkImageToFile<VoxelType>
+class irtkImageToFilePGM : public irtkImageToFile
 {
 
 protected:

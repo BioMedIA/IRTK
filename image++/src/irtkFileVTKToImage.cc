@@ -16,12 +16,12 @@
 
 #include <irtkVTK.h>
 
-template <class VoxelType> const char *irtkFileVTKToImage<VoxelType>::NameOfClass()
+const char *irtkFileVTKToImage::NameOfClass()
 {
   return "irtkFileVTKToImage";
 }
 
-template <class VoxelType> int irtkFileVTKToImage<VoxelType>::CheckHeader(const char *filename)
+int irtkFileVTKToImage::CheckHeader(const char *filename)
 {
   char buffer[255];
 
@@ -47,13 +47,12 @@ template <class VoxelType> int irtkFileVTKToImage<VoxelType>::CheckHeader(const 
   }
 }
 
-template <class VoxelType> void irtkFileVTKToImage<VoxelType>::ReadHeader()
+void irtkFileVTKToImage::ReadHeader()
 {
-  int i;
   char type[255], dummy[255], buffer[255];
 
   // Initialize
-  this->_type  = VOXEL_UNKNOWN;
+  this->_type  = IRTK_VOXEL_UNKNOWN;
   this->_bytes = 0;
 
   // Read header
@@ -88,7 +87,7 @@ template <class VoxelType> void irtkFileVTKToImage<VoxelType>::ReadHeader()
   this->ReadAsString(buffer, 255);
 
   // Parse image dimensions
-  sscanf(buffer, "%s %d %d %d", dummy, &this->_x, &this->_y, &this->_z);
+  sscanf(buffer, "%s %d %d %d", dummy, &this->_attr._x, &this->_attr._y, &this->_attr._z);
   if (strcmp(dummy, "DIMENSIONS") != 0) {
     cerr << this->NameOfClass() << "::Read_Header: Can't find image dimensions"
          << endl;
@@ -98,14 +97,14 @@ template <class VoxelType> void irtkFileVTKToImage<VoxelType>::ReadHeader()
   this->ReadAsString(buffer, 255);
 
   // Parse origin, but ignore
-  sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_xsize, &this->_ysize, &this->_zsize);
+  sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_attr._dx, &this->_attr._dy, &this->_attr._dz);
   if (strcmp(dummy, "ORIGIN") == 0) {
 
     // Read voxel dimensions
     this->ReadAsString(buffer, 255);
 
     // Parse voxel dimensions
-    sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_xsize, &this->_ysize, &this->_zsize);
+    sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_attr._dx, &this->_attr._dy, &this->_attr._dz);
     if ((strcmp(dummy, "SPACING") != 0) &&
         (strcmp(dummy, "ASPECT_RATIO") != 0)) {
       cerr << this->NameOfClass()
@@ -138,53 +137,39 @@ template <class VoxelType> void irtkFileVTKToImage<VoxelType>::ReadHeader()
          << endl;
   }
   if (strcmp(type, VTK_DATA_CHAR) == 0) {
-    this->_type  = VOXEL_CHAR;
+    this->_type  = IRTK_VOXEL_CHAR;
     this->_bytes = 1;
   }
   if (strcmp(type, VTK_DATA_U_CHAR) == 0) {
-    this->_type  = VOXEL_U_CHAR;
+    this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
     this->_bytes = 1;
   }
   if (strcmp(type, VTK_DATA_SHORT) == 0) {
-    this->_type  = VOXEL_SHORT;
+    this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
   }
   if (strcmp(type, VTK_DATA_U_SHORT) == 0) {
-    this->_type  = VOXEL_U_SHORT;
+    this->_type  = IRTK_VOXEL_UNSIGNED_SHORT;
     this->_bytes = 2;
   }
   if (strcmp(type, VTK_DATA_FLOAT) == 0) {
-    this->_type  = VOXEL_FLOAT;
+    this->_type  = IRTK_VOXEL_FLOAT;
     this->_bytes = 4;
   }
-  if (this->_type == VOXEL_UNKNOWN) {
+  if (this->_type == IRTK_VOXEL_UNKNOWN) {
     cerr << this->NameOfClass() << "::Read_Header: Unknown voxel type"
          << endl;
   }
 
   // VTK only supports 3D images
-  this->_t     = 1;
-  this->_tsize = 1;
+  this->_attr._t  = 1;
+  this->_attr._dt = 1;
 
   // Read lookup table but ignore
   this->ReadAsString(buffer, 255);
 
-  // Allocate memory for data address
-  if (this->_addr != 0) delete []this->_addr;
-  this->_addr = new int[this->_z];
-
   // Calculate data address
-  for (i = 0; i < this->_z; i++) {
-    this->_addr[i] = int(this->Tell()) + i * this->_x * this->_y * this->_bytes;
-  }
+  this->_start = this->Tell();
 }
-
-template class irtkFileVTKToImage<irtkBytePixel>;
-template class irtkFileVTKToImage<irtkGreyPixel>;
-template class irtkFileVTKToImage<irtkRealPixel>;
-template class irtkFileVTKToImage<irtkVector3D<char> >;
-template class irtkFileVTKToImage<irtkVector3D<short> >;
-template class irtkFileVTKToImage<irtkVector3D<float> >;
-template class irtkFileVTKToImage<irtkVector3D<double> >;
 
 

@@ -24,7 +24,7 @@
  * More information about the format can be found at http://nifti.nimh.nih.gov/nifti-1/
  */
 
-template <class VoxelType> class irtkFileNIFTIToImage : public irtkFileToImage<VoxelType>
+class irtkFileNIFTIToImage : public irtkFileToImage
 {
 
   /// Filename of header
@@ -54,7 +54,6 @@ public:
 
   /// Print image file information
   virtual void Print();
-
 
 };
 

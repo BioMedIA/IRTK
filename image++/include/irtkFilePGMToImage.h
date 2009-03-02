@@ -26,7 +26,7 @@
  * file format are supported.
  */
 
-template <class VoxelType> class irtkFilePGMToImage : public irtkFileToImage<VoxelType>
+class irtkFilePGMToImage : public irtkFileToImage
 {
 
 protected:

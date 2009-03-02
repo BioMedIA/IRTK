@@ -19,13 +19,13 @@
 #include <irtkNIFTI.h>
 
 /**
- * Class for image to NIFTI file filter.
+ * Class for image to NIFTI file writer.
  *
  * This is a class which takes an image as input and produces an image file
  * in NIFTI file format.
  */
 
-template <class VoxelType> class irtkImageToFileNIFTI : public irtkImageToFile<VoxelType>
+class irtkImageToFileNIFTI : public irtkImageToFile
 {
 
   /// Filename of header

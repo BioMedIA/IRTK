@@ -316,15 +316,7 @@ int main(int argc, char **argv)
 
   //Initiliaze the output image
   if (useImage==True) {
-    image->Initialize(*target);
-    //Delete all values.....
-    for (int z = 0;  z < image->GetZ(); ++z) {
-      for (int y = 0; y < image->GetY(); ++y) {
-        for (int x = 0; x < image->GetX(); ++x) {
-          image->PutAsDouble(x, y, z, 0.0);
-        }
-      }
-    }
+    image->Initialize(target->GetImageAttributes());
   }
 
   n    = 0;
@@ -356,7 +348,7 @@ int main(int argc, char **argv)
 
       // Transform source image with gold standard
       irtkGreyImage tmp(*target);
-      irtkImageTransformation<irtkGreyPixel> imagetransformation;
+      irtkImageTransformation imagetransformation;
       imagetransformation.SetInput (source, t1);
       imagetransformation.SetOutput(&tmp);
       imagetransformation.PutSourcePaddingValue(MIN_GREY);

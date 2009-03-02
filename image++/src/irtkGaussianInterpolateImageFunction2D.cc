@@ -16,26 +16,23 @@
 
 #include <irtkGaussianInterpolateImageFunction2D.h>
 
-template <class VoxelType>
-irtkGaussianInterpolateImageFunction2D<VoxelType>::irtkGaussianInterpolateImageFunction2D(double Sigma)
+irtkGaussianInterpolateImageFunction2D::irtkGaussianInterpolateImageFunction2D(double Sigma)
 {
   _Sigma = Sigma;
 }
 
-template <class VoxelType>
-irtkGaussianInterpolateImageFunction2D<VoxelType>::~irtkGaussianInterpolateImageFunction2D(void)
+irtkGaussianInterpolateImageFunction2D::~irtkGaussianInterpolateImageFunction2D(void)
 {}
 
-template <class VoxelType>
-const char *irtkGaussianInterpolateImageFunction2D<VoxelType>::NameOfClass()
+const char *irtkGaussianInterpolateImageFunction2D::NameOfClass()
 {
   return "irtkGaussianInterpolateImageFunction2D";
 }
 
-template <class VoxelType> void irtkGaussianInterpolateImageFunction2D<VoxelType>::Initialize()
+void irtkGaussianInterpolateImageFunction2D::Initialize()
 {
   /// Initialize baseclass
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   // Compute size of image
   this->_x = this->_input->GetX();
@@ -56,13 +53,13 @@ template <class VoxelType> void irtkGaussianInterpolateImageFunction2D<VoxelType
   this->_y2 = this->_input->GetY() - _ExtentY;
 }
 
-template <class VoxelType> double irtkGaussianInterpolateImageFunction2D<VoxelType>::EvaluateInside(double x, double y, double z, double time)
+double irtkGaussianInterpolateImageFunction2D::EvaluateInside(double x, double y, double z, double time)
 {
-  cerr << "irtkGaussianInterpolateImageFunction2D<VoxelType>::EvaluateInside: Not implemented" << endl;
+  cerr << "irtkGaussianInterpolateImageFunction2D::EvaluateInside: Not implemented" << endl;
   return 0;
 }
 
-template <class VoxelType> double irtkGaussianInterpolateImageFunction2D<VoxelType>::Evaluate(double x, double y, double z, double time)
+double irtkGaussianInterpolateImageFunction2D::Evaluate(double x, double y, double z, double time)
 {
   double val, sum;
   int x1, x2, y1, y2;
@@ -87,7 +84,7 @@ template <class VoxelType> double irtkGaussianInterpolateImageFunction2D<VoxelTy
     for (y = y1; y <= y2; y++) {
       for (x = x1; x <= x2; x++) {
         double temp = gaussian.Evaluate(x, y, z);
-        val += temp * this->_input->Get(x, y, z, time);
+        val += temp * this->_input->GetAsDouble(x, y, z, time);
         sum += temp;
       }
     }
@@ -100,7 +97,7 @@ template <class VoxelType> double irtkGaussianInterpolateImageFunction2D<VoxelTy
             (y >= 0) && (y < this->_input->GetY()) &&
             (z >= 0) && (z < this->_input->GetZ())) {
           double temp = gaussian.Evaluate(x, y, z);
-          val += temp * this->_input->Get(x, y, z, time);
+          val += temp * this->_input->GetAsDouble(x, y, z, time);
           sum += temp;
         }
       }
@@ -116,6 +113,3 @@ template <class VoxelType> double irtkGaussianInterpolateImageFunction2D<VoxelTy
 
 }
 
-template class irtkGaussianInterpolateImageFunction2D<irtkBytePixel>;
-template class irtkGaussianInterpolateImageFunction2D<irtkGreyPixel>;
-template class irtkGaussianInterpolateImageFunction2D<irtkRealPixel>;

@@ -22,7 +22,7 @@
  * location. Each derived class has to implement all abstract member functions.
  */
 
-template <class VoxelType> class irtkImageFunction : public irtkObject
+class irtkImageFunction : public irtkObject
 {
 
 private:
@@ -33,7 +33,7 @@ private:
 protected:
 
   /// Input image for filter
-  irtkGenericImage<VoxelType> *_input;
+  irtkImage *_input;
 
   /// Default value to return
   double _DefaultValue;
@@ -47,7 +47,7 @@ public:
   virtual ~irtkImageFunction();
 
   /// Set input image for filter
-  virtual void SetInput (irtkGenericImage<VoxelType> *);
+  virtual void SetInput (irtkImage *);
 
   /** Initialize the filter. This function must be called by any derived
    *  filter class to perform some initialize tasks. */

@@ -116,7 +116,7 @@ template <class VoxelType> void irtkImageToImage<VoxelType>::Initialize()
   if (this->RequiresBuffering()) {
     this->Debug("irtkImageToImage::Initialize: Filter requires buffering");
 
-    // Check whether filter has externnal buffer
+    // Check whether filter has external buffer
     if (_input == _output) {
       this->Debug("irtkImageToImage::Initialize: Filter has internal buffer");
       _tmp    = _output;
@@ -130,7 +130,7 @@ template <class VoxelType> void irtkImageToImage<VoxelType>::Initialize()
   }
 
   // Make sure that output has the correct dimensions
-  if (_input != _output) _output->Initialize(*_input);
+  if (_input != _output) _output->Initialize(_input->GetImageAttributes());
 }
 
 template <class VoxelType> void irtkImageToImage<VoxelType>::Finalize()

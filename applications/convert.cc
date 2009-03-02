@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,22 +7,20 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkImage.h>
 
 char *input_name = NULL, *output_name = NULL;
 
-typedef enum pixel_type {pt_real, pt_grey, pt_byte, pt_rgb} pixel_type;
-
 void usage()
 {
   cerr << "Usage: convert [in] [out] <options>\n\n";
   cerr << "\t where <options can be one or more of the following:\n";
-  cerr << "\t\t <-real|-grey|-byte|-rgb>    Output voxel type\n";
-  cerr << "\t\t <-minmax value value>       Output min and max intensity\n";
-  cerr << "\t\t <-x/-y/-z>                  Flip the image in the x/y/z-direction\n\n";
+  cerr << "\t\t <-char|uchar|short|ushort|float|double>    Output voxel type\n";
+  cerr << "\t\t <-minmax value value>                      Output min and max intensity\n";
+  cerr << "\t\t <-x/-y/-z>                                 Flip the image in the x/y/z-direction\n\n";
   cerr << "Please note that IRTK will flip Analyze in the y-direction when the image \n";
   cerr << "is read and written (for historical reasons). This means that the coordinate \n";
   cerr << "system which IRTK uses for Analyze images is different from that used by other \n";
@@ -34,9 +32,8 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  Bool ok, minmax, flip_x, flip_y, flip_z;
-  pixel_type pt = pt_grey;
-  float min = 0, max = 0;
+  double min, max;
+  int ok, minmax, flip_x, flip_y, flip_z, image_type;
 
   if (argc < 3) {
     usage();
@@ -55,25 +52,39 @@ int main(int argc, char **argv)
   flip_y = False;
   flip_z = False;
   minmax = False;
+  min    = 0;
+  max    = 0;
+  image_type = IRTK_VOXEL_SHORT;
+
   while (argc > 1) {
     ok = False;
-    if (strcmp(argv[1], "-real") == 0) {
-      pt = pt_real;
+    if (strcmp(argv[1], "-char") == 0) {
+      image_type = IRTK_VOXEL_CHAR;
       argc--;
       argv++;
       ok = True;
-    } else if (strcmp(argv[1], "-grey") == 0) {
-      pt = pt_grey;
+    } else if (strcmp(argv[1], "-uchar") == 0) {
+      image_type = IRTK_VOXEL_UNSIGNED_CHAR;
       argc--;
       argv++;
       ok = True;
-    } else if (strcmp(argv[1], "-byte") == 0) {
-      pt = pt_byte;
+    } else if (strcmp(argv[1], "-short") == 0) {
+      image_type = IRTK_VOXEL_SHORT;
       argc--;
       argv++;
       ok = True;
-    } else if (strcmp(argv[1], "-rgb") == 0) {
-      pt = pt_rgb;
+    } else if (strcmp(argv[1], "-ushort") == 0) {
+      image_type = IRTK_VOXEL_UNSIGNED_SHORT;
+      argc--;
+      argv++;
+      ok = True;
+    } else if (strcmp(argv[1], "-float") == 0) {
+      image_type = IRTK_VOXEL_FLOAT;
+      argc--;
+      argv++;
+      ok = True;
+    } else if (strcmp(argv[1], "-double") == 0) {
+      image_type = IRTK_VOXEL_DOUBLE;
       argc--;
       argv++;
       ok = True;
@@ -109,81 +120,59 @@ int main(int argc, char **argv)
     }
   }
 
-  // Save output
-  switch (pt) {
-  case pt_real: {
-    // Read in as irtkRealImage
-    irtkRealImage image(input_name);
+  if (-0.5 < voxel_limits<double>::min()) cout << "True" << endl;
+  
+  // Read image
+  irtkGenericImage<double> image(input_name);
 
-    if (minmax) {
-      if (min >= max) {
-        cerr << "Minimum value larger or equal to maximum value" << endl;
-        exit(1);
-      }
-      image.PutMinMax(min, max);
+  // Scale image
+  if (minmax) {
+    if (min >= max) {
+      cerr << "Minimum value larger or equal to maximum value" << endl;
+      exit(1);
     }
-    if (flip_x == True) image.ReflectX();
-    if (flip_y == True) image.ReflectY();
-    if (flip_z == True) image.ReflectZ();
-    image.Write(output_name);
+    image.PutMinMaxAsDouble(min, max);
   }
-  break;
-  case pt_grey: {
-    // Read in as irtkGreyImage
-    irtkGreyImage image(input_name);
+  
+  // Reflect image
+  if (flip_x == True) image.ReflectX();
+  if (flip_y == True) image.ReflectY();
+  if (flip_z == True) image.ReflectZ();
 
-    if (minmax) {
-      irtkGreyPixel min_val = round(min);
-      irtkGreyPixel max_val = round(max);
-      if (min < MIN_GREY) min_val = 0;
-      if (max > MAX_GREY) max_val = MAX_GREY;
-      if (min_val >= max_val) {
-        cerr << "Minimum value larger or equal to maximum value" << endl;
-        exit(1);
+  // Convert image
+  switch (image_type) {
+    case IRTK_VOXEL_CHAR: {
+        irtkGenericImage<char> output = image;
+        output.Write(output_name);
       }
-      image.PutMinMax(min_val, max_val);
-    }
-    if (flip_x == True) image.ReflectX();
-    if (flip_y == True) image.ReflectY();
-    if (flip_z == True) image.ReflectZ();
-    image.Write(output_name);
-  }
-  break;
-  case pt_byte: {
-    // Read in as irtkByteImage
-    irtkByteImage image(input_name);
-
-    if (minmax) {
-      irtkBytePixel min_val = round(min);
-      irtkBytePixel max_val = round(max);
-      if (min < 0) min_val = 0;
-      if (max > MAX_BYTE) max_val = MAX_BYTE;
-      if (min_val >= max_val) {
-        cerr << "Minimum value larger or equal to maximum value" << endl;
+      break;
+    case IRTK_VOXEL_UNSIGNED_CHAR: {
+        irtkGenericImage<unsigned char> output = image;
+        output.Write(output_name);
       }
-      image.PutMinMax(min_val, max_val);
-    }
-    if (flip_x == True) image.ReflectX();
-    if (flip_y == True) image.ReflectY();
-    if (flip_z == True) image.ReflectZ();
-    image.Write(output_name);
+      break;
+    case IRTK_VOXEL_SHORT: {
+        irtkGenericImage<short> output = image;
+        output.Write(output_name);
+      }
+      break;
+    case IRTK_VOXEL_UNSIGNED_SHORT: {
+        irtkGenericImage<unsigned short> output = image;
+        output.Write(output_name);
+      }
+      break;
+    case IRTK_VOXEL_FLOAT: {
+        irtkGenericImage<float> output = image;
+        output.Write(output_name);
+        break;
+      }
+    case IRTK_VOXEL_DOUBLE: {
+        irtkGenericImage<double> output = image;
+        output.Write(output_name);
+        break;
+      }
+    default:
+      cerr << "Unknown voxel type for output format" << endl;
+      exit(1);
   }
-  break;
-  case pt_rgb: {
-    // Read in as irtkRealImage
-    irtkRealImage image(input_name);
-
-    // Convert to irtkRGBImage
-    irtkRGBImage image2 = image;
-
-    // Write image
-    if (flip_x == True) image.ReflectX();
-    if (flip_y == True) image.ReflectY();
-    if (flip_z == True) image.ReflectZ();
-    image2.Write(output_name);
-  }
-  break;
-  }
-
-  return 0;
 }

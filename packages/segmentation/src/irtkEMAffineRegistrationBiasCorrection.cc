@@ -29,8 +29,8 @@ irtkEMAffineRegistrationBiasCorrection::irtkEMAffineRegistrationBiasCorrection(i
   _registration->Read(parameters_name);
 // _registration->SetTargetPadding((int) padding);
 
-  _interpolator = new irtkLinearInterpolateImageFunction<irtkRealPixel>;
-  _imagetransformation = new irtkImageTransformation<irtkRealPixel>;
+  _interpolator = new irtkLinearInterpolateImageFunction;
+  _imagetransformation = new irtkImageTransformation;
   _imagetransformation->PutInterpolator(_interpolator);
   _imagetransformation->PutSourcePaddingValue(padding-1);
   _imagetransformation->PutTargetPaddingValue(padding-1);
@@ -97,9 +97,9 @@ void irtkEMAffineRegistrationBiasCorrection::UpdateReference()
   irtkRealImage r(_orig_rf);
   r.Write("r.nii.gz");
   _imagetransformation->SetOutput(&r);
-  cerr<<_imagetransformation->GetTargetPaddingValue()<<endl;
+  cerr << _imagetransformation->GetTargetPaddingValue()<<endl;
   _imagetransformation->Run();
-  cerr<<_imagetransformation->GetTargetPaddingValue()<<endl;
+  cerr << _imagetransformation->GetTargetPaddingValue()<<endl;
 
   r.Write("regref.nii.gz");
   _reference=r;

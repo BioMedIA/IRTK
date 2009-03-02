@@ -14,12 +14,12 @@
 
 #include <irtkFileToImage.h>
 
-template <class VoxelType> const char *irtkFilePGMToImage<VoxelType>::NameOfClass()
+const char *irtkFilePGMToImage::NameOfClass()
 {
   return "irtkFilePGMToImage";
 }
 
-template <class VoxelType> int irtkFilePGMToImage<VoxelType>::CheckHeader(const char *filename)
+int irtkFilePGMToImage::CheckHeader(const char *filename)
 {
   char buffer[255];
 
@@ -46,9 +46,8 @@ template <class VoxelType> int irtkFilePGMToImage<VoxelType>::CheckHeader(const 
   }
 }
 
-template <class VoxelType> void irtkFilePGMToImage<VoxelType>::ReadHeader()
+void irtkFilePGMToImage::ReadHeader()
 {
-  int i;
   char buffer[255];
 
   // Read header, skip comments
@@ -69,7 +68,7 @@ template <class VoxelType> void irtkFilePGMToImage<VoxelType>::ReadHeader()
   } while (buffer[0] == '#');
 
   // Parse voxel dimensions
-  sscanf(buffer, "%d %d", &this->_x, &this->_y);
+  sscanf(buffer, "%d %d", &this->_attr._x, &this->_attr._y);
 
   // Ignore maximum greyvalue, skip comments
   do {
@@ -77,33 +76,20 @@ template <class VoxelType> void irtkFilePGMToImage<VoxelType>::ReadHeader()
   } while (buffer[0] == '#');
 
   // PGM files support only 2D images, so set z and t to 1
-  this->_z = 1;
-  this->_t = 1;
+  this->_attr._z = 1;
+  this->_attr._t = 1;
 
   // PGM files do not have voxel dimensions, so set them to default values
-  this->_xsize = 1;
-  this->_ysize = 1;
-  this->_zsize = 1;
-  this->_tsize = 1;
+  this->_attr._dx = 1;
+  this->_attr._dy = 1;
+  this->_attr._dz = 1;
+  this->_attr._dt = 1;
 
   // PGM files have voxels which are unsigned char
-  this->_type  = VOXEL_U_CHAR;
+  this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
   this->_bytes = 1;
 
-  // Allocate memory for data address
-  if (this->_addr != 0) delete []this->_addr;
-  this->_addr = new int[this->_z];
-
-  // Calculate data address
-  for (i = 0; i < this->_z; i++) {
-    this->_addr[i] = int(this->Tell()) + i * this->_x * this->_y * this->_bytes;
-  }
+  // Data starts here
+  this->_start = this->Tell();
 }
 
-template class irtkFilePGMToImage<irtkBytePixel>;
-template class irtkFilePGMToImage<irtkGreyPixel>;
-template class irtkFilePGMToImage<irtkRealPixel>;
-template class irtkFilePGMToImage<irtkVector3D<char> >;
-template class irtkFilePGMToImage<irtkVector3D<short> >;
-template class irtkFilePGMToImage<irtkVector3D<float> >;
-template class irtkFilePGMToImage<irtkVector3D<double> >;

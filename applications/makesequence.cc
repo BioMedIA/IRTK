@@ -21,7 +21,6 @@ void usage()
 int main(int argc, char **argv)
 {
   int i, x, y, z, t;
-  double xsize, ysize, zsize, xorigin, yorigin, zorigin, xaxis[3], yaxis[3], zaxis[3];
 
   // Determine how many volumes we have
   t = argc-2;
@@ -35,12 +34,6 @@ int main(int argc, char **argv)
   // Read first image
   cout << "Reading " << argv[1] << endl;
   input[0].Read(argv[1]);
-  x = input[0].GetX();
-  y = input[0].GetY();
-  z = input[0].GetZ();
-  input[0].GetOrigin(xorigin, yorigin, zorigin);
-  input[0].GetPixelSize(&xsize, &ysize, &zsize);
-  input[0].GetOrientation(xaxis, yaxis, zaxis);
 
   // Read remaining images
   for (i = 1; i < t; i++) {
@@ -48,13 +41,13 @@ int main(int argc, char **argv)
     cout << "Reading " << argv[i+1] << endl;
     input[i].Read(argv[i+1]);
 
-    if (!input[0].irtkBaseImage::operator==(input[i])) {
+    if (!(input[0].GetImageAttributes() == input[i].GetImageAttributes())) {
       cerr << "Mismatch of volume geometry" << endl;
       exit(1);
     }
   }
 
-  irtkGreyImage output(x, y, z, t, xsize, ysize, zsize, 1, irtkPoint(xorigin, yorigin, zorigin), 0, xaxis, yaxis, zaxis);
+  irtkGreyImage output(input[0].GetImageAttributes());
 
   cout << "Inserting volumes into sequence" << endl;
   for (i = 0; i < t; i++) {

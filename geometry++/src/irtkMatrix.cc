@@ -659,11 +659,11 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
 
   // Sort eigenvectors only by absolute values
   for (i = 1; i <= _rows; i++) {
-    eigen_value[i] = fabs(eigen_value[i]);
+//    eigen_value[i] = fabs(eigen_value[i]);
   }
 
   // Sort eigenvectors
-  eigsrt(eigen_value, eigen_vector, _rows);
+//  eigsrt(eigen_value, eigen_vector, _rows);
 
   // Convert NR format back
   E = irtkMatrix(_rows, _rows);

@@ -52,17 +52,11 @@ Fl_Value_Slider *deformationBlending;
 /// Widget for display control of deformation grid resolution
 Fl_Value_Slider *viewDeformationGridResolution;
 
-/// Widget for deformation properties
-Fl_Choice *deformationProperty;
-
 /// Widget to edit transformation
 Fl_Window *editTransformation;
 
 /// Widget for transformation parameters
 Fl_Valuator **transformationValuator;
-
-/// Deformation property menu
-static Fl_Menu_Item menu_deformationProperty[];
 
 // Callbacks for transformations
 static void cb_browseTransformation(Fl_Browser*, void*);
@@ -82,9 +76,6 @@ static void cb_viewDeformationArrows(Fl_Button*, void*);
 static void cb_loadTransformation(Fl_Button*, void*);
 static void cb_saveTransformation(Fl_Button*, void*);
 static void cb_movieTransformation(Fl_Button*, void*);
-static void cb_DeformationProperty(Fl_Menu_*, void*);
-static void cb_deformationMinMax(Fl_Value_Slider*, void*);
-static void cb_deformationBlending(Fl_Value_Slider*, void*);
 
 public:
 

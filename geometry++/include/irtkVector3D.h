@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,14 +7,15 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #ifndef _IRTKVECTOR3D_H
 
 #define _IRTKVECTOR3D_H
 
-#include <math.h>
+#include <cmath>
+#include <limits>
 
 #include <irtkObject.h>
 
@@ -96,6 +97,7 @@ public:
 
   /** Takes the dot-product of two vectors. */
   static double DotProduct(const irtkVector3D& v1, const irtkVector3D& v2);
+
 };
 
 template <typename T> inline irtkVector3D<T>::irtkVector3D(T x, T y, T z)

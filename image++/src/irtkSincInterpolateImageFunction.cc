@@ -49,21 +49,21 @@ inline double sinc(double x)
   return SINC_LUT[round(fabs(x)*SINC_LUTSIZE)];
 }
 
-template <class VoxelType> irtkSincInterpolateImageFunction<VoxelType>::irtkSincInterpolateImageFunction()
+irtkSincInterpolateImageFunction::irtkSincInterpolateImageFunction()
 {}
 
-template <class VoxelType> irtkSincInterpolateImageFunction<VoxelType>::~irtkSincInterpolateImageFunction(void)
+irtkSincInterpolateImageFunction::~irtkSincInterpolateImageFunction(void)
 {}
 
-template <class VoxelType> const char *irtkSincInterpolateImageFunction<VoxelType>::NameOfClass()
+const char *irtkSincInterpolateImageFunction::NameOfClass()
 {
   return "irtkSincInterpolateImageFunction";
 }
 
-template <class VoxelType> void irtkSincInterpolateImageFunction<VoxelType>::Initialize()
+void irtkSincInterpolateImageFunction::Initialize()
 {
   /// Initialize baseclass
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   this->_x = this->_input->GetX();
   this->_y = this->_input->GetY();
@@ -78,12 +78,12 @@ template <class VoxelType> void irtkSincInterpolateImageFunction<VoxelType>::Ini
   this->_z2 = this->_input->GetZ() - (SINC_KERNEL_SIZE + 1);
 
   // Compute min and max values
-  this->_input->GetMinMax(&this->_min, &this->_max);
+  this->_input->GetMinMaxAsDouble(&this->_min, &this->_max);
 }
 
 // Truncated sinc using Hanning window, H(dx/R)*sinc(dx), R=6 where
 // sinc(dx) = sin(pi*dx)/(pi*dx), H(dx/R) = 0.5*(1+cos(pi*dx/R))
-template <class VoxelType> double irtkSincInterpolateImageFunction<VoxelType>::Evaluate(double x, double y, double z, double t)
+double irtkSincInterpolateImageFunction::Evaluate(double x, double y, double z, double t)
 {
   int i, j, k, l;
 
@@ -118,7 +118,7 @@ template <class VoxelType> double irtkSincInterpolateImageFunction<VoxelType>::E
               if ((k3 >= 0) && (k3 < this->_z)) {
                 wz   = sinc(k3 - z);
                 w    = wx*wy*wz;
-                val += w*this->_input->Get(i3, j3, k3, l);
+                val += w*this->_input->GetAsDouble(i3, j3, k3, l);
                 sum += w;
               }
             }
@@ -142,13 +142,13 @@ template <class VoxelType> double irtkSincInterpolateImageFunction<VoxelType>::E
 
   } else {
     // Return nearest neighbour
-    return this->_input->Get(i, j, k, l);
+    return this->_input->GetAsDouble(i, j, k, l);
   }
 }
 
 // Truncated sinc using Hanning window, H(dx/R)*sinc(dx), R=6 where
 // sinc(dx) = sin(pi*dx)/(pi*dx), H(dx/R) = 0.5*(1+cos(pi*dx/R))
-template <class VoxelType> double irtkSincInterpolateImageFunction<VoxelType>::EvaluateInside(double x, double y, double z, double t)
+double irtkSincInterpolateImageFunction::EvaluateInside(double x, double y, double z, double t)
 {
   int i, j, k, l;
 
@@ -180,7 +180,7 @@ template <class VoxelType> double irtkSincInterpolateImageFunction<VoxelType>::E
         for (k3 = k1; k3 < k2; k3++) {
           wz   = sinc(k3 - z);
           w    = wx*wy*wz;
-          val += w*this->_input->Get(i3, j3, k3, l);
+          val += w*this->_input->GetAsDouble(i3, j3, k3, l);
           sum += w;
         }
       }
@@ -201,10 +201,7 @@ template <class VoxelType> double irtkSincInterpolateImageFunction<VoxelType>::E
 
   } else {
     // Return nearest neighbour
-    return this->_input->Get(round(t), i, j, k);
+    return this->_input->GetAsDouble(round(t), i, j, k);
   }
 }
 
-template class irtkSincInterpolateImageFunction<irtkBytePixel>;
-template class irtkSincInterpolateImageFunction<irtkGreyPixel>;
-template class irtkSincInterpolateImageFunction<irtkRealPixel>;

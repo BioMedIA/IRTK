@@ -16,14 +16,10 @@
 
 #include <irtkFileToImage.h>
 
-
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <locale.h>
-//#include <float.h>
 
 #include <irtkNIFTI.h>
-
 
 // little helpers (from fslio.h)
 mat33 nifti_mat44_to_mat33(mat44 x)
@@ -39,22 +35,22 @@ mat33 nifti_mat44_to_mat33(mat44 x)
 }
 
 
-template <class VoxelType> irtkFileNIFTIToImage<VoxelType>::irtkFileNIFTIToImage()
+irtkFileNIFTIToImage::irtkFileNIFTIToImage()
 {
   _headername = NULL;
 }
 
-template <class VoxelType> irtkFileNIFTIToImage<VoxelType>::~irtkFileNIFTIToImage()
+irtkFileNIFTIToImage::~irtkFileNIFTIToImage()
 {
   if (this->_headername != NULL) free(this->_headername);
 }
 
-template <class VoxelType> const char *irtkFileNIFTIToImage<VoxelType>::NameOfClass()
+const char *irtkFileNIFTIToImage::NameOfClass()
 {
   return "irtkFileNIFTIToImage";
 }
 
-template <class VoxelType> int irtkFileNIFTIToImage<VoxelType>::CheckHeader(const char *filename)
+int irtkFileNIFTIToImage::CheckHeader(const char *filename)
 {
   char magic_number[4];
 
@@ -78,7 +74,7 @@ template <class VoxelType> int irtkFileNIFTIToImage<VoxelType>::CheckHeader(cons
   }
 }
 
-template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::SetInput(const char *filename)
+void irtkFileNIFTIToImage::SetInput(const char *filename)
 {
   int length;
   char imagename[255], magic_number[4];
@@ -104,7 +100,7 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::SetInput(const 
 
   // Check magic no
   if (strcmp(magic_number, "n+1") == 0) {
-    this->irtkFileToImage<VoxelType>::SetInput(filename);
+    this->irtkFileToImage::SetInput(filename);
     return;
   } else {
     if (strcmp(magic_number, "ni1") == 0) {
@@ -152,14 +148,14 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::SetInput(const 
         }
       }
     } else {
-      cerr << "irtkFileNIFTIToImage<VoxelType>::SetInput: File format is not NIFTI" << endl;
+      cerr << "irtkFileNIFTIToImage::SetInput: File format is not NIFTI" << endl;
       exit(1);
     }
   }
-  this->irtkFileToImage<VoxelType>::SetInput(imagename);
+  this->irtkFileToImage::SetInput(imagename);
 }
 
-template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::ReadHeader()
+void irtkFileNIFTIToImage::ReadHeader()
 {
   int i, order;
   float det;
@@ -175,13 +171,13 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::ReadHeader()
 
   // Check dimension
   if (hdr.nim->dim[0] > 4) {
-    cerr << "irtkFileNIFTIToImage<VoxelType>::ReadHeader: Number of dimensions > 4 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
+    cerr << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions > 4 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
     exit(1);
   }
 
   // Check intent code
   if (hdr.nim->intent_code != 0) {
-    cerr << "irtkFileNIFTIToImage<VoxelType>::ReadHeader: Unknown intent_code = " <<
+    cerr << "irtkFileNIFTIToImage::ReadHeader: Unknown intent_code = " <<
          hdr.nim->intent_code << endl;
     exit(1);
   }
@@ -207,18 +203,18 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::ReadHeader()
 
   // Copy header information
   // (from now on force all vox dims to be positive - LR info is in sform)
-  this->_x     = hdr.nim->dim[1];
-  this->_y     = hdr.nim->dim[2];
-  this->_z     = hdr.nim->dim[3];
-  this->_xsize = fabs(hdr.nim->pixdim[1]);
-  this->_ysize = fabs(hdr.nim->pixdim[2]);
-  this->_zsize = fabs(hdr.nim->pixdim[3]);
+  this->_attr._x  = hdr.nim->dim[1];
+  this->_attr._y  = hdr.nim->dim[2];
+  this->_attr._z  = hdr.nim->dim[3];
+  this->_attr._dx = fabs(hdr.nim->pixdim[1]);
+  this->_attr._dy = fabs(hdr.nim->pixdim[2]);
+  this->_attr._dz = fabs(hdr.nim->pixdim[3]);
   if (hdr.nim->dim[0] == 4) {
-    this->_t     = hdr.nim->dim[4];
-    this->_tsize = fabs(hdr.nim->pixdim[4]);
+    this->_attr._t  = hdr.nim->dim[4];
+    this->_attr._dt = fabs(hdr.nim->pixdim[4]);
   } else {
-    this->_t     = 1;
-    this->_tsize = 1;
+    this->_attr._t  = 1;
+    this->_attr._dt = 1;
   }
 
   // Check which coordinate system to use
@@ -244,9 +240,9 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::ReadHeader()
     mat_44.m[2][0] = mat_44.m[2][1] = 0.0;
 
     // Apart from (inverted) offset in last column for origin to become (0,0,0) below
-    mat_44.m[0][3] =  this->_xsize*(hdr.nim->dim[1] - 1) / 2.0;
-    mat_44.m[1][3] = -this->_ysize*(hdr.nim->dim[2] - 1) / 2.0;
-    mat_44.m[2][3] = -this->_zsize*(hdr.nim->dim[3] - 1) / 2.0;
+    mat_44.m[0][3] =  this->_attr._dx*(hdr.nim->dim[1] - 1) / 2.0;
+    mat_44.m[1][3] = -this->_attr._dy*(hdr.nim->dim[2] - 1) / 2.0;
+    mat_44.m[2][3] = -this->_attr._dz*(hdr.nim->dim[3] - 1) / 2.0;
 
     // last row is always [ 0 0 0 1 ]
     mat_44.m[3][0] = mat_44.m[3][1] = mat_44.m[3][2] = 0.0; mat_44.m[3][3 ]= 1.0 ;
@@ -269,9 +265,9 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::ReadHeader()
   // Set axis orientation, including zaxis.
   // Need to preserve sign of axis, hence use absolute pixel sizes for descaling.
   for (i = 0; i < 3; i++) {
-    this->_xaxis[i] = mat_44.m[i][0] / this->_xsize;
-    this->_yaxis[i] = mat_44.m[i][1] / this->_ysize;
-    this->_zaxis[i] = mat_44.m[i][2] / this->_zsize;
+    this->_attr._xaxis[i] = mat_44.m[i][0] / this->_attr._dx;
+    this->_attr._yaxis[i] = mat_44.m[i][1] / this->_attr._dy;
+    this->_attr._zaxis[i] = mat_44.m[i][2] / this->_attr._dz;
   }
 
   // Convert between nifti and irtk coordinate systems
@@ -288,50 +284,49 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::ReadHeader()
   R = D * M * D_inv;
 
   // Set image origin by adding q/sform offset to third column of R:
-  this->_xorigin  = R(0, 3) + mat_44.m[0][3];
-  this->_yorigin  = R(1, 3) + mat_44.m[1][3];
-  this->_zorigin  = R(2, 3) + mat_44.m[2][3];
+  this->_attr._xorigin  = R(0, 3) + mat_44.m[0][3];
+  this->_attr._yorigin  = R(1, 3) + mat_44.m[1][3];
+  this->_attr._zorigin  = R(2, 3) + mat_44.m[2][3];
 
   // Set data type and number of bytes per voxels
   switch (hdr.nim->datatype) {
   case NIFTI_TYPE_UINT8:
-    this->_type  = VOXEL_U_CHAR;
+    this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
     this->_bytes = 1;
+    this->_slope     = 1;
+    this->_intercept = 0;
     break;
   case NIFTI_TYPE_INT16:
-    this->_type  = VOXEL_SHORT;
+    this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
+    this->_slope     = 1;
+    this->_intercept = 0;
     break;
   case NIFTI_TYPE_FLOAT32:
-    this->_type  = VOXEL_FLOAT;
+    this->_type  = IRTK_VOXEL_FLOAT;
     this->_bytes = 4;
     break;
-    // some extra data types (beware casting might not fully work)
   case NIFTI_TYPE_INT32:
-    this->_type  = VOXEL_INT;
+    this->_type  = IRTK_VOXEL_INT;
     this->_bytes = 4;
+    this->_slope     = 1;
+    this->_intercept = 0;
     break;
   case NIFTI_TYPE_FLOAT64:
-    this->_type = VOXEL_DOUBLE;
+    this->_type = IRTK_VOXEL_DOUBLE;
     this->_bytes = 8;
     break;
   default:
     cerr << this->NameOfClass() << ": Data type " << hdr.nim->datatype << " not supported, trying signed short data type" << endl;
-    this->_type  = VOXEL_SHORT;
+    this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
   }
 
-  // Allocate memory for data address
-  if (this->_addr != 0) delete []this->_addr;
-  this->_addr = new int[this->_z];
-
-  // Calculate data address
-  for (i = 0; i < this->_z; i++) {
-    this->_addr[i] = round(hdr.nim->iname_offset) + i * this->_x * this->_y * this->_bytes;
-  }
+  // Data starts here 
+  this->_start = hdr.nim->iname_offset;
 }
 
-template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::Print()
+void irtkFileNIFTIToImage::Print()
 {
 
   int i;
@@ -341,9 +336,9 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::Print()
   hdr.Read(this->_headername);
 
   for (i = 0; i < 3; i++) {
-    mat(0, i) = this->_xaxis[i] * this->_xsize;
-    mat(1, i) = this->_yaxis[i] * this->_ysize;
-    mat(2, i) = this->_zaxis[i] * this->_zsize;
+    mat(0, i) = this->_attr._xaxis[i] * this->_attr._dx;
+    mat(1, i) = this->_attr._yaxis[i] * this->_attr._dy;
+    mat(2, i) = this->_attr._zaxis[i] * this->_attr._dz;
   }
 
   cout << "Name of class is " << this->NameOfClass() << endl;
@@ -367,18 +362,8 @@ template <class VoxelType> void irtkFileNIFTIToImage<VoxelType>::Print()
   cout << "Scale slope = " << this->_slope << endl;
   cout << "Intercept   = " << this->_intercept << endl;
 
-  this->irtkFileToImage<VoxelType>::Print();
+  this->irtkFileToImage::Print();
 
 }
-
-
-
-template class irtkFileNIFTIToImage<irtkBytePixel>;
-template class irtkFileNIFTIToImage<irtkGreyPixel>;
-template class irtkFileNIFTIToImage<irtkRealPixel>;
-template class irtkFileNIFTIToImage<irtkVector3D<char> >;
-template class irtkFileNIFTIToImage<irtkVector3D<short> >;
-template class irtkFileNIFTIToImage<irtkVector3D<float> >;
-template class irtkFileNIFTIToImage<irtkVector3D<double> >;
 
 #endif

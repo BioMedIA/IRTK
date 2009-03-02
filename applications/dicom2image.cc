@@ -23,9 +23,10 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int ok, negate, x, y, z;
-  double xsize, ysize, zsize, xaxis[3], yaxis[3], origin[3], pos[3];
-
+  int ok, negate;
+	double pos[3], origin[3];
+  irtkImageAttributes attr;
+  
   // Parse filenames
   input_name  = argv[1];
   argc--;
@@ -34,44 +35,27 @@ int main(int argc, char **argv)
   argc--;
   argv++;
 
-  // Default image size
-  x = 1;
-  y = 1;
-  z = 1;
-
-  // Default voxel size
-  xsize = 1;
-  ysize = 1;
-  zsize = 1;
-
-  // Default orientation
-  xaxis[0] = 1;
-  xaxis[1] = 0;
-  xaxis[2] = 0;
-  yaxis[0] = 0;
-  yaxis[1] = 1;
-  yaxis[2] = 0;
-
-  // Default position
+  // Default
+  negate = False;
   pos[0] = 0;
   pos[1] = 0;
   pos[2] = 0;
-
-  // Default
-  negate = False;
-
+  origin[0] = 0;
+  origin[1] = 0;
+  origin[2] = 0;
+  
   while (argc > 1) {
     ok = False;
     if ((ok == False) && (strcmp(argv[1], "-dimensions") == 0)) {
       argc--;
       argv++;
-      x = atoi(argv[1]);
+      attr._x = atoi(argv[1]);
       argc--;
       argv++;
-      y = atoi(argv[1]);
+      attr._y = atoi(argv[1]);
       argc--;
       argv++;
-      z = atoi(argv[1]);
+      attr._z = atoi(argv[1]);
       argc--;
       argv++;
       ok = True;
@@ -79,13 +63,13 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-size") == 0)) {
       argc--;
       argv++;
-      xsize = atof(argv[1]);
+      attr._dx = atof(argv[1]);
       argc--;
       argv++;
-      ysize = atof(argv[1]);
+      attr._dy = atof(argv[1]);
       argc--;
       argv++;
-      zsize = atof(argv[1]);
+      attr._dz = atof(argv[1]);
       argc--;
       argv++;
       ok = True;
@@ -93,22 +77,22 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-orientation") == 0)) {
       argc--;
       argv++;
-      xaxis[0] = atof(argv[1]);
+      attr._xaxis[0] = atof(argv[1]);
       argc--;
       argv++;
-      xaxis[1] = atof(argv[1]);
+      attr._xaxis[1] = atof(argv[1]);
       argc--;
       argv++;
-      xaxis[2] = atof(argv[1]);
+      attr._xaxis[2] = atof(argv[1]);
       argc--;
       argv++;
-      yaxis[0] = atof(argv[1]);
+      attr._yaxis[0] = atof(argv[1]);
       argc--;
       argv++;
-      yaxis[1] = atof(argv[1]);
+      attr._yaxis[1] = atof(argv[1]);
       argc--;
       argv++;
-      yaxis[2] = atof(argv[1]);
+      attr._yaxis[2] = atof(argv[1]);
       argc--;
       argv++;
       ok = True;
@@ -141,16 +125,20 @@ int main(int argc, char **argv)
 
   // Negate coordinate axis
   if (negate == True) {
-    xaxis[0] *= -1;
-    xaxis[1] *= -1;
-    xaxis[2] *= -1;
-    yaxis[0] *= -1;
-    yaxis[1] *= -1;
-    yaxis[2] *= -1;
+  	attr._xaxis[0] *= -1;
+  	attr._xaxis[1] *= -1;
+  	attr._xaxis[2] *= -1;
+  	attr._yaxis[0] *= -1;
+  	attr._yaxis[1] *= -1;
+  	attr._yaxis[2] *= -1;
   }
 
-  // Create i\mage with specified voxel size and orientation
-  irtkGreyImage image(x, y, z, xsize, ysize, zsize, xaxis, yaxis);
+	attr._zaxis[0] = attr._xaxis[1]*attr._yaxis[2] - attr._xaxis[2]*attr._yaxis[1];
+	attr._zaxis[1] = attr._xaxis[2]*attr._yaxis[0] - attr._xaxis[0]*attr._yaxis[2];
+	attr._zaxis[2] = attr._xaxis[0]*attr._yaxis[1] - attr._xaxis[1]*attr._yaxis[0];
+
+  // Create image with specified voxel size and orientation
+  irtkGreyImage image(attr);
 
   // Calculate position of first voxel
   origin[0] = 0;
@@ -166,7 +154,7 @@ int main(int argc, char **argv)
 
   // Read raw data
   FILE *fp = fopen(input_name, "r");
-  fread(image.GetPointerToVoxels(), sizeof(irtkGreyPixel), x*y*z, fp);
+  fread(image.GetPointerToVoxels(), sizeof(irtkGreyPixel), attr._x*attr._y*attr._z, fp);
 
   cout << "Writing to " << output_name << endl;
   image.Write(output_name);

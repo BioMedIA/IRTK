@@ -144,7 +144,7 @@ int main(int argc, char **argv)
       cerr << "Resampling image to isotropic voxel size (in mm): "
            << size << endl;
       irtkResampling<irtkGreyPixel> resampling(size, size, size);
-      irtkLinearInterpolateImageFunction<irtkGreyPixel> interpolator;
+      irtkLinearInterpolateImageFunction interpolator;
       resampling.SetInput (&image);
       resampling.SetOutput(&image);
       resampling.SetInterpolator(&interpolator);
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
       cerr << "Resampling image to voxel size (in mm): "
            << atof(argv[1]) << "," << atof(argv[2]) << "," << atof(argv[3]) << endl;
       irtkResampling<irtkGreyPixel> resampling(atof(argv[1]), atof(argv[2]), atof(argv[3]));
-      irtkLinearInterpolateImageFunction<irtkGreyPixel> interpolator;
+      irtkLinearInterpolateImageFunction interpolator;
       resampling.SetInput (&image);
       resampling.SetOutput(&image);
       resampling.SetInterpolator(&interpolator);

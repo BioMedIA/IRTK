@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,7 +7,7 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -23,7 +23,7 @@ void distancemap(irtkGreyImage &input, irtkRealImage &outputA)
 
   irtkEuclideanDistanceTransform<irtkRealPixel> *edt = NULL;
   edt = new irtkEuclideanDistanceTransform<irtkRealPixel>
-  (irtkEuclideanDistanceTransform<irtkRealPixel>::irtkDistanceTransform2D);
+        (irtkEuclideanDistanceTransform<irtkRealPixel>::irtkDistanceTransform2D);
 
   inputA = input;
   inputB = input;
@@ -72,7 +72,7 @@ irtkGreyImage threshold(irtkRealImage image, float minthres, float maxthres, sho
 
   int x, y, z;
   irtkGreyImage out;
-  out.Initialize(image);
+  out = image;
 
   for (z = 0; z < image.GetZ(); z++) {
     for (y = 0; y < image.GetY(); y++) {
@@ -111,7 +111,7 @@ irtkGreyImage AddImage(irtkGreyImage image1, irtkGreyImage image2, irtkGreyImage
   int x, y, z;
   short mingrey, maxgrey;
   irtkGreyImage image, tmpimage;
-  image.Initialize(image1);
+  image = image1;
   float factor;
 
   factor = original_image.GetZ()/image1.GetZ();
@@ -143,8 +143,8 @@ irtkRealImage sim3Ddmap(irtkRealImage image, float slices)
   int x, y, z;
   float m;
   irtkRealImage output, output2;
-  output.Initialize(image);
-  output2.Initialize(image);
+  output  = image;
+  output2 = image;
 
   for (z = 0; z < image.GetZ()-1; z++) {
     m=-1000;
@@ -210,33 +210,24 @@ int main(int argc, char *argv[])
   int x, y, z;
   irtkGreyPixel min, max;
   float slices;
-  double xsize, ysize, zsize;
   short mingrey, maxgrey, grey; //min, max;
+  irtkImageAttributes attr;
   irtkGreyImage imageA, tmpimageA, tmpimageB, tmpimage, totimage;
   irtkRealImage imageB, imageC, dmapimageB, imageoutputB, imageoutputC;
-
 
   if (argc != 4) {
     cerr << "Usage: sbig [input] [output] [slices]" << endl;
     exit(1);
   }
 
-
   imageA.Read(argv[1]);
   slices = atof(argv[3]);
-  x = imageA.GetX();
-  y = imageA.GetY();
-  z = imageA.GetZ();
-  imageA.GetPixelSize(&xsize, &ysize, &zsize);
-  imageB.Initialize(x, y, z, xsize, ysize, zsize);
-  imageC.Initialize(x, y, z, xsize, ysize, zsize);
+  attr = imageA.GetImageAttributes();
+  imageB.Initialize(attr);
+  imageC.Initialize(attr);
 
-  totimage.Initialize(1,1,1);
-  // irtkResampling<irtkRealPixel> resampling(xsize, ysize, (zsize/slices), Interpolation_Linear);
-
-  irtkImageFunction<irtkRealPixel> *interpolator = new irtkLinearInterpolateImageFunction<irtkRealPixel>;
-
-  irtkResampling<irtkRealPixel> resampling(xsize, ysize, (zsize*z)/slices);
+  irtkImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
+  irtkResampling<irtkRealPixel> resampling(attr._dx, attr._dy, (attr._dz*attr._z)/slices);
 
   imageA.GetMinMax(&mingrey, &maxgrey);
   cout << mingrey << " " << maxgrey << endl;
@@ -247,8 +238,7 @@ int main(int argc, char *argv[])
     tmpimageA.GetMinMax(&min, &max);
     if (min!=max)
       distancemap(tmpimageA, imageB);
-    imageC=sim3Ddmap(imageB, slices/z); //does not work yet
-
+    imageC=sim3Ddmap(imageB, slices/attr._z); //does not work yet
 
     for (z = 0; z < imageB.GetZ(); z++) {
       for (y = 0; y < imageB.GetY(); y++) {
@@ -259,21 +249,18 @@ int main(int argc, char *argv[])
       }
     }
 
-
     resampling.SetInput(&imageB);
     resampling.SetOutput(&imageoutputB);
     resampling.SetInterpolator(interpolator);
     resampling.Run();
 
     tmpimage = threshold(imageoutputB, -500, 01, grey);
-    if (totimage.GetX()==1)
+    if (totimage.GetX()==1) {
       totimage = tmpimage;
-    else
+    } else {
       totimage = AddImage(tmpimage, totimage, imageA);
-
+    }
     totimage.Write(argv[2]);
-    //    imageoutputB.Write(argv[2]);
-    // imageC.Write(argv[2]);
   }
 
   return 0;

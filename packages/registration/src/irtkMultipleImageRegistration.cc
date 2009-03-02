@@ -121,7 +121,7 @@ void irtkMultipleImageRegistration::Initialize()
   _source_x2 = new double[_numberOfImages];
   _source_y2 = new double[_numberOfImages];
   _source_z2 = new double[_numberOfImages];
-  _interpolator = new irtkInterpolateImageFunction<irtkGreyPixel> *[_numberOfImages];
+  _interpolator = new irtkInterpolateImageFunction *[_numberOfImages];
 
 }
 
@@ -368,7 +368,7 @@ void irtkMultipleImageRegistration::Initialize(int level)
 
   for (n = 0; n < _numberOfImages; n++) {
     // Setup the interpolator
-    _interpolator[n] = irtkInterpolateImageFunction<irtkGreyPixel>::New(_InterpolationMode, _source[n]);
+    _interpolator[n] = irtkInterpolateImageFunction::New(_InterpolationMode, _source[n]);
 
     // Setup interpolation for the source image
     _interpolator[n]->SetInput(_source[n]);

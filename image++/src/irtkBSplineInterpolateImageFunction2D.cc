@@ -14,7 +14,7 @@
 
 #include <irtkImageFunction.h>
 
-template <class VoxelType> irtkBSplineInterpolateImageFunction2D<VoxelType>::irtkBSplineInterpolateImageFunction2D(int SplineDegree)
+irtkBSplineInterpolateImageFunction2D::irtkBSplineInterpolateImageFunction2D(int SplineDegree)
 {
   if ((SplineDegree < 2) || (SplineDegree > 5)) {
     cerr << "irtkBSplineInterpolateImageFunction2D: Unsupported spline degree\n";
@@ -23,18 +23,18 @@ template <class VoxelType> irtkBSplineInterpolateImageFunction2D<VoxelType>::irt
   _SplineDegree = SplineDegree;
 }
 
-template <class VoxelType> irtkBSplineInterpolateImageFunction2D<VoxelType>::~irtkBSplineInterpolateImageFunction2D(void)
+irtkBSplineInterpolateImageFunction2D::~irtkBSplineInterpolateImageFunction2D(void)
 {}
 
-template <class VoxelType> const char *irtkBSplineInterpolateImageFunction2D<VoxelType>::NameOfClass()
+const char *irtkBSplineInterpolateImageFunction2D::NameOfClass()
 {
   return "irtkBSplineInterpolateImageFunction2D";
 }
 
-template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>::Initialize()
+void irtkBSplineInterpolateImageFunction2D::Initialize()
 {
   /// Initialize baseclass
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   // Check if image is 2D
   if (this->_input->GetZ() != 1) {
@@ -59,22 +59,22 @@ template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>
   this->_y2 = this->_input->GetY() - round(_SplineDegree/2.0 + 1);
 
   // Compute min and max values
-  this->_input->GetMinMax(&this->_min, &this->_max);
+  this->_input->GetMinMaxAsDouble(&this->_min, &this->_max);
 
   // Allocate coefficient image
-  this->_coeff.Initialize(this->_x, this->_y, 1);
+  this->_coeff = irtkRealImage(this->_x, this->_y, 1);
 
   // Compute B-Spline interpolation coefficients
   this->ComputeCoefficients();
 }
 
-template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelType>::InitialAntiCausalCoefficient(double c[], int DataLength, double z)
+double irtkBSplineInterpolateImageFunction2D::InitialAntiCausalCoefficient(double c[], int DataLength, double z)
 {
   /* this initialization corresponds to mirror boundaries */
   return((z / (z * z - 1.0)) * (z * c[DataLength - 2] + c[DataLength - 1]));
 }
 
-template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelType>::InitialCausalCoefficient(double c[], int DataLength, double z, double Tolerance)
+double irtkBSplineInterpolateImageFunction2D::InitialCausalCoefficient(double c[], int DataLength, double z, double Tolerance)
 {
   double Sum, zn, z2n, iz;
   int n, Horizon;
@@ -109,7 +109,7 @@ template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelTyp
   }
 }
 
-template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>::ConvertToInterpolationCoefficients(double *c, int DataLength, double *z, int NbPoles, double Tolerance)
+void irtkBSplineInterpolateImageFunction2D::ConvertToInterpolationCoefficients(double *c, int DataLength, double *z, int NbPoles, double Tolerance)
 {
   double Lambda = 1.0;
   int n, k;
@@ -146,7 +146,7 @@ template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>
   }
 }
 
-template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>::ComputeCoefficients()
+void irtkBSplineInterpolateImageFunction2D::ComputeCoefficients()
 {
   double *data;
   double Pole[2];
@@ -188,7 +188,7 @@ template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>
     for (z = 0; z < this->_z; z++) {
       for (y = 0; y < this->_y; y++) {
         for (x = 0; x < this->_x; x++) {
-          data[x] = this->_input->Get(x, y, z, t);
+          data[x] = this->_input->GetAsDouble(x, y, z, t);
         }
         ConvertToInterpolationCoefficients(data, this->_x, Pole, NbPoles, DBL_EPSILON);
         for (x = 0; x < this->_x; x++) {
@@ -218,7 +218,7 @@ template <class VoxelType> void irtkBSplineInterpolateImageFunction2D<VoxelType>
 
 }
 
-template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelType>::Evaluate(double x, double y, double z, double time)
+double irtkBSplineInterpolateImageFunction2D::Evaluate(double x, double y, double z, double time)
 {
   int i, j, k, l, m;
   int xIndex[6], yIndex[6];
@@ -369,7 +369,7 @@ template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelTyp
   return(value);
 }
 
-template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelType>::EvaluateInside(double x, double y, double z, double time)
+double irtkBSplineInterpolateImageFunction2D::EvaluateInside(double x, double y, double z, double time)
 {
   int i, j, k, l, m;
   int xIndex[6], yIndex[6];
@@ -510,6 +510,3 @@ template <class VoxelType> double irtkBSplineInterpolateImageFunction2D<VoxelTyp
   return(value);
 }
 
-template class irtkBSplineInterpolateImageFunction2D<irtkBytePixel>;
-template class irtkBSplineInterpolateImageFunction2D<irtkGreyPixel>;
-template class irtkBSplineInterpolateImageFunction2D<irtkRealPixel>;

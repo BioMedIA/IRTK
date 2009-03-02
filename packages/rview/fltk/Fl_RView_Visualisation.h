@@ -29,19 +29,19 @@ static Fl_Menu_Item menu_targetColorMode[];
 static Fl_Menu_Item menu_sourceColorMode[];
 
 /// Widget for minimum intensity of target image
-Fl_Value_Slider *targetMin;
+Fl_Value_Slider2 *targetMin;
 
 /// Widget for maximum intensity of target image
-Fl_Value_Slider *targetMax;
+Fl_Value_Slider2 *targetMax;
 
 /// Widget for target image frame
 Fl_Value_Slider *targetFrame;
 
 /// Widget for minimum intensity of source image
-Fl_Value_Slider *sourceMin;
+Fl_Value_Slider2 *sourceMin;
 
 /// Widget for maximum intensity of source image
-Fl_Value_Slider *sourceMax;
+Fl_Value_Slider2 *sourceMax;
 
 /// Widget for source image frame
 Fl_Value_Slider *sourceFrame;

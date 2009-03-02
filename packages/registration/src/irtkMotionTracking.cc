@@ -212,7 +212,7 @@ void irtkMotionTracking::Initialize(int level)
   }
 
   // Setup the interpolator
-  _interpolator = irtkInterpolateImageFunction<irtkGreyPixel>::New(_InterpolationMode, _image);
+  _interpolator = irtkInterpolateImageFunction::New(_InterpolationMode, _image);
 
   // Setup interpolation for the source image
   _interpolator->SetInput(_image);

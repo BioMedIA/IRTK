@@ -21,7 +21,7 @@
  * in GIPL file format.
  */
 
-template <class VoxelType> class irtkImageToFileGIPL : public irtkImageToFile<VoxelType>
+class irtkImageToFileGIPL : public irtkImageToFile
 {
 
 protected:

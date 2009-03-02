@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,30 +7,28 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkImage.h>
 
 #include <irtkImageFunction.h>
 
-template <class VoxelType> irtkLinearInterpolateImageFunction2D<VoxelType>::irtkLinearInterpolateImageFunction2D()
-{
-}
+irtkLinearInterpolateImageFunction2D::irtkLinearInterpolateImageFunction2D()
+{}
 
-template <class VoxelType> irtkLinearInterpolateImageFunction2D<VoxelType>::~irtkLinearInterpolateImageFunction2D(void)
-{
-}
+irtkLinearInterpolateImageFunction2D::~irtkLinearInterpolateImageFunction2D(void)
+{}
 
-template <class VoxelType> const char *irtkLinearInterpolateImageFunction2D<VoxelType>::NameOfClass()
+const char *irtkLinearInterpolateImageFunction2D::NameOfClass()
 {
   return "irtkLinearInterpolateImageFunction2D";
 }
 
-template <class VoxelType> void irtkLinearInterpolateImageFunction2D<VoxelType>::Initialize()
+void irtkLinearInterpolateImageFunction2D::Initialize()
 {
   /// Initialize baseclass
-  this->irtkImageFunction<VoxelType>::Initialize();
+  this->irtkImageFunction::Initialize();
 
   // Check if image is 2D
   if (this->_input->GetZ() != 1) {
@@ -56,10 +54,9 @@ template <class VoxelType> void irtkLinearInterpolateImageFunction2D<VoxelType>:
   this->_offset4 = this->_input->GetX()+1;
 }
 
-template <class VoxelType> double irtkLinearInterpolateImageFunction2D<VoxelType>::EvaluateInside(double x, double y, double z, double time)
+double irtkLinearInterpolateImageFunction2D::EvaluateInside(double x, double y, double z, double time)
 {
   int i, j;
-  VoxelType *ptr;
   double t1, t2, u1, u2;
 
   // Calculated integer coordinates
@@ -73,14 +70,45 @@ template <class VoxelType> double irtkLinearInterpolateImageFunction2D<VoxelType
   u2 = 1 - u1;
 
   // Get pointer to data
-  ptr = this->_input->GetPointerToVoxels(i, j, round(z), round(time));
+  switch (this->_input->GetScalarType()) {
+  case IRTK_VOXEL_UNSIGNED_SHORT: {
+      // Get pointer to data
+      unsigned short *ptr = (unsigned short *)this->_input->GetScalarPointer(i, j, round(z), round(time));
 
-  // Linear interpolation
-  return (t1 * (u2 * ptr[this->_offset2] + u1 * ptr[this->_offset4]) +
-          t2 * (u2 * ptr[this->_offset1] + u1 * ptr[this->_offset3]));
+      // Linear interpolation
+      return (t1 * (u2 * ptr[this->_offset2] + u1 * ptr[this->_offset4]) +
+              t2 * (u2 * ptr[this->_offset1] + u1 * ptr[this->_offset3]));
+
+      break;
+    }
+  case IRTK_VOXEL_SHORT: {
+      // Get pointer to data
+      short *ptr = (short *)this->_input->GetScalarPointer(i, j, round(z), round(time));
+
+      // Linear interpolation
+      return (t1 * (u2 * ptr[this->_offset2] + u1 * ptr[this->_offset4]) +
+              t2 * (u2 * ptr[this->_offset1] + u1 * ptr[this->_offset3]));
+
+      break;
+    }
+  case IRTK_VOXEL_FLOAT: {
+      // Get pointer to data
+      float *ptr = (float *)this->_input->GetScalarPointer(i, j, round(z), round(time));
+
+      // Linear interpolation
+      return (t1 * (u2 * ptr[this->_offset2] + u1 * ptr[this->_offset4]) +
+              t2 * (u2 * ptr[this->_offset1] + u1 * ptr[this->_offset3]));
+
+      break;
+    }
+  default:
+    cerr << "irtkLinearInterpolateImageFunction2D::EvaluateInside: Unknown scalar type" << endl;
+    exit(1);
+
+  }
 }
 
-template <class VoxelType> double irtkLinearInterpolateImageFunction2D<VoxelType>::Evaluate(double x, double y, double z, double time)
+double irtkLinearInterpolateImageFunction2D::Evaluate(double x, double y, double z, double time)
 {
   double val;
   int i, j, k, l, m, t;
@@ -95,7 +123,7 @@ template <class VoxelType> double irtkLinearInterpolateImageFunction2D<VoxelType
     if ((l >= 0) && (l < this->_x)) {
       for (m = j; m <= j+1; m++) {
         if ((m >= 0) && (m < this->_y)) {
-          val += (1 - fabs(l - x))*(1 - fabs(m - y))*this->_input->Get(l, m, k, t);
+          val += (1 - fabs(l - x))*(1 - fabs(m - y))*this->_input->GetAsDouble(l, m, k, t);
         }
       }
     }
@@ -103,6 +131,3 @@ template <class VoxelType> double irtkLinearInterpolateImageFunction2D<VoxelType
   return val;
 }
 
-template class irtkLinearInterpolateImageFunction2D<irtkBytePixel>;
-template class irtkLinearInterpolateImageFunction2D<irtkGreyPixel>;
-template class irtkLinearInterpolateImageFunction2D<irtkRealPixel>;

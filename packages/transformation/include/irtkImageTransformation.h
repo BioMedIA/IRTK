@@ -35,31 +35,37 @@
  *
  */
 
-template <class VoxelType> class irtkImageTransformation
+class irtkImageTransformation
 {
 
 public:
 
   /// Input for the image to image filter
-  irtkGenericImage<VoxelType> *_input;
+  irtkImage *_input;
 
   /// Output for the image to image filter
-  irtkGenericImage<VoxelType> *_output;
+  irtkImage *_output;
 
   /// Transformation
   irtkTransformation *_transformation;
 
   /// Interpolation
-  irtkImageFunction<VoxelType> *_interpolator;
+  irtkImageFunction *_interpolator;
 
   /// Padding value in target (voxels in the target image with this
   /// value will be ignored)
-  VoxelType _TargetPaddingValue;
+  double _TargetPaddingValue;
 
   /// Padding value in source (voxels outside the source image will
   /// be set to this value)
-  VoxelType _SourcePaddingValue;
+  double _SourcePaddingValue;
 
+  /// Scale factor for intensities in transformed image
+  double _ScaleFactor;
+  
+  /// Offset for intensities in transformed image
+  double _Offset;
+  
   /// Flag whether to invert transformation
   int _Invert;
 
@@ -76,41 +82,44 @@ public:
    *  will use this fast transformation filter, otherwise the standard
    *  transformation filter is used.
    */
-  static irtkImageTransformation<VoxelType> *New(irtkTransformation *);
+  static irtkImageTransformation *New(irtkTransformation *);
 
   /// Destructor
   virtual ~irtkImageTransformation();
 
   /// Sets input image
-  virtual void SetInput (irtkGenericImage<VoxelType> *);
+  virtual void SetInput (irtkImage *);
 
   /// Sets input image and transformation
-  virtual void SetInput (irtkGenericImage<VoxelType> *, irtkTransformation *);
+  virtual void SetInput (irtkImage *, irtkTransformation *);
 
   /// Sets output image
-  virtual void SetOutput(irtkGenericImage<VoxelType> *);
+  virtual void SetOutput(irtkImage *);
 
   /// Sets transformation
   virtual void SetTransformation(irtkTransformation *);
 
-  /// Gets the target padding value
-  virtual VoxelType GetTargetPaddingValue(void);
-
   /// Puts the target padding value
-  virtual void PutTargetPaddingValue(VoxelType);
+  virtual void PutTargetPaddingValue(double);
 
-  /// Gets the source padding value
-  virtual VoxelType GetSourcePaddingValue(void);
+  /// Gets the target padding value
+  virtual double GetTargetPaddingValue();
 
   /// Puts the source padding value
-  virtual void PutSourcePaddingValue(VoxelType);
+  virtual void PutSourcePaddingValue(double);
+
+  /// Gets the source padding value
+  virtual double GetSourcePaddingValue();
 
   /// Gets the interpolator
-  virtual irtkImageFunction<VoxelType> *GetInterpolator(void);
+  virtual irtkImageFunction *GetInterpolator(void);
 
   /// Sets the interpolator
-  virtual void PutInterpolator(irtkImageFunction<VoxelType> *);
+  virtual void PutInterpolator(irtkImageFunction *);
 
+  /// Sets scale and otfset
+  virtual void PutScaleFactorAndOffset(double = 1, double = 0);
+  
   /// Invert on
   virtual void InvertOn(void);
 
@@ -122,42 +131,48 @@ public:
 
 };
 
-template <class VoxelType> inline VoxelType irtkImageTransformation<VoxelType>::GetTargetPaddingValue()
-{
-  return _TargetPaddingValue;
-}
-
-template <class VoxelType> inline void irtkImageTransformation<VoxelType>::PutTargetPaddingValue(VoxelType PaddingValue)
+inline void irtkImageTransformation::PutTargetPaddingValue(double PaddingValue)
 {
   _TargetPaddingValue = PaddingValue;
 }
 
-template <class VoxelType> inline VoxelType irtkImageTransformation<VoxelType>::GetSourcePaddingValue()
+inline double irtkImageTransformation::GetTargetPaddingValue()
 {
-  return _SourcePaddingValue;
+  return _TargetPaddingValue;
 }
 
-template <class VoxelType> inline void irtkImageTransformation<VoxelType>::PutSourcePaddingValue(VoxelType PaddingValue)
+inline void irtkImageTransformation::PutSourcePaddingValue(double PaddingValue)
 {
   _SourcePaddingValue = PaddingValue;
 }
 
-template <class VoxelType> inline irtkImageFunction<VoxelType> *irtkImageTransformation<VoxelType>::GetInterpolator()
+inline double irtkImageTransformation::GetSourcePaddingValue()
+{
+  return _SourcePaddingValue;
+}
+
+inline irtkImageFunction *irtkImageTransformation::GetInterpolator()
 {
   return _interpolator;
 }
 
-template <class VoxelType> inline void irtkImageTransformation<VoxelType>::PutInterpolator(irtkImageFunction<VoxelType> *interpolator)
+inline void irtkImageTransformation::PutInterpolator(irtkImageFunction *interpolator)
 {
   _interpolator = interpolator;
 }
 
-template <class VoxelType> inline void irtkImageTransformation<VoxelType>::InvertOn()
+inline void irtkImageTransformation::PutScaleFactorAndOffset(double ScaleFactor, double Offset)
+{
+	_ScaleFactor = ScaleFactor;
+	_Offset      = Offset;
+}
+
+inline void irtkImageTransformation::InvertOn()
 {
   _Invert = True;
 }
 
-template <class VoxelType> inline void irtkImageTransformation<VoxelType>::InvertOff()
+inline void irtkImageTransformation::InvertOff()
 {
   _Invert = False;
 }

@@ -18,7 +18,6 @@
 
 #include <irtkHistogram.h>
 
-
 irtkEMClassification::irtkEMClassification()
 {
   _padding = MIN_GREY;
@@ -361,7 +360,7 @@ void irtkEMClassification::EStep()
 void irtkEMClassification::WStep()
 {
   int i,k;
-  double num, den, dn[2];
+  double num, den;
   cerr<<"Calculating weights ...";
   irtkRealPixel *pi=_input.GetPointerToVoxels();
   irtkRealPixel *pw=_weights.GetPointerToVoxels();
@@ -409,7 +408,7 @@ void irtkEMClassification::WStep()
 }
 void irtkEMClassification::BrainmaskInput()
 {
-  int i,k;
+  int i;
   cerr<<"brainmasking ...";
   irtkRealPixel *pi=_input.GetPointerToVoxels();
   _atlas.First();

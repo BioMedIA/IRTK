@@ -48,7 +48,7 @@ void usage()
 int main(int argc, char **argv)
 {
   irtkTransformation *transformation = NULL;
-  irtkInterpolateImageFunction<irtkGreyPixel> *interpolator = NULL;
+  irtkInterpolateImageFunction *interpolator = NULL;
   irtkGreyPixel target_min, source_min, target_max, source_max;
   int ok, x, y, z, i1, j1, k1, i2, j2, k2, Tp;
   double x1, y1, z1, x2, y2, z2;
@@ -173,25 +173,25 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkLinearInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkLinearInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkBSplineInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkBSplineInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkCSplineInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkCSplineInterpolateImageFunction;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkSincInterpolateImageFunction<irtkGreyPixel>;
+      interpolator = new irtkSincInterpolateImageFunction;
       ok = True;
     }
     if (ok == False) {
@@ -222,8 +222,7 @@ int main(int argc, char **argv)
 
   // Create default interpolator if necessary
   if (interpolator == NULL) {
-    interpolator =
-      new irtkNearestNeighborInterpolateImageFunction<irtkGreyPixel>;
+    interpolator = new irtkNearestNeighborInterpolateImageFunction;
   }
   interpolator->SetInput(&source);
   interpolator->Initialize();

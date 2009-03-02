@@ -22,10 +22,6 @@
 #define NIFTI_NEUROLOGICAL         1
 #define NIFTI_INCONSISTENT         0
 
-#define NIFTI_UNSIGNED_CHAR        2
-#define NIFTI_SIGNED_SHORT         4
-#define NIFTI_FLOAT                16
-
 /** The NIFTI header class.
 
    This is a wrapper around the nifti_image struct.

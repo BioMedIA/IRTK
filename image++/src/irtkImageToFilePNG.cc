@@ -18,26 +18,32 @@
 
 #include <png.h>
 
-template <class VoxelType> const char *irtkImageToFilePNG<VoxelType>::NameOfClass()
+const char *irtkImageToFilePNG::NameOfClass()
 {
   return "irtkImageToFilePNG";
 }
 
-template <class VoxelType> void irtkImageToFilePNG<VoxelType>::Initialize()
+void irtkImageToFilePNG::Initialize()
 {
   // Initialize base class
-  this->irtkImageToFile<VoxelType>::Initialize();
+  this->irtkImageToFile::Initialize();
 
-  if (this->_input->GetZ() != 1) {
-    cerr << this->NameOfClass() << " supports only 2D images" << endl;
+  if (this->_input->GetZ() != 3) {
+    cerr << this->NameOfClass() << " supports only images with (z = 3, e.g. R-G-B)" << endl;
+    exit(1);
+  }
+  
+  if (dynamic_cast<irtkGenericImage<unsigned char> *>(_input) == NULL){
+    cerr << this->NameOfClass() << " supports only images of voxel type unsigned char" << endl;
     exit(1);
   }
 }
 
-template <> void irtkImageToFilePNG<irtkRGBPixel>::Run()
+void irtkImageToFilePNG::Run()
 {
   int x, y;
-
+  irtkGenericImage<unsigned char> *image;
+  
   // Initialize filter
   this->Initialize();
 
@@ -45,7 +51,7 @@ template <> void irtkImageToFilePNG<irtkRGBPixel>::Run()
                         (PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
 
   if (!png_ptr) {
-    cerr << "irtkImageToFilePNG<irtkRGBPixel>::Run: Unable to write PNG file!" << endl;
+    cerr << "irtkImageToFilePNG::Run: Unable to write PNG file!" << endl;
     exit(1);
   }
 
@@ -53,7 +59,7 @@ template <> void irtkImageToFilePNG<irtkRGBPixel>::Run()
   if (!info_ptr) {
     png_destroy_write_struct(&png_ptr,
                              (png_infopp)NULL);
-    cerr << "irtkImageToFilePNG<irtkRGBPixel>::Run: Unable to write PNG file!" << endl;;
+    cerr << "irtkImageToFilePNG::Run: Unable to write PNG file!" << endl;;
     exit(1);
   }
 
@@ -79,16 +85,17 @@ template <> void irtkImageToFilePNG<irtkRGBPixel>::Run()
 
   // Copy image
   png_byte *data = new png_byte  [3*_input->GetX()*_input->GetY()];
-  png_byte **ptr = new png_byte *[_input->GetY()];
-
+  png_byte **ptr = new png_byte *[  _input->GetY()];
   png_byte *ptr2data = data;
-  for (y = 0; y < _input->GetY(); y++) {
-    for (x = 0; x < _input->GetX(); x++) {
-      *ptr2data = _input->Get(x, y, 0, 0)._r;
+
+  image = dynamic_cast<irtkGenericImage<unsigned char> *>(_input);
+  for (y = 0; y < image->GetY(); y++) {
+    for (x = 0; x < image->GetX(); x++) {
+      *ptr2data = image->Get(x, y, 0, 0);
       ptr2data++;
-      *ptr2data = _input->Get(x, y, 0, 0)._g;
+      *ptr2data = image->Get(x, y, 1, 0);
       ptr2data++;
-      *ptr2data = _input->Get(x, y, 0, 0)._b;
+      *ptr2data = image->Get(x, y, 2, 0);
       ptr2data++;
     }
     ptr[_input->GetY() - y - 1] = &(data[_input->GetX()*y*3]);
@@ -109,7 +116,5 @@ template <> void irtkImageToFilePNG<irtkRGBPixel>::Run()
   // Finalize filter
   this->Finalize();
 }
-
-template class irtkImageToFilePNG<irtkRGBPixel>;
 
 #endif

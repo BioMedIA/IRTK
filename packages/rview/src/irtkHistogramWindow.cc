@@ -58,37 +58,43 @@ void irtkHistogramWindow::CalculateHistograms()
 
 void irtkHistogramWindow::CalculateHistogram(int label_id)
 {
-  int i;
-  irtkGreyPixel min, max, *ptr2img, *ptr2seg;
+  int i, j, k, l;
+  double min, max;
 
   if (_v->GetTarget()->IsEmpty()) {
     cerr<< "No target image loaded." << endl;
     return;
   }
 
-  _v->GetTarget()->GetMinMax(&min, &max);
+  _v->GetTarget()->GetMinMaxAsDouble(&min, &max);
 
   if (label_id < 0) {
     _globalHistogram.PutMin(min);
     _globalHistogram.PutMax(max);
     _globalHistogram.PutNumberOfBins(HISTOGRAM_BINS);
 
-    ptr2img = _v->GetTarget()->GetPointerToVoxels();
-    for (i = 0; i < _v->GetTarget()->GetNumberOfVoxels(); i++) {
-      if (*ptr2img!=0) _globalHistogram.AddSample(*ptr2img);
-      ptr2img++;
+    for (l = 0; l < _v->GetTarget()->GetT(); l++){
+      for (k = 0; k < _v->GetTarget()->GetZ(); k++){
+        for (j = 0; j < _v->GetTarget()->GetY(); j++){
+          for (i = 0; i < _v->GetTarget()->GetX(); i++){
+          	_globalHistogram.AddSample(_v->GetTarget()->GetAsDouble(i, j, k, l));
+          }
+        }
+      }
     }
   } else {
     if (_v->GetSegmentTable()->IsValid(label_id) == True) {
       _localHistogram[label_id].PutMin(min);
       _localHistogram[label_id].PutMax(max);
       _localHistogram[label_id].PutNumberOfBins(HISTOGRAM_BINS);
-      ptr2img = _v->GetTarget()->GetPointerToVoxels();
-      ptr2seg = _v->GetSegmentation()->GetPointerToVoxels();
-      for (i = 0; i < _v->GetTarget()->GetNumberOfVoxels(); i++) {
-        if ((*ptr2seg == label_id)&&(*ptr2img!=0)) _localHistogram[label_id].AddSample(*ptr2img);
-        ptr2img++;
-        ptr2seg++;
+      for (l = 0; l < _v->GetTarget()->GetT(); l++){
+        for (k = 0; k < _v->GetTarget()->GetZ(); k++){
+          for (j = 0; j < _v->GetTarget()->GetY(); j++){
+            for (i = 0; i < _v->GetTarget()->GetX(); i++){
+            	if (_v->GetSegmentation()->Get(i, j, k, l) == label_id) _globalHistogram.AddSample(_v->GetTarget()->GetAsDouble(i, j, k, l));
+            }
+          }
+        }
       }
     }
   }
