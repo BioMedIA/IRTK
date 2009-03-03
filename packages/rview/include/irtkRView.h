@@ -1700,13 +1700,13 @@ inline double irtkRView::GetDisplayMaxTarget()
 inline void irtkRView::SetDisplayMinTarget(double value)
 {
 	_targetDisplayMin = value;
-	_targetLookupTable->SetMinDisplayIntensity((value - _targetMin) * 10000.0 / (_targetMax - _targetMin));
+	_targetLookupTable->SetMinDisplayIntensity(round((value - _targetMin) * 10000.0 / (_targetMax - _targetMin)));
 }
 
 inline void irtkRView::SetDisplayMaxTarget(double value)
 {
 	_targetDisplayMax = value;
-	_targetLookupTable->SetMaxDisplayIntensity((value - _targetMin) * 10000.0 / (_targetMax - _targetMin));
+	_targetLookupTable->SetMaxDisplayIntensity(round((value - _targetMin) * 10000.0 / (_targetMax - _targetMin)));
 }
 
 inline double irtkRView::GetDisplayMinSource()
@@ -1722,13 +1722,13 @@ inline double irtkRView::GetDisplayMaxSource()
 inline void irtkRView::SetDisplayMinSource(double value)
 {
 	_sourceDisplayMin = value;
-	_sourceLookupTable->SetMinDisplayIntensity((value - _sourceMin) * 10000.0 / (_sourceMax - _sourceMin));
+	_sourceLookupTable->SetMinDisplayIntensity(round((value - _sourceMin) * 10000.0 / (_sourceMax - _sourceMin)));
 }
 
 inline void irtkRView::SetDisplayMaxSource(double value)
 {
 	_sourceDisplayMax = value;
-	_sourceLookupTable->SetMaxDisplayIntensity((value - _sourceMin) * 10000.0 / (_sourceMax - _sourceMin));
+	_sourceLookupTable->SetMaxDisplayIntensity(round((value - _sourceMin) * 10000.0 / (_sourceMax - _sourceMin)));
 }
 
 inline double irtkRView::GetDisplayMinSubtraction()
@@ -1744,13 +1744,13 @@ inline double irtkRView::GetDisplayMaxSubtraction()
 inline void irtkRView::SetDisplayMinSubtraction(double value)
 {
 	_subtractionDisplayMin = value;
-	_subtractionLookupTable->SetMinDisplayIntensity(value * 20000.0 / (_subtractionMax - _subtractionMin));
+	_subtractionLookupTable->SetMinDisplayIntensity(round(value * 20000.0 / (_subtractionMax - _subtractionMin)));
 }
 
 inline void irtkRView::SetDisplayMaxSubtraction(double value)
 {
 	_subtractionDisplayMax = value;
-	_subtractionLookupTable->SetMaxDisplayIntensity(value * 20000.0 / (_subtractionMax - _subtractionMin));
+	_subtractionLookupTable->SetMaxDisplayIntensity(round(value * 20000.0 / (_subtractionMax - _subtractionMin)));
 }
 
 #endif
