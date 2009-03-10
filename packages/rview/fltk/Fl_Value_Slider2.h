@@ -1,7 +1,7 @@
 #ifndef Fl_Value_Slider2_H
 #define Fl_Value_Slider2_H
 
-#include "Fl/Fl_Slider.h"
+#include "Fl/Fl_Slider.H"
 
 class Fl_Value_Slider2 : public Fl_Slider {
     uchar textfont_, textsize_;
