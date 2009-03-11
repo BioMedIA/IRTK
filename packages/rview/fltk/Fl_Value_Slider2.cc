@@ -1,5 +1,5 @@
 #include <FL/Fl.H>
-#include <Fl_Value_Slider2.h>
+#include <Fl_Value_Slider2.H>
 #include <FL/fl_draw.H>
 #include <math.h>
 
