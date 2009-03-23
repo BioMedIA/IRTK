@@ -59,6 +59,8 @@ public:
 
   void PCA(double *x, double *y, double *weights, int no);
   void WeightedPCA(double *x, double *y, double *weights, int no);
+  void WeightedLeastSqaures(double *x1, double *y1, double *weights, int no);
+  void MatchMeanAndVariance(double *x1, double *y1, double *weights, int no);
 
   double Lin(double x);
 
