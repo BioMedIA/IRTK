@@ -70,7 +70,7 @@ public:
 public:
 
   ///Constructor
-  irtkEMClassificationTemplateBiasCorrection(irtkRealImage &image, irtkRealImage &reference, int cP, irtkRealPixel padding, double voxelsize);
+  irtkEMClassificationTemplateBiasCorrection(irtkRealImage &image, irtkRealImage &reference, double spacing, irtkRealPixel padding, double voxelsize);
   /// Destructor
   ~irtkEMClassificationTemplateBiasCorrection();
 
