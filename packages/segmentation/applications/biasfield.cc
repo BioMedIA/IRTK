@@ -84,6 +84,7 @@ int main(int argc, char **argv)
       }
     }
   }
+  biasfield->Print();
 
   image.Write(output);
 }
