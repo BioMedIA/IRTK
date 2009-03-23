@@ -1,28 +1,20 @@
-/*=========================================================================
-
-  Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id$
-  Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date$
-  Version   : $Revision$
-  Changes   : $Author$
-
-=========================================================================*/
-
 
 #include <irtkImage.h>
 #include <irtkEMClassificationTemplateBiasCorrection.h>
 #include <irtkMultiChannelImage.h>
 
-char *corrected_name=NULL, *weights_name=NULL, *bias_name=NULL, *parameters_name=NULL;
-double cutoff=0.5, voxelsize=5, sigma = 0;
-int cP=3, padding=0, iterations=5;
-bool logtransformed=false;
+char *corrected_name=NULL, *bias_name=NULL;
+double cutoff=0.5, voxelsize=3, sigma = 0;
+int padding=0, iterations=5;
+double spacing = 75;
+double variance_ratio = 4;
+double c0 = 0.5;
+
 
 void usage()
 {
-  cerr << "Usage: bc [image] [reference] [corrected] <-bias> <-iterations> <-padding> <-cutoff> <-voxelsize> <-weights> <-cP> <-sigma> <-logtransformed>" << endl;
+  cerr << "Usage: bc2 [image] [reference] [corrected] "
+		  "<-bias> <-iterations> <-padding> <-cutoff> <-voxelsize> <-spacing>" << endl;
   exit(1);
 }
 
@@ -55,9 +47,9 @@ int main(int argc, char **argv)
   argv++;
 
   // Parse remaining parameters
-  while (argc > 1) {
+  while (argc > 1){
     ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)){
       argc--;
       argv++;
       iterations = atoi(argv[1]);
@@ -65,7 +57,7 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)){
       argc--;
       argv++;
       padding = atoi(argv[1]);
@@ -73,7 +65,7 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cutoff") == 0)) {
+    if ((ok == False) && (strcmp(argv[1], "-cutoff") == 0)){
       argc--;
       argv++;
       cutoff = atof(argv[1]);
@@ -82,7 +74,7 @@ int main(int argc, char **argv)
       ok = True;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-voxelsize") == 0)) {
+    if ((ok == False) && (strcmp(argv[1], "-voxelsize") == 0)){
       argc--;
       argv++;
       voxelsize = atof(argv[1]);
@@ -90,31 +82,15 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sigma") == 0)) {
+   if ((ok == False) && (strcmp(argv[1], "-spacing") == 0)){
       argc--;
       argv++;
-      sigma = atof(argv[1]);
-      argc--;
-      argv++;
-      ok = True;
-    }
-    if ((ok == False) && (strcmp(argv[1], "-cP") == 0)) {
-      argc--;
-      argv++;
-      cP = atoi(argv[1]);
+      spacing = atof(argv[1]);
       argc--;
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-weights") == 0)) {
-      argc--;
-      argv++;
-      weights_name = argv[1];
-      argc--;
-      argv++;
-      ok = True;
-    }
-    if ((ok == False) && (strcmp(argv[1], "-bias") == 0)) {
+    if ((ok == False) && (strcmp(argv[1], "-bias") == 0)){
       argc--;
       argv++;
       bias_name = argv[1];
@@ -122,46 +98,87 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-logtransformed") == 0)) {
-      argc--;
-      argv++;
-      logtransformed = true;
-      ok = True;
-    }
-    if (ok == False) {
+    if (ok == False){
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
   }
 
-  irtkEMClassificationTemplateBiasCorrection classification(image,reference,cP,padding,voxelsize);
+  irtkEMClassificationTemplateBiasCorrection classification(image,reference,spacing,padding,voxelsize);
   classification.Initialise();
-  classification.WriteProbMap(0,"inliers.nii.gz");
-  classification.WriteProbMap(1,"outliers.nii.gz");
-  classification.WriteInput("difference.nii.gz");
+  //classification.WriteProbMap(0,"inliers.nii.gz");
+  //classification.WriteProbMap(1,"outliers.nii.gz");
+  //classification.WriteInput("difference.nii.gz");
 
-  int i = 1;
-  while (i<=iterations) {
+
+  int i=1;
+  double rel_diff;
+  double f=0,f0=0;
+
+  do
+  {
+    cout << "Iteration = " << i << " / " << iterations << endl;
+    rel_diff = classification.IterateGMM(i);
+
+    char buffer1[100];
+    //classification.CorrectTarget();
+    //sprintf(buffer1, "c%d.nii.gz",i);
+    //classification.WriteTarget(buffer1);
+
+    i++;
+
+  }
+  while((rel_diff>0.001)&&(i<iterations));
+
+/*  int i = 1;
+  while(i<=iterations)
+  {
 
     cerr<<endl<<endl<<endl<<"Loop "<<i<<"/"<<iterations<<endl<<endl;
     classification.IterateGMM(i);
+
+
+    char buffer1[100];
+    char buffer2[100];
+    char buffer3[100];
+    char buffer4[100];
+    char buffer5[100];
+    char buffer6[100];
+    char buffer7[100];
+    classification.CorrectTarget();
+    sprintf(buffer1, "c%d.nii.gz",i);
+    sprintf(buffer2, "b%d",i);
+    sprintf(buffer3, "pm0%d.nii.gz",i);
+    sprintf(buffer4, "pm1%d.nii.gz",i);
+    sprintf(buffer5, "in%d.nii.gz",i);
+    sprintf(buffer6, "w%d.nii.gz",i);
+    sprintf(buffer7, "rm%d.nii.gz",i);
+    classification.WriteTarget(buffer1);
+    classification.WriteBias(buffer2);
+    classification.WriteProbMap(0,buffer3);
+    classification.WriteProbMap(1,buffer4);
+    classification.WriteInput(buffer5);
+    classification.WriteWeights(buffer6);
+    classification.WriteMatchedReference(buffer7);
+
     i++;
   }
-  /*
-     irtkMultiChannelImage corrected;
-     corrected.SetPadding(0);
-     corrected.AddImage(image);
-     corrected.AddImage(image);
-     corrected.Log(0);
-     classification.ApplyBias(corrected.GetImage(0));
-     corrected.Exp(0);
-     corrected.AdjustMean(0,1);
-     corrected.Write(0,corrected_name);
-  */
-  classification.CorrectTarget();
-  classification.WriteTarget(corrected_name);
-  classification.WriteBias("bias");
-  classification.WriteProbMap(0,"tissue0.nii.gz");
-  classification.WriteProbMap(1,"tissue1.nii.gz");
+*/
+/*
+   irtkMultiChannelImage corrected;
+   corrected.SetPadding(0);
+   corrected.AddImage(image);
+   corrected.AddImage(image);
+   corrected.Log(0);
+   classification.ApplyBias(corrected.GetImage(0));
+   corrected.Exp(0);
+   corrected.AdjustMean(0,1);
+   corrected.Write(0,corrected_name);
+*/
+   classification.CorrectTarget();
+   classification.WriteTarget(corrected_name);
+   if (bias_name!=0) classification.WriteBias(bias_name);
+   //classification.WriteProbMap(0,"tissue0.nii.gz");
+   //classification.WriteProbMap(1,"tissue1.nii.gz");
 }
 
