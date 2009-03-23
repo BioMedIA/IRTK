@@ -125,35 +125,35 @@ int main(int argc, char **argv)
   classification.ConstructSegmentationNoBG(segmentation);
   segmentation.Write(output_name);
   if (n==11) {
-    classification.WriteProbMap(0,"csf.hdr");
-    classification.WriteProbMap(1,"gray.hdr");
-    classification.WriteProbMap(2,"caudate.hdr");
-    classification.WriteProbMap(3,"putamen.hdr");
-    classification.WriteProbMap(4,"nigra.hdr");
-    classification.WriteProbMap(5,"cerebellum.hdr");
-    classification.WriteProbMap(6,"thalamus.hdr");
-    classification.WriteProbMap(7,"pallidum.hdr");
-    classification.WriteProbMap(8,"brainstem.hdr");
-    classification.WriteProbMap(9,"white.hdr");
-    classification.WriteProbMap(10,"cerebellum-white.hdr");
-    classification.WriteProbMap(11,"other.hdr");
+    classification.WriteProbMap(0,"csf.nii.gz");
+    classification.WriteProbMap(1,"gray.nii.gz");
+    classification.WriteProbMap(2,"caudate.nii.gz");
+    classification.WriteProbMap(3,"putamen.nii.gz");
+    classification.WriteProbMap(4,"nigra.nii.gz");
+    classification.WriteProbMap(5,"cerebellum.nii.gz");
+    classification.WriteProbMap(6,"thalamus.nii.gz");
+    classification.WriteProbMap(7,"pallidum.nii.gz");
+    classification.WriteProbMap(8,"brainstem.nii.gz");
+    classification.WriteProbMap(9,"white.nii.gz");
+    classification.WriteProbMap(10,"cerebellum-white.nii.gz");
+    classification.WriteProbMap(11,"other.nii.gz");
   }
   if (n==5) {
-    classification.WriteProbMap(0,"caudate.hdr");
-    classification.WriteProbMap(1,"putamen.hdr");
-    classification.WriteProbMap(2,"thalamus.hdr");
-    classification.WriteProbMap(3,"pallidum.hdr");
-    classification.WriteProbMap(4,"white.hdr");
+    classification.WriteProbMap(0,"caudate.nii.gz");
+    classification.WriteProbMap(1,"putamen.nii.gz");
+    classification.WriteProbMap(2,"thalamus.nii.gz");
+    classification.WriteProbMap(3,"pallidum.nii.gz");
+    classification.WriteProbMap(4,"white.nii.gz");
   }
   if (n==2) {
-    classification.WriteProbMap(0,"gray.hdr");
-    classification.WriteProbMap(1,"white.hdr");
+    classification.WriteProbMap(0,"gray.nii.gz");
+    classification.WriteProbMap(1,"white.nii.gz");
   }
 
   if (n==3) {
-    classification.WriteProbMap(0,"csf.hdr");
-    classification.WriteProbMap(1,"gray.hdr");
-    classification.WriteProbMap(2,"white.hdr");
+    classification.WriteProbMap(0,"csf.nii.gz");
+    classification.WriteProbMap(1,"gray.nii.gz");
+    classification.WriteProbMap(2,"white.nii.gz");
   }
 
 }
