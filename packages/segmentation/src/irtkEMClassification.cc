@@ -18,6 +18,7 @@
 
 #include <irtkHistogram.h>
 
+
 irtkEMClassification::irtkEMClassification()
 {
   _padding = MIN_GREY;
@@ -360,7 +361,7 @@ void irtkEMClassification::EStep()
 void irtkEMClassification::WStep()
 {
   int i,k;
-  double num, den;
+  double num, den, dn[2];
   cerr<<"Calculating weights ...";
   irtkRealPixel *pi=_input.GetPointerToVoxels();
   irtkRealPixel *pw=_weights.GetPointerToVoxels();
@@ -408,7 +409,7 @@ void irtkEMClassification::WStep()
 }
 void irtkEMClassification::BrainmaskInput()
 {
-  int i;
+  int i,k;
   cerr<<"brainmasking ...";
   irtkRealPixel *pi=_input.GetPointerToVoxels();
   _atlas.First();
@@ -521,7 +522,7 @@ void irtkEMClassification::EStepGMM()
 
   for (i=0; i< _input.GetNumberOfVoxels(); i++) {
     double denominator=0, temp=0;
-    if (*ptr != _padding) {
+    if (*pm == 1) {
       x = *ptr;
       for (k = 0; k < _number_of_tissues; k++) {
         temp = G[k].Evaluate(x);
@@ -675,7 +676,7 @@ double irtkEMClassification::LogLikelihoodGMM()
   _output.First();
   f = 0;
   for (i = 0; i < _input.GetNumberOfVoxels(); i++) {
-    if (*ptr != _padding) {
+    if (*pm == 1) {
       temp = 0;
       for (k=0; k < _number_of_tissues; k++) {
         // Estimation of gaussian probability of intensity (*ptr) for tissue k
