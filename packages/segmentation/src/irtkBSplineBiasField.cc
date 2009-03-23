@@ -690,7 +690,7 @@ void irtkBSplineBiasField::WeightedLeastSquares(double *x1, double *y1, double *
             //P(indx) += b*B(i, s) * B(j, t) * B(k, u)*w;
             P(indx) += b*N(i+l-1,x,_x) * N(j+m-1,y,_y) * N(k+n-1,z,_z)*w;
           } else {
-            cerr<<"out of range:"<< i+l-1<<" "<<j+m-1<<" "<<k+n-1<<endl;
+            //cerr<<"out of range:"<< i+l-1<<" "<<j+m-1<<" "<<k+n-1<<endl;
           }
           //cerr<<i+l-1<<" "<<j+m-1<<" "<<k+n-1<<endl;
           for (kk = 0; kk < 4; kk++) {
@@ -702,7 +702,7 @@ void irtkBSplineBiasField::WeightedLeastSquares(double *x1, double *y1, double *
                   //+= B(i, s) * B(j, t) * B(k, u) * B(ii, s) * B(jj, t) * B(kk, u)*w;
                   += N(i+l-1,x,_x) * N(j+m-1,y,_y) * N(k+n-1,z,_z)*N(ii+l-1,x,_x) * N(jj+m-1,y,_y) * N(kk+n-1,z,_z)*w;
                 } else {
-                  cerr<<"out of range:"<< i+l-1<<" "<<j+m-1<<" "<<k+n-1<< ii+l-1<<" "<<jj+m-1<<" "<<kk+n-1<<endl;
+                  //cerr<<"out of range:"<< i+l-1<<" "<<j+m-1<<" "<<k+n-1<< ii+l-1<<" "<<jj+m-1<<" "<<kk+n-1<<endl;
                 }
               }
             }
@@ -744,7 +744,7 @@ void irtkBSplineBiasField::WeightedLeastSquares(double *x1, double *y1, double *
 
   svdcmp(aa, rows, rows, ww, vv);
 
-  for (j = 1; j <= rows; j++)  cerr <<ww[j]<<endl;
+ // for (j = 1; j <= rows; j++)  cerr <<ww[j]<<endl;
 
 
   svbksb(aa,ww,vv,rows,rows,pp,xx);
@@ -1000,7 +1000,7 @@ void irtkBSplineBiasField::ComputeCoefficients(double* dbias, irtkRealImage& coe
   Pole[0] = sqrt(3.0) - 2.0;
 
   // Initialize coefficient images.
-  coeffs = irtkRealImage(_x, _y, _z);
+  coeffs=irtkRealImage(_x, _y, _z);
 
   // Convert the displacements into interpolation coefficients for each
   // direction.
@@ -1235,3 +1235,149 @@ void irtkBSplineBiasField::Print()
   }
   cerr<<endl;
 }
+
+double irtkBSplineBiasField::N(int i, double u, int L)
+{
+	if((i<0)||(i>L-1)) return 0;
+	if((u<0)||(u>L-1)) return 0;
+	int l= (int) floor(u);
+	if(l==L-1) l=L-2;
+	double t = u-l;
+    double t3=t*t*t, t2=t*t;
+
+    if((l==0)&&(L>3))
+	{
+    	switch (i-l+1) {
+    	case 0:
+    		return 0;
+		case 1:
+			return (9*t3 - 18*t2 + 12)/12.0;
+		case 2:
+		    return (-11*t3 + 18*t2 )/12.0;
+		case 3:
+		    return (t3)/6.0;
+		}
+		return 0;
+	}
+
+	  if((l==L-2)&&(L>3))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-2*t3 + 6*t2 -6*t + 2)/12.0;;
+	    case 1:
+	      return (11*t3 - 15*t2 -3*t + 7)/12.0;
+	    case 2:
+	      return (-9*t3 + 9*t2 + 9*t + 3)/12.0;
+	    case 3:
+	      return 0;
+	    }
+	    return 0;
+	  }
+
+	 if((l==1)&&(L>4))
+	 {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-3*t3 + 9*t2 -9*t +3)/12.0;
+	    case 1:
+	      return (7*t3 - 15*t2 + 3*t +7)/12.0;
+	    case 2:
+	      return (-6*t3 + 6*t2 + 6*t + 2 )/12.0;
+	    case 3:
+	      return (t3)/6.0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==L-3)&&(L>4))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-2*t3 + 6*t2 -6*t + 2)/12.0;;
+	    case 1:
+	      return (6*t3 - 12*t2  + 8)/12.0;
+	    case 2:
+	      return (-7*t3 + 6*t2 + 6*t + 2)/12.0;
+	    case 3:
+	      return (3*t3)/12.0;
+	    }
+	    return 0;
+	  }
+	  if((l==1)&&(L==4))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-3*t3 + 9*t2 -9*t + 3)/12.0;
+	    case 1:
+	      return (7*t3 - 15*t2  +3*t + 7)/12.0;
+	    case 2:
+	      return (-7*t3 + 6*t2 + 6*t + 2)/12.0;
+	    case 3:
+	      return (3*t3)/12.0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==0)&&(L==3))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return 0;
+	    case 1:
+	      return (3*t3 - 6*t2  + 4)/4.0;
+	    case 2:
+	      return (-4*t3 + 6*t2 )/4.0;
+	    case 3:
+	      return (t3)/4.0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==1)&&(L==3))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-1*t3 + 3*t2 - 3*t + 1)/4.0;
+	    case 1:
+	      return (4*t3 - 6*t2  + 2)/4.0;
+	    case 2:
+	      return (-3*t3 + 3*t2 + 3*t + 1)/4.0;
+	    case 3:
+	      return 0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==0)&&(L==2))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return 0;
+	    case 1:
+	      return 2*t3 - 3*t2  + 1;
+	    case 2:
+	      return -2*t3 + 3*t2;
+	    case 3:
+	      return 0;
+	    }
+	    return 0;
+	  }
+
+	  if((l<L-3)&&(l>1))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-t3+3*t2-3*t+1)/6.0;
+	    case 1:
+	      return (3*t3 - 6*t2 + 4)/6.0;
+	    case 2:
+	      return (-3*t3 + 3*t2 + 3*t + 1)/6.0;
+	    case 3:
+	      return (t3)/6.0;
+	    }
+	    return 0;
+	  }
+	  return 0;
+  }
+

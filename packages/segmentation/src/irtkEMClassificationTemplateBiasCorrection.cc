@@ -19,11 +19,11 @@
 #include <irtkResamplingWithPadding.h>
 
 
-irtkEMClassificationTemplateBiasCorrection::irtkEMClassificationTemplateBiasCorrection(irtkRealImage &target, irtkRealImage &reference, int cP, irtkRealPixel padding, double voxelsize)
+irtkEMClassificationTemplateBiasCorrection::irtkEMClassificationTemplateBiasCorrection(irtkRealImage &target, irtkRealImage &reference, double spacing, irtkRealPixel padding, double voxelsize)
 {
   cerr<<endl;
   cerr<<"irtkEMClassificationTemplateBiasCorrection: "<<endl;
-  cerr<<"cP="<<cP<<" padding="<<padding<<" voxelsize="<<voxelsize<<endl;
+  cerr<<"spacing="<<spacing<<" padding="<<padding<<" voxelsize="<<voxelsize<<endl;
 
   _uncorrected_target = target;
   _target=target;
@@ -32,27 +32,29 @@ irtkEMClassificationTemplateBiasCorrection::irtkEMClassificationTemplateBiasCorr
   _padding=padding;
   _voxelsize=voxelsize;
   _number_of_voxels = 0;
+  _init=false;
 
   irtkMultiChannelImage mch;
-  mch.SetPadding((int) padding);
-  mch.AddImage(target);
-  mch.AddImage(reference);
-  mch.CreateMask();
-  mch.Brainmask();
+  mch.SetPadding((int) _padding);
+  mch.AddImage(Resample(_uncorrected_target));
+  mch.AddImage(Resample(_reference));
   mch.Log(0);
   mch.Log(1);
+  mch.CreateMask();
+  mch.Brainmask();
 
-  _d_uncorrected_target = Resample(mch.GetImage(0));
+
+  _d_uncorrected_target = mch.GetImage(0);
   _d_target = _d_uncorrected_target;
-  _d_reference = Resample(mch.GetImage(1));
+  _d_reference = mch.GetImage(1);
   _d_rm = _d_reference;
 
-  _d_target.Write("dt.nii.gz");
-  _d_rm.Write("dr.nii.gz");
+  SetInput(mch.Subtract());
 
-  _biasfield = new irtkBSplineBiasField(_d_target, cP, cP, cP);
+  _biasfield = new irtkBSplineBiasField(_d_target, spacing, spacing, spacing);
   _biascorrection.SetOutput(_biasfield);
-  _init=false;
+   CorrectTarget();
+   Update();
 
 
 }
@@ -69,7 +71,7 @@ void irtkEMClassificationTemplateBiasCorrection::Initialise()
   InitialiseGMMParameters();
   PrintGMM();
   InitialiseAtlas();
-  //LogLikelihoodGMM();
+  LogLikelihoodGMM();
 }
 
 void irtkEMClassificationTemplateBiasCorrection::InitialiseGMMParameters()
@@ -89,7 +91,8 @@ void irtkEMClassificationTemplateBiasCorrection::InitialiseGMMParameters()
     ptr++;
   }
   double mean, variance;
-  mean = h.Mean();
+  //mean = h.Mean();
+  mean = 0;
   variance=h.Variance();
   cerr<<"mean="<<mean<<" variance="<<sqrt(variance)<<" ... done."<<endl;
 
@@ -150,7 +153,9 @@ void irtkEMClassificationTemplateBiasCorrection::IStep()
 
   _matching.SetMinMax(xmin,xmax);
   _matching.SetYMinMax(ymin,ymax);
-  _matching.WeightedPCA(x,y,w,n);
+  //_matching.WeightedPCA(x,y,w,n);
+  //_matching.WeightedLeastSqaures(x,y,w,n);
+  _matching.MatchMeanAndVariance(x,y,w,n);
 
   pr = _d_reference.GetPointerToVoxels();
   pm = _d_rm.GetPointerToVoxels();
@@ -221,9 +226,11 @@ irtkRealImage irtkEMClassificationTemplateBiasCorrection::Resample( irtkRealImag
 
 double irtkEMClassificationTemplateBiasCorrection::IterateGMM(int iteration)
 {
-  if (iteration > 1) this->IStep();
+  //if (iteration > 1) this->IStep();
   if (iteration > 1) this->EStepGMM();
   this->MStepGMM();
+  _mi[0]=0;
+  _mi[1]=0;
   PrintGMM();
   this->WStep();
   this->BStep();

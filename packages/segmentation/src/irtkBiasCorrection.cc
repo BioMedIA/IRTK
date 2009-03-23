@@ -142,7 +142,7 @@ void irtkBiasCorrection::ApplyToImage(irtkRealImage &image)
   int i, j, k;
   double x, y, z, bias;
   cerr<<"Applying bias ...";
-  cerr<<_biasfield;
+  //cerr<<_biasfield;
 
   for (k = 0; k < image.GetZ(); k++) {
     for (j = 0; j < image.GetY(); j++) {
