@@ -169,14 +169,14 @@ public:
 
 inline int irtkBSplineBiasField::Ind(int a, int b, int c)
 {
-  if (a<0) a=0;
-  if (b<0) b=0;
-  if (c<0) c=0;
-  if (a>_x-1) a=_x-1;
-  if (b>_y-1) b=_y-1;
-  if (c>_z-1) c=_z-1;
+	  if(a<0) return -1;
+	  if(b<0) return -1;
+	  if(c<0) return -1;
+	  if(a>_x-1) return -1;
+	  if(b>_y-1) return -1;
+	  if(c>_z-1) return -1;
 
-  return a+b*_x+c*_y*_x;
+	  return a+b*_x+c*_y*_x;
 }
 
 inline double irtkBSplineBiasField::B(int i, double t)
@@ -194,27 +194,151 @@ inline double irtkBSplineBiasField::B(int i, double t)
   return 0;
 }
 
-inline double irtkBSplineBiasField::N(int i, double u, int L)
+/*inline double irtkBSplineBiasField::N(int i, double u, int L)
 {
-  if ((i<0)||(i>L-1)) return 0;
-  int l= (int) floor(u);
-  if (l==L-1) l=L-2;
+	if((i<0)||(i>L-1)) return 0;
+	if((u<0)||(u>L-1)) return 0;
+	int l= (int) floor(u);
+	if(l==L-1) l=L-2;
+	double t = u-l;
+    double t3=t*t*t, t2=t*t;
 
-  double value=B(i-l+1,u-l);
-  if (l==0) {
-    if (i==0) value += 2*B(0,u-l);
-    if (i==1) value -= B(0,u-l);
+    if((l==0)&&(L>3))
+	{
+    	switch (i-l+1) {
+    	case 0:
+    		return 0;
+		case 1:
+			return (9*t3 - 18*t2 + 12)/12.0;
+		case 2:
+		    return (-11*t3 + 18*t2 )/12.0;
+		case 3:
+		    return (t3)/6.0;
+		}
+		return 0;
+	}
+
+	 if((l==1)&&(L>4))
+	 {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-3*t3 + 9*t2 -9*t +3)/12.0;
+	    case 1:
+	      return (7*t3 - 15*t2 + 3*t +7)/12.0;
+	    case 2:
+	      return (-6*t3 + 6*t2 + 6*t + 2 )/12.0;
+	    case 3:
+	      return (t3)/6.0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==L-2)&&(L>3))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-2*t3 + 6*t2 -6*t + 2)/12.0;;
+	    case 1:
+	      return (11*t3 - 15*t2 -3*t + 7)/12.0;
+	    case 2:
+	      return (-9*t3 + 9*t2 + 9*t + 3)/12.0;
+	    case 3:
+	      return 0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==L-3)&&(L>4))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-2*t3 + 6*t2 -6*t + 2)/12.0;;
+	    case 1:
+	      return (6*t3 - 12*t2  + 8)/12.0;
+	    case 2:
+	      return (-7*t3 + 6*t2 + 6*t + 2)/12.0;
+	    case 3:
+	      return (3*t3)/12.0;
+	    }
+	    return 0;
+	  }
+	  if((l==1)&&(L==4))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-3*t3 + 9*t2 -9*t + 3)/12.0;
+	    case 1:
+	      return (7*t3 - 15*t2  +3*t + 7)/12.0;
+	    case 2:
+	      return (-7*t3 + 6*t2 + 6*t + 2)/12.0;
+	    case 3:
+	      return (3*t3)/12.0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==0)&&(L==3))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return 0;
+	    case 1:
+	      return (3*t3 - 6*t2  + 4)/4.0;
+	    case 2:
+	      return (-4*t3 + 6*t2 )/4.0;
+	    case 3:
+	      return (t3)/4.0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==1)&&(L==3))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-1*t3 + 3*t2 - 3*t + 1)/4.0;
+	    case 1:
+	      return (4*t3 - 6*t2  + 2)/4.0;
+	    case 2:
+	      return (-3*t3 + 3*t2 + 3*t + 1)/4.0;
+	    case 3:
+	      return 0;
+	    }
+	    return 0;
+	  }
+
+	  if((l==0)&&(L==2))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return 0;
+	    case 1:
+	      return 2*t3 - 3*t2  + 1;
+	    case 2:
+	      return -2*t3 + 3*t2;
+	    case 3:
+	      return 0;
+	    }
+	    return 0;
+	  }
+
+	  if((l<L-3)&&(l>1))
+	  {
+	    switch (i-l+1) {
+	    case 0:
+	      return (-t3+3*t2-3*t+1)/6.0;
+	    case 1:
+	      return (3*t3 - 6*t2 + 4)/6.0;
+	    case 2:
+	      return (-3*t3 + 3*t2 + 3*t + 1)/6.0;
+	    case 3:
+	      return (t3)/6.0;
+	    }
+	    return 0;
+	  }
+	  return 0;
   }
-
-  if (l==L-2) {
-    if (i==L-1) value += 2*B(3,u-l);
-    if (i==L-2) value -= B(3,u-l);
-  }
-
-  return value;
-
-}
-
+*/
 
 inline double irtkBSplineBiasField::B_I(int i, double t)
 {
@@ -323,7 +447,23 @@ inline double irtkBSplineBiasField::Bias(double x, double y, double z)
   this->WorldToLattice(u, v, w);
 
   // Calculate FFD
-  return this->FFD1(u, v, w);
+  //return this->FFD1(u, v, w);
+  int i,j,k,l,m,n;
+
+  l = (int)floor(u);
+  m = (int)floor(v);
+  n = (int)floor(w);
+  double value=0;
+  for (k = 0; k < 4; k++){
+    for (j = 0; j < 4; j++){
+ 	  for (i = 0; i < 4; i++){
+ 		if(((i+l-1)>=0)&&((i+l-1)<_x)&&((j+m-1)>=0)&&((j+m-1)<_y)&&((k+n-1)>=0)&&((k+n-1)<_z))
+ 	    value += N(i+l-1,u,_x) * N(j+m-1,v,_y) * N(k+n-1,w,_z)*_data[k+n-1][j+m-1][i+l-1];
+ 	  }
+ 	}
+  }
+  return value;
+
 }
 
 inline double irtkBSplineBiasField::Bias2(double x, double y, double z)
