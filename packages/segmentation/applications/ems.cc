@@ -113,8 +113,8 @@ int main(int argc, char **argv)
   if (nobg) classification= new irtkEMClassification(n, atlas);
   else classification= new irtkEMClassification(n, atlas, background);
 
-  classification->SetInput(image);
   classification->SetPadding(padding);
+  classification->SetInput(image);
   classification->Initialise();
 
   double rel_diff;
