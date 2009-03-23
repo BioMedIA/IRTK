@@ -23,7 +23,7 @@
 class vtkKDTreeNode;
 class PointData;
 
-class VTK_COMMON_EXPORT vtkKDTreePointLocator : public vtkLocator
+class vtkKDTreePointLocator : public vtkLocator
 {
 public:
   ~vtkKDTreePointLocator();

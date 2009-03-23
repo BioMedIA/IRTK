@@ -22,7 +22,7 @@
 
 #ifdef HISTORY
 
-irtkHistory *history;
+extern irtkHistory *history;
 
 #endif
 

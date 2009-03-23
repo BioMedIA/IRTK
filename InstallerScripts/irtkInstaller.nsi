@@ -1,68 +1,17 @@
-; =========================================================================
-; 
-;  Library   : ITK Installer
-;  Module    : $RCSfile: itkInstaller.nsi,v $
-;  Authors   : Raghavendra Chandrashekara
-;  Copyright : Imperial College, Department of Computing
-;              Visual Information Processing (VIP), 2006
-;  Purpose   : Installer script for ITK.
-;  Date      : $Date: 2008-12-05 16:14:00 $
-;  Version   : $Revision: 1.12 $
-;  Changes   : $Locker:  $
-;              $Log: itkInstaller.nsi,v $
-;              Revision 1.12  2008-12-05 16:14:00  dr
-;              *** empty log message ***
-;
-;              Revision 1.11  2008-12-01 10:02:36  dr
-;              *** empty log message ***
-;
-;              Revision 1.10  2008-10-31 12:25:41  dr
-;              Added new executables
-;
-;              Revision 1.9  2008-05-25 10:26:05  dr
-;              Fixed another spelling mistake
-;
-;              Revision 1.8  2008-05-25 10:24:06  dr
-;              Fixed spelling mistake
-;
-;              Revision 1.7  2008-05-24 17:39:05  dr
-;              *** empty log message ***
-;
-;              Revision 1.6  2007-12-17 21:01:41  dr
-;              *** empty log message ***
-;
-;              Revision 1.5  2006-08-23 21:26:36  dr
-;              Added support for NIFTI
-;
-;              Revision 1.4  2006/08/15 21:40:18  dr
-;              *** empty log message ***
-;
-;              Revision 1.3  2006/03/28 17:23:39  rc3
-;              Added license page.
-;
-;              Revision 1.2  2006/03/27 17:27:27  rc3
-;              Updated script to use the "Modern User Interface"
-;              (MUI) macros.
-;
-;              Revision 1.1  2006/03/27 16:14:06  rc3
-;              Added scripts for installing ITK software on Windows.
-;
-; =========================================================================
-
 ; Include files.
 !include MUI.nsh
 !include AddToPath.nsh
 !include FileAssoc.nsh
 
 ; Name and output for installation file.
-Name "ITK"
-OutFile "ITKInstaller.exe"
+Name "IRTK"
+OutFile "IRTKInstaller.exe"
 
 ; Default installation folder.
-InstallDir "$PROGRAMFILES\ITK"
+InstallDir "$PROGRAMFILES\IRTK"
   
 ; Get installation folder from registry if available.
-InstallDirRegKey HKLM "Software\ITK" "InstallationDirectory"
+InstallDirRegKey HKLM "Software\IRTK" "InstallationDirectory"
 
 ; Interface settings.
 !define MUI_ABORTWARNING
@@ -85,7 +34,7 @@ InstallDirRegKey HKLM "Software\ITK" "InstallationDirectory"
 !insertmacro MUI_LANGUAGE "English"
 
 ; Main installation section.
-Section "Install ITK" SecInstall
+Section "Install IRTK" SecInstall
   ; Specfiy read-only section.
   SectionIn RO
 
@@ -136,27 +85,27 @@ Section "Install ITK" SecInstall
   File "..\README"
   File "..\COPYRIGHT"
 
-  File "..\icons\ITK.ico"
+  File "..\icons\IRTK.ico"
 
   File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
   File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
  
   ; Write the installation path into the registry.
-  WriteRegStr HKLM SOFTWARE\ITK "InstallationDirectory" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\IRTK "InstallationDirectory" "$INSTDIR"
 
   ; Write the uninstall keys for Windows.
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ITK" "DisplayName" "ITK"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ITK" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ITK" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ITK" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\IRTK" "DisplayName" "IRTK"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\IRTK" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\IRTK" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\IRTK" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
 SectionEnd
 
 ; Optional section for creating start menu shortcuts.
 Section "Start menu shortcuts" SecStartMenuShortcuts
-  CreateDirectory "$SMPROGRAMS\ITK"
-  CreateShortCut "$SMPROGRAMS\ITK\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\ITK\rview.lnk" "$INSTDIR\rview.exe" "" "$INSTDIR\rview.exe" "0"
+  CreateDirectory "$SMPROGRAMS\IRTK"
+  CreateShortCut "$SMPROGRAMS\IRTK\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\IRTK\rview.lnk" "$INSTDIR\rview.exe" "" "$INSTDIR\rview.exe" "0"
 SectionEnd
 
 ; Optional section for adding directories to the PATH environment variable.
@@ -168,15 +117,15 @@ SectionEnd
 ; Optional section for associating .hdr, .gipl, and .nii files
 ; with rview.
 Section "File Associations" SecFileAssociations
-  !insertmacro APP_ASSOCIATE "hdr" "rview.hdrFile" "$INSTDIR\rview.exe" "$INSTDIR\ITK.ico" "Open with rview" "$INSTDIR\rview.exe $\"%1$\""
-  !insertmacro APP_ASSOCIATE "gipl" "rview.giplFile" "$INSTDIR\rview.exe" "$INSTDIR\ITK.ico" "Open with rview" "$INSTDIR\rview.exe $\"%1$\""
-  !insertmacro APP_ASSOCIATE "nii" "rview.niiFile" "$INSTDIR\rview.exe" "$INSTDIR\ITK.ico" "Open with rview" "$INSTDIR\rview.exe $\"%1$\""
+  !insertmacro APP_ASSOCIATE "hdr" "rview.hdrFile" "$INSTDIR\rview.exe" "$INSTDIR\IRTK.ico" "Open with rview" "$INSTDIR\rview.exe $\"%1$\""
+  !insertmacro APP_ASSOCIATE "gipl" "rview.giplFile" "$INSTDIR\rview.exe" "$INSTDIR\IRTK.ico" "Open with rview" "$INSTDIR\rview.exe $\"%1$\""
+  !insertmacro APP_ASSOCIATE "nii" "rview.niiFile" "$INSTDIR\rview.exe" "$INSTDIR\IRTK.ico" "Open with rview" "$INSTDIR\rview.exe $\"%1$\""
 SectionEnd
 
 ; Descriptions.
-LangString DESC_SecInstall ${LANG_ENGLISH} "Install Image Registration Toolkit (ITK) software."
+LangString DESC_SecInstall ${LANG_ENGLISH} "Install Image Registration Toolkit (IRTK) software."
 LangString DESC_SecStartMenuShortcuts ${LANG_ENGLISH} "Add shortcuts to frequently used programs to the Windows Start Menu."
-LangString DESC_SecEnvironmentVariables ${LANG_ENGLISH} "Add the installation directory to the PATH environment variable so that ITK programs can be executed from the command prompt without qualifying them with the full path name."
+LangString DESC_SecEnvironmentVariables ${LANG_ENGLISH} "Add the installation directory to the PATH environment variable so that IRTK programs can be executed from the command prompt without qualifying them with the full path name."
 LangString DESC_SecFileAssociations ${LANG_ENGLISH} "Associate .hdr and .gipl files with rview."
 
 ; Assign language strings to sections.
@@ -190,18 +139,18 @@ LangString DESC_SecFileAssociations ${LANG_ENGLISH} "Associate .hdr and .gipl fi
 ; Uninstaller section.
 Section "Uninstall"
   ; Remove the registry keys.
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ITK"
-  DeleteRegKey HKLM "Software\ITK"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\IRTK"
+  DeleteRegKey HKLM "Software\IRTK"
 
   ; Remove files, uninstaller, and icon
   Delete $INSTDIR\*.exe
-  Delete $INSTDIR\ITK.ico
+  Delete $INSTDIR\IRTK.ico
 
   ; Remove shortcuts.
-  Delete "$SMPROGRAMS\ITK\*.*"
+  Delete "$SMPROGRAMS\IRTK\*.*"
 
   ; Remove directories used.
-  RMDir "$SMPROGRAMS\ITK"
+  RMDir "$SMPROGRAMS\IRTK"
   RMDir "$INSTDIR"
 
   ; Remove installation directory from path.

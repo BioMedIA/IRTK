@@ -1,4 +1,4 @@
-Image Registration Toolkit
+Image Registration Toolkit (IRTK)
 
 Version 2.0
 
@@ -48,9 +48,4 @@ L. G. Hill, and D. J. Hawkes. Comparison and evaluation of rigid and non-rigid
 registration of breast MR images. Journal of Computer Assisted Tomography, 
 23:800-805, 1999.
 
-Other Software
-
-The Image Registration Toolkit (called ITK) is not related to the Insight Toolkit 
-(also called ITK). By coincidence both packages use the same acronymn. If you are 
-looking for the Insight Toolkit please visit http://www.itk.org.
 

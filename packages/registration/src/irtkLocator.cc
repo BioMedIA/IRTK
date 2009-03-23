@@ -10,11 +10,11 @@
 
 =========================================================================*/
 
+#ifdef HAS_VTK
+
 #include <irtkLocator.h>
 
 #include <vtkKDTreePointLocator.h>
-
-#ifdef HAS_VTK
 
 irtkLocator::irtkLocator()
 {
