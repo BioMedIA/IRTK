@@ -6,7 +6,6 @@ irtkBSplineBiasField.cc
 irtkEMClassification.cc
 irtkEMClassificationBiasCorrection.cc
 irtkEMClassificationTemplateBiasCorrection.cc
-irtkEMAffineRegistrationBiasCorrection.cc
 irtkGaussian.cc
 irtkIntensityMatching.cc
 irtkMultiChannelImage.cc
