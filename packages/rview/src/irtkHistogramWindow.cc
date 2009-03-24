@@ -60,6 +60,7 @@ void irtkHistogramWindow::CalculateHistogram(int label_id)
 {
   int i, j, k, l;
   double min, max;
+  double value;
 
   if (_v->GetTarget()->IsEmpty()) {
     cerr<< "No target image loaded." << endl;
@@ -77,7 +78,8 @@ void irtkHistogramWindow::CalculateHistogram(int label_id)
       for (k = 0; k < _v->GetTarget()->GetZ(); k++){
         for (j = 0; j < _v->GetTarget()->GetY(); j++){
           for (i = 0; i < _v->GetTarget()->GetX(); i++){
-          	_globalHistogram.AddSample(_v->GetTarget()->GetAsDouble(i, j, k, l));
+               value = _v->GetTarget()->GetAsDouble(i, j, k, l);
+          	if (value!=0)_globalHistogram.AddSample(value);
           }
         }
       }
@@ -91,7 +93,8 @@ void irtkHistogramWindow::CalculateHistogram(int label_id)
         for (k = 0; k < _v->GetTarget()->GetZ(); k++){
           for (j = 0; j < _v->GetTarget()->GetY(); j++){
             for (i = 0; i < _v->GetTarget()->GetX(); i++){
-            	if (_v->GetSegmentation()->Get(i, j, k, l) == label_id) _globalHistogram.AddSample(_v->GetTarget()->GetAsDouble(i, j, k, l));
+                value = _v->GetTarget()->GetAsDouble(i, j, k, l);
+            	if ((value!=0)&&(_v->GetSegmentation()->Get(i, j, k, l) == label_id)) _globalHistogram.AddSample(value);
             }
           }
         }
