@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   double *dofin_weight = new double[MAX_DOFS];
   double  total_weight = 0;
 
-  // Parse any remaining paramters
+  // Parse any remaining parameters
   dofCount = 0;
 
   while ((argc > 1) && (argv[1][0] != '-' )) {
@@ -126,12 +126,6 @@ int main(int argc, char **argv)
     argv++;
   }
 
-  for (i = 0; i < dofCount; ++i) {
-    dofin_name[i] = argv[1];
-    argc--;
-    argv++;
-  }
-  
   if (dofCount > 0){
     cout << "Read " << dofCount << " transformations from command line." << endl;
   }
