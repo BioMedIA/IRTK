@@ -714,7 +714,12 @@ void irtkBSplineBiasField::WeightedLeastSquares(double *x1, double *y1, double *
 
   }
 
-  for (i=0;i<_x*_y*_z; i++)
+  M.Invert();
+  P=M*P;
+
+
+/*
+    for (i=0;i<_x*_y*_z; i++)
     for (j=0;j<_x*_y*_z; j++) {
       T(i)+=M(i,j);
     }
@@ -759,6 +764,7 @@ void irtkBSplineBiasField::WeightedLeastSquares(double *x1, double *y1, double *
   free_dvector(pp, 1,rows);
   free_dvector(xx, 1,rows);
   //free_ivector( ind, 1, rows);
+*/
   cerr<<"Resulting  control points:"<<endl;
   for (k = 0; k < _z; k++) {
     for (j = 0; j < _y; j++) {
