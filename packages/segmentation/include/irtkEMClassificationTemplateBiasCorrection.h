@@ -103,6 +103,9 @@ public:
 
   virtual void Update();
   void MatchIntensity(irtkRealImage&);
+  void PutBoundingBox();
+  void IntensityInit();
+
 
 
 

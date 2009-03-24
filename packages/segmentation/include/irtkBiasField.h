@@ -327,6 +327,10 @@ inline void irtkBiasField::PutBoundingBox(double x1, double y1, double z1, doubl
   z2 = c;
 
   // Initialize control point spacing
+
+  _x = round((x2-x1)/_dx) +1;
+  _y = round((y2-y1)/_dy) +1;
+  _z = round((z2-z1)/_dz) +1;
   _dx = (x2 - x1) / (_x - 1);
   _dy = (y2 - y1) / (_y - 1);
   if (z2 > z1) {
