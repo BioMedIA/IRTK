@@ -34,6 +34,8 @@ irtkEMClassificationTemplateBiasCorrection::irtkEMClassificationTemplateBiasCorr
   _number_of_voxels = 0;
   _init=false;
 
+
+  //IntensityInit();
   irtkMultiChannelImage mch;
   mch.SetPadding((int) _padding);
   mch.AddImage(Resample(_uncorrected_target));
@@ -52,9 +54,10 @@ irtkEMClassificationTemplateBiasCorrection::irtkEMClassificationTemplateBiasCorr
   SetInput(mch.Subtract());
 
   _biasfield = new irtkBSplineBiasField(_d_target, spacing, spacing, spacing);
+  PutBoundingBox();
   _biascorrection.SetOutput(_biasfield);
-   CorrectTarget();
-   Update();
+   //CorrectTarget();
+   //Update();
 
 
 }
@@ -64,9 +67,126 @@ irtkEMClassificationTemplateBiasCorrection::~irtkEMClassificationTemplateBiasCor
   delete _biasfield;
 }
 
+void irtkEMClassificationTemplateBiasCorrection::PutBoundingBox()
+{
+
+  double x1,y1,z1,x2,y2,z2;
+  int treshold = 0;
+  // Default roi
+  x1 = 0;
+  y1 = 0;
+  z1 = 0;
+  x2 = _input.GetX();
+  y2 = _input.GetY();
+  z2 = _input.GetZ();
+
+  int i,j,k;
+/////////z coordinate
+  int sum=0;
+  for(k=_input.GetZ()-1;k>=0;k--)
+  {
+    sum=0;
+    for(j=_input.GetY()-1;j>=0;j--)
+      for(i=_input.GetX()-1;i>=0;i--)
+      {
+        if(_mask.Get(i,j,k)>0) sum++;
+      }
+    if (sum>treshold) break;
+  }
+
+  z2=k;
+  cerr<<z2<<endl;
+
+  sum=0;
+  for(k=0; k<=_input.GetZ()-1;k++)
+  {
+    sum=0;
+    for(j=_input.GetY()-1;j>=0;j--)
+      for(i=_input.GetX()-1;i>=0;i--)
+      {
+        if(_mask.Get(i,j,k)>0) sum++;
+      }
+    if (sum>treshold) break;
+  }
+
+  z1=k;
+  cerr<<z1<<endl;
+
+/////////y coordinate
+  sum=0;
+  for(j=_input.GetY()-1;j>=0;j--)
+  {
+    sum=0;
+    for(k=_input.GetZ()-1;k>=0;k--)
+      for(i=_input.GetX()-1;i>=0;i--)
+      {
+        if(_mask.Get(i,j,k)>0) sum++;
+      }
+    if (sum>treshold) break;
+  }
+
+  y2=j;
+  cerr<<y2<<endl;
+
+  sum=0;
+  for(j=0; j<=_input.GetY()-1;j++)
+  {
+    sum=0;
+    for(k=_input.GetZ()-1;k>=0;k--)
+      for(i=_input.GetX()-1;i>=0;i--)
+      {
+        if(_mask.Get(i,j,k)>0) sum++;
+      }
+    if (sum>treshold) break;
+  }
+
+  y1=j;
+  cerr<<y1<<endl;
+
+/////////x coordinate
+  sum=0;
+  for(i=_input.GetX()-1;i>=0;i--)
+  {
+    sum=0;
+    for(k=_input.GetZ()-1;k>=0;k--)
+      for(j=_input.GetY()-1;j>=0;j--)
+      {
+        if(_mask.Get(i,j,k)>0) sum++;
+      }
+    if (sum>treshold) break;
+  }
+
+  x2=i;
+  cerr<<x2<<endl;
+
+  sum=0;
+  for(i=0; i<=_input.GetX()-1;i++)
+  {
+    sum=0;
+    for(k=_input.GetZ()-1;k>=0;k--)
+      for(j=_input.GetY()-1;j>=0;j--)
+      {
+        if(_mask.Get(i,j,k)>0) sum++;
+      }
+    if (sum>treshold) break;
+  }
+
+  x1=i;
+  cerr<<x1<<endl;
+
+  cerr<<x1<<" "<<y1<<" "<<z1<<" "<<x2<<" "<<y2<<" "<<z2<<endl;
+  
+  _input.ImageToWorld(x1, y1, z1);
+  _input.ImageToWorld(x2, y2, z2);
+  _biasfield->PutBoundingBox(x1,y1,z1,x2,y2,z2);
+
+
+}
+
 void irtkEMClassificationTemplateBiasCorrection::Initialise()
 {
   IStep();
+  //IntensityInit();
   SetInput(_uncorrected);
   InitialiseGMMParameters();
   PrintGMM();
@@ -206,7 +326,7 @@ void irtkEMClassificationTemplateBiasCorrection::Update()
   _d_reference = Resample(mch.GetImage(1));
   _d_reference.Write("_dr.nii.gz");
   _d_rm = _d_reference;
-  MatchIntensity(_d_rm);
+  //MatchIntensity(_d_rm);
   _d_rm.Write("_drm.nii.gz");
 
 
@@ -248,7 +368,7 @@ void irtkEMClassificationTemplateBiasCorrection::CorrectTarget()
   corrected.Log(0);
   ApplyBias(corrected.GetImage(0));
   corrected.Exp(0);
-  corrected.AdjustMean(0,1);
+  //corrected.AdjustMean(0,1);
   _target = corrected.GetImage(0);
 }
 
@@ -289,4 +409,78 @@ double irtkEMClassificationTemplateBiasCorrection::PointLogLikelihoodGMMnomatch(
 }
 
 
+void irtkEMClassificationTemplateBiasCorrection::IntensityInit()
+{
+
+  cerr<<"IntensityInit: "<<endl;
+  irtkRealPixel *pt, *pr;
+  int i,n=0;
+  double *x,*y,*w;
+  irtkRealPixel xmin, xmax, ymin, ymax;
+
+  //initialise
+  _target.GetMinMax(&ymax,&ymin);
+  _reference.GetMinMax(&xmax,&xmin);
+
+  
+  pt = _target.GetPointerToVoxels();
+  pr = _reference.GetPointerToVoxels();
+  _target.Write("target.nii.gz");
+  _reference.Write("reference.nii.gz");
+  
+  for( i=0; i<_target.GetNumberOfVoxels(); i++) 
+  {
+    if((*pt != _padding)&&(*pr != _padding)) n++;
+    pt++;
+    pr++;
+  }
+  
+  x = new double[n];
+  y = new double[n];
+  w = new double[n];
+
+  pt = _target.GetPointerToVoxels();
+  pr = _reference.GetPointerToVoxels();
+  //if (_init) pw = _weights.GetPointerToVoxels();
+
+  n=0;
+  for( i=0; i<_target.GetNumberOfVoxels(); i++) 
+  {
+    if((*pt != _padding)&&(*pr != _padding))
+    {
+      x[n] = *pr;
+      y[n] = *pt;
+      //if (_init) w[n]=*pw;
+      w[n]=1;
+      n++;
+      if(*pr<xmin) xmin=*pr;
+      if(*pr>xmax) xmax=*pr;
+      if(*pt<ymin) ymin=*pt;
+      if(*pt>ymax) ymax=*pt;
+    }
+    pt++;
+    pr++;
+  }
+
+  _matching.SetMinMax(xmin,xmax);
+  _matching.SetYMinMax(ymin,ymax);
+  
+  _matching.MatchMeanAndVariance(x,y,w,n);
+  
+   cerr<<endl<<"Updating reference ... "<<endl;
+    pr = _reference.GetPointerToVoxels();
+    for( i=0; i<_reference.GetNumberOfVoxels(); i++) 
+    {
+      if(*pr != _padding)
+      {
+        *pr=_matching.Lin(*pr);
+      }
+      pr++;
+   }
+   _reference.Write("matched-reference.nii.gz");
+
+  delete[] x;
+  delete[] y;
+  delete[] w;
+}
 
