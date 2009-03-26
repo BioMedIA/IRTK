@@ -21,7 +21,9 @@ void usage()
 int main(int argc, char **argv)
 {
   int i, x, y, z, t;
-
+  irtkImageAttributes ipt0_at;     //add (1/2)
+  irtkImageAttributes iptI_at;     //add (1/2)
+  
   // Determine how many volumes we have
   t = argc-2;
 
@@ -34,20 +36,33 @@ int main(int argc, char **argv)
   // Read first image
   cout << "Reading " << argv[1] << endl;
   input[0].Read(argv[1]);
-
+  ipt0_at = input[0].GetImageAttributes();                                                                        //add (1/2)
+  
   // Read remaining images
   for (i = 1; i < t; i++) {
 
     cout << "Reading " << argv[i+1] << endl;
     input[i].Read(argv[i+1]);
 
-    if (!(input[0].GetImageAttributes() == input[i].GetImageAttributes())) {
-      cerr << "Mismatch of volume geometry" << endl;
-      exit(1);
-    }
+  
+    //if (!(input[0].GetImageAttributes() == input[i].GetImageAttributes())) {  //removed (1/2)
+    //  cerr << "Mismatch of volume geometry" << endl;                          //removed (1/2)
+    //  exit(1);                                                                //removed (1/2) -> does not work
+    //}                                                                         //removed (1/2)
+    
+    iptI_at = input[i].GetImageAttributes();                                                                        //add (1/2)
+    if ((ipt0_at._x!=iptI_at._x)||(ipt0_at._y!=iptI_at._y)||(ipt0_at._z!=iptI_at._z)||(ipt0_at._t!=iptI_at._t)){    //add (1/2)
+	    cerr << "Mismatch of volume geometry" << endl;                                                          //add (1/2)
+	    exit(1);                                                                                                //add (1/2)
+    }                                                                                                               //add (1/2)
   }
-
-  irtkGreyImage output(input[0].GetImageAttributes());
+  
+  //irtkGreyImage output(input[0].GetImageAttributes());              //removed (2/2)
+  
+  irtkImageAttributes OutputSeqAttributes=input[0].GetImageAttributes();  //add (2/2)
+  OutputSeqAttributes._t=t;                                               //add (2/2)
+  irtkGreyImage output(OutputSeqAttributes);                              //add (2/2)
+  
 
   cout << "Inserting volumes into sequence" << endl;
   for (i = 0; i < t; i++) {
