@@ -90,8 +90,14 @@ public:
   /// Get output
   virtual irtkImage *GetOutput();
 
- /// Get debug flag
+  /// Get debug flag
   virtual int  GetDebugFlag();
+
+  /// Get slope
+  virtual double  GetSlope();
+
+  /// Get intercept
+  virtual double  GetIntercept();
 
   /// Put debug flag
   virtual void PutDebugFlag(int);

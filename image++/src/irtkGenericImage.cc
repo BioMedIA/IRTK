@@ -181,9 +181,6 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
   // Get output
   image = reader->GetOutput();
 
-  // Delete reader
-  delete reader;
-
   // Convert image
   if (dynamic_cast<irtkGenericImage<char> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<char> *>(image));
@@ -201,6 +198,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
   	cerr << "irtkGenericImage<VoxelType>::Read: Cannot convert image to desired type" << endl;
   	exit(1);
   }
+  
+  if (strcmp(this->NameOfClass(), "irtkGenericImage<float>") || strcmp(this->NameOfClass(), "irtkGenericImage<double>")){
+  	*this = (*this * reader->GetSlope()) + reader->GetIntercept();
+  }
+
+  // Delete reader
+  delete reader;
 
   // Delete image
   delete image;

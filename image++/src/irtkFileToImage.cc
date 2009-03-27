@@ -127,7 +127,6 @@ void irtkFileToImage::SetInput(const char *imagename)
 
 irtkImage *irtkFileToImage::GetOutput()
 {
-  int x, y, z, t;
   irtkImage *output = NULL;
 
   // Bring image to correct size
@@ -140,18 +139,6 @@ irtkImage *irtkFileToImage::GetOutput()
       // Read data
       this->ReadAsChar((char *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
 
-      // Scale data
-      char *ptr = (char *)output->GetScalarPointer();
-      for (t = 0; t < _attr._t; t++) {
-        for (z = 0; z < _attr._z; z++) {
-          for (y = 0; y < _attr._y; y++) {
-            for (x = 0; x < _attr._x; x++) {
-              *ptr = *ptr * _slope + _intercept;
-              ptr++;
-            }
-          }
-        }
-      }
     }
     break;
 
@@ -163,18 +150,6 @@ irtkImage *irtkFileToImage::GetOutput()
       // Read data
       this->ReadAsUChar((unsigned char *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
 
-      // Scale data
-      unsigned char *ptr = (unsigned char *)output->GetScalarPointer();
-      for (t = 0; t < _attr._t; t++) {
-        for (z = 0; z < _attr._z; z++) {
-          for (y = 0; y < _attr._y; y++) {
-            for (x = 0; x < _attr._x; x++) {
-              *ptr = *ptr * _slope + _intercept;
-              ptr++;
-            }
-          }
-        }
-      }
     }
     break;
 
@@ -186,18 +161,6 @@ irtkImage *irtkFileToImage::GetOutput()
       // Read data
       this->ReadAsShort((short *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
 
-      // Scale data
-      short *ptr = (short *)output->GetScalarPointer();
-      for (t = 0; t < _attr._t; t++) {
-        for (z = 0; z < _attr._z; z++) {
-          for (y = 0; y < _attr._y; y++) {
-            for (x = 0; x < _attr._x; x++) {
-              *ptr = *ptr * _slope + _intercept;
-              ptr++;
-            }
-          }
-        }
-      }
     }
     break;
 
@@ -209,18 +172,6 @@ irtkImage *irtkFileToImage::GetOutput()
       // Read data
       this->ReadAsUShort((unsigned short *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
 
-      // Scale data
-      unsigned short *ptr = (unsigned short *)output->GetScalarPointer();
-      for (t = 0; t < _attr._t; t++) {
-        for (z = 0; z < _attr._z; z++) {
-          for (y = 0; y < _attr._y; y++) {
-            for (x = 0; x < _attr._x; x++) {
-              *ptr = *ptr * _slope + _intercept;
-              ptr++;
-            }
-          }
-        }
-      }
     }
     break;
 
@@ -232,18 +183,6 @@ irtkImage *irtkFileToImage::GetOutput()
       // Read data
       this->ReadAsFloat((float *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
 
-      // Scale data
-      float *ptr = (float *)output->GetScalarPointer();
-      for (t = 0; t < _attr._t; t++) {
-        for (z = 0; z < _attr._z; z++) {
-          for (y = 0; y < _attr._y; y++) {
-            for (x = 0; x < _attr._x; x++) {
-              *ptr = *ptr * _slope + _intercept;
-              ptr++;
-            }
-          }
-        }
-      }
     }
     break;
 
@@ -255,18 +194,6 @@ irtkImage *irtkFileToImage::GetOutput()
       // Read data
       this->ReadAsDouble((double *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
 
-      // Scale data
-      double *ptr = (double *)output->GetScalarPointer();
-      for (t = 0; t < _attr._t; t++) {
-        for (z = 0; z < _attr._z; z++) {
-          for (y = 0; y < _attr._y; y++) {
-            for (x = 0; x < _attr._x; x++) {
-              *ptr = *ptr * _slope + _intercept;
-              ptr++;
-            }
-          }
-        }
-      }
     }
     break;
 
@@ -280,6 +207,16 @@ irtkImage *irtkFileToImage::GetOutput()
   if (_reflectZ == True) output->ReflectZ();
 
   return output;
+}
+
+double irtkFileToImage::GetSlope()
+{
+	return this->_slope;
+}
+
+double irtkFileToImage::GetIntercept()
+{
+	return this->_intercept;
 }
 
 void irtkFileToImage::Print()

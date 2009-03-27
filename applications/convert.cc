@@ -119,8 +119,6 @@ int main(int argc, char **argv)
       exit(1);
     }
   }
-
-  if (-0.5 < voxel_limits<double>::min()) cout << "True" << endl;
   
   // Read image
   irtkGenericImage<double> image(input_name);

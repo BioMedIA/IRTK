@@ -293,20 +293,10 @@ void irtkFileNIFTIToImage::ReadHeader()
   case NIFTI_TYPE_UINT8:
     this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
     this->_bytes = 1;
-    if (this->_slope != 1){
-    	cerr << "irtkFileNIFTIToImage: Ignoring rescale slope in NIFTI header. Read data as float or double to avoid this" << endl;
-    }
-    this->_slope     = 1;
-    this->_intercept = 0;
     break;
   case NIFTI_TYPE_INT16:
     this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
-    if (this->_slope != 1){
-    	cerr << "irtkFileNIFTIToImage: Ignoring rescale slope in NIFTI header. Read data as float or double to avoid this" << endl;
-    }
-    this->_slope     = 1;
-    this->_intercept = 0;
     break;
   case NIFTI_TYPE_FLOAT32:
     this->_type  = IRTK_VOXEL_FLOAT;
@@ -315,11 +305,6 @@ void irtkFileNIFTIToImage::ReadHeader()
   case NIFTI_TYPE_INT32:
     this->_type  = IRTK_VOXEL_INT;
     this->_bytes = 4;
-    if (this->_slope != 1){
-    	cerr << "irtkFileNIFTIToImage: Ignoring rescale slope in NIFTI header. Read data as float or double to avoid this" << endl;
-    }
-    this->_slope     = 1;
-    this->_intercept = 0;
     break;
   case NIFTI_TYPE_FLOAT64:
     this->_type = IRTK_VOXEL_DOUBLE;
