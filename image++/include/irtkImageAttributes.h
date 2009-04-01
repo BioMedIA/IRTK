@@ -67,6 +67,8 @@ public:
 
   /// Comparison operator
   Bool operator==(const irtkImageAttributes &attr) const;
+ /// Print attributes
+ void Print();
 
 };
 
@@ -184,9 +186,21 @@ inline Bool irtkImageAttributes::operator==(const irtkImageAttributes &attr) con
           (_dx == attr._dx) && (_dy == attr._dy) && (_dz == attr._dz) && (_dt == attr._dt) &&
           (_xaxis[0] == attr._xaxis[0]) && (_xaxis[1] == attr._xaxis[1]) && (_xaxis[2] == attr._xaxis[2]) &&
           (_yaxis[0] == attr._yaxis[0]) && (_yaxis[1] == attr._yaxis[1]) && (_yaxis[2] == attr._yaxis[2]) &&
-          (_xaxis[0] == attr._zaxis[0]) && (_zaxis[1] == attr._zaxis[1]) && (_zaxis[2] == attr._zaxis[2]) &&
+          (_zaxis[0] == attr._zaxis[0]) && (_zaxis[1] == attr._zaxis[1]) && (_zaxis[2] == attr._zaxis[2]) &&
           (_xorigin == attr._xorigin) && (_yorigin == attr._yorigin) && (_zorigin == attr._zorigin) && 
           (_torigin == attr._torigin));
 }
+
+inline void irtkImageAttributes::Print()
+{
+	
+  cerr<<_x<<" "<<_y<<" "<<_z<<" "<<_t<<endl;
+  cerr<<_dx<<" "<<_dy<<" "<<_dz<<" "<<_dt<<endl;
+  cerr<<_xorigin<<" "<<_yorigin<<" "<<_zorigin<<" "<<_torigin<<endl;
+  cerr<<_xaxis[0]<<" "<<_xaxis[1]<<" "<<_xaxis[2]<<endl;
+  cerr<<_yaxis[0]<<" "<<_yaxis[1]<<" "<<_yaxis[2]<<endl;
+  cerr<<_zaxis[0]<<" "<<_zaxis[1]<<" "<<_zaxis[2]<<endl;
+}
+
 
 #endif

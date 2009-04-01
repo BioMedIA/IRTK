@@ -498,6 +498,8 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
 
   if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
     cerr << "irtkGenericImage<VoxelType>::operator+=: Size mismatch in images\n";
+    this->GetImageAttributes().Print();
+    image.GetImageAttributes().Print();
     exit(1);
   }
 
