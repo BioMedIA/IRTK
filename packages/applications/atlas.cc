@@ -17,7 +17,7 @@
 #include <irtkTransformation.h>
 
 // Default filenames
-char *output_name = NULL, *prefix_name = NULL, *textfile = NULL;
+char *output_name = NULL, *prefix_name = NULL, *suffix_name = NULL, *textfile = NULL;
 
 #define MAX_IMAGES 10000
 #define EPSILON    0.001
@@ -167,13 +167,21 @@ int main(int argc, char **argv)
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-prefix") == 0)) {
-      argc--;
-      argv++;
-      prefix_name = argv[1];
-      argc--;
-      argv++;
-      ok = True;
-    }
+       argc--;
+       argv++;
+       prefix_name = argv[1];
+       argc--;
+       argv++;
+       ok = True;
+     }
+    if ((ok == False) && (strcmp(argv[1], "-suffix") == 0)) {
+       argc--;
+       argv++;
+       suffix_name = argv[1];
+       argc--;
+       argv++;
+       ok = True;
+     }
     if ((ok == False) && (strcmp(argv[1], "-epsilon") == 0)) {
       argc--;
       argv++;
@@ -217,12 +225,20 @@ int main(int argc, char **argv)
 
     // Read input
     if (prefix_name != NULL) {
-      sprintf(buffer, "%s/%s", prefix_name, input_name[i]);
+      sprintf(buffer, "%s%s", prefix_name, input_name[i]);
     } else {
       sprintf(buffer, "%s", input_name[i]);
     }
-    cout << "Reading input image " << buffer << "... "; cout.flush();
-    input.Read(buffer);
+    input_name[i] = strdup(buffer);
+    if (suffix_name != NULL) {
+      sprintf(buffer, "%s%s",  input_name[i], suffix_name);
+    } else {
+      sprintf(buffer, "%s", input_name[i]);
+    }
+    input_name[i] = strdup(buffer);
+
+    cout << "Reading input image " << input_name[i] << "... "; cout.flush();
+    input.Read(input_name[i]);
     cout << "done" << endl;
 
     if (i == 0) {
