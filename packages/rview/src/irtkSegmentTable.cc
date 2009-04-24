@@ -95,7 +95,7 @@ void irtkSegmentTable::Read(char *name)
 
   // Read keyword
   from >> buffer;
-  if (strcmp(buffer, "irtkSegmentTable:") != 0) {
+  if ((strcmp(buffer, "irtkSegmentTable:") != 0) && (strcmp(buffer, "itkSegmentTable:") != 0)) {
     cerr << "irtkSegmentTable::Read: Not a valid segment table" << endl;
     exit(1);
   }
