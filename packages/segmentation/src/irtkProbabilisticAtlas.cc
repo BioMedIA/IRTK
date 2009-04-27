@@ -121,6 +121,7 @@ void irtkProbabilisticAtlas::AddBackground()
   irtkRealImage other;
   other = _images[0];
   for (i = 1; i < _number_of_tissues-1; i++) {
+    cerr<<i<<endl;
     other += _images[i];
   }
   other.GetMinMax(&min, &max);

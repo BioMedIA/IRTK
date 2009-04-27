@@ -4,7 +4,7 @@
 #include <irtkMultiChannelImage.h>
 
 char *corrected_name=NULL, *bias_name=NULL;
-double cutoff=0.5, voxelsize=3, sigma = 0;
+double nomatch = false, voxelsize=3, sigma = 0;
 int padding=0, iterations=5;
 double spacing = 75;
 double variance_ratio = 4;
@@ -14,7 +14,7 @@ double c0 = 0.5;
 void usage()
 {
   cerr << "Usage: bc2 [image] [reference] [corrected] "
-		  "<-bias> <-iterations> <-padding> <-cutoff> <-voxelsize> <-spacing>" << endl;
+		  "<-bias> <-iterations> <-padding> <-nomatch> <-voxelsize> <-spacing>" << endl;
   exit(1);
 }
 
@@ -65,12 +65,10 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cutoff") == 0)){
+    if ((ok == False) && (strcmp(argv[1], "-nomatch") == 0)){
       argc--;
       argv++;
-      cutoff = atof(argv[1]);
-      argc--;
-      argv++;
+      nomatch = true;
       ok = True;
     }
 
@@ -105,7 +103,7 @@ int main(int argc, char **argv)
   }
 
   irtkEMClassificationTemplateBiasCorrection classification(image,reference,spacing,padding,voxelsize);
-  classification.Initialise();
+  classification.Initialise(nomatch);
   //classification.WriteProbMap(0,"inliers.nii.gz");
   //classification.WriteProbMap(1,"outliers.nii.gz");
   //classification.WriteInput("difference.nii.gz");
@@ -121,16 +119,34 @@ int main(int argc, char **argv)
     rel_diff = classification.IterateGMM(i);
 
     char buffer1[100];
-    //classification.CorrectTarget();
-    //sprintf(buffer1, "c%d.nii.gz",i);
-    //classification.WriteTarget(buffer1);
+    char buffer2[100];
+    char buffer3[100];
+    char buffer4[100];
+    char buffer5[100];
+    char buffer6[100];
+ 
+    classification.CorrectTarget();
+    sprintf(buffer1, "c%d.nii.gz",i);
+    sprintf(buffer2, "b%d",i);
+    sprintf(buffer3, "pm0%d.nii.gz",i);
+    sprintf(buffer4, "pm1%d.nii.gz",i);
+    sprintf(buffer5, "in%d.nii.gz",i);
+    sprintf(buffer6, "w%d.nii.gz",i);
+
+    classification.WriteTarget(buffer1);
+    classification.WriteBias(buffer2);
+    classification.WriteProbMap(0,buffer3);
+    classification.WriteProbMap(1,buffer4);
+    classification.WriteInput(buffer5);
+    classification.WriteWeights(buffer6);
+ 
 
     i++;
 
   }
   while((rel_diff>0.001)&&(i<iterations));
-
-/*  int i = 1;
+/*
+  i = 1;
   while(i<=iterations)
   {
 
@@ -152,14 +168,14 @@ int main(int argc, char **argv)
     sprintf(buffer4, "pm1%d.nii.gz",i);
     sprintf(buffer5, "in%d.nii.gz",i);
     sprintf(buffer6, "w%d.nii.gz",i);
-    sprintf(buffer7, "rm%d.nii.gz",i);
+    //sprintf(buffer7, "rm%d.nii.gz",i);
     classification.WriteTarget(buffer1);
     classification.WriteBias(buffer2);
     classification.WriteProbMap(0,buffer3);
     classification.WriteProbMap(1,buffer4);
     classification.WriteInput(buffer5);
     classification.WriteWeights(buffer6);
-    classification.WriteMatchedReference(buffer7);
+    //classification.WriteMatchedReference(buffer7);
 
     i++;
   }

@@ -175,6 +175,12 @@ void irtkEMClassificationTemplateBiasCorrection::PutBoundingBox()
   cerr<<x1<<endl;
 
   cerr<<x1<<" "<<y1<<" "<<z1<<" "<<x2<<" "<<y2<<" "<<z2<<endl;
+  x1 -= 1; 
+  y1 -= 1;
+  z1 -= 1;
+  x2 += 1; 
+  y2 += 1;
+  z2 += 1;
   
   _input.ImageToWorld(x1, y1, z1);
   _input.ImageToWorld(x2, y2, z2);
@@ -183,9 +189,9 @@ void irtkEMClassificationTemplateBiasCorrection::PutBoundingBox()
 
 }
 
-void irtkEMClassificationTemplateBiasCorrection::Initialise()
+void irtkEMClassificationTemplateBiasCorrection::Initialise(bool nomatch)
 {
-  IStep();
+  if (!nomatch) IStep();
   //IntensityInit();
   SetInput(_uncorrected);
   InitialiseGMMParameters();
@@ -354,6 +360,7 @@ double irtkEMClassificationTemplateBiasCorrection::IterateGMM(int iteration)
   PrintGMM();
   this->WStep();
   this->BStep();
+  //Update();
   _biasfield->Print();
 
   return LogLikelihoodGMM();

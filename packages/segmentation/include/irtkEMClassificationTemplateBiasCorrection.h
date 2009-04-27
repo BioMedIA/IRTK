@@ -75,7 +75,7 @@ public:
   ~irtkEMClassificationTemplateBiasCorrection();
 
   /// Intialize segmentation process
-  void Initialise();
+  void Initialise(bool nomatch);
 
   /// Estimate initial GMM parameters
   void InitialiseGMMParameters();
