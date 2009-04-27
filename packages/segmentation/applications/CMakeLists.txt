@@ -28,6 +28,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(gmm gmm.cc)
     ADD_EXECUTABLE(gmm-par gmm-par.cc)
     ADD_EXECUTABLE(ems_hard_segmentation hard_segmentation.cc)
+    ADD_EXECUTABLE(enlarge_image enlarge_image.cc)
 
   ENDIF (BUILD_MPI_EXE)
 
