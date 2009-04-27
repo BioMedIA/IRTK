@@ -37,11 +37,15 @@ irtkEMClassification::irtkEMClassification(int noTissues, irtkRealImage **atlas,
   _atlas.AddProbabilityMaps(noTissues, atlas);
   _output.AddProbabilityMaps(noTissues, atlas);
   if (background == NULL) {
+    cerr<<"adding background ..."<<endl;
     _atlas.AddBackground();
     _output.AddBackground();
+    cerr<<"done"<<endl;
   } else {
+    cerr<<"normalize ...";
     _atlas.NormalizeAtlas(*background);
     _output.NormalizeAtlas(*background);
+    cerr<<"done ..."<<endl;
   }
   _background_tissue = noTissues;
   _padding = MIN_GREY;
@@ -70,8 +74,6 @@ irtkEMClassification::irtkEMClassification(int noTissues, irtkRealImage **atlas)
   _f = 0;
   _G = NULL;
   _background_tissue = -1;
-
-
 }
 
 irtkEMClassification::~irtkEMClassification()
@@ -102,7 +104,6 @@ void irtkEMClassification::CreateMask()
     else *p=0;
     p++;
   }
-  _mask.Write("_mask.nii.gz");
 }
 
 void irtkEMClassification::SetMask(irtkRealImage &mask)
@@ -594,6 +595,7 @@ double irtkEMClassification::Iterate(int iteration)
 {
   this->EStep();
   this->MStep();
+  Print();
   return LogLikelihood();
 }
 
