@@ -82,6 +82,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       padding = atoi(argv[1]);
+      cerr << "padding  = " << padding <<endl;
       argc--;
       argv++;
       ok = True;
