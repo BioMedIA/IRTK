@@ -105,8 +105,8 @@ int main(int argc, char **argv)
   irtkEMClassification classification(n, atlas);
 
 
-  classification.SetInput(image);
   classification.SetPadding(padding);
+  classification.SetInput(image);
   classification.InitialiseGMM();
 
   double rel_diff;
