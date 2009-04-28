@@ -1510,11 +1510,13 @@ void irtkRView::ReadTarget(int argc, char **argv)
   cout << "Reading " << argv[0] << endl;
   nimages[0] = irtkImage::New(argv[0]);
 
-  for (i = 0; i < n; i++) {
+  for (i = 1; i < n; i++) {
     cout << "Reading " << argv[i] << endl;
     nimages[i] = irtkImage::New(argv[i]);
     if (!(nimages[0]->GetImageAttributes() == nimages[i]->GetImageAttributes())) {
       cerr << "Mismatch of image geometry in sequence" << endl;
+      nimages[0]->Print();
+      nimages[i]->Print();
       exit(1);
     }
   }
@@ -1629,7 +1631,7 @@ void irtkRView::ReadSource(int argc, char **argv)
   cout << "Reading " << argv[0] << endl;
   nimages[0] = irtkImage::New(argv[0]);
 
-  for (i = 0; i < n; i++) {
+  for (i = 1; i < n; i++) {
     cout << "Reading " << argv[i] << endl;
     nimages[i] = irtkImage::New(argv[i]);
     if (!(nimages[0]->GetImageAttributes() == nimages[i]->GetImageAttributes())) {
@@ -2310,7 +2312,7 @@ void irtkRView::GetInfoText(char *buffer1, char *buffer2, char *buffer3, char *b
       (k >= 0) && (k < _targetImage->GetZ())) {
     sprintf(buffer1, "% d % d % d", i, j, k);
     sprintf(buffer2, "% .1f % .1f % .1f", point._x, point._y, point._z);
-    sprintf(buffer3, "% .2f", _targetImage->GetAsDouble(i, j, k));
+    sprintf(buffer3, "% .2f", _targetImage->GetAsDouble(i, j, k, _targetFrame));
   } else {
     sprintf(buffer1, " ");
     sprintf(buffer2, " ");
@@ -2328,7 +2330,7 @@ void irtkRView::GetInfoText(char *buffer1, char *buffer2, char *buffer3, char *b
   if ((i >= 0) && (i < _sourceImage->GetX()) &&
       (j >= 0) && (j < _sourceImage->GetY()) &&
       (k >= 0) && (k < _sourceImage->GetZ())) {
-    sprintf(buffer4, "% .2f", _sourceImage->GetAsDouble(i, j, k));
+    sprintf(buffer4, "% .2f", _sourceImage->GetAsDouble(i, j, k, _sourceFrame));
   } else {
     sprintf(buffer4, " ");
   }
