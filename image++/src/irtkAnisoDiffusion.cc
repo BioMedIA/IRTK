@@ -739,7 +739,7 @@ template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
 
 template <class VoxelType> void anisoDiffusion<VoxelType>::Run()
 {
-	if ((this->TimeDependent==True) and (this->_input->GetT()>4)){
+	if ((this->TimeDependent==True) && (this->_input->GetT()>4)){
 		if (this->SemiImplicit==True)
 			Run_4D_semiImplicit();
 		else
