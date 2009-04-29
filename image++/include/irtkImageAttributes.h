@@ -1,6 +1,6 @@
-#ifndef IRTKattrATTRIBUTES_H
+#ifndef IRTKIMAGEATTRIBUTES_H
 
-#define IRTKattrATTRIBUTES_H
+#define IRTKIMAGEATTRIBUTES_H
 
 /**
  * Class which defines the attributes of the imaging geometry

@@ -56,6 +56,13 @@ template <> struct voxel_limits<unsigned short> {
 	
 };
 
+template <> struct voxel_limits<int> {
+
+	static double min() throw() { return static_cast<int>(~(~0u >> 1)); }
+	static double max() throw() { return static_cast<int>( ~0u >> 1); }
+	
+};
+
 template <> struct voxel_limits<float> {
 
 	static double min() throw() { return static_cast<float>(-1.0e+38f); }

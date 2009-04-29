@@ -16,6 +16,7 @@ template class irtkGenericImage<char>;
 template class irtkGenericImage<unsigned char>;
 template class irtkGenericImage<short>;
 template class irtkGenericImage<unsigned short>;
+template class irtkGenericImage<int>;
 template class irtkGenericImage<float>;
 template class irtkGenericImage<double>;
 

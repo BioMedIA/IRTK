@@ -410,6 +410,11 @@ template <> inline int irtkGenericImage<short>::GetScalarType() const
 	return IRTK_VOXEL_SHORT;
 }
 
+template <> inline int irtkGenericImage<int>::GetScalarType() const
+{
+	return IRTK_VOXEL_INT;
+}
+
 template <> inline int irtkGenericImage<float>::GetScalarType() const
 {
 	return IRTK_VOXEL_FLOAT;
