@@ -138,6 +138,11 @@ template <> const char *irtkGenericImage<float>::NameOfClass()
   return "irtkGenericImage<float>";
 }
 
+template <> const char *irtkGenericImage<int>::NameOfClass()
+{
+  return "irtkGenericImage<int>";
+}
+
 template <> const char *irtkGenericImage<double>::NameOfClass()
 {
   return "irtkGenericImage<double>";
@@ -306,6 +311,9 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   irtkImageAttributes attr = this->_attr;
   attr._z = 1;
   attr._t = 1;
+  attr._xorigin = 0;
+  attr._yorigin = 0;
+  attr._zorigin = 0;
   irtkGenericImage<VoxelType> image(attr);
 
   // Calculate position of first voxel in roi in original image
@@ -378,6 +386,9 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   attr._x = i2 - i1;
   attr._y = j2 - j1;
   attr._z = k2 - k1;
+  attr._xorigin = 0;
+  attr._yorigin = 0;
+  attr._zorigin = 0;
   irtkGenericImage<VoxelType> image(attr);
 
   // Calculate position of first voxel in roi in original image
@@ -428,6 +439,9 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   attr._y = j2 - j1;
   attr._z = k2 - k1;
   attr._t = l2 - l1;
+  attr._xorigin = 0;
+  attr._yorigin = 0;
+  attr._zorigin = 0;
   irtkGenericImage<VoxelType> image(attr);
 
   // Calculate position of first voxel in roi in original image
@@ -1048,6 +1062,11 @@ template <> int irtkGenericImage<short>::ImageToVTKScalarType()
 template <> int irtkGenericImage<unsigned short>::ImageToVTKScalarType()
 {
   return VTK_UNSIGNED_SHORT;
+}
+
+template <> int irtkGenericImage<int>::ImageToVTKScalarType()
+{
+  return VTK_UNSIGNED_INT;
 }
 
 template <> int irtkGenericImage<float>::ImageToVTKScalarType()
