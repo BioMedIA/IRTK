@@ -174,6 +174,17 @@ irtkImage *irtkFileToImage::GetOutput()
 
     }
     break;
+    
+  case IRTK_VOXEL_INT: {
+
+      // Allocate image
+      output = new irtkGenericImage<int>(_attr);
+
+      // Read data
+      this->ReadAsInt((int *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+
+    }
+    break;
 
   case IRTK_VOXEL_FLOAT: {
 
