@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   argc--;
 
   // Read image
-  irtkGreyImage image;
+  irtkRealImage image;
   image.Read(input_name);
 
   // Set up marching cubes filter
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
       argv++;
       // Blur image
       cerr << "Blurring image with sigma = " << atof(argv[1]) << endl;
-      irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(atof(argv[1]));
+      irtkGaussianBlurring<irtkRealPixel> gaussianBlurring(atof(argv[1]));
       gaussianBlurring.SetInput (&image);
       gaussianBlurring.SetOutput(&image);
       gaussianBlurring.Run();
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
       size = (size < zsize) ? size : zsize;
       cerr << "Resampling image to isotropic voxel size (in mm): "
            << size << endl;
-      irtkResampling<irtkGreyPixel> resampling(size, size, size);
+      irtkResampling<irtkRealPixel> resampling(size, size, size);
       irtkLinearInterpolateImageFunction interpolator;
       resampling.SetInput (&image);
       resampling.SetOutput(&image);
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
       // Resample image
       cerr << "Resampling image to voxel size (in mm): "
            << atof(argv[1]) << "," << atof(argv[2]) << "," << atof(argv[3]) << endl;
-      irtkResampling<irtkGreyPixel> resampling(atof(argv[1]), atof(argv[2]), atof(argv[3]));
+      irtkResampling<irtkRealPixel> resampling(atof(argv[1]), atof(argv[2]), atof(argv[3]));
       irtkLinearInterpolateImageFunction interpolator;
       resampling.SetInput (&image);
       resampling.SetOutput(&image);
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 
   // Convert image to VTK, taking the differences in vtk/irtk image geometry into account
   vtkStructuredPoints *vtkimage = vtkStructuredPoints::New();
-  irtkGreyImage dummy(image);
+  irtkRealImage dummy(image);
   xaxis[0] = 1; xaxis[1] = 0; xaxis[2] = 0;
   yaxis[0] = 0; yaxis[1] = 1; yaxis[2] = 0;
   zaxis[0] = 0; zaxis[1] = 0; zaxis[2] = 1;
