@@ -48,6 +48,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkImageToFileVTK.h
 ../include/irtkImageToFileNIFTI.h
 ../include/irtkImageToImage.h
+../include/irtkImageToImage2.h
 ../include/irtkInterpolateImageFunction.h
 ../include/irtkLargestConnectedComponent.h
 ../include/irtkLargestConnectedComponentIterative.h
@@ -58,6 +59,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkNIFTI.h
 ../include/irtkNoise.h
 ../include/irtkPointToImage.h
+../include/irtkRegionFilter.h
 ../include/irtkResampling.h
 ../include/irtkResamplingWithPadding.h
 ../include/irtkRicianNoise.h
@@ -117,6 +119,7 @@ irtkImageToFilePNG.cc
 irtkImageToFileVTK.cc
 irtkImageToFileNIFTI.cc
 irtkImageToImage.cc
+irtkImageToImage2.cc
 irtkInterpolateImageFunction.cc
 irtkLargestConnectedComponent.cc
 irtkLargestConnectedComponentIterative.cc
@@ -125,6 +128,7 @@ irtkLinearInterpolateImageFunction2D.cc
 irtkNearestNeighborInterpolateImageFunction.cc
 irtkNearestNeighborInterpolateImageFunction2D.cc
 irtkNoise.cc
+irtkRegionFilter.cc
 irtkResampling.cc
 irtkResamplingWithPadding.cc
 irtkRicianNoise.cc

@@ -166,7 +166,7 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const ir
   }
 
   // Initialize base class
-  this->irtkBaseImage::Initialize(attr);
+  this->irtkBaseImage::Update(attr);
 
   // Initialize voxels
   n   = this->GetNumberOfVoxels();

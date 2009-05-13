@@ -48,8 +48,8 @@ protected:
   /// Copy constructor
   irtkBaseImage(const irtkBaseImage &);
 
- /// Initialize baseimage
-  void Initialize(const irtkImageAttributes &);
+  /// Update baseimage
+  void Update(const irtkImageAttributes &);
 
   /// Update transformation matrix
   void UpdateMatrix();
@@ -83,6 +83,9 @@ public:
 
   /// Sets the image attributes
   virtual void PutImageAttributes(const irtkImageAttributes &);
+  
+  /// Initialize image from attributes
+  virtual void Initialize(const irtkImageAttributes &) = 0;
 
   //
   // Access functions for voxel dimensions
@@ -228,6 +231,9 @@ public:
 
   /// Read file and construct image
   static irtkBaseImage *New(const char *);
+
+  /// Read file and construct image
+  static irtkBaseImage *New(const irtkBaseImage *);
 
   /// Write file
   virtual void Write(const char *) = 0;

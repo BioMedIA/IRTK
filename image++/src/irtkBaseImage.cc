@@ -51,6 +51,27 @@ irtkBaseImage *irtkBaseImage::New(const char *filename)
   return image;
 }
 
+irtkBaseImage *irtkBaseImage::New(const irtkBaseImage *image)
+{
+  // Convert image
+  if (dynamic_cast<const irtkGenericImage<char> *>(image) != NULL) {
+    return new irtkGenericImage<char>(*(dynamic_cast<const irtkGenericImage<char> *>(image)));
+  } else if (dynamic_cast<const irtkGenericImage<unsigned char> *>(image) != NULL) {
+    return new irtkGenericImage<unsigned char>(*(dynamic_cast<const irtkGenericImage<unsigned char> *>(image)));
+  } else if (dynamic_cast<const irtkGenericImage<short> *>(image) != NULL) {
+    return new irtkGenericImage<short>(*(dynamic_cast<const irtkGenericImage<short> *>(image)));
+  } else if (dynamic_cast<const irtkGenericImage<unsigned short> *>(image) != NULL) {
+    return new irtkGenericImage<unsigned short>(*(dynamic_cast<const irtkGenericImage<unsigned short> *>(image)));
+  } else if (dynamic_cast<const irtkGenericImage<float> *>(image) != NULL) {
+    return new irtkGenericImage<float>(*(dynamic_cast<const irtkGenericImage<float> *>(image)));
+  } else if (dynamic_cast<const irtkGenericImage<double> *>(image) != NULL) {
+    return new irtkGenericImage<double>(*(dynamic_cast<const irtkGenericImage<double> *>(image)));
+  } else {
+  	cerr << "irtkBaseImage::New: Cannot allocate image of unknown type" << endl;
+  	exit(1);
+  }
+}
+
 void irtkBaseImage::UpdateMatrix()
 {
   // Note that the update of zaxis is taken place in the
@@ -118,7 +139,7 @@ void irtkBaseImage::UpdateMatrix()
   _matW2I = tmp1 * (tmp2 * (_matW2I * tmp3));
 }
 
-void irtkBaseImage::Initialize(const irtkImageAttributes &attr)
+void irtkBaseImage::Update(const irtkImageAttributes &attr)
 {
   _attr = attr;
  
