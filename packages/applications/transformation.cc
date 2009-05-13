@@ -12,6 +12,8 @@
 
 #include <irtkImage.h>
 
+#include <irtkRegionFilter.h>
+
 #include <irtkTransformation.h>
 
 // Default filenames
@@ -58,8 +60,8 @@ int main(int argc, char **argv)
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
   irtkTransformation *transformation = NULL;
-  irtkGreyImage *source = NULL;
-  irtkGreyImage *target = NULL;
+  irtkImage *source = NULL;
+  irtkImage *target = NULL;
   irtkImageFunction *interpolator = NULL;
 
   // Check command line
@@ -77,7 +79,7 @@ int main(int argc, char **argv)
 
   // Read image
   cout << "Reading image ... "; cout.flush();
-  source = new irtkGreyImage(input_name);
+  source = irtkImage::New(input_name);
   cout << "done" << endl;
 
   // Fix ROI
@@ -320,7 +322,7 @@ int main(int argc, char **argv)
 
   // If there is no target image use copy of source image as target image
   if (target == NULL) {
-    target = new irtkGreyImage(*source);
+    target = irtkImage::New(source);
   }
 
   // Compute region of interest for target image
@@ -343,16 +345,20 @@ int main(int argc, char **argv)
   if ((target_x1 != 0) || (target_x2 != target->GetX()) ||
       (target_y1 != 0) || (target_y2 != target->GetY()) ||
       (target_z1 != 0) || (target_z2 != target->GetZ())) {
-    *target = target->GetRegion(target_x1, target_y1, target_z1,
-                                target_x2, target_y2, target_z2);
+    irtkRegionFilter *region = new irtkRegionFilter;
+    region->SetInput (target);
+    region->SetOutput(target);
+    region->PutRegion(target_x1, target_y1, target_z1, 0, target_x2, target_y2, target_z2, 1);
   }
 
   // If there is an region of interest for the source image, use it
   if ((source_x1 != 0) || (source_x2 != source->GetX()) ||
       (source_y1 != 0) || (source_y2 != source->GetY()) ||
       (source_z1 != 0) || (source_z2 != source->GetZ())) {
-    *source = source->GetRegion(source_x1, source_y1, source_z1,
-                                source_x2, source_y2, source_z2);
+    irtkRegionFilter *region = new irtkRegionFilter;
+    region->SetInput (source);
+    region->SetOutput(source);
+    region->PutRegion(source_x1, source_y1, source_z1, 0, source_x2, source_y2, source_z2, 1);
   }
 
   if (dof_name != NULL) {
