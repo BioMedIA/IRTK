@@ -45,7 +45,7 @@ void irtkRegionFilter::Run()
       (_j1 < 0) || (_j1 >= _j2) ||
       (_k1 < 0) || (_k1 >= _k2) ||
       (_l1 < 0) || (_l1 >= _l2) ||
-      (_i2 > _input->GetX()) || (_j2 > _input->GetX()) || (_k2 > _input->GetX()) || (_l2 > _input->GetX())) {
+      (_i2 > _input->GetX()) || (_j2 > _input->GetY()) || (_k2 > _input->GetZ()) || (_l2 > _input->GetT())) {
     cerr << "irtkRegionFilter::Run: Parameter out of range\n";
     exit(1);
   }
