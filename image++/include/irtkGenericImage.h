@@ -279,7 +279,7 @@ template <class VoxelType> inline void irtkGenericImage<VoxelType>::PutAsDouble(
 #ifdef NO_BOUNDS
   _matrix[0][z][y][x] = static_cast<VoxelType>(val);
 #else
-  if ((x >= _x) || (x < 0) || (y >= _y) || (y < 0) || (z >= _z) || (z < 0) || (_t > 0) {
+  if ((x >= _x) || (x < 0) || (y >= _y) || (y < 0) || (z >= _z) || (z < 0) || (_t > 0)) {
     cout << "irtkGenericImage<Type>::PutAsDouble: parameter out of range\n";
   } else {
     _matrix[0][z][y][x] = static_cast<VoxelType>(val);
