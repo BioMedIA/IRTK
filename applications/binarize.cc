@@ -11,6 +11,7 @@
 =========================================================================*/
 
 #include <irtkImage.h>
+#include <irtkFileToImage.h>
 
 char *input_name = NULL, *output_name = NULL;
 
@@ -22,9 +23,9 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int i;
-  irtkGreyImage input;
-  irtkGreyPixel *ptr, threshold, value1, value2;
+  int i, j, k, l;
+  irtkBaseImage *input;
+  double threshold, valueIn, value1, value2;
 
   if (argc != 6) {
     usage();
@@ -36,31 +37,38 @@ int main(int argc, char **argv)
   output_name = argv[1];
   argc--;
   argv++;
-  threshold = atoi(argv[1]);
+  threshold = atof(argv[1]);
   argc--;
   argv++;
-  value1 = atoi(argv[1]);
+  value1 = atof(argv[1]);
   argc--;
   argv++;
-  value2 = atoi(argv[1]);
+  value2 = atof(argv[1]);
   argc--;
   argv++;
 
   // Read input
-  input.Read(input_name);
+  irtkFileToImage *reader = irtkFileToImage::New(input_name);
+  input = reader->GetOutput();
 
-  ptr = input.GetPointerToVoxels();
-  for (i = 0; i < input.GetNumberOfVoxels(); i++) {
-    if (*ptr <= threshold) {
-      *ptr = value1;
-    } else {
-      *ptr = value2;
+  for (l = 0; l < input->GetT(); ++l){
+    for (k = 0; k < input->GetZ(); ++k){
+      for (j = 0; j < input->GetY(); ++j){
+        for (i = 0; i < input->GetX(); ++i){
+          valueIn = input->GetAsDouble(i, j, k, l);
+          if (valueIn <= threshold){
+            input->PutAsDouble(i, j, k, l, value1);
+          } else {
+            input->PutAsDouble(i, j, k, l, value2);
+          }
+        }
+      }
     }
-    ptr++;
   }
 
   // Write image
-  input.Write(output_name);
+  input->Write(output_name);
 
   return 0;
 }
+
