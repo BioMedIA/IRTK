@@ -349,6 +349,7 @@ int main(int argc, char **argv)
     region->SetInput (target);
     region->SetOutput(target);
     region->PutRegion(target_x1, target_y1, target_z1, 0, target_x2, target_y2, target_z2, 1);
+    region->Run();
   }
 
   // If there is an region of interest for the source image, use it
@@ -359,6 +360,7 @@ int main(int argc, char **argv)
     region->SetInput (source);
     region->SetOutput(source);
     region->PutRegion(source_x1, source_y1, source_z1, 0, source_x2, source_y2, source_z2, 1);
+    region->Run();
   }
 
   if (dof_name != NULL) {
