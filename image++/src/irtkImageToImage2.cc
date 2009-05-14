@@ -115,6 +115,8 @@ void irtkImageToImage2::Initialize()
 
 void irtkImageToImage2::Finalize()
 {
+	int i, j, k, l;
+	
   // Print debugging information
   this->Debug("irtkImageToImage::Finalize");
 
@@ -126,6 +128,17 @@ void irtkImageToImage2::Finalize()
     if (_tmp != NULL) {
       this->Debug("irtkImageToImage::Finalize: Filter has internal buffer");
       // Copy buffer
+      _tmp->Initialize(_output->GetImageAttributes());
+
+      for (l = 0; l < _tmp->GetT(); l++) {
+        for (k = 0; k < _tmp->GetZ(); k++) {
+          for (j = 0; j < _tmp->GetY(); j++) {
+            for (i = 0; i < _tmp->GetX(); i++) {
+              _tmp->PutAsDouble(i, j, k, l, _output->GetAsDouble(i, j, k, l));
+            }
+          }
+        }
+      }
       *_tmp = *_output;
       // Delete buffer
       delete _output;
