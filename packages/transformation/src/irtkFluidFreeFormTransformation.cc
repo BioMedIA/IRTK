@@ -1,5 +1,5 @@
 /*=========================================================================
-
+ 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
@@ -7,7 +7,7 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
-
+ 
 =========================================================================*/
 
 #include <irtkTransformation.h>
@@ -17,8 +17,7 @@
 #include <newt2.h>
 
 irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation() : irtkMultiLevelFreeFormTransformation()
-{
-}
+{}
 
 irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkFluidFreeFormTransformation &transformation) : irtkMultiLevelFreeFormTransformation(transformation)
 {
@@ -98,7 +97,7 @@ void irtkFluidFreeFormTransformation::Transform(int n, double &x, double &y, dou
 
   if (n > _NumberOfLevels) {
     cerr << "irtkFluidFreeFormTransformation::Transform: No such "
-         << "transformation" << endl;
+    << "transformation" << endl;
     exit(1);
   }
 
@@ -236,12 +235,17 @@ irtkCifstream& irtkFluidFreeFormTransformation::Read(irtkCifstream& from)
 
     // Read transformation type
     from.ReadAsUInt(&trans_type, 1);
-    if (trans_type == IRTKTRANSFORMATION_BSPLINE_FFD) {
+    if ((trans_type == IRTKTRANSFORMATION_LINEAR_FFD) || (trans_type == IRTKTRANSFORMATION_LINEAR_FFD_EXT1)) {
+      from.Seek(offset);
+      _localTransformation[i] = new irtkLinearFreeFormTransformation;
+      ((irtkLinearFreeFormTransformation *)_localTransformation[i])->Read(from);
+    }
+    if ((trans_type == IRTKTRANSFORMATION_BSPLINE_FFD) || (trans_type == IRTKTRANSFORMATION_BSPLINE_FFD_EXT1)) {
       from.Seek(offset);
       _localTransformation[i] = new irtkBSplineFreeFormTransformation;
       ((irtkBSplineFreeFormTransformation *)_localTransformation[i])->Read(from);
     } else {
-      cerr << "irtkFluidFreeFormTransformation::Read: No a vaild transformation type at = " << offset << endl;
+      cerr << "irtkFluidFreeFormTransformation::Read: No a vaild transformation type at = " << offset << " " << endl;
       exit(1);
     }
   }
@@ -300,7 +304,7 @@ double irtkFluidFreeFormTransformation::Inverse(int n, double &x, double &y, dou
 
   if (n > _NumberOfLevels) {
     cerr << "irtkFluidFreeFormTransformation::Inverse: No such "
-         << "transformation" << endl;
+    << "transformation" << endl;
     exit(1);
   }
 
