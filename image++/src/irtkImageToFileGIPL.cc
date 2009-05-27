@@ -40,21 +40,27 @@ void irtkImageToFileGIPL::Initialize()
   switch (this->_input->GetScalarType()) {
     case IRTK_VOXEL_CHAR: {
         this->WriteAsShort(GIPL_CHAR, 8);
+        break;
       }
     case IRTK_VOXEL_UNSIGNED_CHAR: {
         this->WriteAsShort(GIPL_U_CHAR, 8);
-      }
+        break;
+     }
     case IRTK_VOXEL_SHORT: {
         this->WriteAsShort(GIPL_SHORT, 8);
+        break;
       }
     case IRTK_VOXEL_UNSIGNED_SHORT: {
         this->WriteAsShort(GIPL_U_SHORT, 8);
+        break;
       }
     case IRTK_VOXEL_FLOAT: {
         this->WriteAsShort(GIPL_FLOAT, 8);
+        break;
       }
     case IRTK_VOXEL_DOUBLE: {
         this->WriteAsShort(GIPL_DOUBLE, 8);
+        break;
       }
     default:
       cerr << "irtkImageToFileGIPL::Initialize: Not supported for this image type" << endl;
