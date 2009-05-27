@@ -74,18 +74,22 @@ void irtkImageToFileANALYZE::Initialize()
     case IRTK_VOXEL_UNSIGNED_CHAR: {
         hdr.bits       = 8;
         hdr.data_type  = ANALYZE_UNSIGNED_CHAR;
+        break;
       }
     case IRTK_VOXEL_SHORT: {
         hdr.bits       = 16;
         hdr.data_type  = ANALYZE_SIGNED_SHORT;
+        break;
       }
    case IRTK_VOXEL_FLOAT: {
         hdr.bits       = 32;
         hdr.data_type  = ANALYZE_FLOAT;
+        break;
       }
     case IRTK_VOXEL_DOUBLE: {
         hdr.bits       = 64;
         hdr.data_type  = ANALYZE_DOUBLE;
+        break;
       }
     default:
       cerr << "irtkImageToFileANALYZE::Initialize: Not supported for this image type" << endl;
