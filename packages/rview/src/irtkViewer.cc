@@ -591,6 +591,21 @@ void irtkViewer::DrawROI(irtkGreyImage *image,
 
 #ifdef HAS_VTK
 
+void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
+         int _DisplayObjectWarp,
+         int _DisplayObjectGrid)
+{
+  int i;
+
+  for (i = 0; i < _rview->_NoOfObjects; i++) {
+    glColor3ub(_rview->GetObjectLookupTable()->lookupTable[i].r,
+           _rview->GetObjectLookupTable()->lookupTable[i].g,
+           _rview->GetObjectLookupTable()->lookupTable[i].b);
+
+    this->DrawObject(object[i], image, _DisplayObjectWarp, _DisplayObjectGrid);
+  }
+}
+
 void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _DisplayObjectWarp, int _DisplayObjectGrid)
 {
   int i, j;
@@ -666,7 +681,6 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _Disp
       // Now draw
       for (j = 0; j < pset.Size(); j++) {
         glBegin(GL_LINES);
-        COLOR_OBJECT;
         glVertex2f(_screenX1+pset(j)._x,
                    _screenY1+pset(j)._y);
         glVertex2f(_screenX1+pset((j+1)%pset.Size())._x,

@@ -69,6 +69,9 @@ public:
                double, double);
 
 #ifdef HAS_VTK
+  /// Draw multiple objects
+  void DrawObject(vtkPointSet **, irtkGreyImage *, int = False, int = False);
+
   /// Draw object
   void DrawObject(vtkPointSet *, irtkGreyImage *, int = False, int = False);
 #endif
