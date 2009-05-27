@@ -32,6 +32,7 @@ void usage()
   cerr << "\t<-object           file.vtk>     Object           (vtkPointSet)\n";
   cerr << "\t<-object_warp>                   Warp object with vectors\n";
   cerr << "\t<-object_grid>                   Object grid on\n";
+  cerr << "\t<-object_lut       file.lut>     Colour lookup for multiple objects\n";
 #endif
   cerr << "\t<-eigen values.irtk vectors.irtk>  Eigen modes\n";
   cerr << "\t<-xy      | -xz      | -yz>      Single     view\n";
@@ -60,7 +61,12 @@ void usage()
   cerr << "\t<-mix>                           Mixed viewport (checkerboard)\n";
   cerr << "\t<-tcolor color>                  Target image color\n";
   cerr << "\t<-scolor color>                  Source image color\n";
-  cerr << "\t   where color is  <red | blue | green | rainbow>\n\n";
+  cerr << "\t   where color is  <red | blue | green | rainbow>\n";
+  cerr << "\t<-diff>                          Subtraction view\n";
+  cerr << "\t<-tcontour>                      Switch on target contours (see -tmin)\n";
+  cerr << "\t<-scontour>                      Switch on source contours (see -smin)\n";
+  cerr << "\t<-seg              file.nii.gz>  Labelled segmentation image\n";
+  cerr << "\t<-lut              file.seg>     Colour lookup table for labelled segmentation\n\n";
   cerr << "\tMouse events:\n";
   cerr << "\tLeft mouse click :               Reslice\n\n";
   rview->cb_keyboard_info();
@@ -194,6 +200,14 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       rview->DisplayObjectGridOn();
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-object_lut") == 0)){
+      argv++;
+      argc--;
+      rview->GetObjectLookupTable()->Read(argv[1]);
+      argv++;
+      argc--;
       ok = True;
     }
 #endif
@@ -396,6 +410,47 @@ int main(int argc, char **argv)
       argc--;
       ok = True;
     }
+
+    if ((ok == False) && (strcmp(argv[1], "-diff") == 0)){
+      rview->SetViewMode(View_Subtraction);
+      argv++;
+      argc--;
+      ok = True;
+    }
+
+    if ((ok == False) && (strcmp(argv[1], "-tcontour") == 0)){
+      rview->DisplayTargetContoursOn();
+      argv++;
+      argc--;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-scontour") == 0)){
+      rview->DisplaySourceContoursOn();
+      argv++;
+      argc--;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-seg") == 0)){
+      argv++;
+      argc--;
+      rview->ReadSegmentation(argv[1]);
+      rviewUI->UpdateSegmentationBrowser();
+      argv++;
+      argc--;
+      ok = True;
+    }
+
+    if ((ok == False) && (strcmp(argv[1], "-lut") == 0)){
+      argv++;
+      argc--;
+      rview->GetSegmentTable()->Read(argv[1]);
+      rview->SegmentationContoursOn();
+      rviewUI->UpdateSegmentationBrowser();
+      argv++;
+      argc--;
+      ok = True;
+    }
+
     if ((ok == False) && (strcmp(argv[1], "-tcolor") == 0)) {
       argc--;
       argv++;
