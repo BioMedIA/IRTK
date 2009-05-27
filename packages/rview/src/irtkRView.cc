@@ -141,7 +141,10 @@ irtkRView::irtkRView(int x, int y)
 
 #ifdef HAS_VTK
   // Initialize object and display
-  _Object            = NULL;
+  _NoOfObjects = 0;
+  for (int i = 0; i < MAX_NUMBER_OF_OBJECTS; i++) {
+    _Object[i] = NULL;
+  }
   _DisplayObject     = False;
   _DisplayObjectWarp = False;
   _DisplayObjectGrid = False;
@@ -192,12 +195,27 @@ irtkRView::irtkRView(int x, int y)
   // Allocate memory for subtraction lookup table
   _subtractionLookupTable = new irtkLookupTable;
 
+#ifdef HAS_VTK
+  // Allocate memory for object lookup table
+  _objectLookupTable = new irtkLookupTable;
+#endif
+
   // Region growing mode
   _regionGrowingMode = RegionGrowing2D;
 
   // By default configure rview to start with three orthogonal views
   _configMode = _View_XY_XZ_YZ;
   this->Configure(View_XY_XZ_YZ);
+}
+
+irtkRView::~irtkRView()
+{
+#ifdef HAS_VTK
+  delete _objectLookupTable;
+  for (int i = 0; i <  MAX_NUMBER_OF_OBJECTS; i++) {
+    if (_Object[i] != NULL) _Object[i]->Delete();
+  }
+#endif
 }
 
 void irtkRView::Update()
@@ -1838,15 +1856,23 @@ void irtkRView::WriteSourceLandmarks(char *name)
 #ifdef HAS_VTK
 void irtkRView::ReadObject(char *name)
 {
-  // Delete the old object
-  if (_Object != NULL) _Object->Delete();
+  if (_NoOfObjects >= MAX_NUMBER_OF_OBJECTS) {
+    cerr << "irtkRView::ReadObject(): maximum number of objects reached!\n";
+    return;
+  }
 
   // Let vtk do its thing
   vtkPolyDataReader *data_reader = vtkPolyDataReader::New();
   data_reader->SetFileName(name);
   data_reader->Update();
-  _Object = data_reader->GetOutput();
-  _Object->Register(_Object);
+  _Object[_NoOfObjects] = data_reader->GetOutput();
+  _Object[_NoOfObjects]->Register(_Object[_NoOfObjects]);
+
+  // Increment objects counter
+  _NoOfObjects++;
+
+  // Initialize LUT
+  _objectLookupTable->Initialize(0,  _NoOfObjects - 1);
 
   // Be good
   data_reader->Delete();

@@ -100,6 +100,8 @@ typedef enum { RegionGrowing2D, RegionGrowing3D } irtkRegionGrowingMode;
 
 #define MAX_SEGMENTS 256
 
+#define MAX_NUMBER_OF_OBJECTS 20
+
 #include <irtkSegmentTable.h>
 
 #include <irtkLookupTable.h>
@@ -194,8 +196,14 @@ protected:
   irtkViewerMode _contourViewerMode;
 
 #ifdef HAS_VTK
+  /// Number of vtk objects
+  int _NoOfObjects;
+
   /// Object (surface or mesh)
-  vtkPointSet *_Object;
+  vtkPointSet *_Object[MAX_NUMBER_OF_OBJECTS];
+
+  /// Color lookup table for objects
+  irtkLookupTable *_objectLookupTable;
 #endif
 
   /// Combined source and target images in OpenGL format
@@ -399,8 +407,7 @@ public:
   irtkRView(int, int);
 
   /// Destructor
-  virtual ~irtkRView() {}
-  ;
+  virtual ~irtkRView();
 
   /// Render
   void Draw();
@@ -479,7 +486,7 @@ public:
   virtual void ReadObject(char *);
 
   /// Return object
-  virtual vtkPointSet *GetObject();
+  virtual vtkPointSet *GetObject(int);
 #endif
 
   /// Get width of registration viewer (in pixels)
@@ -843,6 +850,11 @@ public:
 
   /// Get a pointer to the lookup table of the subtraction of target and source
   irtkLookupTable *GetSubtractionLookupTable();
+
+#ifdef HAS_VTK
+  /// Get a pointer to object LUT
+  irtkLookupTable *GetObjectLookupTable();
+#endif
 
   /// Get a pointer to the lookup table of the deformation
   irtkLookupTable *GetDeformationLookupTable();
@@ -1274,9 +1286,13 @@ inline int irtkRView::GetDisplayROI()
 
 #ifdef HAS_VTK
 
-inline vtkPointSet *irtkRView::GetObject()
+inline vtkPointSet *irtkRView::GetObject(int i)
 {
-  return _Object;
+  if ((i < 0) || (i > _NoOfObjects-1)) {
+    cerr << "irtkRView::GetObject: Invalid object: " << i << endl;
+    return NULL;
+  }
+  return _Object[i];
 }
 
 inline void irtkRView::DisplayObjectOn()
@@ -1488,6 +1504,15 @@ inline irtkLookupTable *irtkRView::GetSubtractionLookupTable()
 {
   return _subtractionLookupTable;
 }
+
+#ifdef HAS_VTK
+
+inline irtkLookupTable *irtkRView::GetObjectLookupTable()
+{
+  return _objectLookupTable;
+}
+
+#endif
 
 inline irtkTransformation *irtkRView::GetTransformation()
 {
