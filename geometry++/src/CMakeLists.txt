@@ -7,6 +7,15 @@ SET(GEOMETRY_INCLUDES
 ../include/irtkQuaternion.h
 ../include/irtkScalarFunction.h
 ../include/irtkScalarGaussian.h
+../include/irtkScalarGaussianDx.h
+../include/irtkScalarGaussianDy.h
+../include/irtkScalarGaussianDz.h
+../include/irtkScalarGaussianDxDx.h
+../include/irtkScalarGaussianDxDy.h
+../include/irtkScalarGaussianDxDz.h
+../include/irtkScalarGaussianDyDy.h
+../include/irtkScalarGaussianDyDz.h
+../include/irtkScalarGaussianDzDz.h
 ../include/irtkVector.h
 ../include/irtkVector3D.h)
 
@@ -18,6 +27,15 @@ irtkPointSet.cc
 irtkQuaternion.cc
 irtkScalarFunction.cc
 irtkScalarGaussian.cc
+irtkScalarGaussianDx.cc
+irtkScalarGaussianDy.cc
+irtkScalarGaussianDz.cc
+irtkScalarGaussianDxDx.cc
+irtkScalarGaussianDxDy.cc
+irtkScalarGaussianDxDz.cc
+irtkScalarGaussianDyDy.cc
+irtkScalarGaussianDyDz.cc
+irtkScalarGaussianDzDz.cc
 irtkVector.cc
 irtkVector3D.cc)
 

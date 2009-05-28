@@ -7,6 +7,8 @@ SET(IMAGE_INCLUDES
 ../include/irtkConvolution_2D.h
 ../include/irtkConvolution_3D.h
 ../include/irtkConvolution.h
+../include/irtkConvolutionWithGaussianDerivative.h
+../include/irtkConvolutionWithGaussianDerivative2.h
 ../include/irtkConvolutionWithPadding_1D.h
 ../include/irtkConvolutionWithPadding_2D.h
 ../include/irtkConvolutionWithPadding_3D.h
@@ -80,6 +82,8 @@ irtkBSplineInterpolateImageFunction2D.cc
 irtkBaseImage.cc
 irtkCSplineInterpolateImageFunction.cc
 irtkCSplineInterpolateImageFunction2D.cc
+irtkConvolutionWithGaussianDerivative.cc
+irtkConvolutionWithGaussianDerivative2.cc
 irtkConvolutionWithPadding_1D.cc
 irtkConvolutionWithPadding_2D.cc
 irtkConvolutionWithPadding_3D.cc
