@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-target") == 0)) {
       argc--;
       argv++;
-      target = new irtkGreyImage(argv[1]);
+      target = irtkImage::New(argv[1]);
       argc--;
       argv++;
       ok = True;
