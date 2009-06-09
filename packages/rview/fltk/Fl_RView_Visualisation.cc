@@ -177,14 +177,16 @@ void Fl_RViewUI::cb_playback(void *)
 
 void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *v)
 {
-  int i, t;
+  int i, t, s;
   char buffer2[256];
 
   if (fl_choice("Do you want to save the movie to disk?", NULL, "No", "Yes") == 2) {
 
     t = rview->GetTargetFrame();
+    s = rview->GetSourceFrame();
     for (i = 0; i < rview->GetTarget()->GetT(); i++) {
       rview->SetTargetFrame(i);
+      rview->SetSourceFrame(i);
 
       // Update
       rview->Update();
@@ -199,12 +201,15 @@ void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *v)
 
     }
     rview->SetTargetFrame(t);
+    rview->SetSourceFrame(s);
 
   } else {
 
     t = rview->GetTargetFrame();
+    s = rview->GetSourceFrame();
     for (i = 0; i < rview->GetTarget()->GetT(); i++) {
       rview->SetTargetFrame(i);
+      rview->SetSourceFrame(i);
 
       // Update
       rview->Update();
@@ -214,6 +219,7 @@ void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *v)
       Fl::wait(0);
     }
     rview->SetTargetFrame(t);
+    rview->SetSourceFrame(s);
 
   }
 
