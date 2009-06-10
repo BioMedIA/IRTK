@@ -195,11 +195,6 @@ irtkRView::irtkRView(int x, int y)
   // Allocate memory for subtraction lookup table
   _subtractionLookupTable = new irtkLookupTable;
 
-#ifdef HAS_VTK
-  // Allocate memory for object lookup table
-  _objectLookupTable = new irtkLookupTable;
-#endif
-
   // Region growing mode
   _regionGrowingMode = RegionGrowing2D;
 
@@ -211,7 +206,6 @@ irtkRView::irtkRView(int x, int y)
 irtkRView::~irtkRView()
 {
 #ifdef HAS_VTK
-  delete _objectLookupTable;
   for (int i = 0; i <  MAX_NUMBER_OF_OBJECTS; i++) {
     if (_Object[i] != NULL) _Object[i]->Delete();
   }
@@ -1870,9 +1864,6 @@ void irtkRView::ReadObject(char *name)
 
   // Increment objects counter
   _NoOfObjects++;
-
-  // Initialize LUT
-  _objectLookupTable->Initialize(0,  _NoOfObjects - 1);
 
   // Be good
   data_reader->Delete();

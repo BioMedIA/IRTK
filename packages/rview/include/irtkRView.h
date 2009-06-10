@@ -202,8 +202,6 @@ protected:
   /// Object (surface or mesh)
   vtkPointSet *_Object[MAX_NUMBER_OF_OBJECTS];
 
-  /// Color lookup table for objects
-  irtkLookupTable *_objectLookupTable;
 #endif
 
   /// Combined source and target images in OpenGL format
@@ -850,11 +848,6 @@ public:
 
   /// Get a pointer to the lookup table of the subtraction of target and source
   irtkLookupTable *GetSubtractionLookupTable();
-
-#ifdef HAS_VTK
-  /// Get a pointer to object LUT
-  irtkLookupTable *GetObjectLookupTable();
-#endif
 
   /// Get a pointer to the lookup table of the deformation
   irtkLookupTable *GetDeformationLookupTable();
@@ -1504,15 +1497,6 @@ inline irtkLookupTable *irtkRView::GetSubtractionLookupTable()
 {
   return _subtractionLookupTable;
 }
-
-#ifdef HAS_VTK
-
-inline irtkLookupTable *irtkRView::GetObjectLookupTable()
-{
-  return _objectLookupTable;
-}
-
-#endif
 
 inline irtkTransformation *irtkRView::GetTransformation()
 {

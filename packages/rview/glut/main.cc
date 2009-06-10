@@ -45,7 +45,6 @@ void usage ()
   cerr << "\t<-object           file.vtk>     Object           (vtkPointSet)\n";
   cerr << "\t<-object_warp>                   Warp object with vectors\n";
   cerr << "\t<-object_grid>                   Object grid on\n";
-  cerr << "\t<-object_lut       file.lut>     Colour lookup for multiple objects\n";
 #endif
   cerr << "\t<-eigen values.irtk vectors.irtk>  Eigen modes\n";
   cerr << "\t<-xy      | -xz      | -yz>      Single     view\n";
@@ -283,14 +282,6 @@ int main(int argc, char** argv)
       argc--;
       argv++;
       rview->DisplayObjectGridOn();
-      ok = True;
-    }
-    if ((ok == False) && (strcmp(argv[1], "-object_lut") == 0)){
-      argv++;
-      argc--;
-      rview->GetObjectLookupTable()->Read(argv[1]);
-      argv++;
-      argc--;
       ok = True;
     }
 #endif

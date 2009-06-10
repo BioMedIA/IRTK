@@ -53,6 +53,11 @@ _Status _CPStatus[MaxNumberOfCP][MaxNumberOfCP];
 #define COLOR_POINTS_UNKNOWN   glColor3f(1, 1, 0)
 #define COLOR_TARGET_LANDMARKS glColor3f(1, 0, 0)
 #define COLOR_SOURCE_LANDMARKS glColor3f(0, 0, 1)
+#define COLOR_CONTOUR_1        glColor3f(1, 0, 0)
+#define COLOR_CONTOUR_2        glColor3f(0, 1, 0)
+#define COLOR_CONTOUR_3        glColor3f(0, 0, 1)
+#define COLOR_CONTOUR_4        glColor3f(1, 0, 1)
+#define COLOR_CONTOUR_5        glColor3f(0, 1, 1)
 
 #ifdef HAS_VTK
 
@@ -598,9 +603,23 @@ void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
   int i;
 
   for (i = 0; i < _rview->_NoOfObjects; i++) {
-    glColor3ub(_rview->GetObjectLookupTable()->lookupTable[i].r,
-           _rview->GetObjectLookupTable()->lookupTable[i].g,
-           _rview->GetObjectLookupTable()->lookupTable[i].b);
+  	switch (i){
+  	case 0:
+  		COLOR_CONTOUR_1;
+  		break;
+  	case 1:
+  		COLOR_CONTOUR_2;
+  		break;
+  	case 2:
+  		COLOR_CONTOUR_3;
+  		break;
+  	case 3:
+  		COLOR_CONTOUR_4;
+   		break;
+  	default:
+  		COLOR_CONTOUR_5;
+  		break;
+  	}
 
     this->DrawObject(object[i], image, _DisplayObjectWarp, _DisplayObjectGrid);
   }
@@ -609,41 +628,36 @@ void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
 void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _DisplayObjectWarp, int _DisplayObjectGrid)
 {
   int i, j;
-  double point[3], bounds[6], origin[3], normal[3];
+  double p1[3], p2[3], p3[3], v1[3], v2[3], point[3], normal[3];
   irtkPoint p;
   static vtkPlane *plane   = vtkPlane::New();
   static vtkCutter *cutter = vtkCutter::New();
 
   if (points != NULL) {
-
-    points->GetCenter(origin);
-    points->GetBounds(bounds);
-    switch (_viewerMode) {
-    case Viewer_XY:
-      origin[2] = (int)round(image->GetOrigin()._z);
-      normal[0] = 0;
-      normal[1] = 0;
-      normal[2] = (-origin[1]*(bounds[0]-origin[0]) +
-                   origin[0]*(bounds[1]-origin[1]));
-      break;
-    case Viewer_YZ:
-      origin[0] = (int)round(image->GetOrigin()._x);
-      normal[0] = (-origin[2]*(bounds[1]-origin[1]) +
-                   origin[1]*(bounds[2]-origin[2]));
-      normal[1] = 0;
-      normal[2] = 0;
-      break;
-    case Viewer_XZ:
-      origin[1] = (int)round(image->GetOrigin()._y);
-      normal[0] = 0;
-      normal[1] = (-origin[2]*(bounds[0]-origin[0]) +
-                   origin[0]*(bounds[2]-origin[2]));
-      normal[2] = 0;
-      break;
-    }
-
+    p1[0] = 0;
+    p1[1] = 0;
+    p1[2] = 0;
+    p2[0] = image->GetX();
+    p2[1] = 0;
+    p2[2] = 0;
+    p3[0] = 0;
+    p3[1] = image->GetY();
+    p3[2] = 0;
+    image->ImageToWorld(p1[0], p1[1], p1[2]);
+    image->ImageToWorld(p2[0], p2[1], p2[2]);
+    image->ImageToWorld(p3[0], p3[1], p3[2]);
+    v1[0] = p2[0] - p1[0];
+    v1[1] = p2[1] - p1[1];
+    v1[2] = p2[2] - p1[2];
+    v2[0] = p3[0] - p1[0];
+    v2[1] = p3[1] - p1[1];
+    v2[2] = p3[2] - p1[2];
+    normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    normal[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    normal[2] = v1[0] * v2[1] - v1[1] * v2[0];
+    
     // Set up plane and cutter
-    plane->SetOrigin(origin);
+    plane->SetOrigin(p1);
     plane->SetNormal(normal);
     cutter->SetCutFunction(plane);
     cutter->SetInput(points);
