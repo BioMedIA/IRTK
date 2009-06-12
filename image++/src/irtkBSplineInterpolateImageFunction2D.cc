@@ -182,10 +182,12 @@ void irtkBSplineInterpolateImageFunction2D::ComputeCoefficients()
 
   /* convert the image samples into interpolation coefficients */
 
+  // Set z to fixed value.
+  z = 0;
+  
   /* in-place separable process, along x */
   data = new double[_x];
   for (t = 0; t < this->_t; t++) {
-    for (z = 0; z < this->_z; z++) {
       for (y = 0; y < this->_y; y++) {
         for (x = 0; x < this->_x; x++) {
           data[x] = this->_input->GetAsDouble(x, y, z, t);
@@ -195,14 +197,12 @@ void irtkBSplineInterpolateImageFunction2D::ComputeCoefficients()
           this->_coeff(x, y, z, t) = data[x];
         }
       }
-    }
   }
   delete []data;
 
   /* in-place separable process, along y */
   data = new double[_y];
   for (t = 0; t < this->_t; t++) {
-    for (z = 0; z < this->_z; z++) {
       for (x = 0; x < this->_x; x++) {
         for (y = 0; y < this->_y; y++) {
           data[y] = this->_coeff(x, y, z, t);
@@ -212,8 +212,8 @@ void irtkBSplineInterpolateImageFunction2D::ComputeCoefficients()
           this->_coeff(x, y, z, t) = data[y];
         }
       }
-    }
   }
+
   delete []data;
 
 }
