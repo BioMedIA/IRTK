@@ -71,7 +71,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -156,7 +155,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -179,7 +177,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
@@ -216,7 +213,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
 
 }
 
-
 template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType>::Ixz()
 {
   double xsize, ysize, zsize;
@@ -226,7 +222,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
 
   // Get voxel dimensions
   this->_input->GetPixelSize(&xsize, &ysize, &zsize);
-
 
   // Create scalar function which corresponds to a 1D Gaussian function in X
   irtkScalarGaussianDx gaussianDx(this->_Sigma/xsize, 1, 1, 0, 0, 0);
@@ -244,7 +239,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -291,7 +285,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 
@@ -305,7 +298,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
 
 template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType>::Iyy()
 {
-
   double xsize, ysize, zsize;
 
   // Do the initial set up
@@ -313,7 +305,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
 
   // Get voxel dimensions
   this->_input->GetPixelSize(&xsize, &ysize, &zsize);
-
 
   // Create scalar function which corresponds to a 1D Gaussian function in X
   irtkScalarGaussian gaussianX(this->_Sigma/xsize, 1, 1, 0, 0, 0);
@@ -354,7 +345,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
@@ -392,7 +382,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
 
 template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType>::Iyz()
 {
-
   double xsize, ysize, zsize;
 
   // Do the initial set up
@@ -401,9 +390,9 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   // Get voxel dimensions
   this->_input->GetPixelSize(&xsize, &ysize, &zsize);
 
-
   // Create scalar function which corresponds to a 1D Gaussian function in X
   irtkScalarGaussian gaussianX(this->_Sigma/xsize, 1, 1, 0, 0, 0);
+  
   // Create filter kernel for 1D Gaussian function in X
   irtkGenericImage<irtkRealPixel> kernelX(2*round(4*this->_Sigma/xsize)+1, 1, 1);
 
@@ -441,7 +430,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
@@ -465,7 +453,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 
@@ -487,9 +474,9 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   // Get voxel dimensions
   this->_input->GetPixelSize(&xsize, &ysize, &zsize);
 
-
   // Create scalar function which corresponds to a 1D Gaussian function in X
   irtkScalarGaussian gaussianX(this->_Sigma/xsize, 1, 1, 0, 0, 0);
+  
   // Create filter kernel for 1D Gaussian function in X
   irtkGenericImage<irtkRealPixel> kernelX(2*round(4*this->_Sigma/xsize)+1, 1, 1);
 
@@ -551,7 +538,6 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 
