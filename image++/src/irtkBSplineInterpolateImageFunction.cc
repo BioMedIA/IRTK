@@ -59,7 +59,7 @@ void irtkBSplineInterpolateImageFunction::Initialize()
   this->_input->GetMinMaxAsDouble(&this->_min, &this->_max);
 
   // Allocate coefficient image
-  this->_coeff = irtkRealImage(this->_x, this->_y, this->_z);
+  this->_coeff = irtkRealImage(this->_x, this->_y, this->_z, this->_t);
 
   // Compute B-Spline interpolation coefficients
   this->ComputeCoefficients();
