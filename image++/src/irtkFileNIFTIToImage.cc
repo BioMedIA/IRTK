@@ -298,12 +298,20 @@ void irtkFileNIFTIToImage::ReadHeader()
     this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
     break;
+  case NIFTI_TYPE_UINT16:
+    this->_type  = IRTK_VOXEL_UNSIGNED_SHORT;
+    this->_bytes = 2;
+    break;
   case NIFTI_TYPE_FLOAT32:
     this->_type  = IRTK_VOXEL_FLOAT;
     this->_bytes = 4;
     break;
   case NIFTI_TYPE_INT32:
     this->_type  = IRTK_VOXEL_INT;
+    this->_bytes = 4;
+    break;
+  case NIFTI_TYPE_UINT32:
+    this->_type  = IRTK_VOXEL_UNSIGNED_INT;
     this->_bytes = 4;
     break;
   case NIFTI_TYPE_FLOAT64:
