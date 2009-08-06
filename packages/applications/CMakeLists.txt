@@ -64,6 +64,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(hreg hreg.cc)
     ADD_EXECUTABLE(image2dof image2dof.cc)
     ADD_EXECUTABLE(jacobian jacobian.cc)
+    ADD_EXECUTABLE(largedeformations largedeformations.cc)
     ADD_EXECUTABLE(mat2dof mat2dof.cc)
     ADD_EXECUTABLE(motiontrack motiontrack.cc)
     ADD_EXECUTABLE(msareg msareg.cc)
@@ -100,7 +101,7 @@ INSTALL_TARGETS(/bin approximate approximate4D areg atlas compare demons
 dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
 evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
 ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
-hreg image2dof jacobian mat2dof motiontrack nreg normalize pareg 
+hreg image2dof jacobian largedeformations mat2dof motiontrack nreg normalize pareg 
 pevaluation phreg pnreg prreg ptransformation rreg subtract sareg 
 sevaluation shreg snreg srreg stransformation subtract symnreg 
 transformation transformation2 volumechange vtk2ffd)

@@ -24,6 +24,7 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkJointEntropySimilarityMetric.h
 ../include/irtkKappaSimilarityMetric.h
 ../include/irtkLabelConsistencySimilarityMetric.h
+../include/irtkLargeDeformationGradientLagrange.h
 ../include/irtkLocator.h
 ../include/irtkMLSimilarityMetric.h
 ../include/irtkMotionTracking.h
@@ -74,6 +75,7 @@ irtkGenericHistogramSimilarityMetric.cc
 irtkGradientDescentConstrainedOptimizer.cc
 irtkGradientDescentOptimizer.cc
 irtkGradientDescentSymmetricOptimizer.cc
+irtkLargeDeformationGradientLagrange.cc
 irtkMotionTracking.cc
 irtkMultipleSurfaceAffineRegistration.cc
 irtkMultipleSurfaceFreeFormRegistration.cc
