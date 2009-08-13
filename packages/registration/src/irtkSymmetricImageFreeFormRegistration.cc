@@ -503,17 +503,33 @@ double irtkSymmetricImageFreeFormRegistration::InverseConsistencyPenalty()
       }
     }
   }
+  for (k = 0; k < _affd2->GetZ(); k++) {
+    for (j = 0; j < _affd2->GetY(); j++) {
+      for (i = 0; i < _affd2->GetZ(); i++) {
+        x1 = i;
+        y1 = j;
+        z1 = k;
+        _affd2->LatticeToWorld(x1, y1, z1);
+        x2 = x1;
+        y2 = y1;
+        z2 = z1;
+        _affd2->Transform(x2, y2, z2);
+        _affd1->Transform(x2, y2, z2);
+        penalty += (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2);
+      }
+    }
+  }
 
   // Normalize sum by number of DOFs
-  cout << "Penalty: " << -penalty / (double) _affd1->NumberOfDOFs() << endl;
-  return -penalty / (double) (_affd1->NumberOfDOFs() + _affd2->NumberOfDOFs());
+  return -penalty / (double) _affd1->NumberOfDOFs();
 }
 
 double irtkSymmetricImageFreeFormRegistration::InverseConsistencyPenalty(int index)
 {
   int i, j, k;
-  double x1, y1, z1, x2, y2, z2;
+  double ice, x1, y1, z1, x2, y2, z2;
 
+  ice = 0;
   _affd1->IndexToLattice(index, i, j, k);
   x1 = i;
   y1 = j;
@@ -524,7 +540,19 @@ double irtkSymmetricImageFreeFormRegistration::InverseConsistencyPenalty(int ind
   z2 = z1;
   _affd1->Transform(x2, y2, z2);
   _affd2->Transform(x2, y2, z2);
-  return -(x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2);
+  ice += (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2);
+  _affd2->IndexToLattice(index, i, j, k);
+  x1 = i;
+  y1 = j;
+  z1 = k;
+  _affd2->LatticeToWorld(x1, y1, z1);
+  x2 = x1;
+  y2 = y1;
+  z2 = z1;
+  _affd2->Transform(x2, y2, z2);
+  _affd1->Transform(x2, y2, z2);
+  ice += (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2);
+  return -ice;
 }
 
 double irtkSymmetricImageFreeFormRegistration::Evaluate()
@@ -625,7 +653,7 @@ double irtkSymmetricImageFreeFormRegistration::Evaluate()
   }
 
   // Evaluate similarity measure
-  double similarity = _metric1->Evaluate() + _metric2->Evaluate();
+  double similarity = (_metric1->Evaluate() + _metric2->Evaluate()) / 2.0;
 
   // Add penalty for smoothness
   if (this->_Lambda1 > 0) {
@@ -640,9 +668,9 @@ double irtkSymmetricImageFreeFormRegistration::Evaluate()
     similarity += this->_Lambda3*this->TopologyPreservationPenalty();
   }
   // Add inverse consistency
-//  if (this->_Lambda4 > 0) {
-  similarity += this->_Lambda4*this->InverseConsistencyPenalty();
-//  }
+  if (this->_Lambda4 > 0) {
+    similarity += this->_Lambda4*this->InverseConsistencyPenalty();
+  }
 
   // Return similarity measure + penalty terms
   return similarity;

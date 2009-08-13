@@ -219,7 +219,7 @@ void irtkSymmetricImageRegistration::Initialize(int level)
   // Check whether dynamic range of data is not to large
   if (target_max - target_min > MAX_GREY) {
     cerr << this->NameOfClass()
-         << "::Initialize: Dynamic range of target is too large" << endl;
+    << "::Initialize: Dynamic range of target is too large" << endl;
     exit(1);
   } else {
     for (t = 0; t < _target->GetT(); t++) {
@@ -240,7 +240,7 @@ void irtkSymmetricImageRegistration::Initialize(int level)
   // Check whether dynamic range of data is not to large
   if (source_max - source_min > MAX_GREY) {
     cerr << this->NameOfClass()
-         << "::Initialize: Dynamic range of target is too large" << endl;
+    << "::Initialize: Dynamic range of target is too large" << endl;
     exit(1);
   } else {
     for (t = 0; t < _source->GetT(); t++) {
@@ -262,7 +262,7 @@ void irtkSymmetricImageRegistration::Initialize(int level)
       (_SimilarityMeasure == LC)  || (_SimilarityMeasure == K) || (_SimilarityMeasure == ML)) {
     if (source_max - target_min > MAX_GREY) {
       cerr << this->NameOfClass()
-           << "::Initialize: Dynamic range of source is too large" << endl;
+      << "::Initialize: Dynamic range of source is too large" << endl;
       exit(1);
     } else {
       for (t = 0; t < _source->GetT(); t++) {
@@ -278,7 +278,7 @@ void irtkSymmetricImageRegistration::Initialize(int level)
   } else {
     if (source_max - source_min > MAX_GREY) {
       cerr << this->NameOfClass()
-           << "::Initialize: Dynamic range of source is too large" << endl;
+      << "::Initialize: Dynamic range of source is too large" << endl;
       exit(1);
     } else {
       for (t = 0; t < _source->GetT(); t++) {
@@ -299,78 +299,78 @@ void irtkSymmetricImageRegistration::Initialize(int level)
 
   // Allocate memory for metric
   switch (_SimilarityMeasure) {
-  case SSD:
-    _metric1 = new irtkSSDSimilarityMetric;
-    _metric2 = new irtkSSDSimilarityMetric;
-    break;
-  case CC:
-    // Rescale images by an integer factor if necessary
-    _metric1 = new irtkCrossCorrelationSimilarityMetric;
-    _metric2 = new irtkCrossCorrelationSimilarityMetric;
-    break;
-  case JE:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max);
-    _metric1 = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
-    _metric2 = new irtkJointEntropySimilarityMetric(source_nbins, target_nbins);
-    break;
-  case MI:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max);
-    _metric1 = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
-    _metric2 = new irtkMutualInformationSimilarityMetric(source_nbins, target_nbins);
-    break;
-  case NMI:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max);
-    _metric1 = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
-    _metric2 = new irtkNormalisedMutualInformationSimilarityMetric(source_nbins, target_nbins);
-    break;
-  case CR_XY:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max);
-    _metric1 = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
-    _metric2 = new irtkCorrelationRatioXYSimilarityMetric(source_nbins, target_nbins);
-    break;
-  case CR_YX:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max);
-    _metric1 = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
-    _metric2 = new irtkCorrelationRatioYXSimilarityMetric(source_nbins, target_nbins);
-    break;
-  case LC:
-    _metric1 = new irtkLabelConsistencySimilarityMetric;
-    _metric2 = new irtkLabelConsistencySimilarityMetric;
-    break;
-  case K:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max);
-    _metric1 = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
-    _metric2 = new irtkKappaSimilarityMetric(source_nbins, target_nbins);
-    break;
-  case ML:
-    // Rescale images by an integer factor if necessary
-    _metric1 = new irtkMLSimilarityMetric(classification);
-    _metric2 = new irtkMLSimilarityMetric(classification);
-    break;
+    case SSD:
+      _metric1 = new irtkSSDSimilarityMetric;
+      _metric2 = new irtkSSDSimilarityMetric;
+      break;
+    case CC:
+      // Rescale images by an integer factor if necessary
+      _metric1 = new irtkCrossCorrelationSimilarityMetric;
+      _metric2 = new irtkCrossCorrelationSimilarityMetric;
+      break;
+    case JE:
+      // Rescale images by an integer factor if necessary
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+                     target_min, target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+                     source_min, source_max);
+      _metric1 = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
+      _metric2 = new irtkJointEntropySimilarityMetric(source_nbins, target_nbins);
+      break;
+    case MI:
+      // Rescale images by an integer factor if necessary
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+                     target_min, target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+                     source_min, source_max);
+      _metric1 = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
+      _metric2 = new irtkMutualInformationSimilarityMetric(source_nbins, target_nbins);
+      break;
+    case NMI:
+      // Rescale images by an integer factor if necessary
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+                     target_min, target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+                     source_min, source_max);
+      _metric1 = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
+      _metric2 = new irtkNormalisedMutualInformationSimilarityMetric(source_nbins, target_nbins);
+      break;
+    case CR_XY:
+      // Rescale images by an integer factor if necessary
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+                     target_min, target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+                     source_min, source_max);
+      _metric1 = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
+      _metric2 = new irtkCorrelationRatioXYSimilarityMetric(source_nbins, target_nbins);
+      break;
+    case CR_YX:
+      // Rescale images by an integer factor if necessary
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+                     target_min, target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+                     source_min, source_max);
+      _metric1 = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
+      _metric2 = new irtkCorrelationRatioYXSimilarityMetric(source_nbins, target_nbins);
+      break;
+    case LC:
+      _metric1 = new irtkLabelConsistencySimilarityMetric;
+      _metric2 = new irtkLabelConsistencySimilarityMetric;
+      break;
+    case K:
+      // Rescale images by an integer factor if necessary
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+                     target_min, target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+                     source_min, source_max);
+      _metric1 = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
+      _metric2 = new irtkKappaSimilarityMetric(source_nbins, target_nbins);
+      break;
+    case ML:
+      // Rescale images by an integer factor if necessary
+      _metric1 = new irtkMLSimilarityMetric(classification);
+      _metric2 = new irtkMLSimilarityMetric(classification);
+      break;
   }
 
   // Setup the interpolator for the source image
@@ -397,12 +397,12 @@ void irtkSymmetricImageRegistration::Initialize(int level)
 
   // Setup the optimizer
   switch (_OptimizationMethod) {
-  case GradientDescent:
-    _optimizer = new irtkGradientDescentSymmetricOptimizer;
-    break;
-  default:
-    cerr << "Unkown optimizer" << endl;
-    exit(1);
+    case GradientDescent:
+      _optimizer = new irtkGradientDescentSymmetricOptimizer;
+      break;
+    default:
+      cerr << "Unkown optimizer" << endl;
+      exit(1);
   }
   _optimizer->SetTransformation(_transformation1, _transformation2);
   _optimizer->SetRegistration(this);
@@ -509,12 +509,21 @@ void irtkSymmetricImageRegistration::Run()
         _optimizer->Run(epsilon, delta);
 
         // Check whether we made any improvement or not
-        if (epsilon > _Epsilon && delta > _Delta) {
+        if (epsilon > _Epsilon) {
+          sprintf(buffer, "log1_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
+          if (_DebugFlag == True) _transformation1->Write(buffer);
+          sprintf(buffer, "log2_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
+          if (_DebugFlag == True) _transformation2->Write(buffer);
           this->Print();
         } else {
+          sprintf(buffer, "log1_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
+          if (_DebugFlag == True) _transformation1->Write(buffer);
+          sprintf(buffer, "log2_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
+          if (_DebugFlag == True) _transformation2->Write(buffer);
           this->Print();
           break;
         }
+
       }
       step = step / 2;
     }
@@ -530,6 +539,30 @@ void irtkSymmetricImageRegistration::Run()
 
   // Do the final cleaning up for all levels
   this->Finalize();
+
+  int k;
+  double x, y, z, error, mean, max;
+
+  mean = 0;
+  max  = 0;
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+      	x = i;
+      	y = j;
+      	z = k;
+      	_target->ImageToWorld(x, y, z);
+      	_transformation1->Transform(x, y, z);
+      	_transformation2->Transform(x, y, z);
+      	_target->WorldToImage(x, y, z);
+      	error = sqrt((i-x)*(i-x)+(j-y)*(j-y)+(k-z)*(k-z));
+      	mean += error;
+      	if (error > max) max = error;
+      }
+    }
+  }
+  cout << "Mean consistency error = " << mean/(_target->GetX()*_target->GetY()*_target->GetZ()) << endl;
+  cout << "Max. consistency error = " << max  << endl;
 }
 
 double irtkSymmetricImageRegistration::EvaluateGradient(float step, float *dx)
@@ -843,78 +876,78 @@ void irtkSymmetricImageRegistration::Write(ostream &to)
   to << "Padding value                     = " << this->_Padding << endl;
 
   switch (this->_SimilarityMeasure) {
-  case K:
-    to << "Similarity measure                = K" << endl;
-    break;
-  case LC:
-    to << "Similarity measure                = LC" << endl;
-    break;
-  case CC:
-    to << "Similarity measure                = CC" << endl;
-    break;
-  case JE:
-    to << "Similarity measure                = JE" << endl;
-    break;
-  case MI:
-    to << "Similarity measure                = MI" << endl;
-    break;
-  case NMI:
-    to << "Similarity measure                = NMI" << endl;
-    break;
-  case SSD:
-    to << "Similarity measure                = SSD" << endl;
-    break;
-  case CR_XY:
-    to << "Similarity measure                = CR_XY" << endl;
-    break;
-  case CR_YX:
-    to << "Similarity measure                = CR_YX" << endl;
-    break;
-  case ML:
-    to << "Similarity measure                = ML" << endl;
-    break;
+    case K:
+      to << "Similarity measure                = K" << endl;
+      break;
+    case LC:
+      to << "Similarity measure                = LC" << endl;
+      break;
+    case CC:
+      to << "Similarity measure                = CC" << endl;
+      break;
+    case JE:
+      to << "Similarity measure                = JE" << endl;
+      break;
+    case MI:
+      to << "Similarity measure                = MI" << endl;
+      break;
+    case NMI:
+      to << "Similarity measure                = NMI" << endl;
+      break;
+    case SSD:
+      to << "Similarity measure                = SSD" << endl;
+      break;
+    case CR_XY:
+      to << "Similarity measure                = CR_XY" << endl;
+      break;
+    case CR_YX:
+      to << "Similarity measure                = CR_YX" << endl;
+      break;
+    case ML:
+      to << "Similarity measure                = ML" << endl;
+      break;
   }
 
   switch (this->_InterpolationMode) {
-  case Interpolation_NN:
-    to << "Interpolation mode                = NN" << endl;
-    break;
-  case Interpolation_Linear:
-    to << "Interpolation mode                = Linear" << endl;
-    break;
-  case Interpolation_CSpline:
-    to << "Interpolation mode                = CSpline" << endl;
-    break;
-  case Interpolation_BSpline:
-    to << "Interpolation mode                = BSpline" << endl;
-    break;
-  case Interpolation_Sinc:
-    to << "Interpolation mode                = Sinc" << endl;
-    break;
-  case Interpolation_Gaussian:
-    to << "Interpolation mode                = Gaussian" << endl;
-    break;
+    case Interpolation_NN:
+      to << "Interpolation mode                = NN" << endl;
+      break;
+    case Interpolation_Linear:
+      to << "Interpolation mode                = Linear" << endl;
+      break;
+    case Interpolation_CSpline:
+      to << "Interpolation mode                = CSpline" << endl;
+      break;
+    case Interpolation_BSpline:
+      to << "Interpolation mode                = BSpline" << endl;
+      break;
+    case Interpolation_Sinc:
+      to << "Interpolation mode                = Sinc" << endl;
+      break;
+    case Interpolation_Gaussian:
+      to << "Interpolation mode                = Gaussian" << endl;
+      break;
   }
 
   switch (this->_OptimizationMethod) {
-  case DownhillDescent:
-    to << "Optimization method               = DownhillDescent" << endl;
-    break;
-  case GradientDescent:
-    to << "Optimization method               = GradientDescent" << endl;
-    break;
-  case SteepestGradientDescent:
-    to << "Optimization method               = SteepestGradientDescent" << endl;
-    break;
-  case ConjugateGradientDescent:
-    to << "Optimization method               = ConjugateGradientDescent" << endl;
-    break;
-  case GradientDescentConstrained:
-    to << "Optimization method               = GradientDescentConstrained" << endl;
-    break;
-  case ClosedForm:
-    to << "Optimization method               = ClosedForm" << endl;
-    break;
+    case DownhillDescent:
+      to << "Optimization method               = DownhillDescent" << endl;
+      break;
+    case GradientDescent:
+      to << "Optimization method               = GradientDescent" << endl;
+      break;
+    case SteepestGradientDescent:
+      to << "Optimization method               = SteepestGradientDescent" << endl;
+      break;
+    case ConjugateGradientDescent:
+      to << "Optimization method               = ConjugateGradientDescent" << endl;
+      break;
+    case GradientDescentConstrained:
+      to << "Optimization method               = GradientDescentConstrained" << endl;
+      break;
+    case ClosedForm:
+      to << "Optimization method               = ClosedForm" << endl;
+      break;
   }
 
   for (i = 0; i < this->_NumberOfLevels; i++) {
@@ -939,7 +972,7 @@ void irtkSymmetricImageRegistration::Read(char *filename)
 
   if (!from) {
     cerr << "irtkSymmetricImageRegistration::Read: Can't open file " << filename
-         << endl;
+    << endl;
     exit(1);
   }
 
