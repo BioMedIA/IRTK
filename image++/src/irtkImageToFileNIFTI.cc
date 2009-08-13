@@ -93,6 +93,14 @@ void irtkImageToFileNIFTI::Initialize()
         _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT16, i2w);
         break;
       }
+    case IRTK_VOXEL_INT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT32, i2w);
+        break;
+      }
+    case IRTK_VOXEL_UNSIGNED_INT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT32, i2w);
+        break;
+      }
     case IRTK_VOXEL_FLOAT: {
         _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT32, i2w);
         break;

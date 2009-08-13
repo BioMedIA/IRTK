@@ -30,23 +30,23 @@ template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(void) :
 
 template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(int x, int y, int z, int t) : irtkBaseImage()
 {
-	irtkImageAttributes attr;
-	
-	attr._x = x;
-	attr._y = y;
-	attr._z = z;
-	attr._t = t;
-	
-	// Initialize data
+  irtkImageAttributes attr;
+
+  attr._x = x;
+  attr._y = y;
+  attr._z = z;
+  attr._t = t;
+
+  // Initialize data
   _matrix = NULL;
 
-	// Initialize rest of class
+  // Initialize rest of class
   this->Initialize(attr);
 }
 
 template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(char *filename)
 {
-	// Initialize data
+  // Initialize data
   _matrix = NULL;
 
   // Read image
@@ -55,10 +55,10 @@ template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(char *f
 
 template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(const irtkImageAttributes &attr) : irtkBaseImage()
 {
-	// Initialize data
+  // Initialize data
   _matrix  = NULL;
 
-	// Initialize rest of class
+  // Initialize rest of class
   this->Initialize(attr);
 }
 
@@ -67,12 +67,12 @@ template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(const i
   int i, n;
   VoxelType *ptr1, *ptr2;
 
-	// Initialize data
+  // Initialize data
   _matrix = NULL;
 
-	// Initialize rest of class
+  // Initialize rest of class
   this->Initialize(image._attr);
-  
+
   n    = this->GetNumberOfVoxels();
   ptr1 = this->GetPointerToVoxels();
   ptr2 = image.GetPointerToVoxels();
@@ -80,19 +80,19 @@ template <class VoxelType> irtkGenericImage<VoxelType>::irtkGenericImage(const i
     ptr1[i] = ptr2[i];
   }
 }
- 
+
 template <class VoxelType> template <class VoxelType2> irtkGenericImage<VoxelType>::irtkGenericImage(const irtkGenericImage<VoxelType2> &image)
 {
   int i, n;
   VoxelType  *ptr1;
   VoxelType2 *ptr2;
 
-	// Initialize data
+  // Initialize data
   _matrix = NULL;
-  
-	// Initialize rest of class
+
+  // Initialize rest of class
   this->Initialize(image.GetImageAttributes());
-  
+
   n    = this->GetNumberOfVoxels();
   ptr1 = this->GetPointerToVoxels();
   ptr2 = image.GetPointerToVoxels();
@@ -133,14 +133,19 @@ template <> const char *irtkGenericImage<unsigned short>::NameOfClass()
   return "irtkGenericImage<unsigned short>";
 }
 
-template <> const char *irtkGenericImage<float>::NameOfClass()
-{
-  return "irtkGenericImage<float>";
-}
-
 template <> const char *irtkGenericImage<int>::NameOfClass()
 {
   return "irtkGenericImage<int>";
+}
+
+template <> const char *irtkGenericImage<unsigned int>::NameOfClass()
+{
+  return "irtkGenericImage<unsigned int>";
+}
+
+template <> const char *irtkGenericImage<float>::NameOfClass()
+{
+  return "irtkGenericImage<float>";
 }
 
 template <> const char *irtkGenericImage<double>::NameOfClass()
@@ -158,10 +163,10 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const ir
     // Free old memory
     if (_matrix != NULL) Deallocate<VoxelType>(_matrix);
     // Allocate new memory
-    if (attr._x*attr._y*attr._z*attr._t > 0){
-    	_matrix = Allocate(_matrix, attr._x, attr._y, attr._z, attr._t);
+    if (attr._x*attr._y*attr._z*attr._t > 0) {
+      _matrix = Allocate(_matrix, attr._x, attr._y, attr._z, attr._t);
     } else {
-    	_matrix = NULL;
+      _matrix = NULL;
     }
   }
 
@@ -200,12 +205,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
   } else if (dynamic_cast<irtkGenericImage<double> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<double> *>(image));
   } else {
-  	cerr << "irtkGenericImage<VoxelType>::Read: Cannot convert image to desired type" << endl;
-  	exit(1);
+    cerr << "irtkGenericImage<VoxelType>::Read: Cannot convert image to desired type" << endl;
+    exit(1);
   }
-  
-  if (strcmp(this->NameOfClass(), "irtkGenericImage<float>") || strcmp(this->NameOfClass(), "irtkGenericImage<double>")){
-  	*this = (*this * reader->GetSlope()) + reader->GetIntercept();
+
+  if (strcmp(this->NameOfClass(), "irtkGenericImage<float>") || strcmp(this->NameOfClass(), "irtkGenericImage<double>")) {
+    *this = (*this * reader->GetSlope()) + reader->GetIntercept();
   }
 
   // Delete reader
@@ -478,7 +483,7 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   VoxelType  *ptr1, *ptr2;
 
   if (this == &image) return *this;
-  
+
   this->Initialize(image._attr);
   n    = this->GetNumberOfVoxels();
   ptr1 = this->GetPointerToVoxels();
@@ -494,7 +499,7 @@ template <class VoxelType> template <class VoxelType2> irtkGenericImage<VoxelTyp
   int i, n;
   VoxelType  *ptr1;
   VoxelType2 *ptr2;
-  
+
   this->Initialize(image.GetImageAttributes());
   n    = this->GetNumberOfVoxels();
   ptr1 = this->GetPointerToVoxels();
@@ -1065,6 +1070,11 @@ template <> int irtkGenericImage<unsigned short>::ImageToVTKScalarType()
 }
 
 template <> int irtkGenericImage<int>::ImageToVTKScalarType()
+{
+  return VTK_INT;
+}
+
+template <> int irtkGenericImage<unsigned int>::ImageToVTKScalarType()
 {
   return VTK_UNSIGNED_INT;
 }
