@@ -17,8 +17,10 @@
 #include <irtkTransformation.h>
 
 #include <vtkPolyData.h>
+#include <vtkPointData.h>
 #include <vtkPolyDataReader.h>
 #include <vtkPolyDataWriter.h>
+#include <vtkPolyDataNormals.h>
 
 // Default filenames
 char *input_name = NULL, *output_name = NULL, *dof_name  = NULL;
@@ -96,6 +98,15 @@ int main(int argc, char **argv)
       surface->GetPoints()->SetPoint(i, coord);
     }
     surface->Modified();
+  }
+
+  // Recalculate normals, if applicable
+  if (surface->GetPointData()->GetNormals() != NULL) {
+    vtkPolyDataNormals *filter = vtkPolyDataNormals::New();
+    filter->SetInput(surface);
+    filter->Update(); // absolutely necessary!
+    surface->GetPointData()->SetNormals(filter->GetOutput()->GetPointData()->GetNormals());
+    filter->Delete(); // be good
   }
 
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
