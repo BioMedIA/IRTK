@@ -31,7 +31,7 @@ int irtkLocator::FindClosestPoint(double *xyz)
     xyz[2] = closestPoint[2];
     return cellId;
   } else if (loc_type == 1) {
-    temp_id = point_locator->FindClosestPoint(xyz[0], xyz[1], xyz[2]);
+    temp_id = point_locator->FindClosestPoint(xyz);
     _dataset->GetPoint(temp_id, xyz);
     return temp_id;
   } else if (loc_type == 2) {
