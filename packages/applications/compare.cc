@@ -17,6 +17,9 @@
 // Default filenames
 char *target_name = NULL, *source_name = NULL, *dof1_name = NULL, *dof2_name = NULL;
 
+// Global options
+int ice = False;
+
 void usage()
 {
   cerr << "Usage: compare [target] [source] [dof1] [dof2] <options>\n";
@@ -42,7 +45,8 @@ void usage()
   cerr << "<-source  t> \t Threshold in source image" << endl;
   cerr << "<-target  t> \t Threshold in target image" << endl;
   cerr << "<-fast>      \t Use eight points only" << endl;
-  cerr << "<-image>     \t saves an image with the error for each pixel"<<endl;
+  cerr << "<-ice>       \t Compute inverse consistency error" << endl;
+  cerr << "<-image>     \t Saves an image with the error for each pixel"<<endl;
   exit(1);
 }
 
@@ -54,15 +58,20 @@ double calculate_error(double x, double y, double z, irtkTransformation *t1,
   x1 = x2 = x;
   y1 = y2 = y;
   z1 = z2 = z;
-  t1->Transform(x1, y1, z1);
-  t2->Transform(x2, y2, z2);
+  if (ice == False){
+    t1->Transform(x1, y1, z1);
+    t2->Transform(x2, y2, z2);
+  } else {
+    t1->Transform(x1, y1, z1);
+    t2->Transform(x1, y1, z1);
+  }
   return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2);
 }
 
 int main(int argc, char **argv)
 {
   irtkTransformation *t1, *t2;
-  int useImage,ok, fast, m, n, x, y, z;
+  int useImage, ok, fast, m, n, x, y, z;
   int target_threshold, source_threshold;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
@@ -94,7 +103,7 @@ int main(int argc, char **argv)
   // Read image
   irtkGreyImage *target = new irtkGreyImage(target_name);
   irtkGreyImage *source = new irtkGreyImage(source_name);
-  irtkGreyImage *image  = new irtkGreyImage;
+  irtkRealImage *image  = new irtkRealImage;
 
   // Fix ROI
   target_x1 = 0;
@@ -291,6 +300,12 @@ int main(int argc, char **argv)
       fast = True;
       ok = True;
     }
+    if ((ok == False) && (strcmp(argv[1], "-ice") == 0)) {
+      argc--;
+      argv++;
+      ice = True;
+      ok = True;
+    }
     if (ok == False) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -406,8 +421,7 @@ int main(int argc, char **argv)
   }
 
   // Write the image
-  if (useImage==True) {
-    cout<<"Output Image: "<<imageName<<" .........."<<endl;
+  if (useImage == True) {
     image->Write(imageName);
   }
   // Calculate final error
