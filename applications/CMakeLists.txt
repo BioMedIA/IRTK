@@ -51,6 +51,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(makevolume makevolume.cc)
     ADD_EXECUTABLE(makesequence makesequence.cc)
     ADD_EXECUTABLE(mcubes mcubes.cc)
+    ADD_EXECUTABLE(msample msample.cc)
     ADD_EXECUTABLE(opening opening.cc)
     ADD_EXECUTABLE(raw2image raw2image.cc)
     ADD_EXECUTABLE(reflect reflect.cc)
@@ -67,7 +68,7 @@ ELSE(BUILD_CONDOR_EXE)
 
 INSTALL_TARGETS(/bin binarize blur closing convert dilation
 dicom2image dmap edgedetect erosion flip giplmagic headertool info lcc
-lcc_iterative makesequence makevolume mcubes noise opening padding 
+lcc_iterative makesequence makevolume mcubes msample noise opening padding 
 raw2image reflect region resample threshold voxelsize histogram sbig AnisoDiff)
 
 ENDIF (BUILD_CONDOR_EXE)
