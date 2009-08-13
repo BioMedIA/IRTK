@@ -63,6 +63,7 @@ public:
 
 #include <irtkPointRegistration.h>
 #include <irtkSurfaceRegistration.h>
+#include <irtkModelRegistration.h>
 #include <irtkImageRegistration.h>
 #include <irtkSymmetricImageRegistration.h>
 
