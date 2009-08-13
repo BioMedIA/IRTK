@@ -43,7 +43,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int i, n, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok;
+  int i, n, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
   double spacing, sigma, xaxis[3], yaxis[3], zaxis[3];
   irtkGreyPixel padding;
   irtkImageFreeFormRegistrationMode mode;
@@ -92,6 +92,7 @@ int main(int argc, char **argv)
   spacing   = 0;
   sigma     = 0;
   mode      = RegisterXYZ;
+  debug     = False;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -210,6 +211,12 @@ int main(int argc, char **argv)
       argc--;
       argv++;
     }
+    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+      argc--;
+      argv++;
+      ok = True;
+      debug = True;
+    }
     if ((ok == False) && (strcmp(argv[1], "-xy_only") == 0)) {
       argc--;
       argv++;
@@ -265,9 +272,7 @@ int main(int argc, char **argv)
     irtkImageAttributes attr = image[0]->GetImageAttributes();
     attr._t = 1;
     irtkGreyImage *target = new irtkGreyImage(attr);
-    target->Print();
     irtkGreyImage *source = new irtkGreyImage(attr);
-    source->Print();
     for (i = 0; i < target->GetT(); i++) {
       for (z = 0; z < target->GetZ(); z++) {
         for (y = 0; y < target->GetY(); y++) {
@@ -279,12 +284,11 @@ int main(int argc, char **argv)
       }
     }
 
-    target->Print();
-    source->Print();
     // Set input and output for the registration filter
     registration->SetInput(target, source);
     registration->SetOutput(mffd);
     registration->SetMode(mode);
+    registration->SetDebugFlag(debug);
 
     // Read parameter if there any, otherwise make an intelligent guess
     if (parin_name != NULL) {
