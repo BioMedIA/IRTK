@@ -45,7 +45,8 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   virtual void ComputeGradientJ0();
   virtual void ComputeJacobianDeterminant(int);
   virtual void ComputeEnergyGradient(int);
-  virtual void UpdateVectorField();
+  virtual void UpdateVelocityField();
+  virtual void SpeedReparametrization();
   virtual void SaveResultGradientDescent(int);
   virtual void SaveVelocityFields(char *);
   virtual void LoadVelocityFields(char *);
@@ -87,7 +88,6 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   int NXt3;      //NX*3
   int NXtYt3;    //NX*NY*3
   int NXtYtZt3;  //NX*NY*NZ*3
-  float sigma2;  //sigma^2
   
   
   ///Inline functions
@@ -129,19 +129,14 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   irtkGreyImage target_image;  //explicit name (hopefully)
   float DeltaTimeSubdiv; //time step between two subdivision
   float sigma;           // width of the Gaussian kernel
-  float WeightVelocityField;  //weight of the velocity field in the energy gradients
-  float UNDETERMINED_VALUE;   //value given to the voxels for which the value cannot be determined
+  float alpha; // Weight between the norm and the penalty term
+  int reparametrization; // reparameterisation frequency (in iterations)
   float DeltaVox;   //considered distance between two voxels (in order to evaluate the gradient on the grey levels)
+  float UNDETERMINED_VALUE;   //value given to the voxels for which the value cannot be determined
   char PrefixInputVF[256];   //Prefix of the files containing an initial velocity field
   char PrefixOutputVF[256];   //Prefix of the files containing the final velocity field
 
 };
 
-
-
-
-
-
-void DummyFonction(const float *, int);
 
 #endif
