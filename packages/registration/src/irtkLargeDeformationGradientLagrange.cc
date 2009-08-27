@@ -18,10 +18,12 @@ template <class VoxelType> LargeDefGradLagrange<VoxelType>::LargeDefGradLagrange
   NbTimeSubdiv=10;
   MaxVelocityUpdate=3.;
   sigma=3.;
+  Margin=0;
   UNDETERMINED_VALUE=-300000000; //has to be smaller than all computed determinants of jacobians and momentum (that means possibly very small)
   DeltaVox=1.;
-  alpha=1.;
-  reparametrization = 10000; //set to 10 when it works well
+  alpha=0.01;
+  gamma=0.1;
+  reparametrization = 10;
   strcpy(PrefixInputVF,"Null");
   strcpy(PrefixOutputVF,"Null");
 }
@@ -123,6 +125,10 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::AllocateAllVari
   //     --> JacobianMatrix[3*i+j]: value of the matrix in (i,j)
   this->JacobianMatrix = new float[9];
   
+  //Norm of the velocity field
+  //     --> norm[i]: norm of the velicity field at subdivision time i
+  this->norm = new float [this->NbTimeSubdiv];
+  
   //temporary image to use when irtk functions are called
   this->Image3DTemp = irtkGenericImage<float>(this->NX, this->NY, this->NZ,1);
 }
@@ -131,15 +137,55 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::AllocateAllVari
 ///initiate the gradient descent (Beg 2005) for the current 3D image of the 4D time sequence
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::InitiateGradientDescent(int TimeLoc){
   int subivId, x, y, z;
+  float MinGrayLevelImTemplate,MaxGrayLevelImTemplate,MinGrayLevelImTarget,MaxGrayLevelImTarget;
+  int DistClosestEdge;
   
-  //2.1.1) cast the values of the template and target images at time t in float
+  //1) cast the values of the template and target images at time t in float
   for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
         this->ImTemplate[ptSF(x,y,z)]=static_cast<float>(this->_input->Get(x, y, z, TimeLoc));
   
   for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
         this->ImTarget[ptSF(x,y,z)]=static_cast<float>(this->target_image.Get(x, y, z, TimeLoc));
   
-  //2.1.2) initiate the vector field
+  //2) take into accout the margin and normalize the gray levels of ImTemplate and ImTarget between 0 and 100
+  //2.1) Margins
+  for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
+    DistClosestEdge=z+1;
+    if (y+1<DistClosestEdge) DistClosestEdge=y+1;
+    if (x+1<DistClosestEdge) DistClosestEdge=x+1;
+    if (this->NZ-z<DistClosestEdge) DistClosestEdge=this->NZ-z;
+    if (this->NY-y<DistClosestEdge) DistClosestEdge=this->NY-y;
+    if (this->NX-x<DistClosestEdge) DistClosestEdge=this->NX-x;
+    if (DistClosestEdge<=this->Margin){
+      this->ImTemplate[ptSF(x,y,z)]=this->ImTemplate[ptSF(x,y,z)]*((DistClosestEdge-1.)/this->Margin)*((DistClosestEdge-1.)/this->Margin);
+      this->ImTarget[ptSF(x,y,z)]=this->ImTarget[ptSF(x,y,z)]*((DistClosestEdge-1.)/this->Margin)*((DistClosestEdge-1.)/this->Margin);
+    }
+  }
+  
+  //2.2)Gray level regularisation
+  MinGrayLevelImTemplate=this->ImTemplate[ptSF(1,1,1)];
+  for (z = 1; z < this->NZ-1; z++)  for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++)
+        if (this->ImTemplate[ptSF(x,y,z)]<MinGrayLevelImTemplate) MinGrayLevelImTemplate=this->ImTemplate[ptSF(x,y,z)];
+  
+  MaxGrayLevelImTemplate=this->ImTemplate[ptSF(1,1,1)];
+  for (z = 1; z < this->NZ-1; z++)  for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++)
+        if (this->ImTemplate[ptSF(x,y,z)]>MaxGrayLevelImTemplate) MaxGrayLevelImTemplate=this->ImTemplate[ptSF(x,y,z)];
+
+  for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->ImTemplate[ptSF(x,y,z)]=100.*(this->ImTemplate[ptSF(x,y,z)]-MinGrayLevelImTemplate)/(MaxGrayLevelImTemplate-MinGrayLevelImTemplate);
+  
+  MinGrayLevelImTarget=this->ImTarget[ptSF(1,1,1)];
+  for (z = 1; z < this->NZ-1; z++)  for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++)
+        if (this->ImTarget[ptSF(x,y,z)]<MinGrayLevelImTarget) MinGrayLevelImTarget=this->ImTarget[ptSF(x,y,z)];
+  
+  MaxGrayLevelImTarget=this->ImTarget[ptSF(1,1,1)];
+  for (z = 1; z < this->NZ-1; z++)  for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++)
+        if (this->ImTarget[ptSF(x,y,z)]>MaxGrayLevelImTarget) MaxGrayLevelImTarget=this->ImTarget[ptSF(x,y,z)];
+
+  for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->ImTarget[ptSF(x,y,z)]=100.*(this->ImTarget[ptSF(x,y,z)]-MinGrayLevelImTarget)/(MaxGrayLevelImTarget-MinGrayLevelImTarget);
+
+  //3) initiate the vector field
   if (strcmp(PrefixInputVF,"Null")!=0){
     this->LoadVelocityFields(PrefixInputVF);
   }
@@ -151,26 +197,33 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::InitiateGradien
     }
   }
   
-  //2.1.3) initiate the values of the direct mapping at subdivision time 0
+  //4) initiate the values of the direct mapping at subdivision time 0
   for (z=0;z<this->NZ;z++) for (y=0;y<this->NY;y++) for (x=0;x<this->NX;x++){
     this->DirectMapping[0][ptVF(x,y,z,0)]=0.;
     this->DirectMapping[0][ptVF(x,y,z,1)]=0.;
     this->DirectMapping[0][ptVF(x,y,z,2)]=0.;
   }
   
-  //2.1.4) initiate the values of the inverse mapping at subdivision time 1
+  //5) initiate the values of the inverse mapping at subdivision time 1
   for (z=0;z<this->NZ;z++) for (y=0;y<this->NY;y++) for (x=0;x<this->NX;x++){
     this->InverseMapping[this->NbTimeSubdiv-1][ptVF(x,y,z,0)]=0.;
     this->InverseMapping[this->NbTimeSubdiv-1][ptVF(x,y,z,1)]=0.;
     this->InverseMapping[this->NbTimeSubdiv-1][ptVF(x,y,z,2)]=0.;
   }
   
-  //2.1.4) initiate GradE
+  //6) initiate GradE
   for (subivId=0;subivId<this->NbTimeSubdiv;subivId++) for (z=0;z<this->NZ;z++) for (y=0;y<this->NY;y++) for (x=0;x<this->NX;x++){
     this->GradE[subivId][ptVF(x,y,z,0)]=0;
     this->GradE[subivId][ptVF(x,y,z,1)]=0;
     this->GradE[subivId][ptVF(x,y,z,2)]=0;
   }
+  
+  //7) initiate norm, Length and Energy
+  for (subivId=0;subivId<this->NbTimeSubdiv;subivId++) this->norm[subivId]=0;
+  this->length=0;
+  this->EnergyTot=0;
+  this->EnergyVF=0;
+  this->EnergyDI=0;
 }
 
 
@@ -183,7 +236,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeDirectMa
   int timeSubdiv;
       
   //initialisation
-  //cout << "Compute direct Mapping\n";
   ConvergenceSteps=3;
   
   //JO at the first time subdivision
@@ -204,9 +256,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeDirectMa
       //convergence
       for (i=0;i<ConvergenceSteps;i++){
         this->GetVectorFromVelocityField(timeSubdiv-1,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],VecTemp);
-        //VecTemp[0]=(VecTemp[0]+this->VelocityField[timeSubdiv][ptVF(x,y,z,0)])*this->DeltaTimeSubdiv/2;
-        //VecTemp[1]=(VecTemp[1]+this->VelocityField[timeSubdiv][ptVF(x,y,z,1)])*this->DeltaTimeSubdiv/2;
-        //VecTemp[2]=(VecTemp[2]+this->VelocityField[timeSubdiv][ptVF(x,y,z,2)])*this->DeltaTimeSubdiv/2;
         VecTemp[0]=(VecTemp[0]+this->VelocityField[timeSubdiv][ptVF(x,y,z,0)])*(this->DeltaTimeSubdiv/this->DeltaVox)/2;
         VecTemp[1]=(VecTemp[1]+this->VelocityField[timeSubdiv][ptVF(x,y,z,1)])*(this->DeltaTimeSubdiv/this->DeltaVox)/2;
         VecTemp[2]=(VecTemp[2]+this->VelocityField[timeSubdiv][ptVF(x,y,z,2)])*(this->DeltaTimeSubdiv/this->DeltaVox)/2;
@@ -233,7 +282,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeInverseM
   int LastTimSub;
 
   //initialisation
-  //cout << "Compute Inverse Mapping\n";
   ConvergenceSteps=3;
   LastTimSub=this->NbTimeSubdiv-1;
   
@@ -255,9 +303,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeInverseM
       //convergence
       for (i=0;i<ConvergenceSteps;i++){
         this->GetVectorFromVelocityField(timeSubdiv+1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],VecTemp);
-        //VecTemp[0]=(VecTemp[0]+this->VelocityField[timeSubdiv][ptVF(x,y,z,0)])*this->DeltaTimeSubdiv/2;
-        //VecTemp[1]=(VecTemp[1]+this->VelocityField[timeSubdiv][ptVF(x,y,z,1)])*this->DeltaTimeSubdiv/2;
-        //VecTemp[2]=(VecTemp[2]+this->VelocityField[timeSubdiv][ptVF(x,y,z,2)])*this->DeltaTimeSubdiv/2;
         VecTemp[0]=(VecTemp[0]+this->VelocityField[timeSubdiv][ptVF(x,y,z,0)])*(this->DeltaTimeSubdiv/this->DeltaVox)/2;
         VecTemp[1]=(VecTemp[1]+this->VelocityField[timeSubdiv][ptVF(x,y,z,1)])*(this->DeltaTimeSubdiv/this->DeltaVox)/2;
         VecTemp[2]=(VecTemp[2]+this->VelocityField[timeSubdiv][ptVF(x,y,z,2)])*(this->DeltaTimeSubdiv/this->DeltaVox)/2;
@@ -279,8 +324,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeInverseM
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeJ0(int timeSubdiv){
   int x,y,z;
   
-  //cout << "Computing J0 at time step t=" << timeSubdiv << "\n";
-  
   for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
     this->J0[ptSF(x,y,z)]=this->GetGreyLevelFromTemplate(this->DirectMapping[timeSubdiv][ptVF(x,y,z,0)], this->DirectMapping[timeSubdiv][ptVF(x,y,z,1)], this->DirectMapping[timeSubdiv][ptVF(x,y,z,2)]);
   }
@@ -290,8 +333,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeJ0(int t
 ///compute J1 using the inverse mapping
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeJ1(int timeSubdiv){
   int x,y,z;
-  
-  //cout << "Computing J1 at time step t=" << timeSubdiv << "\n";
   
   for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
     this->J1[ptSF(x,y,z)]=this->GetGreyLevelFromTarget(this->InverseMapping[timeSubdiv][ptVF(x,y,z,0)],this->InverseMapping[timeSubdiv][ptVF(x,y,z,1)],this->InverseMapping[timeSubdiv][ptVF(x,y,z,2)]);
@@ -303,9 +344,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeJ1(int t
 ///compute the gradient of J0  (may be improved at the boundaries)
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeGradientJ0(void){
   int x,y,z;
-  
-  //cout << "Compute Grad J0\n";
-  
   
   //Energy gradient in direction x, y, z
   for (z = 1; z < this->NZ-2; z++) for (y = 1; y < this->NY-2; y++) for (x = 1; x < this->NX-2; x++){
@@ -372,8 +410,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeJacobian
   int x,y,z,i,j;
   int test;
   
-  //cout << "Computing Det Jacobian\n";
-  
   for (z = 1; z < this->NZ-1; z++) for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++){
     test=0;
     for(i=0;i<3;i++)for(j=0;j<3;j++){
@@ -405,8 +441,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeEnergyGr
   int x,y,z,i;
   float temp;
   irtkRealPixel paddingValue;
-
-  //cout << "ComputeEnergyGradient\n";
   
   //initialisation
   paddingValue=this->UNDETERMINED_VALUE;
@@ -433,7 +467,7 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeEnergyGr
     
     //save the smoothed scalar field
     for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
-      this->GradE[timeSubdiv][ptVF(x,y,z,i)] = 2*this->alpha*this->VelocityField[i][ptVF(x,y,z,i)] - 2*this->Image3DTemp.Get(x, y, z, 0)/(this->sigma*this->sigma);
+      this->GradE[timeSubdiv][ptVF(x,y,z,i)] = 2*this->VelocityField[i][ptVF(x,y,z,i)] - 2*this->Image3DTemp.Get(x, y, z, 0)/(this->sigma*this->sigma);
     }
   }
 }
@@ -443,8 +477,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::UpdateVelocityF
   int x, y, z, i;
   float MaxGrad,MultFactor;
   double LocGrad;
-  
-  //cout << "Update Vector Field\n";
   
   //1) compute the multiplication factor
   MaxGrad=0;
@@ -480,52 +512,88 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::UpdateVelocityF
 }
 
 
-///compute the norm of the velocity fields at all subdivision times. 
-///        +-+ REMARK: ANOTHER NORM SHOULD BE USED +-+
+///compute the norm of the velocity fields at all subdivision times and the length of all paths
+///WARNING: "J0" MUST BE COMPUTED AT THE TIME SUBDIVISION "this->NbTimeSubdiv-1"
+template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeNormsAndLengthAndEnergy(){
+  int t,z,y,x,d;
+  double SumLoc;
+  double ValLoc;
+  float deltaT;
+  
+  //0) parameter to compute the norm
+  deltaT=1.0/this->NbTimeSubdiv;
+
+  //1) compute the norm of the vector field
+  for (t=0;t<this->NbTimeSubdiv;t++){
+    SumLoc=0;
+    for (z = 1; z < this->NZ-1; z++) for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++) for (d = 0; d < 3; d++)
+            if ((this->VelocityField[t][ptVF(x,y,z,d)]>this->UNDETERMINED_VALUE)&&
+                 (this->VelocityField[t][ptVF(x+1,y,z,d)]>this->UNDETERMINED_VALUE)&&(this->VelocityField[t][ptVF(x-1,y,z,d)]>this->UNDETERMINED_VALUE)&&
+                 (this->VelocityField[t][ptVF(x,y+1,z,d)]>this->UNDETERMINED_VALUE)&&(this->VelocityField[t][ptVF(x,y-1,z,d)]>this->UNDETERMINED_VALUE)&&
+                 (this->VelocityField[t][ptVF(x,y,z+1,d)]>this->UNDETERMINED_VALUE)&&(this->VelocityField[t][ptVF(x,y,z-1,d)]>this->UNDETERMINED_VALUE)){
+              ValLoc=static_cast<double>(this->gamma*this->VelocityField[t][ptVF(x,y,z,d)]);
+              ValLoc-=static_cast<double>(this->alpha*(this->VelocityField[t][ptVF(x+1,y,z,d)]-2*this->VelocityField[t][ptVF(x,y,z,d)]+this->VelocityField[t][ptVF(x-1,y,z,d)])/(this->DeltaVox*this->DeltaVox));
+              ValLoc-=static_cast<double>(this->alpha*(this->VelocityField[t][ptVF(x,y+1,z,d)]-2*this->VelocityField[t][ptVF(x,y,z,d)]+this->VelocityField[t][ptVF(x,y-1,z,d)])/(this->DeltaVox*this->DeltaVox));
+              ValLoc-=static_cast<double>(this->alpha*(this->VelocityField[t][ptVF(x,y,z+1,d)]-2*this->VelocityField[t][ptVF(x,y,z,d)]+this->VelocityField[t][ptVF(x,y,z-1,d)])/(this->DeltaVox*this->DeltaVox));
+              SumLoc+=ValLoc*ValLoc;
+                 }
+                 this->norm[t] = static_cast<float>(sqrt(SumLoc));
+    //cout << "norm[" << t << "] = " << this->norm[t] << "\n";
+  }
+
+  //2) compute the length
+  this->length=0;
+  for (t=0;t<this->NbTimeSubdiv;t++) this->length+=this->norm[t]*deltaT;
+  //cout << "length = " << length << "\n";
+  
+  
+  //3) compute the energy
+  this->EnergyVF=0;
+  
+  //3.1) Energy from the velocity field
+  for (t=0;t<this->NbTimeSubdiv;t++) this->EnergyVF+=this->norm[t]*this->norm[t]*deltaT;
+  
+  //3.2) Energy from the difference between the deformed template and the target
+  //this->ComputeJ0(this->NbTimeSubdiv-1);   //TO ADD IF "J0" IS NOT COMPUTED AT "this->NbTimeSubdiv-1"
+  ValLoc=0;
+  for (z = 1; z < this->NZ-1; z++) for (y = 1; y < this->NY-1; y++) for (x = 1; x < this->NX-1; x++)
+        if ((this->J0[ptSF(x,y,z)]>this->UNDETERMINED_VALUE)&&(this->J1[ptSF(x,y,z)]>this->UNDETERMINED_VALUE))
+          ValLoc+=static_cast<double>((this->J0[ptSF(x,y,z)]-this->ImTarget[ptSF(x,y,z)])*(this->J0[ptSF(x,y,z)]-this->ImTarget[ptSF(x,y,z)]));
+  
+  this->EnergyDI=static_cast<float>(ValLoc/(this->NX*this->NY*this->NZ));
+  
+  //3.3) Total Energy
+  this->EnergyTot=EnergyVF+EnergyDI;
+  
+}
+
+
+///Reparametrize the velocity field to have a constant speed.
+///REMARK: THE VARIABLES Norms AND Length MUST JUST HAVE BEEN COMPUTED
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SpeedReparametrization(){
   int t,z,y,x,d;
-  float temp;
-  float* norm;
   float* s;  //integral of norm
   float* h;  //inverse of s
-  float length;
   float deltaT;
   float step;
   float ht,sht,ht_wm,ht_wp;
   int ht_i;
   float h_derivative;
-
+  
   deltaT=1.0/this->NbTimeSubdiv;
-  cout << "deltaT = "  << deltaT << "\n";
   
   //allocations
-  norm = new float [this->NbTimeSubdiv];
   s = new float [this->NbTimeSubdiv+1];
   h = new float [this->NbTimeSubdiv+1];
   
-  //compute the norm of the vector field
-  for (t=0;t<this->NbTimeSubdiv;t++){
-    temp=0;
-    for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) for (d = 0; d < 3; d++)
-      if (this->VelocityField[t][ptVF(x,y,z,d)]>this->UNDETERMINED_VALUE)
-          temp+=this->VelocityField[t][ptVF(x,y,z,d)]*this->VelocityField[t][ptVF(x,y,z,d)];
-    
-    norm[t] = static_cast<float>(sqrt(temp));
-    cout << "norm[" << t << "] = " << norm[t] << "\n";
-  }
-  
-  //compute the length
-  length=0;
-  for (t=0;t<this->NbTimeSubdiv;t++) length+=norm[t]*deltaT;
-  cout << "length = " << length << "\n";
-  
+
   //compute s
   s[0]=0;   //we consider we start at subdivision time 0 and finish at 1
   for (t=1;t<this->NbTimeSubdiv+1;t++){
-    s[t]=s[t-1]+norm[t-1]*deltaT/length;
+    s[t]=s[t-1]+this->norm[t-1]*deltaT/this->length;
   }
   
-  for (t=0;t<this->NbTimeSubdiv+1;t++) cout << "s[" << t*deltaT << "] = " << s[t] << "\n";
+  //for (t=0;t<this->NbTimeSubdiv+1;t++) cout << "s[" << t*deltaT << "] = " << s[t] << "\n";
   
   //estimate h, the inverse of s
   h[0]=0;
@@ -564,12 +632,12 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SpeedReparametr
   }
   h[this->NbTimeSubdiv]=1;
   
-  for (t=0;t<this->NbTimeSubdiv+1;t++) cout << "h[" << t*deltaT << "] = " <<  h[t] << "\n";
+  //for (t=0;t<this->NbTimeSubdiv+1;t++) cout << "h[" << t*deltaT << "] = " <<  h[t] << "\n";
   
   //compute the derivative of h and reparametrize the vector field
   for (t=0;t<this->NbTimeSubdiv;t++){
-    h_derivative=(h[t]-h[t-1])/deltaT;
-    cout << "h'[" << t << "] = " <<  h_derivative << "\n";
+    h_derivative=(h[t+1]-h[t])/deltaT;
+    //cout << "h'[" << t << "] = " <<  h_derivative << "\n";
     
     for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) for (d = 0; d < 3; d++)
             if (this->VelocityField[t][ptVF(x,y,z,d)]>this->UNDETERMINED_VALUE)
@@ -578,7 +646,6 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SpeedReparametr
   }
   
   //deallocations
-  delete norm;
   delete s;
   delete h;
 }
@@ -588,14 +655,33 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SpeedReparametr
 ///save the result of the gradient descent (Beg 2005) for the current 3D image of the 4D time sequence
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SaveResultGradientDescent(int TimeLoc){
   int x, y, z;
-  //save the deformed image in the output of the class
+  
+  //init -> compute the direct mapping and import the original input template (non pre-treated)
+  this->ComputeDirectMapping();
+  
+  for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->ImTemplate[ptSF(x,y,z)]=static_cast<float>(this->_input->Get(x, y, z, TimeLoc));
+  
+  //deform the original template
+  this->ComputeJ0(this->NbTimeSubdiv-1);
+  
+  //save the deformed template in the output of the class
   for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
-    if (this->J0[ptSF(x,y,z)]!=this->UNDETERMINED_VALUE)
+    if (this->J0[ptSF(x,y,z)]>this->UNDETERMINED_VALUE)
       this->_output->Put(x, y, z, TimeLoc, static_cast<VoxelType>(this->J0[ptSF(x,y,z)]));
     else
       this->_output->Put(x, y, z, TimeLoc, static_cast<VoxelType>(-1));
   }
+  
+  //if required, save the velocity field and the template deformations across the time subdivisions
+  if (strcmp(this->PrefixOutputVF,"Null")!=0){
+    this->SaveVelocityFields(this->PrefixOutputVF);
+    this->SaveDeformations(this->PrefixOutputVF);
+  }
+  
 }
+
+
 
 ///save the velocity fields
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SaveVelocityFields(char Prefix[256]){
@@ -633,7 +719,33 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SaveVelocityFie
   strcat(FileName,VelocityField_Z);
   Temp4DField.Write(FileName);
   
-  cout << "REMARK: THE VELOCITIES ARE SAVED IN AN INTEGER TYPE AND THEN ARE MULTIPLIED BY 100\n";
+  cout << "REMARK: THE VELOCITIES ARE SAVED AS INTEGERS AND THEN ARE MULTIPLIED BY 100\n";
+}
+
+///save the deformations in time subdivisions (not the convergence)
+template <class VoxelType> void LargeDefGradLagrange<VoxelType>::SaveDeformations(char Prefix[256]){
+  int TimeLoc,x, y, z;
+  irtkGenericImage<VoxelType> Temp4DField;
+  char FileName[256];
+  char Deformations[256];
+  
+  //intialisation
+  Temp4DField = irtkGenericImage<float>(this->NX, this->NY, this->NZ,this->NbTimeSubdiv);
+  strcpy(Deformations,"_Deformations.nii");
+  
+  //save the deformations
+  for (TimeLoc=0;TimeLoc<this->NbTimeSubdiv;TimeLoc++){
+    this->ComputeJ0(TimeLoc);
+    for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
+          if (this->J0[ptSF(x,y,z)]>this->UNDETERMINED_VALUE)
+            Temp4DField.Put(x, y, z, TimeLoc, this->J0[ptSF(x,y,z)]);
+          else
+            Temp4DField.Put(x, y, z, TimeLoc, -1);
+    }
+  }
+  strcpy(FileName,Prefix);
+  strcat(FileName,Deformations);
+  Temp4DField.Write(FileName);
 }
 
 ///load the velocity fields
@@ -742,7 +854,7 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::LoadVelocityFie
   if ((abs(Xfactor_z/Yfactor_z)>1.01)||(abs(Xfactor_z/Zfactor_z)>1.01)||(abs(Xfactor_z/Yfactor_z)<0.99)||(abs(Xfactor_z/Zfactor_z)<0.99))
     cout << "Warning: Anisotropic resampling in z direction!\n";
 
-  cout << "X factor=" << Xfactor_x << ", Y factor=" << Yfactor_x << ", Z factor=" << Zfactor_x << ", T factor=" << Tfactor_x << "\n";
+  //cout << "X factor=" << Xfactor_x << ", Y factor=" << Yfactor_x << ", Z factor=" << Zfactor_x << ", T factor=" << Tfactor_x << "\n";
 
 }
 
@@ -1066,7 +1178,7 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::Run_Default(voi
   //1.2) allocations...
   this->AllocateAllVariables();
   
-  //2) BIG LOOP ON THE TIME FRAMES   (we may treat time sequences in serie)
+  //2) BIG LOOP ON THE TIME FRAMES
   for (t = 0; t < this->NT; t++) {
     cout << "Image " << t+1 << " / " << this->NT << "\n";
     
@@ -1080,54 +1192,71 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::Run_Default(voi
       cout << "Iteration Number " << IterationsNb+1 << " / " << this->iteration_nb << "\n";
       
       //2.2.1) compute the temporary image transformed using the direct mapping from time 0 -> J0
+      //cout << "Compute direct Mapping\n";
       this->ComputeDirectMapping();
       
       //2.2.2) compute the temporary image transformed using the inverse mapping from time 1 -> J1
+      //cout << "Compute Inverse Mapping\n";
       this->ComputeInverseMapping();
       
       //2.2.3) EVEN SMALLER LOOP ON THE TIME SUBDIVISIONS BETWEEN TIME=0 (template) AND TIME=1 (target)
       for (TimeSubdiv=0;TimeSubdiv<this->NbTimeSubdiv;TimeSubdiv++){
-        cout << "Subdivision Number " << TimeSubdiv+1 << " / " << this->NbTimeSubdiv << "\n";
+        //cout << "Subdivision Number " << TimeSubdiv+1 << " / " << this->NbTimeSubdiv << "\n";
         
         //2.2.3.1) compute the temporary image transformed using the direct mapping from time 0 -> J0
+        //cout << "Computing J0 at time step t=" << TimeSubdiv << "\n";
         this->ComputeJ0(TimeSubdiv);
         
         //2.2.3.2) compute the temporary image transformed using the inverse mapping from time 1 -> J1
+        //cout << "Computing J1 at time step t=" << TimeSubdiv << "\n";
         this->ComputeJ1(TimeSubdiv);
 
         //2.2.3.3) compute gradient of J0
+        //cout << "Compute Grad J0\n";
         this->ComputeGradientJ0();
         
         //2.2.3.4) compute the determinant of the jacobian of the transformation
+        //cout << "Computing Det Jacobian\n";
         this->ComputeJacobianDeterminant(TimeSubdiv);
         
         //2.2.3.5) compute the gradient of energy
+        //cout << "ComputeEnergyGradient\n";
         this->ComputeEnergyGradient(TimeSubdiv);
-        
-        //TO ADD: SOMETHING TO TEST THE CONVERGENCE ON THE ENERGY GRADIENT
       }
       
       //2.2.4) update the velocity field
+      //cout << "Update Vector Field\n";
       this->UpdateVelocityField();
       
-      //2.2.5) velocity field reparametrization 
-      if (ReparamCount==this->reparametrization){
-        this->SpeedReparametrization();
-        ReparamCount=-1;
-      }
-
+      //2.2.5) Compute the norms and length of the velocity field plus the total energy
+      //cout << "Compute Norms, Length and Energy\n";
+      this->ComputeNormsAndLengthAndEnergy();
+      
       //2.2.6) update convergence test parameters
       IterationsNb++;
-      ReparamCount++;
       
-      //TO ADD: SOMETHING TO TEST THE CONVERGENCE ON THE ENERGY GRADIENT
+      cout << "\nIteration " << IterationsNb << ":\n";
+      cout << "Norm = ";
+      for (TimeSubdiv=0;TimeSubdiv<this->NbTimeSubdiv;TimeSubdiv++) cout << this->norm[TimeSubdiv] << " ";
+      cout << "\n";
+      cout << "Length = " << this->length << "\n";
+      cout << "Energy / Velocity Field = " << this->EnergyVF << "\n";
+      cout << "Energy / Difference Images = " << this->EnergyDI << "\n";
+      cout << "Energy / Total  = " << this->EnergyTot << "\n \n";
+      
+      //2.2.7) velocity field reparametrization 
+      ReparamCount++;
+      if (ReparamCount==this->reparametrization){
+        cout << "Speed reparametrization\n";
+        this->SpeedReparametrization();
+        ReparamCount=0;
+      }
+
     }
     
     //2.3) save the filtered temporary 3D image in VoxelType in the  output image at time t
-    this->ComputeDirectMapping();
+    //cout << "Save the result\n";
     SaveResultGradientDescent(t);
-    
-    if (strcmp(PrefixOutputVF,"Null")!=0) this->SaveVelocityFields(PrefixOutputVF);
     
   }
   

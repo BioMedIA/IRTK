@@ -46,10 +46,12 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   virtual void ComputeJacobianDeterminant(int);
   virtual void ComputeEnergyGradient(int);
   virtual void UpdateVelocityField();
+  virtual void ComputeNormsAndLengthAndEnergy();
   virtual void SpeedReparametrization();
   virtual void SaveResultGradientDescent(int);
   virtual void SaveVelocityFields(char *);
   virtual void LoadVelocityFields(char *);
+  virtual void SaveDeformations(char *);
 
   
   /// Subfunctions to perform the registration  (level 2)
@@ -75,7 +77,14 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   float* DetJacobians;
   float** GradE;
   irtkGenericImage<float> Image3DTemp;
-
+  
+  //measures variables
+  float* norm;
+  float length;
+  float EnergyTot; //total energy
+  float EnergyVF; //energy due to the velocity field
+  float EnergyDI; //energy due to the difference between the deformed template and the target
+  
   //size of the fields
   int NX;
   int NY;
@@ -88,7 +97,6 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   int NXt3;      //NX*3
   int NXtYt3;    //NX*NY*3
   int NXtYtZt3;  //NX*NY*NZ*3
-  
   
   ///Inline functions
   //returns where is the point (x,y,z) in a linearized 3D scalar field
@@ -128,8 +136,10 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   float MaxVelocityUpdate; //Maximum allowed velocity update at each subdivision and iteration (in voxels)
   irtkGreyImage target_image;  //explicit name (hopefully)
   float DeltaTimeSubdiv; //time step between two subdivision
+  int Margin;            //Margin of the image in voxels where the calculations are reduced
   float sigma;           // width of the Gaussian kernel
-  float alpha; // Weight between the norm and the penalty term
+  float alpha;          //weight of the smoothness when computing the velocity field norm, lenght and energy
+  float gamma;          //weight of the velocity when computing the velocity field norm, lenght and energy
   int reparametrization; // reparameterisation frequency (in iterations)
   float DeltaVox;   //considered distance between two voxels (in order to evaluate the gradient on the grey levels)
   float UNDETERMINED_VALUE;   //value given to the voxels for which the value cannot be determined
