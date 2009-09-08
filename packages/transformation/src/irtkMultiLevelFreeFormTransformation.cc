@@ -33,7 +33,7 @@ irtkMultiLevelFreeFormTransformation::irtkMultiLevelFreeFormTransformation(const
   // Initialize local transformation
   for (i = 0; i < transformation._NumberOfLevels; i++) {
     if (strcmp(transformation._localTransformation[i]->NameOfClass(),
-               "irtkBSplineFreeFormTransformation") == 0) {
+               "irtkBSplineFreeFormTransformation3D") == 0) {
       irtkBSplineFreeFormTransformation *ffd = dynamic_cast<irtkBSplineFreeFormTransformation *>(transformation._localTransformation[i]);
       _localTransformation[i] = new irtkBSplineFreeFormTransformation(*ffd);
     }
@@ -552,7 +552,7 @@ ostream& irtkMultiLevelFreeFormTransformation::Export(ostream& to)
 
   // Write each local transformation
   for (i = 0; i < _NumberOfLevels; i++) {
-    if (strcmp(_localTransformation[i]->NameOfClass(), "irtkBSplineFreeFormTransformation") == 0) {
+    if (strcmp(_localTransformation[i]->NameOfClass(), "irtkBSplineFreeFormTransformation3D") == 0) {
       ((irtkBSplineFreeFormTransformation *)_localTransformation[i])->Export(to);
     } else {
       if (strcmp(_localTransformation[i]->NameOfClass(), "irtkLinearFreeFormTransformation") == 0) {
