@@ -22,6 +22,8 @@
 
 #include <irtkTransformation.h>
 
+typedef enum { _AdditiveDemons, _CompositiveDemons } irtkDemonsMode;
+
 /**
  * Generic for image registration based on voxel similarity measures.
  *
@@ -48,21 +50,29 @@ protected:
   /** First input image. This image is denoted as target image and its
    *  coordinate system defines the frame of reference for the registration.
    */
-  irtkGreyImage *_target;
+  irtkRealImage *_target;
 
   /** Second input image. This image is denoted as source image. The goal of
    *  the registration is to find the transformation which maps the source
    *  image into the coordinate system of the target image.
    */
-  irtkGreyImage *_source;
+  irtkRealImage *_source;
 
   /** Temporary source image
    */
-  irtkGreyImage _tmp;
+  irtkRealImage _tmp;
+
+  /** Gradient of the source image.
+   */
+  irtkRealImage _sourceGradientX, _sourceGradientY, _sourceGradientZ;
 
   /** Gradient of the target image.
    */
-  irtkGreyImage _targetGradientX, _targetGradientY, _targetGradientZ;
+  irtkRealImage _targetGradientX, _targetGradientY, _targetGradientZ;
+
+  /** Temporary displacement field.
+   */
+  irtkRealImage _tmpDX, _tmpDY, _tmpDZ;
 
   /** Local displacement field.
    */
@@ -80,6 +90,9 @@ protected:
 
   /// Interpolator
   irtkInterpolateImageFunction *_interpolator;
+
+  /// Demons mode
+  irtkDemonsMode _Mode;
 
   /// Blurring of target image (in mm)
   double _TargetBlurring;
@@ -105,6 +118,12 @@ protected:
   /// Max. number of iterations per step size
   int    _NumberOfIterations;
 
+  /// Step size
+  double _StepSize;
+
+  /// Epsilon
+  double _Epsilon;
+
   /// Reduction factor in multi-resolution pyramid
   double _ReductionFactor;
 
@@ -113,6 +132,9 @@ protected:
 
   /// Interpolation mode to use during resampling and registration
   irtkInterpolationMode _InterpolationMode;
+
+  /// Debugging flag
+  int    _DebugFlag;
 
   /// Source image domain which can be interpolated fast
   double _source_x1, _source_y1, _source_z1;
@@ -130,6 +152,15 @@ protected:
   /// Final set up for the registration
   virtual void Finalize(int);
 
+  /// Compute force
+  virtual void Force();
+
+  /// Compute smoothing
+  virtual void Smooth();
+
+  /// Compute update
+  virtual void Update();
+
 public:
 
   /// Constructor
@@ -139,7 +170,7 @@ public:
   virtual ~irtkDemonsRegistration();
 
   /// Sets input for the registration filter
-  virtual void SetInput (irtkGreyImage *, irtkGreyImage *);
+  virtual void SetInput (irtkRealImage *, irtkRealImage *);
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkMultiLevelFreeFormTransformation *);
@@ -148,7 +179,7 @@ public:
   virtual void Run();
 
   /// Runs the registration filter
-  virtual void Run(irtkGreyImage, irtkGreyImage, int);
+  virtual void Run(irtkRealImage, irtkRealImage, int);
 
   /// Copy parameters
   virtual void SetParameter(const irtkDemonsRegistration *r);
@@ -158,6 +189,9 @@ public:
 
   /// Write registration parameters to file
   virtual void Write(char *);
+
+  /// Guess parameters
+  virtual void GuessParameter();
 
   // Access parameters
   virtual SetMacro(TargetBlurring,     double);
@@ -182,10 +216,13 @@ public:
   virtual GetMacro(Smoothing,          double);
   virtual SetMacro(InterpolationMode,  irtkInterpolationMode);
   virtual GetMacro(InterpolationMode,  irtkInterpolationMode);
+  virtual SetMacro(DebugFlag, int);
+  virtual GetMacro(DebugFlag, int);
+
 
 };
 
-inline void irtkDemonsRegistration::SetInput(irtkGreyImage *target, irtkGreyImage *source)
+inline void irtkDemonsRegistration::SetInput(irtkRealImage *target, irtkRealImage *source)
 {
   _target = target;
   _source = source;
