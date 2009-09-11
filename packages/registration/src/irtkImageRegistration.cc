@@ -469,10 +469,11 @@ void irtkImageRegistration::Run()
 
     // Initialize for this level
     this->Initialize(level);
+
     // Save pre-processed images if we are debugging
-    sprintf(buffer, "source_%d.gipl", level);
+    sprintf(buffer, "source_%d.nii.gz", level);
     if (_DebugFlag == True) _source->Write(buffer);
-    sprintf(buffer, "target_%d.gipl", level);
+    sprintf(buffer, "target_%d.nii.gz", level);
     if (_DebugFlag == True) _target->Write(buffer);
 
 #ifdef HAS_TBB
