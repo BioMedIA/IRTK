@@ -8,17 +8,16 @@
 #ifndef _IRTKLARGEDEFORMATIONGRADIENTLAGRANGE_H
 #define _IRTKLARGEDEFORMATIONGRADIENTLAGRANGE_H
 
-#include <irtkImageToImage.h>
-
 #include <irtkImage.h>
+#include <irtkImageToImage.h>
+#include <irtkImageFastFourierTransform.h>
 #include <irtkGaussianBlurring.h>
 #include <irtkConvolution.h>
 #include <irtkScalarFunctionToImage.h>
 #include <irtkGaussianBlurringWithPadding.h>
 
-
-//#include <nr.h>
-//#include <nrutil.h>
+//#include <irtkImage.h>
+//#include <irtkImageFastFourierTransform.h>
 
 /**
  * Class for Large Deformation registration using Beg 05's technique
@@ -155,8 +154,6 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   char PrefixOutputVF[256];   //Prefix of the files containing the final velocity field
 
 };
-
-//void DirectFFT(irtkGenericImage<float> * ,irtkGenericImage<float> * );  //added
 
 
 #endif
