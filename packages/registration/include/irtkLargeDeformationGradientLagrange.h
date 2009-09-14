@@ -16,6 +16,10 @@
 #include <irtkScalarFunctionToImage.h>
 #include <irtkGaussianBlurringWithPadding.h>
 
+
+//#include <nr.h>
+//#include <nrutil.h>
+
 /**
  * Class for Large Deformation registration using Beg 05's technique
  */
@@ -53,6 +57,7 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   virtual void LoadVelocityFields(char *);
   virtual void SaveDeformations(char *);
 
+  virtual void TestFFT(); // added
   
   /// Subfunctions to perform the registration  (level 2)
   
@@ -77,6 +82,9 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   float* DetJacobians;
   float** GradE;
   irtkGenericImage<float> Image3DTemp;
+  irtkGenericImage<float> Image3DTemp2; //added
+  irtkGenericImage<float> Image3DTemp3; //added
+  irtkGenericImage<float> Image3DTemp4; //added
   
   //measures variables
   float* norm;
@@ -147,6 +155,8 @@ template <class VoxelType> class LargeDefGradLagrange : public irtkImageToImage<
   char PrefixOutputVF[256];   //Prefix of the files containing the final velocity field
 
 };
+
+//void DirectFFT(irtkGenericImage<float> * ,irtkGenericImage<float> * );  //added
 
 
 #endif

@@ -7,6 +7,7 @@
 
 #include <irtkImage.h>
 #include <irtkLargeDeformationGradientLagrange.h>
+#include <irtkImageFastFourierTransform.h>
 
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ///                                       GENERAL CLASS FUNCTIONS
@@ -131,6 +132,12 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::AllocateAllVari
   
   //temporary image to use when irtk functions are called
   this->Image3DTemp = irtkGenericImage<float>(this->NX, this->NY, this->NZ,1);
+  
+  this->Image3DTemp2 = irtkGenericImage<float>(this->NX, this->NY, this->NZ,1); //added
+  this->Image3DTemp3 = irtkGenericImage<float>(this->NX, this->NY, this->NZ,1); //added
+  this->Image3DTemp4 = irtkGenericImage<float>(this->NX, this->NY, this->NZ,1); //added
+  
+  
 }
 
 
@@ -455,22 +462,26 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::ComputeEnergyGr
         temp=(this->J0[ptSF(x,y,z)] - this->J1[ptSF(x,y,z)]) * this->DetJacobians[ptSF(x,y,z)] * this->GradJ0[ptVF(x,y,z,i)];
         this->Image3DTemp.Put(x, y, z, 0, static_cast<float>(temp));
         if (static_cast<float>(temp)<this->UNDETERMINED_VALUE) cout << "WARNING: TOO HIGH -(MOMENTUM) IN " << x << " " <<  y << " " << z << "\n";
-      }
-      else
-        this->Image3DTemp.Put(x, y, z, 0, this->UNDETERMINED_VALUE-1);
-    }
-    
-    //smooth the scalar field
-    gaussianBlurring.SetInput (&this->Image3DTemp);
-    gaussianBlurring.SetOutput(&this->Image3DTemp);
-    gaussianBlurring.Run();
-    
-    //save the smoothed scalar field
-    for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
-      this->GradE[timeSubdiv][ptVF(x,y,z,i)] = 2*this->VelocityField[i][ptVF(x,y,z,i)] - 2*this->Image3DTemp.Get(x, y, z, 0)/(this->sigma*this->sigma);
-    }
-  }
+       }
+       else
+         this->Image3DTemp.Put(x, y, z, 0, this->UNDETERMINED_VALUE-1);
+     }
+     
+     //smooth the scalar field
+     gaussianBlurring.SetInput (&this->Image3DTemp);
+     gaussianBlurring.SetOutput(&this->Image3DTemp);
+     gaussianBlurring.Run();
+     
+     //save the smoothed scalar field
+     for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
+       this->GradE[timeSubdiv][ptVF(x,y,z,i)] = 2*this->VelocityField[i][ptVF(x,y,z,i)] - 2*this->Image3DTemp.Get(x, y, z, 0)/(this->sigma*this->sigma);
+     }
+   }
 }
+
+
+
+
 
 ///Update VelocityField with with the energy gradients
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::UpdateVelocityField(void){
@@ -866,6 +877,279 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::LoadVelocityFie
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+/// begin FFT project     begin FFT project     begin FFT project     begin FFT project     begin FFT project
+/// begin FFT project     begin FFT project     begin FFT project     begin FFT project     begin FFT project
+/// begin FFT project     begin FFT project     begin FFT project     begin FFT project     begin FFT project
+
+/*
+/// * Fast Fourier transform of the complex image contained in 'RealSignal' and 'ImaginarySignal'
+///(real and imaginary part).
+// * RealSignal and ImaginarySignal MUST have the same size and the size on each dimension MUST
+// be a power of 2. (NOT TESTED IN THE FUNCTION)
+// * Remark: The FFT of Numerical recipies is called here. Using this function the treated
+// signal at the identifier "i" must be in "2*i+1" for the real part and (2*i+2) for the
+// imaginary part. If the size of the treated signal is 'S' the size of the input vector
+// is "2*s+1" and its value at '0' is not treated (strange notations of numerical recipies!!!).
+void DirectFFT(irtkGenericImage<float> * RealSignal,irtkGenericImage<float> * ImaginarySignal){
+  int SizeX,SizeY,SizeZ;
+  float SqrtSizeX,SqrtSizeY,SqrtSizeZ;
+  int x,y,z;
+  float * dataX;
+  float * dataY;
+  float * dataZ;
+  
+  //1) extract the size of the images
+  SizeX=RealSignal->GetX();
+  SizeY=RealSignal->GetY();
+  SizeZ=RealSignal->GetZ();
+  
+  SqrtSizeX=static_cast<float>(sqrt(static_cast<double>(SizeX)));
+  SqrtSizeY=static_cast<float>(sqrt(static_cast<double>(SizeY)));
+  SqrtSizeZ=static_cast<float>(sqrt(static_cast<double>(SizeZ)));
+
+  
+  //2) perform the fft along x axis
+  dataX = new float [SizeX*2+1];
+  for (z = 0; z < SizeZ; z++) for (y = 0; y < SizeY; y++){
+    for (x = 0; x < SizeX; x++){
+      dataX[2*x+1]=RealSignal->Get(x, y, z, 0);
+      dataX[2*x+2]=ImaginarySignal->Get(x, y, z, 0);
+    }
+    four1(dataX, (unsigned long)SizeX, 1);
+    for (x = 0; x < SizeX; x++){
+      RealSignal->Put(x, y, z, 0,dataX[2*x+1]/SqrtSizeX);
+      ImaginarySignal->Put(x, y, z, 0,dataX[2*x+2]/SqrtSizeX);
+    }
+  }
+  delete dataX;
+  
+  //3) perform the fft along y axis
+  dataY = new float [SizeY*2+1];
+  for (z = 0; z < SizeZ; z++) for (x = 0; x < SizeX; x++){
+    for (y = 0; y < SizeY; y++){
+      dataY[2*y+1]=RealSignal->Get(x, y, z, 0);
+      dataY[2*y+2]=ImaginarySignal->Get(x, y, z, 0);
+    }
+    four1(dataY, (unsigned long)SizeY, 1);
+    for (y = 0; y < SizeY; y++){
+      RealSignal->Put(x, y, z, 0,dataY[2*y+1]/SqrtSizeY);
+      ImaginarySignal->Put(x, y, z, 0,dataY[2*y+2]/SqrtSizeY);
+    }
+  }
+  delete dataY;
+  
+  
+  //4) perform the fft along z axis
+  dataZ = new float [SizeZ*2+1];
+  for (y = 0; y < SizeY; y++) for (x = 0; x < SizeX; x++){
+    for (z = 0; z < SizeZ; z++){
+      dataZ[2*z+1]=RealSignal->Get(x, y, z, 0);
+      dataZ[2*z+2]=ImaginarySignal->Get(x, y, z, 0);
+    }
+    four1(dataZ, (unsigned long)SizeZ, 1);
+    for (z = 0; z < SizeZ; z++){
+      RealSignal->Put(x, y, z, 0,dataZ[2*z+1]/SqrtSizeZ);
+      ImaginarySignal->Put(x, y, z, 0,dataZ[2*z+2]/SqrtSizeZ);
+    }
+  }
+  delete dataZ;
+}
+
+
+/// * Inverse Fast Fourier transform of the complex image contained in 'RealSignal' and 'ImaginarySignal'
+/// (real and imaginary part).
+// * RealSignal and ImaginarySignal MUST have the same size and the size on each dimension MUST
+// be a power of 2. (NOT TESTED IN THE FUNCTION)
+// * Remark: The FFT of Numerical recipies is called here. Using this function the treated
+// signal at the identifier "i" must be in "2*i+1" for the real part and (2*i+2) for the
+// imaginary part. If the size of the treated signal is 'S' the size of the input vector
+// is "2*s+1" and its value at '0' is not treated (strange notations of numerical recipies!!!).
+void InverseFFT(irtkGenericImage<float> * RealSignal,irtkGenericImage<float> * ImaginarySignal){
+  int SizeX,SizeY,SizeZ;
+  float SqrtSizeX,SqrtSizeY,SqrtSizeZ;
+  int x,y,z;
+  float * dataX;
+  float * dataY;
+  float * dataZ;
+  
+  //1) extract the size of the images
+  SizeX=RealSignal->GetX();
+  SizeY=RealSignal->GetY();
+  SizeZ=RealSignal->GetZ();
+  
+  SqrtSizeX=static_cast<float>(sqrt(static_cast<double>(SizeX)));
+  SqrtSizeY=static_cast<float>(sqrt(static_cast<double>(SizeY)));
+  SqrtSizeZ=static_cast<float>(sqrt(static_cast<double>(SizeZ)));
+  
+  
+  //2) perform the ifft along z axis
+  dataZ = new float [SizeZ*2+1];
+  for (y = 0; y < SizeY; y++) for (x = 0; x < SizeX; x++){
+    for (z = 0; z < SizeZ; z++){
+      dataZ[2*z+1]=RealSignal->Get(x, y, z, 0);
+      dataZ[2*z+2]=ImaginarySignal->Get(x, y, z, 0);
+    }
+    four1(dataZ, (unsigned long)SizeZ, -1);
+    for (z = 0; z < SizeZ; z++){
+      RealSignal->Put(x, y, z, 0,dataZ[2*z+1]/SqrtSizeZ);
+      ImaginarySignal->Put(x, y, z, 0,dataZ[2*z+2]/SqrtSizeZ);
+    }
+  }
+  delete dataZ;
+  
+  //3) perform the ifft along y axis
+  dataY = new float [SizeY*2+1];
+  for (z = 0; z < SizeZ; z++) for (x = 0; x < SizeX; x++){
+    for (y = 0; y < SizeY; y++){
+      dataY[2*y+1]=RealSignal->Get(x, y, z, 0);
+      dataY[2*y+2]=ImaginarySignal->Get(x, y, z, 0);
+    }
+    four1(dataY, (unsigned long)SizeY, -1);
+    for (y = 0; y < SizeY; y++){
+      RealSignal->Put(x, y, z, 0,dataY[2*y+1]/SqrtSizeY);
+      ImaginarySignal->Put(x, y, z, 0,dataY[2*y+2]/SqrtSizeY);
+    }
+  }
+  delete dataY;
+  
+  //4) perform the ifft along x axis
+  dataX = new float [SizeX*2+1];
+  for (z = 0; z < SizeZ; z++) for (y = 0; y < SizeY; y++){
+    for (x = 0; x < SizeX; x++){
+      dataX[2*x+1]=RealSignal->Get(x, y, z, 0);
+      dataX[2*x+2]=ImaginarySignal->Get(x, y, z, 0);
+    }
+    four1(dataX, (unsigned long)SizeX, -1);
+    for (x = 0; x < SizeX; x++){
+      RealSignal->Put(x, y, z, 0,dataX[2*x+1]/SqrtSizeX);
+      ImaginarySignal->Put(x, y, z, 0,dataX[2*x+2]/SqrtSizeX);
+    }
+  }
+  delete dataX;
+}
+
+/// * Convolution in Fourier spaces of the 3D complex image in ('RealPartSignal','ImaginaryPartSignal')
+/// by the complex filter in ('RealPartFilter','ImaginaryPartFilter')
+// * If the image and/or filter are real, set all imaginary values to 0.
+// * The center of the filter is at the coordinate (0,0,0) AND the filter is periodic AND the sum of
+//   its values must be 1.
+//    => An example of centered filter is then
+//     RealPartFilter->Put(0,0,0,0,1./7.);      ImaginaryPartFilter->Put(0,0,0,0,0.);
+//     RealPartFilter->Put(1,0,0,0,1./7.);      ImaginaryPartFilter->Put(1,0,0,0,0.);
+//     RealPartFilter->Put(0,1,0,0,1./7.);      ImaginaryPartFilter->Put(0,1,0,0,0.);
+//     RealPartFilter->Put(0,0,1,0,1./7.);      ImaginaryPartFilter->Put(0,0,1,0,0.);
+//     RealPartFilter->Put(NBX-1,0,0,0,1./7.);  ImaginaryPartFilter->Put(NBX-1,0,0,0,0.);
+//     RealPartFilter->Put(0,NBY-1,0,0,1./7.);  ImaginaryPartFilter->Put(0,NBY-1,0,0,0.);
+//     RealPartFilter->Put(0,0,NBZ-1,0,1./7.);  ImaginaryPartFilter->Put(0,0,NBZ-1,0,0.);
+// * RealPartSignal, ImaginaryPartSignal, RealPartFilter and ImaginaryPartFilter MUST have the same size 
+// and the size on each dimension MUST be a power of 2. (NOT TESTED IN THE FUNCTION)
+void ConvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericImage<float> * ImaginaryPartSignal,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter){
+  int x,y,z;
+  float a,b,c,d;
+  float CoefMult;
+  
+  
+  //1) FFT
+  DirectFFT(RealPartSignal,ImaginaryPartSignal);
+  DirectFFT(RealPartFilter,ImaginaryPartFilter);
+  
+  //2) filtering in Fourier spaces
+  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  
+  for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
+    a=RealPartSignal->Get(x, y, z, 0);
+    b=ImaginaryPartSignal->Get(x, y, z, 0);
+    c=RealPartFilter->Get(x, y, z, 0)*CoefMult;
+    d=ImaginaryPartFilter->Get(x, y, z, 0)*CoefMult;
+    
+    RealPartSignal->Put(x, y, z, 0, a*c-b*d);
+    ImaginaryPartSignal->Put(x, y, z, 0, c*b+a*d);
+  }
+  
+  //3) IFFT
+  InverseFFT(RealPartSignal,ImaginaryPartSignal);
+  InverseFFT(RealPartFilter,ImaginaryPartFilter);
+}
+
+
+/// * Deconvolution in Fourier spaces of the 3D complex image in ('RealPartSignal','ImaginaryPartSignal')
+/// by the complex filter in ('RealPartFilter','ImaginaryPartFilter')
+// * RealPartSignal, ImaginaryPartSignal, RealPartFilter and ImaginaryPartFilter MUST have the same size 
+// and the size on each dimension MUST be a power of 2. (NOT TESTED IN THE FUNCTION)
+void DeconvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericImage<float> * ImaginaryPartSignal,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter){
+  int x,y,z;
+  float a,b,c,d;
+  float CoefMult;
+  
+  
+  //1) FFT
+  DirectFFT(RealPartSignal,ImaginaryPartSignal);
+  DirectFFT(RealPartFilter,ImaginaryPartFilter);
+  
+  //2) filtering in Fourier spaces
+  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  
+  for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
+    a=RealPartSignal->Get(x, y, z, 0);
+    b=ImaginaryPartSignal->Get(x, y, z, 0);
+    c=RealPartFilter->Get(x, y, z, 0)*CoefMult;
+    d=ImaginaryPartFilter->Get(x, y, z, 0)*CoefMult;
+    
+    RealPartSignal->Put(x, y, z, 0, (a*c+b*d)/(c*c+d*d));
+    ImaginaryPartSignal->Put(x, y, z, 0, (c*b-a*d)/(c*c+d*d));
+  }
+  
+  //3) IFFT
+  InverseFFT(RealPartSignal,ImaginaryPartSignal);
+  InverseFFT(RealPartFilter,ImaginaryPartFilter);
+}
+
+*/
+
+
+template <class VoxelType> void LargeDefGradLagrange<VoxelType>::TestFFT(){
+  int x,y,z;
+  
+  //0) Init
+  //0.1) Image - fill the real values
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->Image3DTemp.Put(x, y, z, 0, this->ImTemplate[ptSF(x,y,z)]);
+        //this->Image3DTemp.Put(x, y, z, 0, 1.);
+  
+  //0.2) Image - fill the imaginary values
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->Image3DTemp2.Put(x, y, z, 0, 0.);
+  
+  //0.3) Filter - fill the real values
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->Image3DTemp3.Put(x, y, z, 0, 0);
+  
+  this->Image3DTemp3.Put(0,0,0,0,1./7.);
+  this->Image3DTemp3.Put(1,0,0,0,1./7.);
+  this->Image3DTemp3.Put(0,1,0,0,1./7.);
+  this->Image3DTemp3.Put(0,0,1,0,1./7.);
+  this->Image3DTemp3.Put(this->NX-1,0,0,0,1./7.);
+  this->Image3DTemp3.Put(0,this->NY-1,0,0,1./7.);
+  this->Image3DTemp3.Put(0,0,this->NZ-1,0,1./7.);
+
+  //0.4) Filter - fill the imaginary values
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        this->Image3DTemp4.Put(x, y, z, 0, 0.);
+  
+  Image3DTemp.Write("BeforeFTT.nii");
+  
+  ConvolutionInFourier(&this->Image3DTemp,&this->Image3DTemp2,&this->Image3DTemp3,&this->Image3DTemp4);
+  //DeconvolutionInFourier(&this->Image3DTemp,&this->Image3DTemp2,&this->Image3DTemp3,&this->Image3DTemp4);
+  
+  Image3DTemp.Write("AfterIFTT.nii");
+}
+
+
+/// end FFT project      end FFT project      end FFT project      end FFT project      end FFT project
+/// end FFT project      end FFT project      end FFT project      end FFT project      end FFT project
+/// end FFT project      end FFT project      end FFT project      end FFT project      end FFT project
+
+
 //Perform a trilinear interplolation and returns the velocity field at non integer coordinates.
 //++++ The output is in VecTemp ++++ 
 template <class VoxelType> void LargeDefGradLagrange<VoxelType>::GetVectorFromVelocityField(int subivId,float x, float y, float z,float VecTemp[3]){
@@ -1228,6 +1512,8 @@ template <class VoxelType> void LargeDefGradLagrange<VoxelType>::Run_Default(voi
       //cout << "Update Vector Field\n";
       this->UpdateVelocityField();
       
+      TestFFT();  //added
+
       //2.2.5) Compute the norms and length of the velocity field plus the total energy
       //cout << "Compute Norms, Length and Energy\n";
       this->ComputeNormsAndLengthAndEnergy();

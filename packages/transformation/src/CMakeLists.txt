@@ -10,6 +10,7 @@ SET(TRANSFORMATION_INCLUDES
 ../include/irtkHomogeneousTransformation.h
 ../include/irtkHomogeneousTransformationIterator.h
 ../include/irtkImageHomogeneousTransformation.h
+../include/irtkImageFastFourierTransform.h
 ../include/irtkImageTransformation.h
 ../include/irtkImageTransformation2.h
 ../include/irtkLinearFreeFormTransformation.h
@@ -25,6 +26,7 @@ irtkHomogeneousTransformation.cc
 irtkImageHomogeneousTransformation.cc
 irtkImageTransformation.cc
 irtkImageTransformation2.cc
+irtkImageFastFourierTransform.cc
 irtkEigenFreeFormTransformation.cc
 irtkBSplineFreeFormTransformation3D.cc
 irtkBSplineFreeFormTransformation4D.cc
