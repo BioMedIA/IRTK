@@ -15,7 +15,7 @@
 // Default filenames
 char *source_name = NULL, *target_name = NULL;
 char *dofin_name  = NULL, *dofout_name = NULL;
-char *parameter_name = NULL;
+char *parin_name  = NULL, *parout_name = NULL;
 
 int main(int argc, char **argv)
 {
@@ -40,11 +40,11 @@ int main(int argc, char **argv)
 
   // Read target image
   cout << "Reading target ... "; cout.flush();
-  irtkGreyImage target(target_name);
+  irtkRealImage target(target_name);
   cout << "done" << endl;
   // Read source image
   cout << "Reading source ... "; cout.flush();
-  irtkGreyImage source(source_name);
+  irtkRealImage source(source_name);
   cout << "done" << endl;
 
   // Fix ROI
@@ -235,16 +235,31 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-parameter") == 0)) {
+    if ((ok == False) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
       argc--;
       argv++;
       ok = True;
-      parameter_name = argv[1];
+      parin_name = argv[1];
+      argc--;
+      argv++;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+      argc--;
+      argv++;
+      ok = True;
+      registration->SetDebugFlag(True);
+    }
+    if ((ok == False) && (strcmp(argv[1], "-parout") == 0)) {
+      argc--;
+      argv++;
+      ok = True;
+      parout_name = argv[1];
       argc--;
       argv++;
     }
     if (ok == False) {
       cerr << "Can not parse argument " << argv[1] << endl;
+      exit(1);
     }
   }
 
@@ -299,8 +314,15 @@ int main(int argc, char **argv)
   registration->SetOutput(mffd);
 
   // Read parameter if there any, otherwise make an intelligent guess
-  if (parameter_name != NULL) {
-    registration->Read(parameter_name);
+  if (parin_name != NULL) {
+    registration->Read(parin_name);
+  } else {
+    registration->GuessParameter();
+  }
+
+  // Write parameters if necessary
+  if (parout_name != NULL) {
+    registration->Write(parout_name);
   }
 
   // Run registration filter
