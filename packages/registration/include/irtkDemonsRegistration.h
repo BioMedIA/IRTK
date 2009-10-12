@@ -84,6 +84,7 @@ protected:
 
   /// Output
   irtkMultiLevelFreeFormTransformation *_transformation;
+  irtkMultiLevelFreeFormTransformation *_transformation2;
 
   /// Linear free-form transformation
   irtkLinearFreeFormTransformation *_ffd;
@@ -154,6 +155,8 @@ protected:
 
   /// Compute force
   virtual void Force();
+  virtual void Force2();
+  virtual void Add();
 
   /// Compute smoothing
   virtual void Smooth();
