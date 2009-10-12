@@ -57,6 +57,9 @@ irtkDemonsRegistration::irtkDemonsRegistration()
 
   // Allocate interpolation object
   _interpolator = new irtkLinearInterpolateImageFunction;
+
+  // Allocate test transformation
+  _transformation2 = new irtkFluidFreeFormTransformation;
 }
 
 irtkDemonsRegistration::~irtkDemonsRegistration()
@@ -305,6 +308,22 @@ void irtkDemonsRegistration::Initialize(int level)
   }
 }
 
+void irtkDemonsRegistration::Add()
+{
+  int i, j, k;
+
+  irtkLinearFreeFormTransformation *ffd = new irtkLinearFreeFormTransformation(*_target, 1, 1, 1);
+
+  for (k = 0; k < ffd->GetZ(); k++) {
+    for (j = 0; j < ffd->GetY(); j++) {
+      for (i = 0; i < ffd->GetX(); i++) {
+        ffd->Put(i, j, k, _localDX(i, j, k), _localDY(i, j, k), _localDZ(i, j, k));
+      }
+    }
+  }
+  _transformation2->PushLocalTransformation(ffd);
+}
+
 void irtkDemonsRegistration::Finalize()
 {
   // Push local transformation back on transformation stack
@@ -312,6 +331,8 @@ void irtkDemonsRegistration::Finalize()
 
   // Invert transformation
   _transformation->Invert();
+
+  _transformation2->irtkTransformation::Write("fluid.dof.gz");
 }
 
 void irtkDemonsRegistration::Finalize(int level)
@@ -466,6 +487,8 @@ void irtkDemonsRegistration::Run()
     // Compute force
     Force();
 
+    //    Force2();
+
     // Smooth force
     Smooth();
 
@@ -513,6 +536,86 @@ void irtkDemonsRegistration::Force()
   }
 }
 
+void irtkDemonsRegistration::Force2()
+{
+  int i1, j1, k1, i2, j2, k2, i, j, k, l, m, n, nsample, size = 2;
+
+  // Create images for gradient
+  irtkRealImage Imean(_target->GetImageAttributes());
+  irtkRealImage Jmean(_target->GetImageAttributes());
+  irtkRealImage A(_target->GetImageAttributes());
+  irtkRealImage B(_target->GetImageAttributes());
+  irtkRealImage C(_target->GetImageAttributes());
+
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        nsample = 0;
+        Imean(i, j, k) = 0;
+        Jmean(i, j, k) = 0;
+        for (n = -size; n <= size; n++) {
+          for (m = -size; m <= size; m++) {
+            for (l = -size; l <= size; l++) {
+              if ((i+l >= 0) && (i+l < _target->GetX()) &&
+                  (j+m >= 0) && (j+m < _target->GetY()) &&
+                  (k+n >= 0) && (k+n < _target->GetZ())) {
+                Imean(i, j, k) = _target->Get(i+l, j+m, k+n);
+                Jmean(i, j, k) = _source->Get(i+l, j+m, k+n);
+                nsample++;
+              }
+            }
+          }
+        }
+        Imean(i, j, k) /= n;
+        Jmean(i, j, k) /= n;
+      }
+    }
+  }
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        A(i, j, k) = (_target->Get(i, j, k) - Imean(i, j, k)) * (_source->Get(i, j, k) - Jmean(i, j, k));
+        B(i, j, k) = (_target->Get(i, j, k) - Imean(i, j, k)) * (_target->Get(i, j, k) - Imean(i, j, k));
+        C(i, j, k) = (_source->Get(i, j, k) - Jmean(i, j, k)) * (_source->Get(i, j, k) - Jmean(i, j, k));
+      }
+    }
+  }
+
+  // Calculate gradient
+  for (k = 0; k < _source->GetZ(); k++) {
+    for (j = 0; j < _source->GetY(); j++) {
+      for (i = 0; i < _source->GetX(); i++) {
+        i1 = i - 1;
+        if (i1 < 0) i1 = 0;
+        i2 = i + 1;
+        if (i2 > _source->GetX()-1) i2 = _source->GetX()-1;
+        j1 = j - 1;
+        if (j1 < 0) j1 = 0;
+        j2 = j + 1;
+        if (j2 > _source->GetY()-1) j2 = _source->GetY()-1;
+        k1 = k - 1;
+        if (k1 < 0) k1 = 0;
+        k2 = k + 1;
+        if (k2 > _source->GetZ()-1) k2 = _source->GetZ()-1;
+        _sourceGradientX(i, j, k) = Jmean(i2, j, k) - Jmean(i1, j, k);
+        _sourceGradientY(i, j, k) = Jmean(i, j2, k) - Jmean(i, j1, k);
+        _sourceGradientZ(i, j, k) = Jmean(i, j, k2) - Jmean(i, j, k1);
+      }
+    }
+  }
+
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        double x = 2 * A(i, j, k) / (B(i, j, k) * C(i, j, k)) * (Imean(i, j, k) - A(i, j, k) / C(i, j, k) * Jmean(i, j, k));
+        _localDX(i, j, k) = x * _sourceGradientX(i, j, k) * _StepSize;
+        _localDY(i, j, k) = x * _sourceGradientY(i, j, k) * _StepSize;
+        _localDZ(i, j, k) = x * _sourceGradientZ(i, j, k) * _StepSize;
+      }
+    }
+  }
+}
+
 void irtkDemonsRegistration::Smooth()
 {
   if (_Smoothing > 0) {
@@ -546,7 +649,9 @@ void irtkDemonsRegistration::Update()
     _globalDY += _localDY;
     _globalDZ += _localDZ;
   } else {
-    // Concatenate displacement field
+  	Add();
+
+  	// Concatenate displacement field
     irtkLinearInterpolateImageFunction interpolatorDX;
     interpolatorDX.SetInput(&_globalDX);
     interpolatorDX.Initialize();
