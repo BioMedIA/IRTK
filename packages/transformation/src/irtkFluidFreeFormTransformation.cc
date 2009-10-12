@@ -229,7 +229,7 @@ irtkCifstream& irtkFluidFreeFormTransformation::Read(irtkCifstream& from)
     // Read magic no. for transformations
     from.ReadAsUInt(&magic_no, 1);
     if (magic_no != IRTKTRANSFORMATION_MAGIC) {
-      cerr << "irtkFluidFreeFormTransformation::Read: Not a vaild transformation found at = " << offset << endl;
+      cerr << "irtkFluidFreeFormTransformation::Read: Not a valid fluid transformation found at = " << offset << endl;
       exit(1);
     }
 
@@ -239,17 +239,17 @@ irtkCifstream& irtkFluidFreeFormTransformation::Read(irtkCifstream& from)
       from.Seek(offset);
       _localTransformation[i] = new irtkLinearFreeFormTransformation;
       ((irtkLinearFreeFormTransformation *)_localTransformation[i])->Read(from);
-    }
-    if ((trans_type == IRTKTRANSFORMATION_BSPLINE_FFD) || (trans_type == IRTKTRANSFORMATION_BSPLINE_FFD_EXT1)) {
-      from.Seek(offset);
-      _localTransformation[i] = new irtkBSplineFreeFormTransformation;
-      ((irtkBSplineFreeFormTransformation *)_localTransformation[i])->Read(from);
     } else {
-      cerr << "irtkFluidFreeFormTransformation::Read: No a vaild transformation type at = " << offset << " " << endl;
-      exit(1);
+      if ((trans_type == IRTKTRANSFORMATION_BSPLINE_FFD) || (trans_type == IRTKTRANSFORMATION_BSPLINE_FFD_EXT1)) {
+        from.Seek(offset);
+        _localTransformation[i] = new irtkBSplineFreeFormTransformation;
+        ((irtkBSplineFreeFormTransformation *)_localTransformation[i])->Read(from);
+      } else {
+        cerr << "irtkFluidFreeFormTransformation::Read: No a valid FFD transformation type at = " << offset << " " << endl;
+        exit(1);
+      }
     }
   }
-
   return from;
 }
 
