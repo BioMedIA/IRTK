@@ -24,6 +24,8 @@ char *parameter_name[MAX_LEVELS];
 
 int paddingValue, numberOfLevels, debug;
 
+irtkImageFreeFormRegistrationMode mode;
+
 #ifdef HAS_VTK
 extern Bool interactiveVTK;
 extern Bool displayVTK;
@@ -129,6 +131,9 @@ void mreg(irtkGreyImage target, irtkGreyImage source,
   // Debug flag
   registration.SetDebugFlag(debug);
 
+  // Set mode
+  registration.SetMode(mode);
+
   // Read default parameter
   registration.irtkImageRegistration::Read(parameter_name[i]);
 
@@ -209,6 +214,7 @@ int main(int argc, char **argv)
   // Parse remaining parameters
   no_areg = False;
   debug   = False;
+  mode    = RegisterXYZ;
 
   while (argc > 1) {
     ok = False;
@@ -380,6 +386,18 @@ int main(int argc, char **argv)
       paddingValue = atoi(argv[1]);
       argc--;
       argv++;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-y_only") == 0)) {
+      argc--;
+      argv++;
+      mode = RegisterY;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-xy_only") == 0)) {
+      argc--;
+      argv++;
+      mode = RegisterXY;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-dx") == 0)) {
