@@ -1,0 +1,14 @@
+PROJECT(SEGMENTATION_SRC)
+SET(SEGMENTATION_SRCS
+irtkBiasCorrection.cc
+irtkBiasField.cc
+irtkBSplineBiasField.cc
+irtkEMClassification.cc
+irtkEMClassificationBiasCorrection.cc
+irtkEMClassificationTemplateBiasCorrection.cc
+irtkGaussian.cc
+irtkIntensityMatching.cc
+irtkMultiChannelImage.cc
+irtkProbabilisticAtlas.cc)
+
+ADD_LIBRARY(segmentation++ ${SEGMENTATION_SRCS})
