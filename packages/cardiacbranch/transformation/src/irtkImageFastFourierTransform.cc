@@ -198,7 +198,7 @@ void ConvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericIm
   DirectFFT(RealPartFilter,ImaginaryPartFilter);
   
   //2) filtering in Fourier spaces
-  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  CoefMult=(float)(sqrt(float(RealPartSignal->GetX())*sqrt((float)RealPartSignal->GetY())*sqrt((float)RealPartSignal->GetZ())));
   
   for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
     a=RealPartSignal->Get(x, y, z, 0);
@@ -227,7 +227,7 @@ void DeconvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGeneric
   DirectFFT(RealPartFilter,ImaginaryPartFilter);
   
   //2) filtering in Fourier spaces
-  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  CoefMult=(float)(sqrt((float)RealPartSignal->GetX())*sqrt((float)RealPartSignal->GetY())*sqrt((float)RealPartSignal->GetZ()));
   
   for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
     a=RealPartSignal->Get(x, y, z, 0);

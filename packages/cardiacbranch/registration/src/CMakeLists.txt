@@ -1,4 +1,5 @@
 SET(REGISTRATION_INCLUDES
+../include/irtkCardiacImageFreeFormRegistration.h
 ../include/irtkConjugateGradientDescentOptimizer.h
 ../include/irtkCorrelationRatioXYSimilarityMetric.h
 ../include/irtkCorrelationRatioYXSimilarityMetric.h
@@ -62,6 +63,7 @@ SET(REGISTRATION_INCLUDES
 ../include/vtkKDTreePointLocator.h)
 
 SET(REGISTRATION_SRCS 
+irtkCardiacImageFreeFormRegistration.cc
 irtkConjugateGradientDescentOptimizer.cc
 irtkDemonsRegistration.cc
 irtkDownhillDescentOptimizer.cc

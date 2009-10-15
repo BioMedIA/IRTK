@@ -39,10 +39,10 @@ public:
   ~irtkHistogramSimilarityMetric();
 
   /// Add sample
-  virtual void Add(int, int);
+  virtual void Add(int, int, int = 1);
 
   /// Remove sample
-  virtual void Delete(int, int);
+  virtual void Delete(int, int, int = 1);
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
@@ -71,12 +71,14 @@ inline irtkHistogramSimilarityMetric::~irtkHistogramSimilarityMetric()
   delete _histogram;
 }
 
-inline void irtkHistogramSimilarityMetric::Add(int x, int y)
+inline void irtkHistogramSimilarityMetric::Add(int x, int y, int weight)
 {
+  //if ( y < 0 )
+  //	  int test = 1;
   _histogram->Add(x, y);
 }
 
-inline void irtkHistogramSimilarityMetric::Delete(int x, int y)
+inline void irtkHistogramSimilarityMetric::Delete(int x, int y, int weight)
 {
   _histogram->Delete(x, y);
 }

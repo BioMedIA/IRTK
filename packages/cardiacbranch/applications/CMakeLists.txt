@@ -76,6 +76,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(msrreg msrreg.cc)
     ADD_EXECUTABLE(normalize normalize.cc)
     ADD_EXECUTABLE(nreg nreg.cc)
+    ADD_EXECUTABLE(cardiacnreg cardiacnreg.cc)
     ADD_EXECUTABLE(pareg pareg.cc)
     ADD_EXECUTABLE(pcaloo pcaloo.cc)
     ADD_EXECUTABLE(pcanalysis pcanalysis.cc)
@@ -100,7 +101,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
-INSTALL_TARGETS(/bin approximate approximate4D areg atlas compare demons 
+INSTALL_TARGETS(/bin approximate approximate4D areg atlas cardiacnreg compare demons 
 dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
 evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
 ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
@@ -110,6 +111,7 @@ sevaluation shreg snreg srreg stransformation subtract symnreg
 transformation transformation2 volumechange vtk2ffd)
 
 ENDIF (BUILD_CONDOR_EXE)
+
 
 
 

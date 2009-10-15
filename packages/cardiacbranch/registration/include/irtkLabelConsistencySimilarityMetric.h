@@ -36,10 +36,9 @@ public:
   irtkLabelConsistencySimilarityMetric();
 
   /// Add sample
-  virtual void Add(int, int);
-
+  virtual void Add(int, int, int =1);
   /// Remove sample
-  virtual void Delete(int, int);
+  virtual void Delete(int, int, int =1);
 
   /// Reset similarity metric
   virtual void Reset();
@@ -58,13 +57,13 @@ inline irtkLabelConsistencySimilarityMetric::irtkLabelConsistencySimilarityMetri
   _n = 0;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y)
+inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y, int weight)
 {
   if (x == y) _match++;
   _n++;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y)
+inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y, int weight)
 {
   if (x == y) _match--;
   _n--;

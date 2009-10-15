@@ -615,7 +615,6 @@ double irtkImageFreeFormRegistration::EvaluateDerivative(int index, double step)
             if ((p[0] > _source_x1) && (p[0] < _source_x2) &&
                 (p[1] > _source_y1) && (p[1] < _source_y2) &&
                 (p[2] > _source_z1) && (p[2] < _source_z2)) {
-
               // Add sample to metric
               tmpMetricA->Add(*ptr2target, round(_interpolator->EvaluateInside(p[0], p[1], p[2], t)));
             }
