@@ -2530,6 +2530,7 @@ void irtkRView::GetTransformationText(list<char *> &text) {
 								*ffd =
 										dynamic_cast<irtkLinearFreeFormTransformation *> (mffd->GetLocalTransformation(
 												i));
+						ffd->GetSpacing(dx, dy, dz);
 						sprintf(buffer, "3D Linear FFD: %d (%.2f mm X %.2f mm X %.2f mm)",
 								ffd->NumberOfDOFs(), dx, dy, dz);
 					} else {
@@ -2539,6 +2540,7 @@ void irtkRView::GetTransformationText(list<char *> &text) {
 									*ffd =
 											dynamic_cast<irtkEigenFreeFormTransformation *> (mffd->GetLocalTransformation(
 													i));
+							ffd->GetSpacing(dx, dy, dz);
 							sprintf(buffer, "3D Eigen FFD: %d (%.2f mm X %.2f mm X %.2f mm)",
 									ffd->NumberOfDOFs(), dx, dy, dz);
 						} else {
