@@ -19,8 +19,10 @@ void usage()
   cerr << "Usage: headertool [in] [out] <options>\n" << endl;
   cerr << "where <options> can be one or more of the following:\n";
   cerr << "<-size        dx dy dz>                      \t Voxel size   (in mm)\n";
+  cerr << "<-tsize       dt>                            \t Voxel size   (in ms)\n";
   cerr << "<-orientation x1 x2 x3   y1 y2 y3  z1 z2 z3> \t Image orientation\n";
   cerr << "<-origin      x  y  z>                       \t Image origin (in mm)\n";
+  cerr << "<-torigin     t>                             \t Image origin (in ms)\n";
   cerr << "<-target      image>                         \t Copy header from target image\n\n";
   exit(1);
 }
@@ -28,7 +30,7 @@ void usage()
 int main(int argc, char **argv)
 {
   int ok;
-  double xsize, ysize, zsize, xaxis[3], yaxis[3], zaxis[3], origin[3];
+  double xsize, ysize, zsize, tsize, xaxis[3], yaxis[3], zaxis[3], origin[4];
 
   if (argc < 3) {
     usage();
@@ -77,6 +79,18 @@ int main(int argc, char **argv)
 
       // Set voxel size
       image.PutPixelSize(xsize, ysize, zsize);
+    }
+    if ((ok == False) && (strcmp(argv[1], "-tsize") == 0)) {
+      argc--;
+      argv++;
+      tsize = atof(argv[1]);
+      argc--;
+      argv++;
+      ok = True;
+
+      // Set voxel size
+      image.GetPixelSize(&xsize, &ysize, &zsize);
+      image.PutPixelSize(xsize, ysize, zsize, tsize);
     }
     if ((ok == False) && (strcmp(argv[1], "-orientation") == 0)) {
       argc--;
@@ -129,6 +143,18 @@ int main(int argc, char **argv)
 
       // Set origin
       image.PutOrigin(origin[0], origin[1], origin[2]);
+    }
+    if ((ok == False) && (strcmp(argv[1], "-torigin") == 0)) {
+      argc--;
+      argv++;
+      origin[4] = atof(argv[1]);
+      argc--;
+      argv++;
+      ok = True;
+
+      // Set origin
+      image.GetOrigin(origin[0], origin[1], origin[2]);
+      image.PutOrigin(origin[0], origin[1], origin[2], origin[4]);
     }
 
     if (ok == False) {
