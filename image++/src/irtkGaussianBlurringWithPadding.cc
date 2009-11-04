@@ -119,6 +119,8 @@ template <class VoxelType> void irtkGaussianBlurringWithPadding<VoxelType>::Run(
   this->Finalize();
 }
 
-template class irtkGaussianBlurringWithPadding<irtkBytePixel>;
-template class irtkGaussianBlurringWithPadding<irtkGreyPixel>;
-template class irtkGaussianBlurringWithPadding<irtkRealPixel>;
+template class irtkGaussianBlurringWithPadding<unsigned char>;
+template class irtkGaussianBlurringWithPadding<short>;
+template class irtkGaussianBlurringWithPadding<unsigned short>;
+template class irtkGaussianBlurringWithPadding<float>;
+template class irtkGaussianBlurringWithPadding<double>;

@@ -109,6 +109,17 @@ double irtkLinearInterpolateImageFunction::EvaluateInside(double x, double y, do
 
       break;
     }
+  case IRTK_VOXEL_DOUBLE: {
+      double *ptr = (double *)this->_input->GetScalarPointer(i, j, k, round(time));
+
+      // Linear interpolation
+      return (t1 * (u2 * (v2 * ptr[this->_offset2] + v1 * ptr[this->_offset6]) +
+                    u1 * (v2 * ptr[this->_offset4] + v1 * ptr[this->_offset8])) +
+              t2 * (u2 * (v2 * ptr[this->_offset1] + v1 * ptr[this->_offset5]) +
+                    u1 * (v2 * ptr[this->_offset3] + v1 * ptr[this->_offset7])));
+
+      break;
+    }
   default:
     cerr << "irtkLinearInterpolateImageFunction::EvaluateInside: Unknown scalar type" << endl;
     exit(1);

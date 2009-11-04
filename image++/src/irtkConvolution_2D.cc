@@ -138,6 +138,8 @@ template <class VoxelType> void irtkConvolution_2D<VoxelType>::Initialize()
   this->irtkImageToImage<VoxelType>::Initialize();
 }
 
-template class irtkConvolution_2D<irtkBytePixel>;
-template class irtkConvolution_2D<irtkGreyPixel>;
-template class irtkConvolution_2D<irtkRealPixel>;
+template class irtkConvolution_2D<unsigned char>;
+template class irtkConvolution_2D<short>;
+template class irtkConvolution_2D<unsigned short>;
+template class irtkConvolution_2D<float>;
+template class irtkConvolution_2D<double>;

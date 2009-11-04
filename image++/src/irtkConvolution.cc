@@ -19,6 +19,8 @@ template <class VoxelType> irtkConvolution<VoxelType>::irtkConvolution(Bool Norm
   _Normalization = Normalization;
 }
 
-template class irtkConvolution<irtkBytePixel>;
-template class irtkConvolution<irtkGreyPixel>;
-template class irtkConvolution<irtkRealPixel>;
+template class irtkConvolution<unsigned char>;
+template class irtkConvolution<short>;
+template class irtkConvolution<unsigned short>;
+template class irtkConvolution<float>;
+template class irtkConvolution<double>;

@@ -127,6 +127,8 @@ template <class VoxelType> double irtkConvolutionWithPadding_2D<VoxelType>::Run(
   }
 }
 
-template class irtkConvolutionWithPadding_2D<irtkBytePixel>;
-template class irtkConvolutionWithPadding_2D<irtkGreyPixel>;
-template class irtkConvolutionWithPadding_2D<irtkRealPixel>;
+template class irtkConvolutionWithPadding_2D<unsigned char>;
+template class irtkConvolutionWithPadding_2D<short>;
+template class irtkConvolutionWithPadding_2D<unsigned short>;
+template class irtkConvolutionWithPadding_2D<float>;
+template class irtkConvolutionWithPadding_2D<double>;
