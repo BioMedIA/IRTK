@@ -16,7 +16,7 @@
 
 #include <irtkGeometry.h>
 
-#define MAX_TRANS 100
+#define MAX_TRANS 200
 
 /**
  * Class for free form transformations based on tensor product B-splines.

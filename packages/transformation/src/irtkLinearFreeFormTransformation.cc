@@ -12,6 +12,8 @@
 
 #include <irtkTransformation.h>
 
+#include <newt2.h>
+
 irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation()
 {
   int i;
@@ -480,22 +482,95 @@ void irtkLinearFreeFormTransformation::FFD2(double &x, double &y, double &z) con
              u1 * (v2 * _zdata[k][j+1][i] + v1 * _zdata[k+1][j+1][i])));
 }
 
-void irtkLinearFreeFormTransformation::Jacobian(irtkMatrix &, double, double, double, double)
+void irtkLinearFreeFormTransformation::Jacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
-  cerr << "irtkLinearFreeFormTransformation::Jacobian: Not yet implemented" << endl;
-  exit(1);
+  this->LocalJacobian(jac, x, y, z, t);
 }
 
-void irtkLinearFreeFormTransformation::GlobalJacobian(irtkMatrix &, double, double, double, double)
+void irtkLinearFreeFormTransformation::GlobalJacobian(irtkMatrix &jac, double x, double y, double z, double)
 {
-  cerr << "irtkLinearFreeFormTransformation::Jacobian: Not yet implemented" << endl;
-  exit(1);
+  // Jacobian matrix is 3 x 3
+  jac.Initialize(3, 3);
+
+  // Set matrix to identity
+  jac(0, 0) = 1;
+  jac(1, 1) = 1;
+  jac(2, 2) = 1;
 }
 
-void irtkLinearFreeFormTransformation::LocalJacobian(irtkMatrix &, double, double, double, double)
+void irtkLinearFreeFormTransformation::LocalJacobian(irtkMatrix &jac, double x, double y, double z, double)
 {
-  cerr << "irtkLinearFreeFormTransformation::Jacobian: Not yet implemented" << endl;
-  exit(1);
+  int i, j, k;
+  double x1, y1, z1, x2, y2, z2;
+
+  // Jacobian matrix is 3 x 3
+  jac.Initialize(3, 3);
+
+  // Convert to lattice coordinates
+  this->WorldToLattice(x, y, z);
+
+  // Check if there is some work to do
+  if ((x < 1) || (y < 1) || (z < 1) || (x >= _x-1) || (y >= _y-1) || (z >= _z-1)) {
+    jac(0, 0) += 1;
+    jac(1, 1) += 1;
+    jac(2, 2) += 1;
+    return;
+  }
+
+  // Compute derivatives
+  i = (int)floor(x);
+  j = (int)floor(y);
+  k = (int)floor(z);
+
+  // Jacobian matrix is 3 x 3
+  jac.Initialize(3, 3);
+
+  // Compute derivative in x
+  x1 = x+0.5;
+  y1 = y;
+  z1 = z;
+  x2 = x-0.5;
+  y2 = y;
+  z2 = z;
+  this->FFD1(x1, y1, z1);
+  this->FFD1(x2, y2, z2);
+  jac(0, 0) = x1 - x2;
+  jac(1, 0) = y1 - y2;
+  jac(2, 0) = z1 - z2;
+
+  // Compute derivative in y
+  x1 = x;
+  y1 = y+0.5;
+  z1 = z;
+  x2 = x;
+  y2 = y-0.5;
+  z2 = z;
+  this->FFD1(x1, y1, z1);
+  this->FFD1(x2, y2, z2);
+  jac(0, 1) = x1 - x2;
+  jac(1, 1) = y1 - y2;
+  jac(2, 1) = z1 - z2;
+
+  // Compute derivative in z
+  x1 = x;
+  y1 = y;
+  z1 = z+0.5;
+  x2 = x;
+  y2 = y;
+  z2 = z-0.5;
+  this->FFD1(x1, y1, z1);
+  this->FFD1(x2, y2, z2);
+  jac(0, 2) = x1 - x2;
+  jac(1, 2) = y1 - y2;
+  jac(2, 2) = z1 - z2;
+
+  jac.Transpose();
+  // Convert derivatives to world coordinates
+  jac = jac * _matW2L(0, 0, 3, 3);
+  jac(0, 0) += 1;
+  jac(1, 1) += 1;
+  jac(2, 2) += 1;
+
 }
 
 double irtkLinearFreeFormTransformation::Bending(double, double, double)
@@ -569,7 +644,7 @@ int irtkLinearFreeFormTransformation::CheckHeader(char *name)
 
   if (!from) {
     cerr << "irtkLinearFreeFormTransformation::CheckHeader: Can't open file "
-         << name << "\n";
+    << name << "\n";
     exit(1);
   }
 
@@ -784,7 +859,7 @@ istream& irtkLinearFreeFormTransformation::Import(istream& is)
     is >> no_attr;
   } else {
     cerr << "istream& operator>> irtkLinearFreeFormTransformation: "
-         << "Expecting attributes " << buffer << endl;
+    << "Expecting attributes " << buffer << endl;
     exit(1);
   }
 
@@ -1047,8 +1122,8 @@ void irtkLinearFreeFormTransformation::Print()
   cout << "Spacing: " << _dx << " x " << _dy << " x " << _dz << endl;
   cout << "Origin: " << _origin._x << " " << _origin._y << " " << _origin._z << " ";
   cout << "Orientation: " << _xaxis[0] << " " << _xaxis[1] << " "
-       << _xaxis[2] << " " << _yaxis[0] << " " << _yaxis[1] << " "
-       << _yaxis[2] << endl;
+  << _xaxis[2] << " " << _yaxis[0] << " " << _yaxis[1] << " "
+  << _yaxis[2] << endl;
 }
 
 irtkCifstream& irtkLinearFreeFormTransformation::Read(irtkCifstream& from)
@@ -1213,4 +1288,63 @@ irtkCofstream& irtkLinearFreeFormTransformation::Write(irtkCofstream& to)
   to.WriteAsInt((int *)_status, 3*_x*_y*_z);
 
   return to;
+}
+
+double irtkLinearFreeFormTransformation::Inverse(double &x, double &y, double &z, double, double tolerance)
+{
+  /*
+    int check;
+    double error;
+
+    // Initialize global variables
+    irtkTransformationPointer  = this;
+    x_invert = x;
+    y_invert = y;
+    z_invert = z;
+
+    // Pointer to B-spline wrapper
+    void (*Newton_function)(int, float [], float []) = irtkTransformationEvaluate;
+
+    // Inverse
+    float invert[3], f_invert[3];
+    invert[0] = x;
+    invert[1] = y;
+    invert[2] = z;
+
+    // Numerically approximate the inverse transformation
+    newt2(invert-1, 3, &check, Newton_function);
+
+    // Calculate error
+    irtkTransformationEvaluate(3, invert-1, f_invert-1);
+    error = sqrt(f_invert[0]*f_invert[0]+f_invert[1]*f_invert[1]+f_invert[2]*f_invert[2]);
+    if (error > tolerance) {
+      cout << "irtkFreeFormTransformation3D::Inverse: RMS error = " << error << "\n";
+    }
+
+    // Set output to solution
+    x = invert[0];
+    y = invert[1];
+    z = invert[2];
+
+    return error;
+  */
+
+  double u, v, w;
+
+  u = x;
+  v = y;
+  w = z;
+
+  // Convert world coordinates in to FFD coordinates
+  this->WorldToLattice(u, v, w);
+
+  // Calculate FFD
+  this->FFD1(u, v, w);
+
+  // Add FFD to world coordinates
+  x -= u;
+  y -= v;
+  z -= w;
+
+  return 0;
 }

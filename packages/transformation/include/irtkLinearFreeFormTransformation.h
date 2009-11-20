@@ -102,6 +102,9 @@ public:
   /// Calculate the bending energy of the transformation
   virtual double Bending(double x, double y, double z);
 
+  /// Inverts the transformation
+  virtual double Inverse(double &, double &, double &, double = 0, double = 0.0001);
+
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
