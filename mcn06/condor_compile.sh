@@ -1,2 +1,0 @@
-condor_compile c++ $@
-
