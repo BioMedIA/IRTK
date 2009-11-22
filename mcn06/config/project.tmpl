@@ -1,0 +1,100 @@
+# Default objects and variables
+#
+# DO NOT EDIT !!!
+
+LOCAL_INCLUDES  = 
+LOCAL_LIBRARIES =
+
+OBJS    := $(patsubst %.c,%.o,$(wildcard *.c)) \
+	   $(patsubst %.cc,%.o,$(wildcard *.cc))
+SRCS    := $(wildcard *.c) $(wildcard *.cc)
+HEADERS := $(wildcard *.h)
+
+# Default rules
+#
+# DO NOT EDIT !!!
+
+%.o: %.c 
+	$(CC) -c $(CXXFLAGS) $(CFLAGS) $(INCLUDES) $(LOCAL_INCLUDES) $< -o $@
+
+%.o: %.cc 
+	$(CXX) -c $(CXXFLAGS) $(CFLAGS) $(INCLUDES) $(LOCAL_INCLUDES) $< -o $@
+
+
+# Compilers, linkers and other stuff
+#
+# DO NOT EDIT !!!
+
+INCLUDES    = $(PROJECT_INCLUDES) \
+              @X11_INCLUDES@ \
+              @VTK_INCLUDES@ \
+              @GL_INCLUDES@ \
+              @GLUT_INCLUDES@ \
+              @FLTK_INCLUDES@
+LIBRARIES   = $(PROJECT_LIBRARIES) \
+              @X11_LIBRARIES@ \
+              @VTK_LIBRARIES@ \
+              @FLTK_LIBRARIES@ \
+              @GLUT_LIBRARIES@ \
+              @GL_LIBRARIES@ \
+              @DL_LIBS@
+CXXFLAGS    = @CXXFLAGS@ @DEFS@ -DIMPERIAL -DNO_BOUNDS
+CC          = @CC@
+LD          = @CXX@ @LDFLAGS@
+CXX         = @CXX@
+RANLIB      = @RANLIB@
+INSTALL     = @INSTALL@
+INSTALL_BIN = @INSTALL_BIN@
+INSTALL_LIB = @INSTALL_LIB@
+HAS_CONTRIB = @HAS_CONTRIB@
+HAS_FLTK    = @HAS_FLTK@
+HAS_GLUT    = @HAS_GLUT@
+HAS_GL      = @HAS_GL@
+HAS_MESA    = @HAS_MESA@
+
+# Project variables
+#
+# DO NOT EDIT !!!
+
+PROJECT_PATH      = @PROJECT@
+
+PROJECT_LIBRARIES = -L$(INSTALL_LIB) \
+                    @CONTRIB_LIBRARIES@ \
+                    -limage \
+                    -lgeometry \
+                    -lcommon \
+                    -lrecipes 
+
+PROJECT_INCLUDES  = @CONTRIB_INCLUDES@ \
+                    -I$(PROJECT_PATH)/image++/include \
+                    -I$(PROJECT_PATH)/geometry++/include \
+                    -I$(PROJECT_PATH)/common++/include \
+                    -I$(PROJECT_PATH)/recipes/include -I.
+
+PROJECT_DOCS      = $(PROJECT_PATH)/doc
+
+# Project dependecies
+#
+# DO NOT EDIT !!!
+
+PROJECT_DEPS = $(INSTALL_LIB)/libimage.a \
+	       $(INSTALL_LIB)/libgeometry.a \
+	       $(INSTALL_LIB)/libcontrib.a \
+	       $(INSTALL_LIB)/libcommon.a \
+	       $(INSTALL_LIB)/librecipes.a
+
+# Default libraries
+#
+# YOU MAY NEED TO CHANGE THIS
+
+VTK_LIB         = -lvtkCommon \
+                  -lvtkIO \
+                  -lvtkImaging \
+                  -lvtkGraphics \
+                  -lvtkHybrid \
+                  -lvtkPatented \
+                  -lXt \
+                  -lpthread
+GL_LIB		= -lGLU -lGL
+GLUT_LIB	= -lglut
+FLTK_LIB	= -lfltk

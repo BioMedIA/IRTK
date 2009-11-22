@@ -1,0 +1,282 @@
+/** 
+
+\page download Download
+
+\htmlonly
+
+<FORM METHOD="POST" ACTION="download.cgi">
+
+<b>PERSONAL INFORMATION</b> 
+
+<P>Please fill in your details on the following form before
+downloading. Please make sure that you complete this form correctly. Of
+particular importance is your e-mail address, so that we can announce new
+updates and bug fixes. <br><br>
+
+<TABLE>
+
+<TR>
+<TD>First name<TD><INPUT TYPE="text" NAME="initials" VALUE=""
+SIZE="40"></TR>
+<TD>Last Name<TD> <INPUT TYPE="text" NAME="surname" VALUE="" SIZE="40"></TR>
+
+<TR><TD>Position<TD><INPUT TYPE="text" NAME="position" VALUE="" SIZE="40"></TR>
+
+<TR><TD>Institution<TD><INPUT TYPE="text" NAME="institution" VALUE="" SIZE="40"></TR>
+
+<TR><TD>Country<TD><INPUT TYPE="text" NAME="country" VALUE="" SIZE="40"></TR>
+
+<TR><TD>E-mail<TD><INPUT TYPE="text" NAME="e-mail" VALUE="" SIZE="40"></TR>
+
+</TABLE>
+
+<hr>
+\endhtmlonly
+
+<b>LICENSE AGREEMENT</b>
+
+WE (<a href="http://www.ixico.net">IXICO LIMITED</a>) ARE WILLING TO LICENSE THIS
+SOFTWARE TO YOU ONLY ON THE CONDITION THAT YOU ACCEPT ALL OF THE TERMS
+CONTAINED IN THE FOLLOWING AGREEMENT.  PLEASE READ THE AGREEMENT CAREFULLY
+BEFORE DOWNLOADING THE SOFTWARE.  BY EXERCISING THE OPTION TO DOWNLOAD THE
+SOFTWARE YOU AGREE TO BE BOUND BY THE TERMS OF THE AGREEMENT.
+
+SOFTWARE LICENCE AGREEMENT
+
+1.	Ownership and Licence.    Your non-exclusive rights to use and co
+(as described in Schedule 1 to this licence agreement) downloaded to your 
+computer and all other copies that you are authorised by this Agreement to make 
+(the "Software") are specified in this Agreement, and we (or our licensors) retain 
+all rights including but not limited to all copyright and other intellectual property 
+rights, anywhere in the world, in the Software not expressly granted to you in this 
+Agreement.
+
+2.	Permitted Uses.  You are granted, free of charge, the following non-exclusive, 
+non-transferable rights in respect of the Software:
+
+(a)	You may download and install the Software onto one computer or server for use in 
+accordance with Clause 2 (b) of this Agreement provided that you ensure that the 
+Software is not accessible by other users unless they have themselves accepted the 
+terms of this licence agreement.  
+
+(b)	You may use the Software solely for non-commercial, academic research purposes 
+and only in accordance with the terms of this Agreement. You may not use the 
+Software for, or in relation to, patient management or in, or in relation to, clinical 
+trials.  
+
+(c)	Right to Copy.  You may copy the Software for back-up and archival purposes, 
+provided that each copy is kept in your possession and provided you reproduce our 
+copyright notice on each copy.
+
+(d)	Transfer and sub-licensing.  You may not rent, lend, or lease the Software and 
+you may not transfer or sub-license this licence to use the Software or any of your 
+rights or obligations under this Agreement to another party.
+
+(e)	Identity of Licensee.  The licence granted herein is personal to you.  You shall not 
+permit any third party to access, modify or otherwise use the Software nor shall you 
+access modify or otherwise use the Software on behalf of any third party. If you 
+wish to obtain a licence for mutiple users or a site licence for the Software please 
+contact us at  <a href="mailto:academic-license-request@ixico.net">academic-license-request@ixico.net</a>
+
+(f)	Publications and presentations.  In all publications and presentations of research 
+carried out using the Software, you must acknowledge use of the Software using 
+the form of words and citations given in Schedule 2. 
+
+3.	Prohibited Uses.  You may not, without written permission from us. 
+
+(a)	Use, copy, modify, merge, or transfer copies of the Software or any documentation 
+provided by us which relates to the Software except as provided in this Agreement;
+
+(b)	Use any back-up or archival copies of the Software (or allow anyone else to use 
+such copies) for any purpose other than to replace the original copy in the event it is 
+destroyed or becomes defective; or
+
+(c)	Disassemble, decompile or "unlock", reverse translate, or in any manner decode the 
+Software for any reason.  If you acquired the Software within the EU, information 
+necessary to achieve interoperability of the Software with other independently 
+created programs, within the meaning of Article 6 of the Directive on the Legal 
+Protection of Computer Programs (91/250/EEC), is available from us on request.
+
+4.	Warranty Disclaimer
+
+(a)	Disclaimer.  The Software has been developed for research purposes only and is 
+not a clinical tool.  You acknowledge that we are providing the Software to you 
+under this licence agreement free of charge and on condition that the disclaimer set 
+out below shall apply.  We do not warrant that the Software will meet your 
+requirements or that its operation will be uninterrupted or error-free.  You 
+acknowledge that you have reviewed and evaluated the Software to determine that 
+it meets your needs and that you assume all responsibility and liability for 
+determining the suitability of the Software as fit for your particular purposes and 
+requirements.  Subject to Clause 4(b), we exclude and expressly disclaim all 
+express and implied representations, warranties, conditions and terms not stated 
+herein (including the implied conditions or warranties of satisfactory quality, 
+merchantable quality, merchantability and fitness for purpose).  
+
+(b)	Savings.  Some jurisdictions may imply warranties, conditions or terms or impose 
+obligations upon us which cannot, in whole or in part, be excluded, restricted or 
+modified or otherwise do not allow the exclusion of implied warranties, conditions 
+or terms, in which case the above warranty disclaimer and exclusion will only 
+apply to you to the extent permitted in the relevant jurisdiction and does not in any 
+event exclude any implied warranties, conditions or terms which may not under 
+applicable law be excluded.  
+
+5.	Limitation of Liability
+
+(a)	You acknowledge that we are providing the Software to you under this licence 
+agreement free of charge and on condition that the limitation of liability set out 
+below shall apply.  Accordingly, subject to Clause 5(b), we exclude all liability 
+whether in contract, tort, negligence or otherwise, in respect of the Software and/or 
+any related documentation provided to you by us including, but not limited to, 
+liability for loss or corruption of data, loss of contracts, loss of income, loss of 
+profits, loss of cover and any consequential or indirect loss or damage of any kind 
+arising out of or in connection with this licence agreement, however caused.  This 
+exclusion shall apply even if we have been advised of the possibility of such loss or 
+damage. 
+
+(b)	Nothing in this Agreement shall have the effect of excluding or limiting our 
+liability for death or personal injury caused by our own negligence.  This licence 
+does not permit you to use the Software for, or in relation to, patient management 
+or in, or in relation to, clinical trials. 
+
+(c)	Some jurisdictions do not allow these limitations or exclusions either wholly or in 
+part, and, to that extent, they may not apply to you. Nothing in this licence 
+agreement will affect your statutory rights or other relevant statutory provisions 
+which cannot be excluded, restricted or modified, and its terms and conditions must 
+be read and construed subject to any such statutory rights and/or provisions. 
+
+6.	Confidentiality. You agree not to disclose any confidential information provided 
+to you by us pursuant to this Agreement to any third party without our prior written 
+consent.  The obligations in this Clause 6 shall survive the termination of this 
+Agreement for any reason.
+
+7.	Termination.
+
+(a)	We may terminate this licence agreement and your right to use the Software at any 
+time with immediate effect upon written notice to you.  
+
+(b)	This licence agreement and your right to use the Software automatically terminate 
+if you:
+
+(i)	fail to comply with any provisions of this Agreement; or
+
+(ii)	destroy the copies of the Software in your possession, or voluntarily return 
+the Software to us.
+
+(c)	Upon termination you will destroy all copies of the Software.
+
+(d)	Otherwise, the restrictions on your rights to use the Software will expire upon 
+expiration of the copyright to the Software.
+
+8.	Miscellaneous Provisions.
+
+(a)	This Agreement will be governed by and construed in accordance with the 
+substantive laws of England whose courts shall have exclusive jurisdiction over all 
+disputes which may arise between us.
+
+(b)	This is the entire agreement between us relating to the Software, and supersedes 
+any prior purchase order, communications, advertising or representations 
+concerning the Software.
+
+(c)	No change or modification of this Agreement will be valid unless it is in writing, 
+and is signed by us.
+
+(d)	The unenforceability or invalidity of any part of this Agreement will not affect the 
+enforceability or validity of the remaining parts.
+
+<hr>
+
+<b>SCHEDULE 1</b>
+
+<hr>
+
+The Software 
+
+The Image Registration Toolkit is a comprehensive library of tools for medical image 
+registration. It implements a variety of algorithms for 2D and 3D image registration 
+including rigid, affine and non-rigid registration. The software also includes tools for 
+transforming and resampling images using a variety of geometric transformations and 
+interpolation methods. Tools for manipulating transformations are also included. 
+
+The rigid and affine registration algorithms are based on the method proposed by Colin 
+Studholme in
+
+<ul>
+<li>C. Studholme, D.L.G.Hill, D.J. Hawkes, An Overlap Invariant Entropy Measure of 3D 
+Medical Image Alignment, Pattern Recognition, Vol. 32(1), Jan 1999, pp 71-86.
+</ul>
+
+The non-rigid registration algorithm is based on the methods proposed by Daniel Rueckert 
+and Julia Schnabel in
+
+<ul>
+<li>D. Rueckert, L. I. Sonoda, C. Hayes, D. L. G. Hill, M. O. Leach, and D. J. Hawkes. Non-
+rigid registration using free-form deformations: Application to breast MR images. IEEE 
+Transactions on Medical Imaging, 18(8):712-721, 1999.
+
+<li>J. A. Schnabel, D. Rueckert, M. Quist, J. M. Blackall, A. D. Castellano Smith, T. Hartkens, 
+G. P. Penney, W. A. Hall, H. Liu, C. L. Truwit, F. A. Gerritsen, D. L. G. Hill, and D. J. 
+Hawkes. A generic framework for non-rigid registration based on non-uniform multi-level 
+free-form deformations. In Fourth Int. Conf. on Medical Image Computing and Computer-
+Assisted Intervention (MICCAI '01), pages 573-581, Utrecht, NL, October 2001.
+</ul>
+
+The software has been written by  <a href="http://www.doc.ic.ac.uk/~dr">Daniel Rueckert</a>
+
+<b>SCHEDULE 2</b>
+
+<hr>
+
+Acknowledgments
+
+If you use the software you should add the following acknowledgement: The Image 
+Registration Toolkit was used under Licence from Ixico Ltd. Additionally, if you use the 
+non-rigid registration software provided you should reference the following papers in any 
+publication:
+
+<ul>
+<li>D. Rueckert, L. I. Sonoda, C. Hayes, D. L. G. Hill, M. O. Leach, and D. J. Hawkes. Non-
+rigid registration using free-form deformations: Application to breast MR images. IEEE 
+Transactions on Medical Imaging, 18(8):712-721, 1999.
+
+<li>J. A. Schnabel, D. Rueckert, M. Quist, J. M. Blackall, A. D. Castellano Smith, T. Hartkens, 
+G. P. Penney, W. A. Hall, H. Liu, C. L. Truwit, F. A. Gerritsen, D. L. G. Hill, and D. J. 
+Hawkes. A generic framework for non-rigid registration based on non-uniform multi-level 
+free-form deformations. In Fourth Int. Conf. on Medical Image Computing and Computer-
+Assisted Intervention (MICCAI '01), pages 573-581, Utrecht, NL, October 2001.
+</ul>
+
+If you use the rigid or affine registration components provided by the software you should 
+reference the following paper in any publication:
+
+<ul>
+<li>C. Studholme, D.L.G.Hill, D.J. Hawkes, An Overlap Invariant Entropy Measure of 3D 
+Medical Image Alignment, Pattern Recognition, Vol. 32(1), Jan 1999, pp 71-86.
+</ul>
+
+\htmlonly
+
+<hr>
+
+<b>SELECT AND DOWNLOAD</b>
+
+<p>Now select which binary version you would like to download:
+
+<SELECT NAME="target">
+<OPTION VALUE="windows32">Windows 2000/XP/Vista (Intel 32-bit)</OPTION>
+<OPTION VALUE="linux32">Linux Ubuntu (Intel 32-bit)</OPTION>
+<OPTION VALUE="macos32">Mac OS X (Intel 32-bit)</OPTION>
+</SELECT>
+
+<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<INPUT TYPE="submit" NAME="" VALUE="Download">
+
+</FORM>
+
+<p>
+
+Under Windows you many need to download the following package:
+
+<a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=32BC1BEE-A3F9-4C13-9C99-220B62A191EE&displaylang=en">Microsoft Visual C++ 2005 Redistributable Package (x86)</a>
+
+\endhtmlonly
+
+*/

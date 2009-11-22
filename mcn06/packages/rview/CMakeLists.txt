@@ -1,0 +1,13 @@
+IF (BUILD_MPI_EXE)
+
+ELSE (BUILD_MPI_EXE)
+
+  INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/packages/rview/include ${CMAKE_SOURCE_DIR}/packages/rview/fltk)
+
+  SUBDIRS(src fltk glut)
+
+  IF (NOT CMAKE_LIBRARY_PATH)
+    LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/packages/rview/src ) 
+  ENDIF (NOT CMAKE_LIBRARY_PATH)
+
+ENDIF (BUILD_MPI_EXE)
