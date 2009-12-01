@@ -209,8 +209,13 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
     exit(1);
   }
 
-  if (strcmp(this->NameOfClass(), "irtkGenericImage<float>") || strcmp(this->NameOfClass(), "irtkGenericImage<double>")) {
+  if ((strcmp(this->NameOfClass(), "irtkGenericImage<float>") == 0) || (strcmp(this->NameOfClass(), "irtkGenericImage<double>") == 0)) {
     *this = (*this * reader->GetSlope()) + reader->GetIntercept();
+  } else {
+  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
+  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+  		cerr << "irtkGenericImage<double> instead" << endl;
+  	}
   }
 
   // Delete reader
