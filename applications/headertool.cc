@@ -12,6 +12,8 @@
 
 #include <irtkImage.h>
 
+#include <irtkFileToImage.h>
+
 char *input_name = NULL, *output_name = NULL;
 
 void usage()
@@ -45,7 +47,8 @@ int main(int argc, char **argv)
   argv++;
 
   // Read image
-  irtkGreyImage image(input_name);
+  irtkFileToImage *reader = irtkFileToImage::New(input_name);
+  irtkBaseImage *image = reader->GetOutput();
 
   while (argc > 1) {
     ok = False;
@@ -56,11 +59,11 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       target.GetPixelSize(&xsize, &ysize, &zsize);
-      image.PutPixelSize(xsize, ysize, zsize);
+      image->PutPixelSize(xsize, ysize, zsize);
       target.GetOrientation(xaxis, yaxis, zaxis);
-      image.PutOrientation(xaxis, yaxis, zaxis);
+      image->PutOrientation(xaxis, yaxis, zaxis);
       target.GetOrigin(origin[0], origin[1], origin[2]);
-      image.PutOrigin(origin[0], origin[1], origin[2]);
+      image->PutOrigin(origin[0], origin[1], origin[2]);
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-size") == 0)) {
@@ -78,7 +81,7 @@ int main(int argc, char **argv)
       ok = True;
 
       // Set voxel size
-      image.PutPixelSize(xsize, ysize, zsize);
+      image->PutPixelSize(xsize, ysize, zsize);
     }
     if ((ok == False) && (strcmp(argv[1], "-tsize") == 0)) {
       argc--;
@@ -89,8 +92,8 @@ int main(int argc, char **argv)
       ok = True;
 
       // Set voxel size
-      image.GetPixelSize(&xsize, &ysize, &zsize);
-      image.PutPixelSize(xsize, ysize, zsize, tsize);
+      image->GetPixelSize(&xsize, &ysize, &zsize);
+      image->PutPixelSize(xsize, ysize, zsize, tsize);
     }
     if ((ok == False) && (strcmp(argv[1], "-orientation") == 0)) {
       argc--;
@@ -125,7 +128,7 @@ int main(int argc, char **argv)
       ok = True;
 
       // Set orientation (third argument now required)
-      image.PutOrientation(xaxis, yaxis, zaxis);
+      image->PutOrientation(xaxis, yaxis, zaxis);
     }
     if ((ok == False) && (strcmp(argv[1], "-origin") == 0)) {
       argc--;
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
       ok = True;
 
       // Set origin
-      image.PutOrigin(origin[0], origin[1], origin[2]);
+      image->PutOrigin(origin[0], origin[1], origin[2]);
     }
     if ((ok == False) && (strcmp(argv[1], "-torigin") == 0)) {
       argc--;
@@ -153,8 +156,8 @@ int main(int argc, char **argv)
       ok = True;
 
       // Set origin
-      image.GetOrigin(origin[0], origin[1], origin[2]);
-      image.PutOrigin(origin[0], origin[1], origin[2], origin[4]);
+      image->GetOrigin(origin[0], origin[1], origin[2]);
+      image->PutOrigin(origin[0], origin[1], origin[2], origin[4]);
     }
 
     if (ok == False) {
@@ -163,7 +166,7 @@ int main(int argc, char **argv)
     }
   }
 
-  image.Write(output_name);
+  image->Write(output_name);
 
   return 0;
 }

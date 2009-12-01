@@ -17,10 +17,10 @@ char *input_name = NULL, *output_name = NULL;
 void usage()
 {
   cerr << "Usage: convert [in] [out] <options>\n\n";
-  cerr << "\t where <options can be one or more of the following:\n";
-  cerr << "\t\t <-char|uchar|short|ushort|float|double>    Output voxel type\n";
-  cerr << "\t\t <-minmax value value>                      Output min and max intensity\n";
-  cerr << "\t\t <-x/-y/-z>                                 Flip the image in the x/y/z-direction\n\n";
+  cerr << "where <options can be one or more of the following:\n";
+  cerr << "<-char|uchar|short|ushort|float|double>    Output voxel type\n";
+  cerr << "<-minmax value value>                      Output min and max intensity\n";
+  cerr << "<-x/-y/-z>                                 Flip the image in the x/y/z-direction\n\n";
   cerr << "Please note that IRTK will flip Analyze in the y-direction when the image \n";
   cerr << "is read and written (for historical reasons). This means that the coordinate \n";
   cerr << "system which IRTK uses for Analyze images is different from that used by other \n";
