@@ -81,33 +81,33 @@ _Status _CPStatus[MaxNumberOfCP][MaxNumberOfCP];
 GLubyte space[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 GLubyte letters[][13] = {
-  {0x00, 0x00, 0xc3, 0xc3, 0xc3, 0xc3, 0xff, 0xc3, 0xc3, 0xc3, 0x66, 0x3c, 0x18},
-  {0x00, 0x00, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe},
-  {0x00, 0x00, 0x7e, 0xe7, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xe7, 0x7e},
-  {0x00, 0x00, 0xfc, 0xce, 0xc7, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc7, 0xce, 0xfc},
-  {0x00, 0x00, 0xff, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xc0, 0xc0, 0xc0, 0xc0, 0xff},
-  {0x00, 0x00, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xc0, 0xc0, 0xc0, 0xff},
-  {0x00, 0x00, 0x7e, 0xe7, 0xc3, 0xc3, 0xcf, 0xc0, 0xc0, 0xc0, 0xc0, 0xe7, 0x7e},
-  {0x00, 0x00, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xff, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
-  {0x00, 0x00, 0x7e, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x7e},
-  {0x00, 0x00, 0x7c, 0xee, 0xc6, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06},
-  {0x00, 0x00, 0xc3, 0xc6, 0xcc, 0xd8, 0xf0, 0xe0, 0xf0, 0xd8, 0xcc, 0xc6, 0xc3},
-  {0x00, 0x00, 0xff, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0},
-  {0x00, 0x00, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xdb, 0xff, 0xff, 0xe7, 0xc3},
-  {0x00, 0x00, 0xc7, 0xc7, 0xcf, 0xcf, 0xdf, 0xdb, 0xfb, 0xf3, 0xf3, 0xe3, 0xe3},
-  {0x00, 0x00, 0x7e, 0xe7, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xe7, 0x7e},
-  {0x00, 0x00, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe},
-  {0x00, 0x00, 0x3f, 0x6e, 0xdf, 0xdb, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0x66, 0x3c},
-  {0x00, 0x00, 0xc3, 0xc6, 0xcc, 0xd8, 0xf0, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe},
-  {0x00, 0x00, 0x7e, 0xe7, 0x03, 0x03, 0x07, 0x7e, 0xe0, 0xc0, 0xc0, 0xe7, 0x7e},
-  {0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0xff},
-  {0x00, 0x00, 0x7e, 0xe7, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
-  {0x00, 0x00, 0x18, 0x3c, 0x3c, 0x66, 0x66, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
-  {0x00, 0x00, 0xc3, 0xe7, 0xff, 0xff, 0xdb, 0xdb, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
-  {0x00, 0x00, 0xc3, 0x66, 0x66, 0x3c, 0x3c, 0x18, 0x3c, 0x3c, 0x66, 0x66, 0xc3},
-  {0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x3c, 0x3c, 0x66, 0x66, 0xc3},
-  {0x00, 0x00, 0xff, 0xc0, 0xc0, 0x60, 0x30, 0x7e, 0x0c, 0x06, 0x03, 0x03, 0xff}
-};
+                          {0x00, 0x00, 0xc3, 0xc3, 0xc3, 0xc3, 0xff, 0xc3, 0xc3, 0xc3, 0x66, 0x3c, 0x18},
+                          {0x00, 0x00, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe},
+                          {0x00, 0x00, 0x7e, 0xe7, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xe7, 0x7e},
+                          {0x00, 0x00, 0xfc, 0xce, 0xc7, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc7, 0xce, 0xfc},
+                          {0x00, 0x00, 0xff, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xc0, 0xc0, 0xc0, 0xc0, 0xff},
+                          {0x00, 0x00, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xc0, 0xc0, 0xc0, 0xff},
+                          {0x00, 0x00, 0x7e, 0xe7, 0xc3, 0xc3, 0xcf, 0xc0, 0xc0, 0xc0, 0xc0, 0xe7, 0x7e},
+                          {0x00, 0x00, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xff, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
+                          {0x00, 0x00, 0x7e, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x7e},
+                          {0x00, 0x00, 0x7c, 0xee, 0xc6, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06},
+                          {0x00, 0x00, 0xc3, 0xc6, 0xcc, 0xd8, 0xf0, 0xe0, 0xf0, 0xd8, 0xcc, 0xc6, 0xc3},
+                          {0x00, 0x00, 0xff, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0},
+                          {0x00, 0x00, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xdb, 0xff, 0xff, 0xe7, 0xc3},
+                          {0x00, 0x00, 0xc7, 0xc7, 0xcf, 0xcf, 0xdf, 0xdb, 0xfb, 0xf3, 0xf3, 0xe3, 0xe3},
+                          {0x00, 0x00, 0x7e, 0xe7, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xe7, 0x7e},
+                          {0x00, 0x00, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe},
+                          {0x00, 0x00, 0x3f, 0x6e, 0xdf, 0xdb, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0x66, 0x3c},
+                          {0x00, 0x00, 0xc3, 0xc6, 0xcc, 0xd8, 0xf0, 0xfe, 0xc7, 0xc3, 0xc3, 0xc7, 0xfe},
+                          {0x00, 0x00, 0x7e, 0xe7, 0x03, 0x03, 0x07, 0x7e, 0xe0, 0xc0, 0xc0, 0xe7, 0x7e},
+                          {0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0xff},
+                          {0x00, 0x00, 0x7e, 0xe7, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
+                          {0x00, 0x00, 0x18, 0x3c, 0x3c, 0x66, 0x66, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
+                          {0x00, 0x00, 0xc3, 0xe7, 0xff, 0xff, 0xdb, 0xdb, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3},
+                          {0x00, 0x00, 0xc3, 0x66, 0x66, 0x3c, 0x3c, 0x18, 0x3c, 0x3c, 0x66, 0x66, 0xc3},
+                          {0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x3c, 0x3c, 0x66, 0x66, 0xc3},
+                          {0x00, 0x00, 0xff, 0xc0, 0xc0, 0x60, 0x30, 0x7e, 0x0c, 0x06, 0x03, 0x03, 0xff}
+                        };
 
 GLuint fontOffset;
 
@@ -115,17 +115,17 @@ GLuint fontOffset;
 void status_glColor(int status)
 {
   switch (status) {
-  case _Active:
-    COLOR_POINTS_ACTIVE;
-    break;
-  case _Passive:
-    COLOR_POINTS_PASSIVE;
-    break;
-  case _Unknown:
-    COLOR_POINTS_UNKNOWN;
-    break;
-  default:
-    break;
+    case _Active:
+      COLOR_POINTS_ACTIVE;
+      break;
+    case _Passive:
+      COLOR_POINTS_PASSIVE;
+      break;
+    case _Unknown:
+      COLOR_POINTS_UNKNOWN;
+      break;
+    default:
+      break;
   }
 }
 
@@ -152,19 +152,28 @@ irtkViewer::~irtkViewer()
 
 Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformation)
 {
+  irtkFreeFormTransformation *affd = NULL;
+  irtkMultiLevelFreeFormTransformation *mffd = NULL;
   double x1, y1, z1, x2, y2, z2, t;
   int i, j, k, i1, j1, k1, i2, j2, k2, index, m, n;
 
   // Check transformation
-  irtkMultiLevelFreeFormTransformation *mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
-  if (mffd == 0) {
-    _NumberOfX = 0;
-    _NumberOfY = 0;
-    return False;
+  mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
+
+  if (mffd == NULL) {
+    // Not an multi-level FFD, so let's try a single-level FFD
+    affd = dynamic_cast<irtkFreeFormTransformation *>(transformation);
+
+    if (affd == NULL) {
+      // Not a single-level FFD either, so let's give up
+      _NumberOfX = 0;
+      _NumberOfY = 0;
+      return False;
+    }
+  } else {
+    affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
   }
 
-  // Check adaptive FFD
-  irtkFreeFormTransformation *affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
   if ((affd->GetX() >= MaxNumberOfCP) || (affd->GetY() >= MaxNumberOfCP) || (affd->GetZ() >= MaxNumberOfCP)) {
     cerr << "Too many control points" << endl;
     exit(1);
@@ -213,18 +222,18 @@ Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
   if (k1 > k2) swap(k1, k2);
 
   switch (_viewerMode) {
-  case Viewer_XY:
-    _NumberOfX = i2-i1+1;
-    _NumberOfY = j2-j1+1;
-    break;
-  case Viewer_XZ:
-    _NumberOfX = i2-i1+1;
-    _NumberOfY = k2-k1+1;
-    break;
-  case Viewer_YZ:
-    _NumberOfX = j2-j1+1;
-    _NumberOfY = k2-k1+1;
-    break;
+    case Viewer_XY:
+      _NumberOfX = i2-i1+1;
+      _NumberOfY = j2-j1+1;
+      break;
+    case Viewer_XZ:
+      _NumberOfX = i2-i1+1;
+      _NumberOfY = k2-k1+1;
+      break;
+    case Viewer_YZ:
+      _NumberOfX = j2-j1+1;
+      _NumberOfY = k2-k1+1;
+      break;
   }
 
   for (k = k1; k <= k2; k++) {
@@ -232,22 +241,22 @@ Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
       for (i = i1; i <= i2; i++) {
         // Calculate control points before and after deformation
         switch (_viewerMode) {
-        case Viewer_XY:
-          m = i-i1;
-          n = j-j1;
-          break;
-        case Viewer_XZ:
-          m = i-i1;
-          n = k-k1;
-          break;
-        case Viewer_YZ:
-          m = j-j1;
-          n = k-k1;
-          break;
-        default:
-          m = i;
-          n = j;
-          break;
+          case Viewer_XY:
+            m = i-i1;
+            n = j-j1;
+            break;
+          case Viewer_XZ:
+            m = i-i1;
+            n = k-k1;
+            break;
+          case Viewer_YZ:
+            m = j-j1;
+            n = k-k1;
+            break;
+          default:
+            m = i;
+            n = j;
+            break;
         }
 
         _BeforeX[m][n] = i;
@@ -258,8 +267,12 @@ Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
         _AfterX[m][n] = _BeforeX[m][n];
         _AfterY[m][n] = _BeforeY[m][n];
         _AfterZ[m][n] = _BeforeZ[m][n];
-        mffd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
-        mffd->irtkAffineTransformation::Inverse(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
+        if (mffd != NULL) {
+          mffd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
+          mffd->irtkAffineTransformation::Inverse(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
+        } else {
+          affd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
+        }
         image->WorldToImage(_BeforeX[m][n], _BeforeY[m][n], _BeforeZ[m][n]);
         image->WorldToImage(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
         if (affd->GetStatus(index) == _Active) {
@@ -283,9 +296,25 @@ Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
 {
   double dx, dy, t;
   int i, j, imax, jmax;
+  irtkFreeFormTransformation *affd = NULL;
+  irtkMultiLevelFreeFormTransformation *mffd = NULL;
 
-  irtkMultiLevelFreeFormTransformation *mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
-  if (mffd == NULL) return False;
+  // Check transformation
+  mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
+
+  if (mffd == NULL) {
+    // Not an multi-level FFD, so let's try a single-level FFD
+    affd = dynamic_cast<irtkFreeFormTransformation *>(transformation);
+
+    if (affd == NULL) {
+      // Not a single-level FFD either, so let's give up
+      _NumberOfX = 0;
+      _NumberOfY = 0;
+      return False;
+    }
+  } else {
+    affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
+  }
 
   dx = _rview->_DisplayDeformationGridResolution;
   dy = _rview->_DisplayDeformationGridResolution;
@@ -308,12 +337,20 @@ Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
       _AfterY[i][j]  = _BeforeY[i][j];
       _AfterZ[i][j]  = 0;
       image->ImageToWorld(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
-      if (_rview->_sourceTransformInvert == True) {
-        mffd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-        mffd->irtkAffineTransformation::Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+      if (mffd != NULL) {
+        if (_rview->_sourceTransformInvert == True) {
+          mffd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+          mffd->irtkAffineTransformation::Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+        } else {
+          mffd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+          mffd->irtkAffineTransformation::Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+        }
       } else {
-        mffd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-        mffd->irtkAffineTransformation::Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+        if (_rview->_sourceTransformInvert == True) {
+          affd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+        } else {
+          affd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+        }
       }
       image->WorldToImage(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
       _CPStatus[i][j] = _Unknown;
@@ -343,40 +380,40 @@ void irtkViewer::DrawCursor(irtkCursorMode mode)
   y = this->GetHeight();
 
   switch (mode) {
-  case CrossHair:
-    // Draw cross hair
-    glBegin(GL_LINES);
-    glVertex2f(_screenX1+x/2-10, _screenY1+y/2);
-    glVertex2f(_screenX1+x/2+10, _screenY1+y/2);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2-10);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2+10);
-    glEnd();
-    break;
-  case CursorX:
-    // Draw cursor as broken 'X' (+)
-    glBegin(GL_LINES);
-    glVertex2f(_screenX1+x/2-10, _screenY1+y/2);
-    glVertex2f(_screenX1+x/2-3,  _screenY1+y/2);
-    glVertex2f(_screenX1+x/2+3,  _screenY1+y/2);
-    glVertex2f(_screenX1+x/2+10, _screenY1+y/2);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2-10);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2-3);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2+3);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2+10);
-    glEnd();
-    break;
-  case CursorV:
-    // Draw cursor as 'V'
-    glBegin(GL_LINES);
-    glVertex2f(_screenX1+x/2-4, _screenY1+y/2+10);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2);
-    glVertex2f(_screenX1+x/2,    _screenY1+y/2);
-    glVertex2f(_screenX1+x/2+4, _screenY1+y/2+10);
-    glEnd();
-    break;
-  case CursorBar:
-    // Draw cursor as bar with scales
-    break;
+    case CrossHair:
+      // Draw cross hair
+      glBegin(GL_LINES);
+      glVertex2f(_screenX1+x/2-10, _screenY1+y/2);
+      glVertex2f(_screenX1+x/2+10, _screenY1+y/2);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2-10);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2+10);
+      glEnd();
+      break;
+    case CursorX:
+      // Draw cursor as broken 'X' (+)
+      glBegin(GL_LINES);
+      glVertex2f(_screenX1+x/2-10, _screenY1+y/2);
+      glVertex2f(_screenX1+x/2-3,  _screenY1+y/2);
+      glVertex2f(_screenX1+x/2+3,  _screenY1+y/2);
+      glVertex2f(_screenX1+x/2+10, _screenY1+y/2);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2-10);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2-3);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2+3);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2+10);
+      glEnd();
+      break;
+    case CursorV:
+      // Draw cursor as 'V'
+      glBegin(GL_LINES);
+      glVertex2f(_screenX1+x/2-4, _screenY1+y/2+10);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2);
+      glVertex2f(_screenX1+x/2,    _screenY1+y/2);
+      glVertex2f(_screenX1+x/2+4, _screenY1+y/2+10);
+      glEnd();
+      break;
+    case CursorBar:
+      // Draw cursor as bar with scales
+      break;
   }
 }
 
@@ -597,29 +634,29 @@ void irtkViewer::DrawROI(irtkGreyImage *image,
 #ifdef HAS_VTK
 
 void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
-         int _DisplayObjectWarp,
-         int _DisplayObjectGrid)
+                            int _DisplayObjectWarp,
+                            int _DisplayObjectGrid)
 {
   int i;
 
   for (i = 0; i < _rview->_NoOfObjects; i++) {
-  	switch (i){
-  	case 0:
-  		COLOR_CONTOUR_1;
-  		break;
-  	case 1:
-  		COLOR_CONTOUR_2;
-  		break;
-  	case 2:
-  		COLOR_CONTOUR_3;
-  		break;
-  	case 3:
-  		COLOR_CONTOUR_4;
-   		break;
-  	default:
-  		COLOR_CONTOUR_5;
-  		break;
-  	}
+    switch (i) {
+      case 0:
+        COLOR_CONTOUR_1;
+        break;
+      case 1:
+        COLOR_CONTOUR_2;
+        break;
+      case 2:
+        COLOR_CONTOUR_3;
+        break;
+      case 3:
+        COLOR_CONTOUR_4;
+        break;
+      default:
+        COLOR_CONTOUR_5;
+        break;
+    }
 
     this->DrawObject(object[i], image, _DisplayObjectWarp, _DisplayObjectGrid);
   }
@@ -655,7 +692,7 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _Disp
     normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
     normal[1] = v1[2] * v2[0] - v1[0] * v2[2];
     normal[2] = v1[0] * v2[1] - v1[1] * v2[0];
-    
+
     // Set up plane and cutter
     plane->SetOrigin(p1);
     plane->SetNormal(normal);
@@ -679,15 +716,15 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _Disp
         // Get point in image coordinates
         image->WorldToImage(point[0], point[1], point[2]);
         switch (_viewerMode) {
-        case Viewer_XY:
-          p = irtkPoint(point[0], point[1], 0);
-          break;
-        case Viewer_YZ:
-          p = irtkPoint(point[0], point[1], 0);
-          break;
-        case Viewer_XZ:
-          p = irtkPoint(point[0], point[1], 0);
-          break;
+          case Viewer_XY:
+            p = irtkPoint(point[0], point[1], 0);
+            break;
+          case Viewer_YZ:
+            p = irtkPoint(point[0], point[1], 0);
+            break;
+          case Viewer_XZ:
+            p = irtkPoint(point[0], point[1], 0);
+            break;
         }
         pset.Add(p);
       }
@@ -735,127 +772,127 @@ void irtkViewer::DrawInfo(irtkDisplayMode m)
   y = this->GetHeight();
 
   switch (_viewerMode) {
-  case Viewer_XY:
+    case Viewer_XY:
 
-    if (m == Neurological) {
+      if (m == Neurological) {
+
+        // Draw axis labels
+        glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
+        glPopAttrib ();
+
+        glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
+        glPopAttrib ();
+
+      } else {
+
+        // Draw axis labels
+        glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
+        glPopAttrib ();
+
+        glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
+        glPopAttrib ();
+
+      }
+
+      glRasterPos2i(_screenX1+x/2-5, _screenY1+5);
+      glPushAttrib (GL_LIST_BIT);
+      glListBase(fontOffset);
+      glCallLists(strlen("P"), GL_UNSIGNED_BYTE, (GLubyte *) "P");
+      glPopAttrib ();
+
+      glRasterPos2i(_screenX1+x/2-5, _screenY1+y-15);
+      glPushAttrib (GL_LIST_BIT);
+      glListBase(fontOffset);
+      glCallLists(strlen("A"), GL_UNSIGNED_BYTE, (GLubyte *) "A");
+      glPopAttrib ();
+      break;
+
+    case Viewer_XZ:
+
+      if (m == Neurological) {
+
+        // Draw axis labels
+        glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
+        glPopAttrib ();
+
+        glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
+        glPopAttrib ();
+
+      } else {
+
+        // Draw axis labels
+        glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
+        glPopAttrib ();
+
+        glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
+        glPushAttrib (GL_LIST_BIT);
+        glListBase(fontOffset);
+        glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
+        glPopAttrib ();
+
+      }
+
+      glRasterPos2i(_screenX1+x/2-5, _screenY1+5);
+      glPushAttrib (GL_LIST_BIT);
+      glListBase(fontOffset);
+      glCallLists(strlen("I"), GL_UNSIGNED_BYTE, (GLubyte *) "I");
+      glPopAttrib ();
+
+      glRasterPos2i(_screenX1+x/2-5, _screenY1+y-15);
+      glPushAttrib (GL_LIST_BIT);
+      glListBase(fontOffset);
+      glCallLists(strlen("S"), GL_UNSIGNED_BYTE, (GLubyte *) "S");
+      glPopAttrib ();
+      break;
+
+    case Viewer_YZ:
 
       // Draw axis labels
       glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
       glPushAttrib (GL_LIST_BIT);
       glListBase(fontOffset);
-      glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
+      glCallLists(strlen("P"), GL_UNSIGNED_BYTE, (GLubyte *) "P");
       glPopAttrib ();
 
       glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
       glPushAttrib (GL_LIST_BIT);
       glListBase(fontOffset);
-      glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
+      glCallLists(strlen("A"), GL_UNSIGNED_BYTE, (GLubyte *) "A");
       glPopAttrib ();
 
-    } else {
-
-      // Draw axis labels
-      glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
+      glRasterPos2i(_screenX1+x/2-5, _screenY1+5);
       glPushAttrib (GL_LIST_BIT);
       glListBase(fontOffset);
-      glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
+      glCallLists(strlen("I"), GL_UNSIGNED_BYTE, (GLubyte *) "I");
       glPopAttrib ();
 
-      glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
+      glRasterPos2i(_screenX1+x/2-5, _screenY1+y-15);
       glPushAttrib (GL_LIST_BIT);
       glListBase(fontOffset);
-      glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
+      glCallLists(strlen("S"), GL_UNSIGNED_BYTE, (GLubyte *) "S");
       glPopAttrib ();
-
-    }
-
-    glRasterPos2i(_screenX1+x/2-5, _screenY1+5);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("P"), GL_UNSIGNED_BYTE, (GLubyte *) "P");
-    glPopAttrib ();
-
-    glRasterPos2i(_screenX1+x/2-5, _screenY1+y-15);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("A"), GL_UNSIGNED_BYTE, (GLubyte *) "A");
-    glPopAttrib ();
-    break;
-
-  case Viewer_XZ:
-
-    if (m == Neurological) {
-
-      // Draw axis labels
-      glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
-      glPushAttrib (GL_LIST_BIT);
-      glListBase(fontOffset);
-      glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
-      glPopAttrib ();
-
-      glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
-      glPushAttrib (GL_LIST_BIT);
-      glListBase(fontOffset);
-      glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
-      glPopAttrib ();
-
-    } else {
-
-      // Draw axis labels
-      glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
-      glPushAttrib (GL_LIST_BIT);
-      glListBase(fontOffset);
-      glCallLists(strlen("R"), GL_UNSIGNED_BYTE, (GLubyte *) "L");
-      glPopAttrib ();
-
-      glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
-      glPushAttrib (GL_LIST_BIT);
-      glListBase(fontOffset);
-      glCallLists(strlen("L"), GL_UNSIGNED_BYTE, (GLubyte *) "R");
-      glPopAttrib ();
-
-    }
-
-    glRasterPos2i(_screenX1+x/2-5, _screenY1+5);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("I"), GL_UNSIGNED_BYTE, (GLubyte *) "I");
-    glPopAttrib ();
-
-    glRasterPos2i(_screenX1+x/2-5, _screenY1+y-15);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("S"), GL_UNSIGNED_BYTE, (GLubyte *) "S");
-    glPopAttrib ();
-    break;
-
-  case Viewer_YZ:
-
-    // Draw axis labels
-    glRasterPos2i(_screenX1+5, _screenY1+y/2-5);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("P"), GL_UNSIGNED_BYTE, (GLubyte *) "P");
-    glPopAttrib ();
-
-    glRasterPos2i(_screenX1+x-15, _screenY1+y/2-5);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("A"), GL_UNSIGNED_BYTE, (GLubyte *) "A");
-    glPopAttrib ();
-
-    glRasterPos2i(_screenX1+x/2-5, _screenY1+5);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("I"), GL_UNSIGNED_BYTE, (GLubyte *) "I");
-    glPopAttrib ();
-
-    glRasterPos2i(_screenX1+x/2-5, _screenY1+y-15);
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists(strlen("S"), GL_UNSIGNED_BYTE, (GLubyte *) "S");
-    glPopAttrib ();
-    break;
+      break;
   }
 }
 

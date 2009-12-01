@@ -1604,9 +1604,9 @@ void irtkRView::ReadTarget(int argc, char **argv) {
 	// Initialize lookup table for subtraction
 	_subtractionMin = _targetMin - _sourceMax;
 	_subtractionMax = _targetMax - _sourceMin;
-	_subtractionLookupTable->Initialize(_subtractionMin, _subtractionMax);
 	_subtractionDisplayMin = _subtractionMin;
 	_subtractionDisplayMax = _subtractionMax;
+	_subtractionLookupTable->Initialize(-10000, 10000);
 
 	// Find bounding box
 	_x1 = 0;
@@ -1729,6 +1729,7 @@ void irtkRView::ReadSource(int argc, char **argv) {
 	_subtractionLookupTable->Initialize(_subtractionMin, _subtractionMax);
 	_subtractionDisplayMin = _subtractionMin;
 	_subtractionDisplayMax = _subtractionMax;
+	_subtractionLookupTable->Initialize(-10000, 10000);
 
 	// Update of source is required
 	_sourceUpdate = True;
@@ -2478,8 +2479,7 @@ void irtkRView::GetTransformationText(list<char *> &text) {
 	if (strcmp(_sourceTransform->NameOfClass(), "irtkRigidTransformation") == 0) {
 		ptr = strdup("Rigid transformation (6 DOF)");
 	} else {
-		if (strcmp(_sourceTransform->NameOfClass(), "irtkAffineTransformation")
-				== 0) {
+		if (strcmp(_sourceTransform->NameOfClass(), "irtkAffineTransformation") == 0) {
 			ptr = strdup("Affine transformation (12 DOF)");
 		} else {
 			if (strcmp(_sourceTransform->NameOfClass(),
@@ -2645,7 +2645,7 @@ void irtkRView::SetTargetFrame(int t) {
 	_targetFrame = t;
 
 	// Update target origin
-	torigin = t;
+	torigin = _targetImage->ImageToTime(t);
 	for (i = 0; i < _NoOfViewers; i++) {
 		_targetImageOutput[i]->GetOrigin(xorigin, yorigin, zorigin);
 		_targetImageOutput[i]->PutOrigin(xorigin, yorigin, zorigin, torigin);
@@ -2667,7 +2667,7 @@ void irtkRView::SetSourceFrame(int t) {
 	_sourceFrame = t;
 
 	// Update source origin
-	torigin = t;
+	torigin = _targetImage->ImageToTime(t);
 	for (i = 0; i < _NoOfViewers; i++) {
 		_sourceImageOutput[i]->GetOrigin(xorigin, yorigin, zorigin);
 		_sourceImageOutput[i]->PutOrigin(xorigin, yorigin, zorigin, torigin);

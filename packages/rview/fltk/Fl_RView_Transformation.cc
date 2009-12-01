@@ -41,6 +41,9 @@ void Fl_RViewUI::AddTransformation(char *filename)
 
   // Update transformation valuator
   irtkTransformation *transform = rview->GetTransformation();
+
+  if (dynamic_cast<irtkFreeFormTransformation *>(transform) != NULL) return;
+
   for (i = 0; i<transform->NumberOfDOFs(); i++) {
     rviewUI->transformationValuator[i]->value(transform->Get(i));
   }
@@ -67,6 +70,9 @@ void Fl_RViewUI::cb_loadTransformation(Fl_Button *, void *v)
 
   // Update transformation valuator
   irtkTransformation *transform = rview->GetTransformation();
+
+  if (dynamic_cast<irtkFreeFormTransformation *>(transform) != NULL) return;
+
   for (i = 0; i<transform->NumberOfDOFs(); i++) {
     rviewUI->transformationValuator[i]->value(transform->Get(i));
   }
@@ -381,7 +387,9 @@ void Fl_RViewUI::UpdateTransformationControlWindow()
   // Get transformation
   irtkTransformation *transform = rview->GetTransformation();
 
-  // Reset values to identity
+  // Reset values to identity if transformation is has affine component
+  if (dynamic_cast<irtkFreeFormTransformation *>(transform) != NULL) return;
+
   for (j = 0; j < transform->NumberOfDOFs(); j++) {
     rviewUI->transformationValuator[j]->value(transform->Get(j));
   }
