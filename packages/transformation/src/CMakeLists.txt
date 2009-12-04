@@ -18,6 +18,7 @@ SET(TRANSFORMATION_INCLUDES
 ../include/irtkQuaternionTransformation.h
 ../include/irtkRigidTransformation.h
 ../include/irtkTransformation.h
+../include/irtkGradVecFlow.h
 ../include/newt2.h)
 
 SET(TRANSFORMATION_SRCS
@@ -39,6 +40,7 @@ irtkMultiLevelFreeFormTransformation.cc
 irtkQuaternionTransformation.cc
 irtkRigidTransformation.cc
 irtkTransformation.cc
+irtkGradVecFlow.cc
 newt2.cc)
 
 ADD_LIBRARY(transformation++ ${TRANSFORMATION_SRCS} ${TRANSFORMATION_INCLUDES})

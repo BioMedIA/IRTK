@@ -9,7 +9,7 @@
 
 #include <irtkImage.h>
 
-//Fast Fourier Transform of numerical recipies (slighly modified)
+///Fast Fourier Transform of numerical recipies (slighly modified)
 void four1NR(float data[], unsigned long nn, int isign);
 
 /// * Fast Fourier transform of the complex image contained in 'RealSignal' and 'ImaginarySignal'
@@ -21,9 +21,6 @@ void four1NR(float data[], unsigned long nn, int isign);
 // imaginary part. If the size of the treated signal is 'S' the size of the input vector
 // is "2*s+1" and its value at '0' is not treated (strange notations of numerical recipies!!!).
 void DirectFFT(irtkGenericImage<float> * RealSignal,irtkGenericImage<float> * ImaginarySignal);
-
-
-
 
 /// * Inverse Fast Fourier transform of the complex image contained in 'RealSignal' and 'ImaginarySignal'
 /// (real and imaginary part).
@@ -55,6 +52,13 @@ void InverseFFT(irtkGenericImage<float> * RealSignal,irtkGenericImage<float> * I
 void ConvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericImage<float> * ImaginaryPartSignal,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);
 
 
+/// * Convolution in Fourier spaces of the 3D complex image in ('RealPartSignal','ImaginaryPartSignal')
+/// by complex filter in ('RealPartFilter','ImaginaryPartFilter') which is ALREADY in Fourier space
+void ConvolutionInFourierNoFilterTransfo(irtkGenericImage<float> * RealPartSignal,irtkGenericImage<float> * ImaginaryPartSignal,irtkGenericImage<float> * RealPartFilterTransformedFrSpace,irtkGenericImage<float> * ImaginaryPartFilterTransformedFrSpace);
+
+
+
+
 
 
 /// * Deconvolution in Fourier spaces of the 3D complex image in ('RealPartSignal','ImaginaryPartSignal')
@@ -62,3 +66,22 @@ void ConvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericIm
 // * RealPartSignal, ImaginaryPartSignal, RealPartFilter and ImaginaryPartFilter MUST have the same size 
 // and the size on each dimension MUST be a power of 2. (NOT TESTED IN THE FUNCTION)
 void DeconvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericImage<float> * ImaginaryPartSignal,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);
+
+
+/// * Deconvolution in Fourier spaces of the 3D complex image in ('RealPartSignal','ImaginaryPartSignal')
+/// by complex filter in ('RealPartFilter','ImaginaryPartFilter') which is ALREADY in Fourier space
+void DeconvolutionInFourierNoFilterTransfo(irtkGenericImage<float> * RealPartSignal,irtkGenericImage<float> * ImaginaryPartSignal,irtkGenericImage<float> * RealPartFilterTransformedFrSpace,irtkGenericImage<float> * ImaginaryPartFilterTransformedFrSpace);
+
+
+/// Build a Gaussian filter of standard deviation 'sigma'
+void MakeGaussianFilter(float sigma,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);
+
+/// Build a Gaussian filter of aniotropic standard deviation 'sigmaX,sigmaY,sigmaZ'
+void MakeAnisotropicGaussianFilter(float weight,float sigmaX,float sigmaY,float sigmaZ,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);
+
+/// Sum of aniotropic Gaussian filters
+void MakeSumOf2AnisotropicGaussianFilters(float weight1,float sigmaX1,float sigmaY1,float sigmaZ1,float weight2,float sigmaX2,float sigmaY2,float sigmaZ2,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);
+
+void MakeSumOf3AnisotropicGaussianFilters(float weight1,float sigmaX1,float sigmaY1,float sigmaZ1,float weight2,float sigmaX2,float sigmaY2,float sigmaZ2,float weight3,float sigmaX3,float sigmaY3,float sigmaZ3,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);
+
+void MakeSumOf4AnisotropicGaussianFilters(float weight1,float sigmaX1,float sigmaY1,float sigmaZ1,float weight2,float sigmaX2,float sigmaY2,float sigmaZ2,float weight3,float sigmaX3,float sigmaY3,float sigmaZ3,float weight4,float sigmaX4,float sigmaY4,float sigmaZ4,irtkGenericImage<float> * RealPartFilter,irtkGenericImage<float> * ImaginaryPartFilter);

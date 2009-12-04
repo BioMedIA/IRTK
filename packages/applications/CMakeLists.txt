@@ -61,6 +61,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdtransform ffdtransform.cc)
     ADD_EXECUTABLE(flirt2dof flirt2dof.cc)
     ADD_EXECUTABLE(fluid fluid.cc)
+    ADD_EXECUTABLE(gradVecFlow gradVecFlow.cc)
     ADD_EXECUTABLE(hreg hreg.cc)
     ADD_EXECUTABLE(image2dof image2dof.cc)
     ADD_EXECUTABLE(jacobian jacobian.cc)
@@ -100,7 +101,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
-INSTALL_TARGETS(/bin approximate approximate4D areg atlas compare demons 
+INSTALL_TARGETS(/bin approximate approximate4D areg atlas compare demons
 dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
 evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
 ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 

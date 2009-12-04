@@ -156,7 +156,7 @@ template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_semiImplicit()
 					Va[x+1]=(dTau/3.)*Dxx_div_dxSq;
 					Vb[x+1]=-1-2*(dTau/3.)*Dxx_div_dxSq;
 					Vc[x+1]=(dTau/3.)*Dxx_div_dxSq;
-					Vd[x+1]=imageE[z][y][x];
+                                        Vd[x+1]=imageE[z][y][x]; //why not imageO ???
 				}
 				Va[1]=Va[3]; Va[0]=Va[4]; Va[NBX]=Va[NBX-2]; Va[NBX+1]=Va[NBX-3]; //to avoid boundary effects
 				Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBX]=Vb[NBX-2]; Vb[NBX+1]=Vb[NBX-3]; //to avoid boundary effects
@@ -741,682 +741,945 @@ template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
 }
 */
 
+
+
+
+
+
+
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///                                          BEGIN TENSOR VOTING PROJECT
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//Stucture utilisee pour stoquer une image 3D de float.
+//remarque : en utilisant des float, l'image est 4 fois plus grosse que l'image initiale en unsigned char
 typedef struct
 {
-  double X;
-  double Y;     // coordinates of a vertex
-  double Z;
-} Vertex;
+  float ***image;  // l'image elle meme
+  int NBZ;                 // |
+  int NBY;                 // |-> dimensions de l'image
+  int NBX;                 // |
+} Image3Dfloat;
 
+// Field[0][0] = sum v_x^2   / Field[0][1] = sum v_x v_y / Field[0][2] = sum v_x v_z
+// Field[1][0] = sum v_y v_x / Field[1][1] = sum v_y^2   / Field[1][2] = sum v_y v_z
+// Field[2][0] = sum v_z v_x / Field[2][1] = sum v_z v_y / Field[2][2] = sum v_z^2
 typedef struct
 {
-  int V1;   //id of the first vertex
-  int V2;   //id of the second vertex
-  Vertex * SubiVertex;
-  int NbSubdiv;
-} Edge;
-
-typedef struct
-{
-  int E1;    //id of the first edge
-  int E2;    //id of the second edge
-  int E3;    //id of the third edge
-} Element;
-
-typedef struct
-{
-  int NbVertexes;
-  Vertex * Vertexes;
-  int NbEdges;
-  Edge * Edges;
-  int NbElements;
-  Element * Elements;
-} Mesh;
+  Image3Dfloat Field[3][3];
+  int NBZ;                 // |
+  int NBY;                 // |-> dimensions des images
+  int NBX;                 // |
+} TensorField;
 
 
 
 
+//cree une image 3d codee en float avec toutes ses valeurs a zero.
+extern void CreateImage3DFloat(Image3Dfloat * img3d,int NZ,int NY,int NX){
+  int i, j, k;
 
-//create a simple cubic mesh 
-Mesh CreateBasicCubicMesh(){
-  Mesh LocMesh;
-  int i;
-	
-	
-	//allocations...
-  LocMesh.NbVertexes=8;
-  LocMesh.Vertexes=(Vertex *)malloc(LocMesh.NbVertexes*sizeof(Vertex));
-	
-  LocMesh.NbEdges=18;
-  LocMesh.Edges=(Edge *)malloc(LocMesh.NbEdges*sizeof(Edge));
-        
-  LocMesh.NbElements=12;
-  LocMesh.Elements=(Element *)malloc(LocMesh.NbElements*sizeof(Element));
-	
-	//fill the coordinates of each point
-  LocMesh.Vertexes[0].X=0; LocMesh.Vertexes[0].Y=0; LocMesh.Vertexes[0].Z=0;
-  LocMesh.Vertexes[1].X=1; LocMesh.Vertexes[1].Y=0; LocMesh.Vertexes[1].Z=0;
-  LocMesh.Vertexes[2].X=1; LocMesh.Vertexes[2].Y=1; LocMesh.Vertexes[2].Z=0;
-  LocMesh.Vertexes[3].X=0; LocMesh.Vertexes[3].Y=1; LocMesh.Vertexes[3].Z=0;
-  LocMesh.Vertexes[4].X=0; LocMesh.Vertexes[4].Y=0; LocMesh.Vertexes[4].Z=1;
-  LocMesh.Vertexes[5].X=1; LocMesh.Vertexes[5].Y=0; LocMesh.Vertexes[5].Z=1;
-  LocMesh.Vertexes[6].X=1; LocMesh.Vertexes[6].Y=1; LocMesh.Vertexes[6].Z=1;
-  LocMesh.Vertexes[7].X=0; LocMesh.Vertexes[7].Y=1; LocMesh.Vertexes[7].Z=1;
-	
-	//fill each edge
-  LocMesh.Edges[0].V1=0;  LocMesh.Edges[0].V2=1;
-  LocMesh.Edges[1].V1=1;  LocMesh.Edges[1].V2=2;
-  LocMesh.Edges[2].V1=2;  LocMesh.Edges[2].V2=3;
-  LocMesh.Edges[3].V1=3;  LocMesh.Edges[3].V2=0;
-  LocMesh.Edges[4].V1=4;  LocMesh.Edges[4].V2=5;
-  LocMesh.Edges[5].V1=5;  LocMesh.Edges[5].V2=6;
-  LocMesh.Edges[6].V1=6;  LocMesh.Edges[6].V2=7;
-  LocMesh.Edges[7].V1=7;  LocMesh.Edges[7].V2=4;
-  LocMesh.Edges[8].V1=0;  LocMesh.Edges[8].V2=4;
-  LocMesh.Edges[9].V1=1;  LocMesh.Edges[9].V2=5;
-  LocMesh.Edges[10].V1=2;  LocMesh.Edges[10].V2=6;
-  LocMesh.Edges[11].V1=3;  LocMesh.Edges[11].V2=7;
-  LocMesh.Edges[12].V1=1;  LocMesh.Edges[12].V2=4;
-  LocMesh.Edges[13].V1=1;  LocMesh.Edges[13].V2=3;
-  LocMesh.Edges[14].V1=1;  LocMesh.Edges[14].V2=6;
-  LocMesh.Edges[15].V1=7;  LocMesh.Edges[15].V2=0;
-  LocMesh.Edges[16].V1=7;  LocMesh.Edges[16].V2=2;
-  LocMesh.Edges[17].V1=7;  LocMesh.Edges[17].V2=5;
-        
-  for (i=0;i<LocMesh.NbEdges;i++) LocMesh.Edges[i].NbSubdiv=1;
-	
-	//fill each Element
-  LocMesh.Elements[0].E1=0;  LocMesh.Elements[0].E2=8;  LocMesh.Elements[0].E3=12;
-  LocMesh.Elements[1].E1=9;  LocMesh.Elements[1].E2=4;  LocMesh.Elements[1].E3=12;
-  LocMesh.Elements[2].E1=0;  LocMesh.Elements[2].E2=3;  LocMesh.Elements[2].E3=13;
-  LocMesh.Elements[3].E1=1;  LocMesh.Elements[3].E2=2;  LocMesh.Elements[3].E3=13;
-  LocMesh.Elements[4].E1=1;  LocMesh.Elements[4].E2=10;  LocMesh.Elements[4].E3=14;
-  LocMesh.Elements[5].E1=9;  LocMesh.Elements[5].E2=5;  LocMesh.Elements[5].E3=14;
-  LocMesh.Elements[6].E1=3;  LocMesh.Elements[6].E2=11;  LocMesh.Elements[6].E3=15;
-  LocMesh.Elements[7].E1=8;  LocMesh.Elements[7].E2=7;  LocMesh.Elements[7].E3=15;
-  LocMesh.Elements[8].E1=2;  LocMesh.Elements[8].E2=11;  LocMesh.Elements[8].E3=16;
-  LocMesh.Elements[9].E1=10;  LocMesh.Elements[9].E2=6;  LocMesh.Elements[9].E3=16;
-  LocMesh.Elements[10].E1=4;  LocMesh.Elements[10].E2=7;  LocMesh.Elements[10].E3=17;
-  LocMesh.Elements[11].E1=5;  LocMesh.Elements[11].E2=6;  LocMesh.Elements[11].E3=17;
-	
-  return LocMesh;
+  img3d->NBZ=NZ;
+  img3d->NBY=NY;
+  img3d->NBX=NX;
+
+  img3d->image = (float***)malloc((img3d->NBZ)*sizeof(float**));
+  for (i=0;i<img3d->NBZ;i++)
+    img3d->image[i]=(float**)malloc((img3d->NBY)*sizeof(float*));
+  for (i=0;i<img3d->NBZ;i++)
+    for (j=0;j<img3d->NBY;j++)
+      img3d->image[i][j]=(float*)malloc((img3d->NBX)*sizeof(float));
+
+  for (i=0;i<img3d->NBZ;i++)
+    for (j=0;j<img3d->NBY;j++)
+      for (k=0;k<img3d->NBX;k++)
+        img3d->image[i][j][k]=0;
 }
-
-
-
-//smooth the coordinates of the mesh LocMesh
-/*void SmoothMesh(Mesh * LocMesh){
-  int IdVertexLoc,IdEdgeLoc;
-  double FiltX,FiltY,FiltZ;
-  double NbPts;
-  double * NewCoordX;
-  double * NewCoordY;
-  double * NewCoordZ;
-
-  if (LocMesh->Edges[0].NbSubdiv==1){
-    //intialisation  
-    NewCoordX=(double*)malloc(LocMesh->NbVertexes*sizeof(double));
-    NewCoordY=(double*)malloc(LocMesh->NbVertexes*sizeof(double));
-    NewCoordZ=(double*)malloc(LocMesh->NbVertexes*sizeof(double));
-    
-    //filtering
-    for (IdVertexLoc=0;IdVertexLoc<LocMesh->NbVertexes;IdVertexLoc++){
-      FiltX=LocMesh->Vertexes[IdVertexLoc].X;
-      FiltY=LocMesh->Vertexes[IdVertexLoc].Y;
-      FiltZ=LocMesh->Vertexes[IdVertexLoc].Z;
-      NbPts=1;
-      for (IdEdgeLoc=0;IdEdgeLoc<LocMesh->NbEdges;IdEdgeLoc++){
-        if (LocMesh->Edges[IdEdgeLoc].V1=IdVertexLoc){
-          FiltX+=LocMesh->Vertexes[LocMesh->Edges[IdEdgeLoc].V2].X;
-          FiltY+=LocMesh->Vertexes[LocMesh->Edges[IdEdgeLoc].V2].Y;
-          FiltZ+=LocMesh->Vertexes[LocMesh->Edges[IdEdgeLoc].V2].Z;
-          NbPts++;
-        }
-        if (LocMesh->Edges[IdEdgeLoc].V2=IdVertexLoc){
-          FiltX+=LocMesh->Vertexes[LocMesh->Edges[IdEdgeLoc].V1].X;
-          FiltY+=LocMesh->Vertexes[LocMesh->Edges[IdEdgeLoc].V1].Y;
-          FiltZ+=LocMesh->Vertexes[LocMesh->Edges[IdEdgeLoc].V1].Z;
-          NbPts++;
-        }
-      }
-      
-      NewCoordX[IdVertexLoc]=FiltX/NbPts;
-      NewCoordY[IdVertexLoc]=FiltY/NbPts;
-      NewCoordZ[IdVertexLoc]=FiltZ/NbPts;
-    }
-    
-    //finalize
-    for (IdVertexLoc=0;IdVertexLoc<LocMesh->NbVertexes;IdVertexLoc++){
-      LocMesh->Vertexes[IdVertexLoc].X=NewCoordX[IdVertexLoc];
-      LocMesh->Vertexes[IdVertexLoc].Y=NewCoordX[IdVertexLoc];
-      LocMesh->Vertexes[IdVertexLoc].Z=NewCoordX[IdVertexLoc];
-    }
-    
-    //deallocation
-    free(NewCoordX);
-    free(NewCoordY);
-    free(NewCoordZ);
-  }
-}*/
-
-//subdivide into 2 edges the edge 'IdEdge' in the mesh 'LocMesh'
-void CutEdge(Mesh * LocMesh,int IdEdge){
-  int i;
-  int IdNgbhVortex1;
-  int IdNgbhVortex2;
-  int IdNgbhVortex3;
-  int IdNgbhVortex4;
-  int IdNewVortex;
-  int IdSubdiviedEdge;
-  int IdNewEdge1;
-  int IdNewEdge2;
-  int IdNewEdge3;
-  int IdNgbhEdge1;
-  int IdNgbhEdge2;
-  int IdNgbhEdge3;
-  int IdNgbhEdge4;
-  int IdSubdiviedElement1;
-  int IdSubdiviedElement2;
-  int IdNewElement2;
-  int IdNewElement1;
-  
-  //reallocations in LocMesh
-  LocMesh->NbVertexes++;
-  LocMesh->NbEdges=LocMesh->NbEdges+3;
-  LocMesh->NbElements=LocMesh->NbElements+2;
-  
-  LocMesh->Vertexes=(Vertex *)realloc(LocMesh->Vertexes,LocMesh->NbVertexes*sizeof(Vertex));
-  LocMesh->Edges=(Edge *)realloc(LocMesh->Edges,LocMesh->NbEdges*sizeof(Edge));
-  LocMesh->Elements=(Element *)realloc(LocMesh->Elements,LocMesh->NbElements*sizeof(Element));
-  
-  //identifiers to take into account
-  IdNgbhVortex1=LocMesh->Edges[IdEdge].V1;
-  IdNgbhVortex2=LocMesh->Edges[IdEdge].V2;
-  IdNewVortex=LocMesh->NbVertexes-1;
-  
-  IdSubdiviedEdge=IdEdge;
-  IdNewEdge1=LocMesh->NbEdges-3;
-  IdNewEdge2=LocMesh->NbEdges-2;
-  IdNewEdge3=LocMesh->NbEdges-1;
-  
-  IdSubdiviedElement1=-1;
-  IdSubdiviedElement2=-1;
-  for (i=0;i<LocMesh->NbElements-2;i++) if ((LocMesh->Elements[i].E1==IdEdge)||(LocMesh->Elements[i].E2==IdEdge)||(LocMesh->Elements[i].E3==IdEdge)){
-    if (IdSubdiviedElement1==-1){
-      IdSubdiviedElement1=i;
-      IdNewElement1=LocMesh->NbElements-2;
-      if ((LocMesh->Elements[i].E1!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E1].V1==IdNgbhVortex1)||(LocMesh->Edges[LocMesh->Elements[i].E1].V2==IdNgbhVortex1))){
-        IdNgbhEdge1=LocMesh->Elements[i].E1;
-        if (LocMesh->Edges[LocMesh->Elements[i].E1].V1==IdNgbhVortex1) IdNgbhVortex3=LocMesh->Edges[LocMesh->Elements[i].E1].V2;
-        else IdNgbhVortex3=LocMesh->Edges[LocMesh->Elements[i].E1].V1;
-      }
-      if ((LocMesh->Elements[i].E2!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E2].V1==IdNgbhVortex1)||(LocMesh->Edges[LocMesh->Elements[i].E2].V2==IdNgbhVortex1))){
-        IdNgbhEdge1=LocMesh->Elements[i].E2;
-        if (LocMesh->Edges[LocMesh->Elements[i].E2].V1==IdNgbhVortex1) IdNgbhVortex3=LocMesh->Edges[LocMesh->Elements[i].E2].V2;
-        else IdNgbhVortex3=LocMesh->Edges[LocMesh->Elements[i].E2].V1;
-      }
-      if ((LocMesh->Elements[i].E3!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E3].V1==IdNgbhVortex1)||(LocMesh->Edges[LocMesh->Elements[i].E3].V2==IdNgbhVortex1))){
-        IdNgbhEdge1=LocMesh->Elements[i].E3;
-        if (LocMesh->Edges[LocMesh->Elements[i].E3].V1==IdNgbhVortex1) IdNgbhVortex3=LocMesh->Edges[LocMesh->Elements[i].E3].V2;
-        else IdNgbhVortex3=LocMesh->Edges[LocMesh->Elements[i].E3].V1;
-      }
-      if ((LocMesh->Elements[i].E1!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E1].V1==IdNgbhVortex2)||(LocMesh->Edges[LocMesh->Elements[i].E1].V2==IdNgbhVortex2))){
-        IdNgbhEdge3=LocMesh->Elements[i].E1;
-      }
-      if ((LocMesh->Elements[i].E2!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E2].V1==IdNgbhVortex2)||(LocMesh->Edges[LocMesh->Elements[i].E2].V2==IdNgbhVortex2))){
-        IdNgbhEdge3=LocMesh->Elements[i].E2;
-      }
-      if ((LocMesh->Elements[i].E3!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E3].V1==IdNgbhVortex2)||(LocMesh->Edges[LocMesh->Elements[i].E3].V2==IdNgbhVortex2))){
-        IdNgbhEdge3=LocMesh->Elements[i].E3;
-      }
-    }
-    else{
-      IdSubdiviedElement2=i;
-      IdNewElement2=LocMesh->NbElements-1;
-      if ((LocMesh->Elements[i].E1!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E1].V1==IdNgbhVortex1)||(LocMesh->Edges[LocMesh->Elements[i].E1].V2==IdNgbhVortex1))){
-        IdNgbhEdge2=LocMesh->Elements[i].E1;
-        if (LocMesh->Edges[LocMesh->Elements[i].E1].V1==IdNgbhVortex1) IdNgbhVortex4=LocMesh->Edges[LocMesh->Elements[i].E1].V2;
-        else IdNgbhVortex4=LocMesh->Edges[LocMesh->Elements[i].E1].V1;
-      }
-      if ((LocMesh->Elements[i].E2!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E2].V1==IdNgbhVortex1)||(LocMesh->Edges[LocMesh->Elements[i].E2].V2==IdNgbhVortex1))){
-        IdNgbhEdge2=LocMesh->Elements[i].E2;
-        if (LocMesh->Edges[LocMesh->Elements[i].E2].V1==IdNgbhVortex1) IdNgbhVortex4=LocMesh->Edges[LocMesh->Elements[i].E2].V2;
-        else IdNgbhVortex4=LocMesh->Edges[LocMesh->Elements[i].E2].V1;
-      }
-      if ((LocMesh->Elements[i].E3!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E3].V1==IdNgbhVortex1)||(LocMesh->Edges[LocMesh->Elements[i].E3].V2==IdNgbhVortex1))){
-        IdNgbhEdge2=LocMesh->Elements[i].E3;
-        if (LocMesh->Edges[LocMesh->Elements[i].E3].V1==IdNgbhVortex1) IdNgbhVortex4=LocMesh->Edges[LocMesh->Elements[i].E3].V2;
-        else IdNgbhVortex4=LocMesh->Edges[LocMesh->Elements[i].E3].V1;
-      }
-      if ((LocMesh->Elements[i].E1!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E1].V1==IdNgbhVortex2)||(LocMesh->Edges[LocMesh->Elements[i].E1].V2==IdNgbhVortex2))){
-        IdNgbhEdge4=LocMesh->Elements[i].E1;
-      }
-      if ((LocMesh->Elements[i].E2!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E2].V1==IdNgbhVortex2)||(LocMesh->Edges[LocMesh->Elements[i].E2].V2==IdNgbhVortex2))){
-        IdNgbhEdge4=LocMesh->Elements[i].E2;
-      }
-      if ((LocMesh->Elements[i].E3!=IdEdge)&&((LocMesh->Edges[LocMesh->Elements[i].E3].V1==IdNgbhVortex2)||(LocMesh->Edges[LocMesh->Elements[i].E3].V2==IdNgbhVortex2))){
-        IdNgbhEdge4=LocMesh->Elements[i].E3;
-      }
-    }
-  }
-  IdNewElement1=LocMesh->NbElements-2;
-  IdNewElement2=LocMesh->NbElements-1;
-  
-  //Coordinates of the new vertex
-  LocMesh->Vertexes[IdNewVortex].X=(LocMesh->Vertexes[IdNgbhVortex1].X+LocMesh->Vertexes[IdNgbhVortex2].X)/2.;
-  LocMesh->Vertexes[IdNewVortex].Y=(LocMesh->Vertexes[IdNgbhVortex1].Y+LocMesh->Vertexes[IdNgbhVortex2].Y)/2.;
-  LocMesh->Vertexes[IdNewVortex].Z=(LocMesh->Vertexes[IdNgbhVortex1].Z+LocMesh->Vertexes[IdNgbhVortex2].Z)/2.;
-  
-  //update the vertex identifiers of the edge ends
-  LocMesh->Edges[IdSubdiviedEdge].V1=IdNgbhVortex1;
-  LocMesh->Edges[IdSubdiviedEdge].V2=IdNewVortex;
-  
-  LocMesh->Edges[IdNewEdge1].V1=IdNewVortex;
-  LocMesh->Edges[IdNewEdge1].V2=IdNgbhVortex2;
-  LocMesh->Edges[IdNewEdge1].NbSubdiv=1;
-  
-  LocMesh->Edges[IdNewEdge2].V1=IdNewVortex;
-  LocMesh->Edges[IdNewEdge2].V2=IdNgbhVortex4;
-  LocMesh->Edges[IdNewEdge2].NbSubdiv=1;
-
-  LocMesh->Edges[IdNewEdge3].V1=IdNewVortex;
-  LocMesh->Edges[IdNewEdge3].V2=IdNgbhVortex3;
-  LocMesh->Edges[IdNewEdge3].NbSubdiv=1;
-
-
-  //update the edges identifiers of the elements
-  LocMesh->Elements[IdSubdiviedElement1].E1=IdSubdiviedEdge;
-  LocMesh->Elements[IdSubdiviedElement1].E2=IdNewEdge3;
-  LocMesh->Elements[IdSubdiviedElement1].E3=IdNgbhEdge1;
-  
-  LocMesh->Elements[IdSubdiviedElement2].E1=IdNgbhEdge2;
-  LocMesh->Elements[IdSubdiviedElement2].E2=IdNewEdge2;
-  LocMesh->Elements[IdSubdiviedElement2].E3=IdSubdiviedEdge;
-  
-  LocMesh->Elements[IdNewElement1].E1=IdNewEdge1;
-  LocMesh->Elements[IdNewElement1].E2=IdNgbhEdge3;
-  LocMesh->Elements[IdNewElement1].E3=IdNewEdge3;
-  
-  LocMesh->Elements[IdNewElement2].E1=IdNgbhEdge4;
-  LocMesh->Elements[IdNewElement2].E2=IdNewEdge1;
-  LocMesh->Elements[IdNewElement2].E3=IdNewEdge2;
-}
-
-
-
-//point projection on the surface of the segmented shape
-void ProjectPointMeshSurf(double *PtX,double *PtY,double *PtZ,int *** ImSeg,int NBX,int NBY,int  NBZ,double MeanX,double MeanY,double MeanZ){
-  double DirecX,DirecY,DirecZ,length;
-
-  //project the coordinates
-  DirecX=*PtX-MeanX;
-  DirecY=*PtY-MeanY;
-  DirecZ=*PtZ-MeanZ;
-  length=sqrt(pow(DirecX,2.)+pow(DirecY,2.)+pow(DirecZ,2.));
-  DirecX=DirecX/(length*2);
-  DirecY=DirecY/(length*2);
-  DirecZ=DirecZ/(length*2);
-  if (ImSeg[(int)(*PtZ+0.5)][(int)(*PtY+0.5)][(int)(*PtX+0.5)]==1){//go outside of the surface
-    while(ImSeg[(int)(*PtZ+0.5)][(int)(*PtY+0.5)][(int)(*PtX+0.5)]==1){
-      *PtZ+=DirecZ;
-      *PtY+=DirecY;
-      *PtX+=DirecX;
-    }
-  }
-  else{//go inside of the surface
-    while(ImSeg[(int)(*PtZ+0.5)][(int)(*PtY+0.5)][(int)(*PtX+0.5)]==0){
-      *PtZ-=DirecZ;
-      *PtY-=DirecY;
-      *PtX-=DirecX;
-    }
-    *PtZ+=DirecZ;
-    *PtY+=DirecY;
-    *PtX+=DirecX;
-  }
-}
-
-
-
-//order the edges of all element so that this order is clockwise if we see it from outside the shape
-void MakeClockwiseOrder(Mesh * LocMesh){
-  int i,j,jswap;
-  int Ed1,Ed2,Ed3;  //Order: Vertex 1 -> Edge1 -> Vertex 2 -> Edge 2 -> Vertex 3 -> Edge 3 -> Vertex 1 ...
-  int temp;
-  double x1,x2,x3,y1,y2,y3,z1,z2,z3; //coordinates
-  double u1,u2,u3,v1,v2,v3;  //vectors
-  double vp1,vp2,vp3;  //cross product
-  double tempDbl;
-  
-  //test all elements of the mesh
-  for (i=0;i<LocMesh->NbElements;i++){
-    //order the vertexes and edges
-    Ed1=LocMesh->Elements[i].E1;
-    Ed2=LocMesh->Elements[i].E2;
-    Ed3=LocMesh->Elements[i].E3;
-    
-    if ((LocMesh->Edges[Ed1].V2!=LocMesh->Edges[Ed2].V1)&&(LocMesh->Edges[Ed1].V2!=LocMesh->Edges[Ed2].V2)){ //swap edges
-      temp=Ed2; Ed2=Ed3; Ed3=temp;
-    }
-    
-    if (LocMesh->Edges[Ed1].V2!=LocMesh->Edges[Ed2].V1){ //swap vertexes
-      temp=LocMesh->Edges[Ed2].V1; LocMesh->Edges[Ed2].V1=LocMesh->Edges[Ed2].V2; LocMesh->Edges[Ed2].V2=temp;
-      if (LocMesh->Edges[Ed2].NbSubdiv>1)
-        for (j=0;j<=LocMesh->Edges[Ed2].NbSubdiv/2;j++){
-        jswap=LocMesh->Edges[Ed2].NbSubdiv-j;
-        tempDbl=LocMesh->Edges[Ed2].SubiVertex[j].X; LocMesh->Edges[Ed2].SubiVertex[j].X=LocMesh->Edges[Ed2].SubiVertex[jswap].X;  LocMesh->Edges[Ed2].SubiVertex[jswap].X=tempDbl;
-        tempDbl=LocMesh->Edges[Ed2].SubiVertex[j].Y; LocMesh->Edges[Ed2].SubiVertex[j].Y=LocMesh->Edges[Ed2].SubiVertex[jswap].Y;  LocMesh->Edges[Ed2].SubiVertex[jswap].Y=tempDbl;
-        tempDbl=LocMesh->Edges[Ed2].SubiVertex[j].Z; LocMesh->Edges[Ed2].SubiVertex[j].Z=LocMesh->Edges[Ed2].SubiVertex[jswap].Z;  LocMesh->Edges[Ed2].SubiVertex[jswap].Z=tempDbl;
-        }
-    }
-    
-    if (LocMesh->Edges[Ed2].V2!=LocMesh->Edges[Ed3].V1){ //swap vertexes
-      temp=LocMesh->Edges[Ed3].V1; LocMesh->Edges[Ed3].V1=LocMesh->Edges[Ed3].V2; LocMesh->Edges[Ed3].V2=temp;
-      if (LocMesh->Edges[Ed3].NbSubdiv>1)
-        for (j=0;j<=LocMesh->Edges[Ed3].NbSubdiv/2;j++){
-        jswap=LocMesh->Edges[Ed3].NbSubdiv-j;
-        tempDbl=LocMesh->Edges[Ed3].SubiVertex[j].X; LocMesh->Edges[Ed3].SubiVertex[j].X=LocMesh->Edges[Ed3].SubiVertex[jswap].X;  LocMesh->Edges[Ed3].SubiVertex[jswap].X=tempDbl;
-        tempDbl=LocMesh->Edges[Ed3].SubiVertex[j].Y; LocMesh->Edges[Ed3].SubiVertex[j].Y=LocMesh->Edges[Ed3].SubiVertex[jswap].Y;  LocMesh->Edges[Ed3].SubiVertex[jswap].Y=tempDbl;
-        tempDbl=LocMesh->Edges[Ed3].SubiVertex[j].Z; LocMesh->Edges[Ed3].SubiVertex[j].Z=LocMesh->Edges[Ed3].SubiVertex[jswap].Z;  LocMesh->Edges[Ed3].SubiVertex[jswap].Z=tempDbl;
-        }
-    }
-    
-    if (LocMesh->Edges[Ed3].V2!=LocMesh->Edges[Ed1].V1){
-      printf("This is not good!!!\n");
-    }
-    
-    //invert the order if necessary
-    x1=LocMesh->Vertexes[LocMesh->Edges[Ed1].V1].X;  y1=LocMesh->Vertexes[LocMesh->Edges[Ed1].V1].Y;  z1=LocMesh->Vertexes[LocMesh->Edges[Ed1].V1].Z;
-    x2=LocMesh->Vertexes[LocMesh->Edges[Ed1].V2].X;  y2=LocMesh->Vertexes[LocMesh->Edges[Ed1].V2].Y;  z2=LocMesh->Vertexes[LocMesh->Edges[Ed1].V2].Z;
-    x3=LocMesh->Vertexes[LocMesh->Edges[Ed3].V1].X;  y3=LocMesh->Vertexes[LocMesh->Edges[Ed3].V1].Y;  z3=LocMesh->Vertexes[LocMesh->Edges[Ed3].V1].Z;
-    
-    u1=x2-x1; u2=y2-y1; u3=z2-z1;
-    v1=x3-x1; v2=y3-y1; v3=z3-z1;
-    
-    vp1=u2*v3-u3*v2;
-    vp2=u3*v1-u1*v3;
-    vp3=u1*v2-u2*v1;
-    
-    //printf("%3.2lf %3.2lf %3.2lf | %3.2lf %3.2lf %3.2lf | %3.2lf %3.2lf %3.2lf || %3.2lf %3.2lf %3.2lf || %3.2lf %3.2lf %3.2lf | %lf\n",x1,y1,z1,x2,y2,z2,x3,y3,z3,u1,u2,u3,v1,v2,v3,x1*vp1+y1*vp2+z1*vp3);
-    //printf("%3.2lf %3.2lf %3.2lf | %3.2lf %3.2lf %3.2lf | %3.2lf\n",x1,y1,z1,vp1,vp2,vp3,x1*vp1+y1*vp2+z1*vp3);
-    
-    if (x1*vp1+y1*vp2+z1*vp3<0){//we consider that the origin is within the spheric shape so the vector (x1,y1,z1) points out of the shape
-      //swap edges
-      temp=Ed3; Ed3=Ed2; Ed2=temp;
-      //swap vertexes
-      temp=LocMesh->Edges[Ed1].V1; LocMesh->Edges[Ed1].V1=LocMesh->Edges[Ed1].V2; LocMesh->Edges[Ed1].V2=temp;
-      if (LocMesh->Edges[Ed1].NbSubdiv>1)
-        for (j=0;j<=LocMesh->Edges[Ed1].NbSubdiv/2;j++){
-        jswap=LocMesh->Edges[Ed1].NbSubdiv-j;
-        tempDbl=LocMesh->Edges[Ed1].SubiVertex[j].X; LocMesh->Edges[Ed1].SubiVertex[j].X=LocMesh->Edges[Ed1].SubiVertex[jswap].X;  LocMesh->Edges[Ed1].SubiVertex[jswap].X=tempDbl;
-        tempDbl=LocMesh->Edges[Ed1].SubiVertex[j].Y; LocMesh->Edges[Ed1].SubiVertex[j].Y=LocMesh->Edges[Ed1].SubiVertex[jswap].Y;  LocMesh->Edges[Ed1].SubiVertex[jswap].Y=tempDbl;
-        tempDbl=LocMesh->Edges[Ed1].SubiVertex[j].Z; LocMesh->Edges[Ed1].SubiVertex[j].Z=LocMesh->Edges[Ed1].SubiVertex[jswap].Z;  LocMesh->Edges[Ed1].SubiVertex[jswap].Z=tempDbl;
-        }
-    }
-    //new order of the elements
-    LocMesh->Elements[i].E1=Ed1;
-    LocMesh->Elements[i].E2=Ed2;
-    LocMesh->Elements[i].E3=Ed3;
-  }
-
-}
-
-
-
-//Project de coordinates of a mesh on a surface in  and refine the mesh until 
-//the longest edge has a length smaller than 'MaxEdgeLength'.
-//If NbSubdiv>1, each edge is curved into 'NbSubdiv' parts in the end
-void ProjectMeshSurface(Mesh * LocMesh, double MaxEdgeLength,int NbSubdiv, int***ImSeg,int NBX,int NBY,int NBZ){
-  int i,j,k,x,y,z;
-  int * order;
-  double SqLengthI,SqLengthJ;
-  int OrigNbEdges,OrigNbVertexes;
-  int OK;
-  double dj,dNbSubdiv;
-  double EdgeV1_X,EdgeV1_Y,EdgeV1_Z,EdgeV2_X,EdgeV2_Y,EdgeV2_Z;
-
-  //PART 1: initialize
-  order=(int*)malloc(LocMesh->NbEdges*sizeof(int));
-  for (i=0;i<LocMesh->NbEdges;i++) order[i]=i;
-  OK=1;
-  
-  
-  
-  //find the center of the shape
-  double MeanX,MeanY,MeanZ;
-  int NbPts;
-  
-  MeanX=0;   MeanY=0;   MeanZ=0;  NbPts=0;
-  for (z = 0; z < NBZ; z++)  for (y = 0; y < NBY; y++) for (x = 0; x < NBX; x++) if (ImSeg[z][y][x]==1){ 
-    NbPts++;
-    MeanX+=(double)x;
-    MeanY+=(double)y;
-    MeanZ+=(double)z;
-  }
-  MeanX=MeanX/((double)NbPts);
-  MeanY=MeanY/((double)NbPts);
-  MeanZ=MeanZ/((double)NbPts);
-  
-  //project the center of the mesh on the center find the center of the shape
-  for (i=0;i<LocMesh->NbVertexes;i++){
-    LocMesh->Vertexes[i].X=LocMesh->Vertexes[i].X+MeanX-0.5;
-    LocMesh->Vertexes[i].Y=LocMesh->Vertexes[i].Y+MeanY-0.5;
-    LocMesh->Vertexes[i].Z=LocMesh->Vertexes[i].Z+MeanZ-0.5;
-  }
-  
-  cout << MeanX << " " << MeanY << " " << MeanZ << "\n";
-  
-  //PART 2: mesh projection on the surface of the segmented shape
-  for (i=0;i<LocMesh->NbVertexes;i++){
-    ProjectPointMeshSurf(&(LocMesh->Vertexes[i].X),&(LocMesh->Vertexes[i].Y),&(LocMesh->Vertexes[i].Z),ImSeg,NBX,NBY,NBZ,MeanX,MeanY,MeanZ);
-  }
-
-  //Big loop to subdivide the mesh until each edge has a length smaller than 'MaxEdgeLength'
-  while (OK==1){
-    OK=0;
-    
-    order=(int*)realloc(order,LocMesh->NbEdges*sizeof(int));
-    for (i=0;i<LocMesh->NbEdges;i++) order[i]=i;
-
-    //order the edges as a function of their length
-    for (i=0;i<LocMesh->NbEdges-1;i++) for (j=i+1;j<LocMesh->NbEdges;j++){
-      SqLengthI=pow(LocMesh->Vertexes[LocMesh->Edges[order[i]].V1].X-LocMesh->Vertexes[LocMesh->Edges[order[i]].V2].X,2.0);
-      SqLengthI+=pow(LocMesh->Vertexes[LocMesh->Edges[order[i]].V1].Y-LocMesh->Vertexes[LocMesh->Edges[order[i]].V2].Y,2.0);
-      SqLengthI+=pow(LocMesh->Vertexes[LocMesh->Edges[order[i]].V1].Z-LocMesh->Vertexes[LocMesh->Edges[order[i]].V2].Z,2.0);
-      SqLengthJ=pow(LocMesh->Vertexes[LocMesh->Edges[order[j]].V1].X-LocMesh->Vertexes[LocMesh->Edges[order[j]].V2].X,2.0);
-      SqLengthJ+=pow(LocMesh->Vertexes[LocMesh->Edges[order[j]].V1].Y-LocMesh->Vertexes[LocMesh->Edges[order[j]].V2].Y,2.0);
-      SqLengthJ+=pow(LocMesh->Vertexes[LocMesh->Edges[order[j]].V1].Z-LocMesh->Vertexes[LocMesh->Edges[order[j]].V2].Z,2.0);
-      
-      if (SqLengthI<SqLengthJ){ k=order[i]; order[i]=order[j]; order[j]=k;}
-    }
-    
-    //subdivide the edges if their length is larger than 'MaxEdgeLength'
-    OrigNbVertexes=LocMesh->NbVertexes;
-    OrigNbEdges=LocMesh->NbEdges;
-    for (i=0;i<OrigNbEdges;i++){
-      SqLengthI=pow(LocMesh->Vertexes[LocMesh->Edges[order[i]].V1].X-LocMesh->Vertexes[LocMesh->Edges[order[i]].V2].X,2.0);
-      SqLengthI+=pow(LocMesh->Vertexes[LocMesh->Edges[order[i]].V1].Y-LocMesh->Vertexes[LocMesh->Edges[order[i]].V2].Y,2.0);
-      SqLengthI+=pow(LocMesh->Vertexes[LocMesh->Edges[order[i]].V1].Z-LocMesh->Vertexes[LocMesh->Edges[order[i]].V2].Z,2.0);
-      
-      if (sqrt(SqLengthI)>MaxEdgeLength){
-        //subdvision
-        OK=1;
-        CutEdge(LocMesh,order[i]);    //rem: 'LocMesh' is changed here. In particular LocMesh->NbEdges is larger.
-      }
-    }
-    
-    //mesh projection on the surface of the segmented shape
-    for (i=OrigNbVertexes;i<LocMesh->NbVertexes;i++)
-      ProjectPointMeshSurf(&(LocMesh->Vertexes[i].X),&(LocMesh->Vertexes[i].Y),&(LocMesh->Vertexes[i].Z),ImSeg,NBX,NBY,NBZ,MeanX,MeanY,MeanZ);
-    
-    cout << "Nb Edges: " << LocMesh->NbEdges <<  " / Nb Elements: " << LocMesh->NbElements <<  "\n";
-  }
-  
-  
-  //PART 3: subdivision of the edges and projection on the segmented shape boundaries
-  if (NbSubdiv>1){
-    for (i=0;i<LocMesh->NbEdges;i++){
-      //init
-      LocMesh->Edges[i].NbSubdiv=NbSubdiv;
-      LocMesh->Edges[i].SubiVertex=(Vertex *)malloc((LocMesh->Edges[i].NbSubdiv+1)*sizeof(Vertex));
-      
-      //coordinates of the subdivised edge
-      EdgeV1_X=LocMesh->Vertexes[LocMesh->Edges[i].V1].X;
-      EdgeV1_Y=LocMesh->Vertexes[LocMesh->Edges[i].V1].Y;
-      EdgeV1_Z=LocMesh->Vertexes[LocMesh->Edges[i].V1].Z;
-      EdgeV2_X=LocMesh->Vertexes[LocMesh->Edges[i].V2].X;
-      EdgeV2_Y=LocMesh->Vertexes[LocMesh->Edges[i].V2].Y;
-      EdgeV2_Z=LocMesh->Vertexes[LocMesh->Edges[i].V2].Z;
-      dNbSubdiv=(double)LocMesh->Edges[i].NbSubdiv;
-      
-      for (j=0;j<LocMesh->Edges[i].NbSubdiv+1;j++){
-        dj=(double)j;
-        
-        //interpolation
-        LocMesh->Edges[i].SubiVertex[j].X=EdgeV1_X*(dNbSubdiv-dj)/dNbSubdiv+EdgeV2_X*dj/dNbSubdiv;
-        LocMesh->Edges[i].SubiVertex[j].Y=EdgeV1_Y*(dNbSubdiv-dj)/dNbSubdiv+EdgeV2_Y*dj/dNbSubdiv;
-        LocMesh->Edges[i].SubiVertex[j].Z=EdgeV1_Z*(dNbSubdiv-dj)/dNbSubdiv+EdgeV2_Z*dj/dNbSubdiv;
-        
-        //projection on the segmented shape boundaries
-        ProjectPointMeshSurf(&(LocMesh->Edges[i].SubiVertex[j].X),&(LocMesh->Edges[i].SubiVertex[j].Y),&(LocMesh->Edges[i].SubiVertex[j].Z),ImSeg,NBX,NBY,NBZ,MeanX,MeanY,MeanZ);
-      }
-    }
-  }
-}
-
-
-
-
-
-
-//write the geometry of mesh contained in a Mesh structure in a XML-Nektar file
-void WriteMesh(Mesh * LocMesh,char FileName[256]){
-  FILE * XmlMeshGeomFile;
-  int i,j,NbCurvedEdge;
-  
-  //to have a proper order of the edges within the elements
-  MakeClockwiseOrder(LocMesh);
-  
-  //open file
-  XmlMeshGeomFile = fopen(FileName,"w");
-  
-  //write header
-  fprintf(XmlMeshGeomFile,"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-  fprintf(XmlMeshGeomFile,"\n");
-  fprintf(XmlMeshGeomFile,"<NEKTAR>\n");
-  fprintf(XmlMeshGeomFile,"<!-- Embed a 2-dimensional object in a 2-dimensional space -->\n");
-  fprintf(XmlMeshGeomFile,"<!-- DIM <= SPACE -->\n");
-  fprintf(XmlMeshGeomFile,"<!-- This provides a method of optimizing code for a 1-D curve embedded in 3-space. -->\n");
-  fprintf(XmlMeshGeomFile,"<GEOMETRY DIM=\"2\" SPACE=\"3\">\n");
-  fprintf(XmlMeshGeomFile,"\n");
-  
-  //write vertex
-  fprintf(XmlMeshGeomFile,"  <VERTEX>\n");
-  fprintf(XmlMeshGeomFile,"    <!-- Always must have four values per entry. -->\n");
-  for (i=0;i<LocMesh->NbVertexes;i++)
-    fprintf(XmlMeshGeomFile,"    <V ID=\"%d\">  %f   %f   %f  </V>\n",i,LocMesh->Vertexes[i].X,LocMesh->Vertexes[i].Y,LocMesh->Vertexes[i].Z);
-  fprintf(XmlMeshGeomFile,"  </VERTEX>\n");
-  fprintf(XmlMeshGeomFile,"  \n");
-  
-  //write edges
-  fprintf(XmlMeshGeomFile,"  <EDGE>\n");
-  fprintf(XmlMeshGeomFile,"    <!--Edges are vertex pairs -->\n");
-  for (i=0;i<LocMesh->NbEdges;i++)
-    fprintf(XmlMeshGeomFile,"    <E ID=\"%d\">    %d  %d   </E>\n",i,LocMesh->Edges[i].V1,LocMesh->Edges[i].V2);
-  fprintf(XmlMeshGeomFile,"  </EDGE>\n");
-  fprintf(XmlMeshGeomFile,"  \n");
-  
-  //write Element
-  fprintf(XmlMeshGeomFile,"  <ELEMENT>\n");
-  for (i=0;i<LocMesh->NbElements;i++)
-    fprintf(XmlMeshGeomFile,"    <T ID=\"%d\">    %d     %d     %d </T>\n",i,LocMesh->Elements[i].E1,LocMesh->Elements[i].E2,LocMesh->Elements[i].E3);
-  fprintf(XmlMeshGeomFile,"  </ELEMENT>\n");
-  fprintf(XmlMeshGeomFile,"  \n");
-  
-  
-  
-  //write curved elements
-  fprintf(XmlMeshGeomFile,"  <CURVED>\n");
-  NbCurvedEdge=0;
-  for (i=0;i<LocMesh->NbEdges;i++) if (LocMesh->Edges[i].NbSubdiv>1){
-    fprintf(XmlMeshGeomFile,"    <E ID=\"%d\" EDGEID=\"%d\" TYPE=\"PolyEvenlySpaced\" NUMPOINTS=\"%d\">\n",NbCurvedEdge,i,LocMesh->Edges[i].NbSubdiv+1);
-    for (j=0;j<LocMesh->Edges[i].NbSubdiv+1;j++){
-      fprintf(XmlMeshGeomFile,"    %lf %lf %lf\n",LocMesh->Edges[i].SubiVertex[j].X,LocMesh->Edges[i].SubiVertex[j].Y,LocMesh->Edges[i].SubiVertex[j].Z);
-    }
-    fprintf(XmlMeshGeomFile,"   </E>\n\n");
-    NbCurvedEdge++;
-  }
-  fprintf(XmlMeshGeomFile,"   </CURVED>\n");
-  
-  
-  //write the end (could be more evolved)
-  fprintf(XmlMeshGeomFile,"<!-- V - vertex, E - edge, F - face, L - element -->\n");
-  fprintf(XmlMeshGeomFile,"  <COMPOSITE>\n");
-  fprintf(XmlMeshGeomFile,"    <C ID=\"0\"> T[0-%d]\n",LocMesh->NbElements-1);
-  fprintf(XmlMeshGeomFile,"    </C>\n");
-  fprintf(XmlMeshGeomFile,"    <C ID=\"1\"> E[2,3,4,5,7,8]\n");
-  fprintf(XmlMeshGeomFile,"    </C>\n");
-  fprintf(XmlMeshGeomFile,"  </COMPOSITE>\n");
-  fprintf(XmlMeshGeomFile,"  \n");
-  fprintf(XmlMeshGeomFile,"  <DOMAIN> C[0] </DOMAIN>\n");
-  fprintf(XmlMeshGeomFile,"  \n");
-  
-  //EOF
-  fprintf(XmlMeshGeomFile,"</GEOMETRY>\n");
-  
-  //close file
-  fclose(XmlMeshGeomFile);
-  
-  cout << "Mesh written in " << FileName << "\n";
-  
-}
-
-
 
 
 
 // ---------------------------------------------------------------------------------------
-//                                       main function
+//   PART. 5.4                      Le Tensor Voting
 // ---------------------------------------------------------------------------------------
 
+//adapte de l'algorithme du meme nom dans numerical recipes.
+//en entree, on a la matrice 'MatIni' de dimension n*n. Elle doit etre symetrique.
+//en sortie, ValP est un vecteur de taille n qui contient les valeurs propres (dans l'ordre decroissant). 
+//VecP est une matrice n*n qui contient les vecteurs propres en colonne.
+//remarque : la version avec n comme parametre d'entree cree beaucoup de fuites de memoire sur
+//ma machine (pourquoi ???). Du coup, cette version fonctionne pour n fixe a 3.
+#define ROTATE(a,i,j,k,l) g=a[i][j];h=a[k][l];a[i][j]=g-s*(h+g*tau);a[k][l]=h+s*(g-h*tau);
+void jacobi3(float **MatIni,float *ValP, float **VecP){
+  int j,iq,ip,i; 
+  float tresh,theta,tau,t,sm,s,h,g,c;
+  float b[4];
+  float z[4];
+  float a[4][4];   //correspond a MatIni
+  float d[4];    //correspond a ValP
+  float v[4][4];   //correspond a VecP
+  int vTri1,vTri2;
+  float TempF;
+  int n;
 
+
+  n=3;
+  for(i=0;i<n;i++) for(j=0;j<n;j++) a[i+1][j+1]=MatIni[i][j];
+
+
+//algo de numerical recipes
+  for (ip=1;ip<=n;ip++) {
+    for (iq=1;iq<=n;iq++) v[ip][iq]=0.0;
+    v[ip][ip]=1.0;
+  }
+	
+  for (ip=1;ip<=n;ip++) {
+    b[ip]=d[ip]=a[ip][ip];
+    z[ip]=0.0;
+  }
+	
+  for (i=1;i<=50;i++) {
+    sm=0.0;
+    for (ip=1;ip<=n-1;ip++)
+      for (iq=ip+1;iq<=n;iq++)
+        sm += fabs(a[ip][iq]);
+	
+    if (sm == 0.0) {
+		//adaptation des valeurs de l'algo de numerical recipes aux valeurs de sortie
+      for(i=0;i<n;i++) ValP[i]=d[i+1];
+      for(i=0;i<n;i++) for(j=0;j<n;j++) MatIni[i][j]=a[i+1][j+1];
+      for(i=0;i<n;i++) for(j=0;j<n;j++) VecP[i][j]=v[i+1][j+1];
+		
+		//tri des donnees
+      for(vTri1=0;vTri1<n-1;vTri1++) for(vTri2=vTri1+1;vTri2<n;vTri2++) if (ValP[vTri1]<ValP[vTri2]){
+        TempF=ValP[vTri1]; ValP[vTri1]=ValP[vTri2]; ValP[vTri2]=TempF;
+        for(i=0;i<n;i++) { TempF=VecP[i][vTri1]; VecP[i][vTri1]=VecP[i][vTri2]; VecP[i][vTri2]=TempF;}
+      }
+		
+      return;
+    }
+    if (i < 4) tresh=0.2*sm/(n*n);
+    else tresh=0.0;
+	
+    for (ip=1;ip<=n-1;ip++) {
+      for (iq=ip+1;iq<=n;iq++) {
+        g=100.0*fabs(a[ip][iq]);
+			
+        if (i > 4 && (float)(fabs(d[ip])+g) == (float)fabs(d[ip])&& (float)(fabs(d[iq])+g) == (float)fabs(d[iq]))
+          a[ip][iq]=0.0;
+        else if (fabs(a[ip][iq]) > tresh) {
+          h=d[iq]-d[ip];
+          if ((float)(fabs(h)+g) == (float)fabs(h))
+            t=(a[ip][iq])/h;
+          else {
+            theta=0.5*h/(a[ip][iq]);
+            t=1.0/(fabs(theta)+sqrt(1.0+theta*theta));
+            if (theta < 0.0) t = -t;
+          }
+          c=1.0/sqrt(1+t*t); s=t*c; tau=s/(1.0+c); h=t*a[ip][iq];
+          z[ip] -= h; z[iq] += h; d[ip] -= h; d[iq] += h; a[ip][iq]=0.0;
+          for (j=1;j<=ip-1;j++) { ROTATE(a,j,ip,j,iq) }
+          for (j=ip+1;j<=iq-1;j++) { ROTATE(a,ip,j,j,iq) }
+          for (j=iq+1;j<=n;j++) { ROTATE(a,ip,j,iq,j) }
+          for (j=1;j<=n;j++) { ROTATE(v,j,ip,j,iq)}
+        }
+      }
+    }
+    for (ip=1;ip<=n;ip++) { b[ip] += z[ip]; d[ip]=b[ip]; z[ip]=0.0; }
+  }
+  printf("Too many iterations in the routine jacobi\n");
+
+//adaptation des valeurs de l'algo de numerical recipes aux valeurs de sortie
+  for(i=0;i<n;i++) ValP[i]=d[i+1];
+  for(i=0;i<n;i++) for(j=0;j<n;j++) MatIni[i][j]=a[i+1][j+1];
+  for(i=0;i<n;i++) for(j=0;j<n;j++) VecP[i][j]=v[i+1][j+1];
+
+//tri des donnees
+  for(vTri1=0;vTri1<n-1;vTri1++) for(vTri2=vTri1+1;vTri2<n;vTri2++) if (ValP[vTri1]<ValP[vTri2]){
+    TempF=ValP[vTri1]; ValP[vTri1]=ValP[vTri2]; ValP[vTri2]=TempF;
+    for(i=0;i<n;i++) { TempF=VecP[i][vTri1]; VecP[i][vTri1]=VecP[i][vTri2]; VecP[i][vTri2]=TempF;}
+  }
+
+}
+
+
+
+//initialisation a zero d'un champ de tenseur
+void InitTensorField(TensorField * TF, int NBX,int NBY,int NBZ){
+  int i,j,k;
+  
+  //initialisation des tailles
+  TF->NBZ=NBZ;
+  TF->NBY=NBY;
+  TF->NBX=NBX;
+  
+  //initialisation du champ de tenseurs
+  for (i=0;i<3;i++) for (j=0;j<3;j++){
+    CreateImage3DFloat(&(TF->Field[i][j]),NBZ,NBY,NBX);
+  }
+  
+  //set everything to 0 (it should be already done, it's just to be sure...)
+  for (i=0;i<TF->NBZ;i++) for (j=0;j<TF->NBY;j++) for (k=0;k<TF->NBX;k++){ 
+    //nettoyage du champ de tenseur
+    TF->Field[0][0].image[i][j][k]=0;
+    TF->Field[1][0].image[i][j][k]=0;
+    TF->Field[2][0].image[i][j][k]=0;
+    TF->Field[0][1].image[i][j][k]=0;
+    TF->Field[1][1].image[i][j][k]=0;
+    TF->Field[2][1].image[i][j][k]=0;
+    TF->Field[0][2].image[i][j][k]=0;
+    TF->Field[1][2].image[i][j][k]=0;
+    TF->Field[2][2].image[i][j][k]=0;
+    
+  }
+  
+}
+
+
+
+//insertion des ball voting field dans le champ de tenseurs ; 
+void InsertBallFields(TensorField * TF,irtkGenericImage<unsigned char> * InputImage, double sigma,int Tboites,irtkGenericImage<float> * Saliency){
+  int i,j,k;
+  double V_x,V_y,V_z;
+  double Dist;
+  int LocX,LocY,LocZ;
+  double Poids;
+  int CX,CY,CZ;
+  
+  // Tboites devient la moitie d'un cote de boite (pour coller aux boucles_for)
+  Tboites=(Tboites-1)/2;
+  
+  // 1 ) MISE A JOUR DU CHAMP DE TENSEUR
+  for(CZ=0;CZ<InputImage->GetZ();CZ++)  for(CY=0;CY<InputImage->GetY();CY++) for(CX=0;CX<InputImage->GetX();CX++) if (InputImage->Get(CX, CY, CZ, 0)>0){
+  
+    //cout << CX << " " << CY << " " << CZ << "\n";
+    Saliency->Put(CX, CY, CZ,0, 1.);
+    
+    //remplissage du champ de tenseurs
+    for (i=-Tboites;i<Tboites;i++) for (j=-Tboites;j<Tboites;j++) for (k=-Tboites;k<Tboites;k++){
+      LocX=CX+k;
+      LocY=CY+j;
+      LocZ=CZ+i;
+      if ((LocX>0)&&(LocX<TF->NBX)&&(LocY>0)&&(LocY<TF->NBY)&&(LocZ>0)&&(LocZ<TF->NBZ)){
+        //A ) vecteur a injecter dans le tenseur norm\'e
+        //vecteur norm\'e que l'on va injecter dans le tenseur (apres ponderation)
+        Dist=sqrt(pow((double)k,2.0)+pow((double)j,2.0)+pow((double)i,2.0));
+        V_x=((double)k)/Dist;
+        V_y=((double)j)/Dist;
+        V_z=((double)i)/Dist;
+  
+        //B ) ponderation du vecteur
+        Poids=exp(-pow(Dist,2.0)/pow(sigma,2.0));
+        
+        //cout << Poids << "\n";
+        V_x=V_x*Poids;
+        V_y=V_y*Poids;
+        V_z=V_z*Poids;
+        
+        //C ) injection du vecteur dans le tenseur
+        TF->Field[0][0].image[LocZ][LocY][LocX]+=(float)(V_x*V_x); 
+        TF->Field[0][1].image[LocZ][LocY][LocX]+=(float)(V_x*V_y); 
+        TF->Field[0][2].image[LocZ][LocY][LocX]+=(float)(V_x*V_z);
+        TF->Field[1][0].image[LocZ][LocY][LocX]+=(float)(V_x*V_y); 
+        TF->Field[1][1].image[LocZ][LocY][LocX]+=(float)(V_y*V_y); 
+        TF->Field[1][2].image[LocZ][LocY][LocX]+=(float)(V_y*V_z);
+        TF->Field[2][0].image[LocZ][LocY][LocX]+=(float)(V_x*V_z); 
+        TF->Field[2][1].image[LocZ][LocY][LocX]+=(float)(V_z*V_y); 
+        TF->Field[2][2].image[LocZ][LocY][LocX]+=(float)(V_z*V_z);
+      }
+    }
+  }
+}
+
+
+
+//a partir d'un champ de tenseur rempli, calcul des valeurs propres
+void CalcFunctionnal(TensorField * TF,irtkGenericImage<float> * lambda1,irtkGenericImage<float> * lambda2,irtkGenericImage<float> * lambda3,irtkGenericImage<float> * Saliency){
+  int i,j,k;
+  float ** a;
+  float ** q;
+  float *  d;
+  
+  //allocation memoire pour les variables utilisees dans l'appel de la fonction de Jacobi
+  a=(float**)malloc(3*sizeof(float*));
+  for(i=0;i<3;i++) a[i]=(float*)malloc(3*sizeof(float));
+  q=(float**)malloc(3*sizeof(float*));
+  for(i=0;i<3;i++) q[i]=(float*)malloc(3*sizeof(float));
+  d=(float*)malloc(3*sizeof(float));
+  
+  for (i=0;i<TF->NBZ;i++) for (j=0;j<TF->NBY;j++) for (k=0;k<TF->NBX;k++){
+    //cout << k << " " <<  j << " " <<  i << "\n";
+    if ((TF->Field[0][0].image[i][j][k]>0.0001)||(TF->Field[1][1].image[i][j][k]>0.0001)||(TF->Field[2][2].image[i][j][k]>0.0001)){
+      //remplissage de la matrice dont on extrait les valeurs propres
+      a[0][0]=TF->Field[0][0].image[i][j][k];
+      a[1][0]=TF->Field[1][0].image[i][j][k];
+      a[2][0]=TF->Field[2][0].image[i][j][k];
+      a[0][1]=TF->Field[0][1].image[i][j][k];
+      a[1][1]=TF->Field[1][1].image[i][j][k];
+      a[2][1]=TF->Field[2][1].image[i][j][k];
+      a[0][2]=TF->Field[0][2].image[i][j][k];
+      a[1][2]=TF->Field[1][2].image[i][j][k];
+      a[2][2]=TF->Field[2][2].image[i][j][k];
+      
+      //extraction des valeurs propres
+      jacobi3(a,d,q);
+      
+/*      d[0]=log(d[0]); d[1]=log(d[1]); d[2]=log(d[2]);
+      if (d[0]>50) d[0]=50;  if ((d[0]<-50)||(isnan(d[0]))) d[0]=-50;
+      if (d[1]>50) d[1]=50;  if ((d[1]<-50)||(isnan(d[1]))) d[1]=-50;
+      if (d[2]>50) d[2]=50;  if ((d[2]<-50)||(isnan(d[2]))) d[2]=-50;*/
+      
+      
+      //cout << d[0] << " " <<  d[1] << " " <<  d[2] << "\n";
+      //remplissage des valeurs propres
+      lambda1->Put(k, j, i,0, (float)(d[0]));
+      lambda2->Put(k, j, i,0, (float)(d[1]));
+      lambda3->Put(k, j, i,0, (float)(d[2]));
+      if ((d[1]>0.00001)&&(Saliency->Get(k, j, i,0)<0.5)) if ((d[0]/d[1]>5.)) Saliency->Put(k, j, i,0, 0.5);
+    }
+  }
+}
+
+
+
+
+//Dans le cadre de l'algorithme de tensor voting :
+// -> On souhaite perdre 1/e d'energie a la distance 'dista' de l'origine (point O) dans la direction du bout de segment (point A)
+// -> La taille de la fenetre qui contient le champ de tenseur doit de meme contenir toute l'info pour laquelle l'energie est > 0.01
+//Cette fonction calcule alors 'c', 'sigma' et 'Tfenetre' en fonction de 'dista' et 'angl'.
+void ComputeSigmaAndBoxSize(double dista,double * sigma,int * Tfenetre){
+  //correction des entrees
+  dista=fabs(dista);
+  
+  //calcul des coefficients
+  *sigma=dista;
+  *Tfenetre=5*dista+1;
+  
+}
+
+
+
+/*
 template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
-  int i, j, x, y, z;
-  int*** imageE;
-  int NBX,NBY,NBZ,NBT;
-  char output_name[] = "OutputMesh.xml";
-  double Prec=11;
-  int NbSubdiv=2;
-  Mesh LocMesh;
-  int GreyLevelToExtract;
-
+  int NBX,NBY,NBZ;
+  char lambda1_output_name[] = "TV_lambda1.nii";
+  char lambda2_output_name[] = "TV_lambda2.nii";
+  char lambda3_output_name[] = "TV_lambda3.nii";
+  double CharactDist = this->dTau;
+  irtkGenericImage<unsigned char> SegImage;
+  irtkGenericImage<float> lambda1;
+  irtkGenericImage<float> lambda2;
+  irtkGenericImage<float> lambda3;
+  irtkGenericImage<float> Saliency;
+  TensorField TF;
+  double sigma;
+  int Tboites;
+  int x,y,z;
+  
   //1) initialisation
+  
+  cout << "Compute the tensor field...\n";
+  
   this->Initialize();
-  GreyLevelToExtract=255;
   NBX=this->_input->GetX();
   NBY=this->_input->GetY();
   NBZ=this->_input->GetZ();
-  NBT=this->_input->GetT();
   
-  //binarization of the input image
-  imageE= (int***) malloc (NBZ*sizeof(int**));
-  for (i=0;i<NBZ;i++) imageE[i]= (int**) malloc (NBY*sizeof(int*));
-  for (i=0;i<NBZ;i++) for (j=0;j<NBY;j++) imageE[i][j]= (int*) malloc (NBX*sizeof(int));
-	
-  for (z = 0; z < NBZ; z++)  for (y = 0; y < NBY; y++) for (x = 0; x < NBX; x++){
-    imageE[z][y][x]=static_cast<int>(this->_input->Get(x, y, z, 0)+0.001);
-    if (imageE[z][y][x]==GreyLevelToExtract) imageE[z][y][x]=1;
-    else imageE[z][y][x]=0;
-    this->_output->Put(x, y, z,0, static_cast<VoxelType>(imageE[z][y][x]));
+  SegImage = irtkGenericImage<unsigned char>(NBX,NBY,NBZ,1);
+  lambda1 = irtkGenericImage<float>(NBX,NBY,NBZ,1);
+  lambda2 = irtkGenericImage<float>(NBX,NBY,NBZ,1);
+  lambda3 = irtkGenericImage<float>(NBX,NBY,NBZ,1);
+  Saliency = irtkGenericImage<float>(NBX,NBY,NBZ,1);
+  
+  //cast the input image
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+    SegImage.Put(x,y,z,0,(unsigned char)(this->_input->Get(x, y, z, 0)+0.00001));
+  }
+  
+  //compute 'sigma' and the size of the boxes 'Tboites' as a function of 'CharactDist'
+  ComputeSigmaAndBoxSize(CharactDist,&sigma,&Tboites);
+  
+  
+  cout << "Sigma=" << sigma << " / Box size=" << Tboites << "\n";
+  
+  //Tensor field initialisation
+  InitTensorField(&TF,NBX,NBY,NBZ);
+  
+  // 2 ) Compute the tensor field and extract the eigenvalues at each point (voxel) of the field
+  InsertBallFields(&TF,&SegImage,sigma,Tboites,&Saliency);
+  
+  CalcFunctionnal(&TF,&lambda1,&lambda2,&lambda3,&Saliency);
+  
+  //N) write the 3 lambda images
+  lambda1.Write(lambda1_output_name);
+  lambda2.Write(lambda2_output_name);
+  lambda3.Write(lambda3_output_name);
+  Saliency.Write("SaliencyMap.nii");
+  
+}
+*/
+
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///                                           END TENSOR VOTING PROJECT
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///                                       BEGIN GRADIENT VECTOR FLOW PROJECT
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+/*
+
+template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
+  int NBX,NBY,NBZ,x,y,z;
+  char Grad_f_x_file[] = "gradientVecX.nii";
+  char Grad_f_y_file[] = "gradientVecY.nii";
+  char Grad_f_z_file[] = "gradientVecZ.nii";
+  irtkGenericImage<float> Grad_f_x;     //input gradient of the image I on x
+  irtkGenericImage<float> Grad_f_y;     //input gradient of the image I on y
+  irtkGenericImage<float> Grad_f_z;     //input gradient of the image I on z
+  irtkGenericImage<float> SqNormGrad_f; //square norm of the input gradient of the image I
+  irtkGenericImage<float> u_cur;        //output regularization of Grad_f_x
+  irtkGenericImage<float> v_cur;        //output regularization of Grad_f_y
+  irtkGenericImage<float> w_cur;        //output regularization of Grad_f_z
+  irtkGenericImage<float> u_next;       //regularization of Grad_f_x at the iteration after the current one
+  irtkGenericImage<float> v_next;       //regularization of Grad_f_y at the iteration after the current one
+  irtkGenericImage<float> w_next;       //regularization of Grad_f_z at the iteration after the current one
+  double tmpdbl1,tmpdbl2,tmpdbl3;
+  float tmpf1,tmpf2,tmpf3,tmpf4,tmpf5;
+  float mu;
+  int IterationNb,it;
+  float DeltaXsq,DeltaYsq,DeltaZsq,DeltaT;
+  
+  
+  
+  //init
+  this->Initialize();
+  mu=1;
+  IterationNb=this->ITERATIONS_NB;
+  DeltaXsq=1.;
+  DeltaYsq=1.;
+  DeltaZsq=1.;
+  DeltaT=this->at;
+  
+  
+  //CFL respected?
+  if ((double)DeltaT>sqrt((double)DeltaXsq)*sqrt((double)DeltaYsq)*sqrt((double)DeltaZsq)/(4*mu)){
+    cout << DeltaT << " " << sqrt((double)DeltaXsq)*sqrt((double)DeltaYsq)*sqrt((double)DeltaZsq)/(4*mu) << "\n";
+    DeltaT=(float)(sqrt((double)DeltaXsq)*sqrt((double)DeltaYsq)*sqrt((double)DeltaZsq)/(4*mu));
   }
   
   
-
-  //2) run functions
-  LocMesh=CreateBasicCubicMesh();
-  ProjectMeshSurface(&LocMesh, Prec,NbSubdiv, imageE,NBX,NBY,NBZ);
-  WriteMesh(&LocMesh,output_name);
   
-  this->Finalize();
+  
+  //read the gradients of f
+  Grad_f_x.Read(Grad_f_x_file);
+  Grad_f_y.Read(Grad_f_y_file);
+  Grad_f_z.Read(Grad_f_z_file);
+  
+  //size of the images
+  NBX=Grad_f_x.GetX();
+  NBY=Grad_f_x.GetY();
+  NBZ=Grad_f_x.GetZ();
+  
+  //regularization of grad f  (current iteration and next one)
+  u_cur = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  v_cur = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  w_cur = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  u_next = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  v_next = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  w_next = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  
+  //compute once for all the square norm of Grad_f
+  SqNormGrad_f = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+    tmpdbl1=pow((double)Grad_f_x.Get(x, y, z, 0),2.0);
+    tmpdbl2=pow((double)Grad_f_x.Get(x, y, z, 0),2.0);
+    tmpdbl3=pow((double)Grad_f_x.Get(x, y, z, 0),2.0);
+    
+    SqNormGrad_f.Put(x, y, z, 0, (float)(tmpdbl1+tmpdbl2+tmpdbl3));
+  }
+  
+  //initialisation of u, v, w
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_cur.Put(x, y, z, 0, (float)Grad_f_x.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_cur.Put(x, y, z, 0, (float)Grad_f_y.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_cur.Put(x, y, z, 0, (float)Grad_f_z.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_next.Put(x, y, z, 0, (float)Grad_f_x.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_next.Put(x, y, z, 0, (float)Grad_f_y.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_next.Put(x, y, z, 0, (float)Grad_f_z.Get(x, y, z, 0));
+  
+  
+  //resolution
+  for (it=0;it<IterationNb;it++){
+    cout << "Iteration " << it << "\n";
+    //compute the vector field of next iteration...
+    //a) upate on u
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++){
+      tmpf1=(mu/DeltaXsq)*(u_cur.Get(x+1, y, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x-1, y, z, 0));
+      tmpf2=(mu/DeltaYsq)*(u_cur.Get(x, y+1, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y-1, z, 0));
+      tmpf3=(mu/DeltaZsq)*(u_cur.Get(x, y, z+1, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y, z-1, 0));
+      tmpf4=u_cur.Get(x, y, z, 0)-Grad_f_x.Get(x, y, z, 0);
+      tmpf5=SqNormGrad_f.Get(x, y, z, 0);
+      u_next.Put(x, y, z, 0,u_cur.Get(x, y, z, 0)+DeltaT*(tmpf1+tmpf2+tmpf3-tmpf4*tmpf5));
+    }
+    
+    //b) upate on v
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++){
+      tmpf1=(mu/DeltaXsq)*(v_cur.Get(x+1, y, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x-1, y, z, 0));
+      tmpf2=(mu/DeltaYsq)*(v_cur.Get(x, y+1, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y-1, z, 0));
+      tmpf3=(mu/DeltaZsq)*(v_cur.Get(x, y, z+1, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y, z-1, 0));
+      tmpf4=v_cur.Get(x, y, z, 0)-Grad_f_y.Get(x, y, z, 0);
+      tmpf5=SqNormGrad_f.Get(x, y, z, 0);
+      v_next.Put(x, y, z, 0,v_cur.Get(x, y, z, 0)+DeltaT*(tmpf1+tmpf2+tmpf3-tmpf4*tmpf5));
+    }
+    
+    //c) upate on w
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++){
+      tmpf1=(mu/DeltaXsq)*(w_cur.Get(x+1, y, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x-1, y, z, 0));
+      tmpf2=(mu/DeltaYsq)*(w_cur.Get(x, y+1, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y-1, z, 0));
+      tmpf3=(mu/DeltaZsq)*(w_cur.Get(x, y, z+1, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y, z-1, 0));
+      tmpf4=w_cur.Get(x, y, z, 0)-Grad_f_z.Get(x, y, z, 0);
+      tmpf5=SqNormGrad_f.Get(x, y, z, 0);
+      w_next.Put(x, y, z, 0,w_cur.Get(x, y, z, 0)+DeltaT*(tmpf1+tmpf2+tmpf3-tmpf4*tmpf5));
+    }
+    
+    //boundary conditions
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(0, y, z, 0,u_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(NBX-1, y, z, 0,u_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, 0, z, 0,u_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, NBY-1, z, 0,u_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, 0, 0,u_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, NBZ-1, 0,u_next.Get(x, y, NBZ-2, 0));
+    
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(0, y, z, 0,v_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(NBX-1, y, z, 0,v_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, 0, z, 0,v_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, NBY-1, z, 0,v_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, 0, 0,v_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, NBZ-1, 0,v_next.Get(x, y, NBZ-2, 0));
+
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(0, y, z, 0,w_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(NBX-1, y, z, 0,w_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, 0, z, 0,w_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, NBY-1, z, 0,w_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, 0, 0,w_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, NBZ-1, 0,w_next.Get(x, y, NBZ-2, 0));
+
+    //next iteration becomes current iteration
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_cur.Put(x, y, z, 0,u_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_cur.Put(x, y, z, 0,v_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_cur.Put(x, y, z, 0,w_next.Get(x, y, z, 0));
+  }
+  
+  //write the result
+  u_cur.Write("u.nii");
+  v_cur.Write("v.nii");
+  w_cur.Write("w.nii");
+  
+}*/
+
+
+
+
+
+template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
+  int NBX,NBY,NBZ,x,y,z;
+  char Grad_f_x_file[] = "gradientVecX.nii";
+  char Grad_f_y_file[] = "gradientVecY.nii";
+  char Grad_f_z_file[] = "gradientVecZ.nii";
+  irtkGenericImage<float> Grad_f_x;     //input gradient of the image I on x
+  irtkGenericImage<float> Grad_f_y;     //input gradient of the image I on y
+  irtkGenericImage<float> Grad_f_z;     //input gradient of the image I on z
+  irtkGenericImage<float> SqNormGrad_f; //square norm of the input gradient of the image I
+  irtkGenericImage<float> u_cur;        //output regularization of Grad_f_x
+  irtkGenericImage<float> v_cur;        //output regularization of Grad_f_y
+  irtkGenericImage<float> w_cur;        //output regularization of Grad_f_z
+  irtkGenericImage<float> u_next;       //regularization of Grad_f_x at the iteration after the current one
+  irtkGenericImage<float> v_next;       //regularization of Grad_f_y at the iteration after the current one
+  irtkGenericImage<float> w_next;       //regularization of Grad_f_z at the iteration after the current one
+  double tmpdbl1,tmpdbl2,tmpdbl3;
+  float tmpf1,tmpf2,tmpf3,tmpf4;
+  float mu;
+  int IterationNb,it;
+  float DeltaXsq,DeltaYsq,DeltaZsq,DeltaT;
+  float A,B,C,D;
+  float *Va;
+  float *Vb; 
+  float *Vc;
+  float *Vd;
+  float *Vx;
+  int n;
+
+  
+  //1) init
+  this->Initialize();
+  
+  //1.1) parameters
+  mu=this->at;
+  IterationNb=this->ITERATIONS_NB;
+  DeltaT=this->dTau;
+  DeltaXsq=1.;
+  DeltaYsq=1.;
+  DeltaZsq=1.;
+  
+  //1.2) precomputation of fixed values 
+  A=(DeltaT*mu)/(3.*DeltaXsq);
+  B=(DeltaT*mu)/(3.*DeltaYsq);
+  C=(DeltaT*mu)/(3.*DeltaZsq);
+  D=-DeltaT/3.;
+  
+  //1.3) read the gradients of f
+  Grad_f_x.Read(Grad_f_x_file);
+  Grad_f_y.Read(Grad_f_y_file);
+  Grad_f_z.Read(Grad_f_z_file);
+  
+  //1.4) size of the images
+  NBX=Grad_f_x.GetX();  //supposed the same in Grad_f_y and Grad_f_z
+  NBY=Grad_f_x.GetY();  //supposed the same in Grad_f_y and Grad_f_z
+  NBZ=Grad_f_x.GetZ();  //supposed the same in Grad_f_y and Grad_f_z
+  
+  //1.5) variables containing the regularization of grad f  (current iteration and next one)
+  u_cur = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  v_cur = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  w_cur = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  u_next = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  v_next = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  w_next = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  
+  //1.6) initialisation of u, v, w
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_cur.Put(x, y, z, 0, (float)Grad_f_x.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_cur.Put(x, y, z, 0, (float)Grad_f_y.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_cur.Put(x, y, z, 0, (float)Grad_f_z.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_next.Put(x, y, z, 0, (float)Grad_f_x.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_next.Put(x, y, z, 0, (float)Grad_f_y.Get(x, y, z, 0));
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_next.Put(x, y, z, 0, (float)Grad_f_z.Get(x, y, z, 0));
+  
+  //1.7) compute once for all the square norm of Grad_f
+  SqNormGrad_f = irtkGenericImage<float>(NBX, NBY, NBZ, 1);
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+    tmpdbl1=pow((double)Grad_f_x.Get(x, y, z, 0),2.0);
+    tmpdbl2=pow((double)Grad_f_y.Get(x, y, z, 0),2.0);
+    tmpdbl3=pow((double)Grad_f_z.Get(x, y, z, 0),2.0);
+    SqNormGrad_f.Put(x, y, z, 0, (float)(tmpdbl1+tmpdbl2+tmpdbl3));
+  }
+  
+  
+  //1.8) recommanded order of values for DeltaT and mu
+  tmpdbl1=0;
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++)
+    if (tmpdbl1<fabs(SqNormGrad_f.Get(x, y, z, 0)))
+          tmpdbl1=fabs(SqNormGrad_f.Get(x, y, z, 0));
+  
+  
+  
+  
+  cout << "Usage: AnisoDiff toto.nii toto.nii -SemiImplicit 0 -TimeDependent 1 -dTau [Delta T] -at [mu] -iterations [Iterations number]\n";
+  cout << "Recommanded order of value for Delta T: " << 1./tmpdbl1 << "\n";
+  cout << "Recommanded order of value for mu: " << tmpdbl1/100. << "\n";
+  
+  //1.9) temporary variables dedicated to the semi implicit scheme
+  n=max(max(NBX,NBY),NBZ)+4; //for boundary effects
+  Va=(float*)malloc(n*sizeof(float));
+  Vb=(float*)malloc(n*sizeof(float));
+  Vc=(float*)malloc(n*sizeof(float));
+  Vd=(float*)malloc(n*sizeof(float));
+  Vx=(float*)malloc(n*sizeof(float));
+
+  
+  //2) resolution
+  for (it=0;it<IterationNb;it++){
+    cout << "Iteration " << it << "\n";
+    
+    //2.1) 1st substep - x implicit / y,z explicit
+    //2.1.1) compute the vector field of next iteration...
+    //2.1.1.a) upate on u
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++){
+      for (x=1;x<NBX-1;x++){
+        Vb[x+1]=1+2*A;
+        Va[x+1]=-A;
+        Vc[x+1]=-A;
+        tmpf1=A*(u_cur.Get(x+1, y, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(u_cur.Get(x, y+1, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(u_cur.Get(x, y, z+1, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(u_cur.Get(x, y, z, 0)-Grad_f_x.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[x+1]=u_cur.Get(x, y, z, 0)+tmpf2+tmpf3+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBX]=Va[NBX-2]; Va[NBX+1]=Va[NBX-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBX]=Vb[NBX-2]; Vb[NBX+1]=Vb[NBX-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBX]=Vc[NBX-2]; Vc[NBX+1]=Vc[NBX-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBX]=Vd[NBX-2]; Vd[NBX+1]=Vd[NBX-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBX+2);
+      for (x = 1; x < NBX-1; x++) u_next.Put(x, y, z, 0,Vx[x+1]);
+    }
+    
+    //2.1.1.b) upate on v
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++){
+      for (x=1;x<NBX-1;x++){
+        Vb[x+1]=1+2*A;
+        Va[x+1]=-A;
+        Vc[x+1]=-A;
+        tmpf1=A*(v_cur.Get(x+1, y, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(v_cur.Get(x, y+1, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(v_cur.Get(x, y, z+1, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(v_cur.Get(x, y, z, 0)-Grad_f_y.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[x+1]=v_cur.Get(x, y, z, 0)+tmpf2+tmpf3+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBX]=Va[NBX-2]; Va[NBX+1]=Va[NBX-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBX]=Vb[NBX-2]; Vb[NBX+1]=Vb[NBX-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBX]=Vc[NBX-2]; Vc[NBX+1]=Vc[NBX-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBX]=Vd[NBX-2]; Vd[NBX+1]=Vd[NBX-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBX+2);
+      for (x = 1; x < NBX-1; x++) v_next.Put(x, y, z, 0,Vx[x+1]);
+    }
+    
+    //2.1.1.c) upate on w
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++){
+      for (x=1;x<NBX-1;x++){
+        Vb[x+1]=1+2*A;
+        Va[x+1]=-A;
+        Vc[x+1]=-A;
+        tmpf1=A*(w_cur.Get(x+1, y, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(w_cur.Get(x, y+1, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(w_cur.Get(x, y, z+1, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(w_cur.Get(x, y, z, 0)-Grad_f_z.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[x+1]=w_cur.Get(x, y, z, 0)+tmpf2+tmpf3+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBX]=Va[NBX-2]; Va[NBX+1]=Va[NBX-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBX]=Vb[NBX-2]; Vb[NBX+1]=Vb[NBX-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBX]=Vc[NBX-2]; Vc[NBX+1]=Vc[NBX-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBX]=Vd[NBX-2]; Vd[NBX+1]=Vd[NBX-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBX+2);
+      for (x = 1; x < NBX-1; x++) w_next.Put(x, y, z, 0,Vx[x+1]);
+    }
+    
+    //2.1.2) boundary conditions
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(0, y, z, 0,u_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(NBX-1, y, z, 0,u_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, 0, z, 0,u_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, NBY-1, z, 0,u_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, 0, 0,u_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, NBZ-1, 0,u_next.Get(x, y, NBZ-2, 0));
+    
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(0, y, z, 0,v_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(NBX-1, y, z, 0,v_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, 0, z, 0,v_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, NBY-1, z, 0,v_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, 0, 0,v_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, NBZ-1, 0,v_next.Get(x, y, NBZ-2, 0));
+
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(0, y, z, 0,w_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(NBX-1, y, z, 0,w_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, 0, z, 0,w_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, NBY-1, z, 0,w_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, 0, 0,w_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, NBZ-1, 0,w_next.Get(x, y, NBZ-2, 0));
+
+    //2.1.3) next iteration becomes current iteration
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_cur.Put(x, y, z, 0,u_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_cur.Put(x, y, z, 0,v_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_cur.Put(x, y, z, 0,w_next.Get(x, y, z, 0));
+  
+  
+  
+    //2.2) 2nd substep - y implicit / x,z explicit
+    //2.2.1) compute the vector field of next iteration...
+    //2.2.1.a) upate on u
+    for (z=1;z<NBZ-1;z++) for (x=1;x<NBX-1;x++){
+      for (y=1;y<NBY-1;y++){
+        Vb[y+1]=1+2*B;
+        Va[y+1]=-B;
+        Vc[y+1]=-B;
+        tmpf1=A*(u_cur.Get(x+1, y, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(u_cur.Get(x, y+1, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(u_cur.Get(x, y, z+1, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(u_cur.Get(x, y, z, 0)-Grad_f_x.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[y+1]=u_cur.Get(x, y, z, 0)+tmpf1+tmpf3+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBY]=Va[NBY-2]; Va[NBY+1]=Va[NBY-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBY]=Vb[NBY-2]; Vb[NBY+1]=Vb[NBY-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBY]=Vc[NBY-2]; Vc[NBY+1]=Vc[NBY-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBY]=Vd[NBY-2]; Vd[NBY+1]=Vd[NBY-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBY+2);
+      for (y=1;y<NBY-1;y++) u_next.Put(x, y, z, 0,Vx[y+1]);
+    }
+    
+    //2.2.1.b) upate on v
+    for (z=1;z<NBZ-1;z++) for (x=1;x<NBX-1;x++){
+      for (y=1;y<NBY-1;y++){
+        Vb[y+1]=1+2*B;
+        Va[y+1]=-B;
+        Vc[y+1]=-B;
+        tmpf1=A*(v_cur.Get(x+1, y, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(v_cur.Get(x, y+1, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(v_cur.Get(x, y, z+1, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(v_cur.Get(x, y, z, 0)-Grad_f_y.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[y+1]=v_cur.Get(x, y, z, 0)+tmpf1+tmpf3+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBY]=Va[NBY-2]; Va[NBY+1]=Va[NBY-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBY]=Vb[NBY-2]; Vb[NBY+1]=Vb[NBY-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBY]=Vc[NBY-2]; Vc[NBY+1]=Vc[NBY-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBY]=Vd[NBY-2]; Vd[NBY+1]=Vd[NBY-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBY+2);
+      for (y=1;y<NBY-1;y++) v_next.Put(x, y, z, 0,Vx[y+1]);
+    }
+    
+    //2.2.1.c) upate on w
+    for (z=1;z<NBZ-1;z++) for (x=1;x<NBX-1;x++){
+      for (y=1;y<NBY-1;y++){
+        Vb[y+1]=1+2*B;
+        Va[y+1]=-B;
+        Vc[y+1]=-B;
+        tmpf1=A*(w_cur.Get(x+1, y, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(w_cur.Get(x, y+1, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(w_cur.Get(x, y, z+1, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(w_cur.Get(x, y, z, 0)-Grad_f_z.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[y+1]=w_cur.Get(x, y, z, 0)+tmpf1+tmpf3+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBY]=Va[NBY-2]; Va[NBY+1]=Va[NBY-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBY]=Vb[NBY-2]; Vb[NBY+1]=Vb[NBY-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBY]=Vc[NBY-2]; Vc[NBY+1]=Vc[NBY-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBY]=Vd[NBY-2]; Vd[NBY+1]=Vd[NBY-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBY+2);
+      for (y=1;y<NBY-1;y++) w_next.Put(x, y, z, 0,Vx[y+1]);
+    }
+    
+    //2.2.2) boundary conditions
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(0, y, z, 0,u_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(NBX-1, y, z, 0,u_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, 0, z, 0,u_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, NBY-1, z, 0,u_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, 0, 0,u_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, NBZ-1, 0,u_next.Get(x, y, NBZ-2, 0));
+    
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(0, y, z, 0,v_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(NBX-1, y, z, 0,v_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, 0, z, 0,v_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, NBY-1, z, 0,v_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, 0, 0,v_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, NBZ-1, 0,v_next.Get(x, y, NBZ-2, 0));
+
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(0, y, z, 0,w_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(NBX-1, y, z, 0,w_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, 0, z, 0,w_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, NBY-1, z, 0,w_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, 0, 0,w_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, NBZ-1, 0,w_next.Get(x, y, NBZ-2, 0));
+
+    //2.2.3) next iteration becomes current iteration
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_cur.Put(x, y, z, 0,u_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_cur.Put(x, y, z, 0,v_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_cur.Put(x, y, z, 0,w_next.Get(x, y, z, 0));
+  
+  
+    //2.3) 1st substep - x implicit / y,z explicit
+    //2.3.1) compute the vector field of next iteration...
+    //2.3.1.a) upate on u
+    for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++){
+      for (z=1;z<NBZ-1;z++){
+        Vb[z+1]=1+2*C;
+        Va[z+1]=-C;
+        Vc[z+1]=-C;
+        tmpf1=A*(u_cur.Get(x+1, y, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(u_cur.Get(x, y+1, z, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(u_cur.Get(x, y, z+1, 0)-2*u_cur.Get(x, y, z, 0)+u_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(u_cur.Get(x, y, z, 0)-Grad_f_x.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[z+1]=u_cur.Get(x, y, z, 0)+tmpf1+tmpf2+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBZ]=Va[NBZ-2]; Va[NBZ+1]=Va[NBZ-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBZ]=Vb[NBZ-2]; Vb[NBZ+1]=Vb[NBZ-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBZ]=Vc[NBZ-2]; Vc[NBZ+1]=Vc[NBZ-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBZ]=Vd[NBZ-2]; Vd[NBZ+1]=Vd[NBZ-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBZ+2);
+      for (z=1;z<NBZ-1;z++) u_next.Put(x, y, z, 0,Vx[z+1]);
+    }
+    
+    //2.3.1.b) upate on v
+    for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++){
+      for (z=1;z<NBZ-1;z++){
+        Vb[z+1]=1+2*C;
+        Va[z+1]=-C;
+        Vc[z+1]=-C;
+        tmpf1=A*(v_cur.Get(x+1, y, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(v_cur.Get(x, y+1, z, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(v_cur.Get(x, y, z+1, 0)-2*v_cur.Get(x, y, z, 0)+v_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(v_cur.Get(x, y, z, 0)-Grad_f_y.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[z+1]=v_cur.Get(x, y, z, 0)+tmpf1+tmpf2+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBZ]=Va[NBZ-2]; Va[NBZ+1]=Va[NBZ-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBZ]=Vb[NBZ-2]; Vb[NBZ+1]=Vb[NBZ-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBZ]=Vc[NBZ-2]; Vc[NBZ+1]=Vc[NBZ-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBZ]=Vd[NBZ-2]; Vd[NBZ+1]=Vd[NBZ-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBZ+2);
+      for (z=1;z<NBZ-1;z++) v_next.Put(x, y, z, 0,Vx[z+1]);
+    }
+    
+    //2.3.1.c) upate on w
+    for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++){
+      for (z=1;z<NBZ-1;z++){
+        Vb[z+1]=1+2*C;
+        Va[z+1]=-C;
+        Vc[z+1]=-C;
+        tmpf1=A*(w_cur.Get(x+1, y, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x-1, y, z, 0));
+        tmpf2=B*(w_cur.Get(x, y+1, z, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y-1, z, 0));
+        tmpf3=C*(w_cur.Get(x, y, z+1, 0)-2*w_cur.Get(x, y, z, 0)+w_cur.Get(x, y, z-1, 0));
+        tmpf4=D*(w_cur.Get(x, y, z, 0)-Grad_f_z.Get(x, y, z, 0))*SqNormGrad_f.Get(x, y, z, 0);
+        Vd[z+1]=w_cur.Get(x, y, z, 0)+tmpf1+tmpf2+tmpf4;
+      }
+      Va[1]=Va[3]; Va[0]=Va[4]; Va[NBZ]=Va[NBZ-2]; Va[NBZ+1]=Va[NBZ-3]; //to avoid boundary effects
+      Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBZ]=Vb[NBZ-2]; Vb[NBZ+1]=Vb[NBZ-3]; //to avoid boundary effects
+      Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBZ]=Vc[NBZ-2]; Vc[NBZ+1]=Vc[NBZ-3]; //to avoid boundary effects
+      Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBZ]=Vd[NBZ-2]; Vd[NBZ+1]=Vd[NBZ-3]; //to avoid boundary effects
+      TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBZ+2);
+      for (z=1;z<NBZ-1;z++) w_next.Put(x, y, z, 0,Vx[z+1]);
+    }
+    
+    //2.3.2) boundary conditions
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(0, y, z, 0,u_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) u_next.Put(NBX-1, y, z, 0,u_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, 0, z, 0,u_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   u_next.Put(x, NBY-1, z, 0,u_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, 0, 0,u_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   u_next.Put(x, y, NBZ-1, 0,u_next.Get(x, y, NBZ-2, 0));
+    
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(0, y, z, 0,v_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) v_next.Put(NBX-1, y, z, 0,v_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, 0, z, 0,v_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   v_next.Put(x, NBY-1, z, 0,v_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, 0, 0,v_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   v_next.Put(x, y, NBZ-1, 0,v_next.Get(x, y, NBZ-2, 0));
+
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(0, y, z, 0,w_next.Get(1, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) w_next.Put(NBX-1, y, z, 0,w_next.Get(NBX-2, y, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, 0, z, 0,w_next.Get(x, 1, z, 0));
+    for (z=1;z<NBZ-1;z++) for (x=0;x<NBX;x++)   w_next.Put(x, NBY-1, z, 0,w_next.Get(x, NBY-2, z, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, 0, 0,w_next.Get(x, y, 1, 0));
+    for (y=0;y<NBY;y++)   for (x=0;x<NBX;x++)   w_next.Put(x, y, NBZ-1, 0,w_next.Get(x, y, NBZ-2, 0));
+
+    //2.3.3) next iteration becomes current iteration
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) u_cur.Put(x, y, z, 0,u_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) v_cur.Put(x, y, z, 0,v_next.Get(x, y, z, 0));
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) w_cur.Put(x, y, z, 0,w_next.Get(x, y, z, 0));
+  
+  }
+  
+  //3) write the result
+  u_cur.Write("u.nii");
+  v_cur.Write("v.nii");
+  w_cur.Write("w.nii");
+  
 }
 
 
@@ -1424,9 +1687,55 @@ template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
 
 
 
+
+
+/*
+  //2.2.1) diffusion - x implicit / y,z,t explicit
+  //2.2.1.1) explicit part
+  for (t = 1; t < NBT-1; t++) for (z = 1; z < NBZ-1; z++) for (y = 1; y < NBY-1; y++) for (x = 1; x < NBX-1; x++) {
+    dIdy=(imageE[t][z][y+1][x]-imageE[t][z][y-1][x])/(2*dy);
+    Dyy_div_dySq=static_cast<float>((1-exp(-3.314/pow((dIdy/ay),4)))*DivPowDySqu);
+    dIdz=(imageE[t][z+1][y][x]-imageE[t][z-1][y][x])/(2*dz);
+    Dzz_div_dzSq=static_cast<float>((1-exp(-3.314/pow((dIdz/az),4)))*DivPowDzSqu);
+    dIdt=(imageE[t+1][z][y][x]-imageE[t-1][z][y][x])/(2*dt);
+    Dtt_div_dtSq=static_cast<float>((1-exp(-3.314/pow((dIdt/at),4)))*DivPowDzSqu);
+          new value of the voxel
+    DivDgradI=(imageE[t][z][y+1][x]-2*imageE[t][z][y][x]+imageE[t][z][y-1][x])*Dyy_div_dySq+
+        (imageE[t][z+1][y][x]-2*imageE[t][z][y][x]+imageE[t][z-1][y][x])*Dzz_div_dzSq+
+        (imageE[t+1][z][y][x]-2*imageE[t][z][y][x]+imageE[t-1][z][y][x])*Dtt_div_dtSq;
+
+    imageO[t][z][y][x]=imageE[t][z][y][x]+(dTau/4.)*DivDgradI;
+  }
+  
+  //2.2.1.2) implicit part
+  for (t = 1; t < NBT-1; t++) for (z = 1; z < NBZ-1; z++) for (y = 1; y < NBY-1; y++) {
+    for (x = 1; x < NBX-1; x++){
+      dIdx=(imageE[t][z][y][x+1]-imageE[t][z][y][x-1])/(2*dx);
+      Dxx_div_dxSq=static_cast<float>((1-exp(-3.314/pow((dIdx/ax),4)))*DivPowDxSqu);
+      Va[x+1]=(dTau/4.)*Dxx_div_dxSq;
+      Vb[x+1]=-1-2*(dTau/4.)*Dxx_div_dxSq;
+      Vc[x+1]=(dTau/4.)*Dxx_div_dxSq;
+      Vd[x+1]=imageE[t][z][y][x];
+    }
+    Va[1]=Va[3]; Va[0]=Va[4]; Va[NBX]=Va[NBX-2]; Va[NBX+1]=Va[NBX-3]; //to avoid boundary effects
+    Vb[1]=Vb[3]; Vb[0]=Vb[4]; Vb[NBX]=Vb[NBX-2]; Vb[NBX+1]=Vb[NBX-3]; //to avoid boundary effects
+    Vc[1]=Vc[3]; Vc[0]=Vc[4]; Vc[NBX]=Vc[NBX-2]; Vc[NBX+1]=Vc[NBX-3]; //to avoid boundary effects
+    Vd[1]=Vd[3]; Vd[0]=Vd[4]; Vd[NBX]=Vd[NBX-2]; Vd[NBX+1]=Vd[NBX-3]; //to avoid boundary effects
+    TridiagonalSolveFloat(Va,Vb,Vc,Vd,Vx,NBX+2);
+    for (x = 1; x < NBX-1; x++) imageO[t][z][y][x]=-Vx[x+1];
+  }
+*/
+
+
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///                                        END GRADIENT VECTOR FLOW PROJECT
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 
 
 template <class VoxelType> void anisoDiffusion<VoxelType>::Run()
@@ -1467,20 +1776,20 @@ template class anisoDiffusion<irtkRealPixel>;
 Inputs are a,b,c,d,n where M(i,i)=b(i), M(i,i-1)=a(i), M(i,i+1)=c(i), D(i)=d(i), D in R^n and M in R^n*R^n.
 Output is X where X in R^n.  Warning: will modify c and d! */
 void TridiagonalSolveFloat(const float *a, const float *b, float *c, float *d, float *x, int n){
-	int i;
-    double id;
+  int i;
+  double id;
 
-	/* Modify the coefficients. */
-	c[0] /= b[0];				/* Division by zero risk. */
-	d[0] /= b[0];				/* Division by zero would imply a singular matrix. */
-	for(i = 1; i < n; i++){
-		id = (b[i] - c[i-1] * a[i]);	/* Division by zero risk. */
-		c[i] /= id;				/* Last value calculated is redundant. */
-		d[i] = (d[i] - d[i-1] * a[i])/id;
-	}
- 
-	/* Now back substitute. */
-	x[n - 1] = d[n - 1];
-	for(i = n - 2; i >= 0; i--)
-		x[i] = d[i] - c[i] * x[i + 1];
+  /* Modify the coefficients. */
+  c[0] /= b[0];                       /* Division by zero risk. */
+  d[0] /= b[0];                       /* Division by zero would imply a singular matrix. */
+  for(i = 1; i < n; i++){
+    id = (b[i] - c[i-1] * a[i]);      /* Division by zero risk. */
+    c[i] /= id;                       /* Last value calculated is redundant. */
+    d[i] = (d[i] - d[i-1] * a[i])/id;
+  }
+  
+  /* Now back substitute. */
+  x[n - 1] = d[n - 1];
+  for(i = n - 2; i >= 0; i--)
+    x[i] = d[i] - c[i] * x[i + 1];
 }
