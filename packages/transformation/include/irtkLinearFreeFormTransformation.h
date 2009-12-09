@@ -31,7 +31,10 @@ public:
   irtkLinearFreeFormTransformation();
 
   /// Constructor
-  irtkLinearFreeFormTransformation(irtkBaseImage &, double = 1, double = 1, double = 1);
+  irtkLinearFreeFormTransformation(irtkBaseImage &, double, double, double);
+
+  /// Constructor
+  irtkLinearFreeFormTransformation(irtkGenericImage<double> &);
 
   /// Constructor
   irtkLinearFreeFormTransformation(double x1, double y1, double z1,
@@ -84,6 +87,9 @@ public:
   /// Transforms a point using the local transformation component only
   virtual void LocalTransform (double &, double &, double &, double = 0);
 
+  /// Calculates displacement
+  virtual void Displacement(double &, double &, double &, double = 0);
+
   /// Calculates displacement using the global transformation component only
   virtual void GlobalDisplacement(double &, double &, double &, double = 0);
 
@@ -124,6 +130,11 @@ public:
    */
   virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &,
                            int &, int &, int &, double = 1) const;
+
+  /** Compose this transformation (T1) with second transformation (T2). The
+   *  result is defined as T = T1 o T2
+   */
+  virtual void Compose(irtkTransformation *);
 
   /// Prints the parameters of the transformation
   virtual void Print();
@@ -223,6 +234,11 @@ inline void irtkLinearFreeFormTransformation::LocalDisplacement(double &x, doubl
 
   // Calculate FFD
   this->FFD1(x, y, z);
+}
+
+inline void irtkLinearFreeFormTransformation::Displacement(double &x, double &y, double &z, double)
+{
+	this->LocalDisplacement(x, y, z);
 }
 
 inline const char *irtkLinearFreeFormTransformation::NameOfClass()

@@ -159,6 +159,106 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(irtkBaseImage
   }
 }
 
+irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(irtkGenericImage<double> &image)
+{
+  int i, j, k;
+  double x1, y1, z1, x2, y2, z2, xsize, ysize, zsize;
+
+  // Check if image is displacement field
+  if (image.GetT() != 3) {
+    cerr << "irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation: Image does not contain displacement vectors";
+    exit(1);
+  }
+
+  // Determine voxel size
+  image.GetPixelSize(&xsize, &ysize, &zsize);
+
+  // Figure out FOV
+  x1 = 0;
+  y1 = 0;
+  z1 = 0;
+  x2 = image.GetX()-1;
+  y2 = image.GetY()-1;
+  z2 = image.GetZ()-1;
+  image.ImageToWorld(x1, y1, z1);
+  image.ImageToWorld(x2, y2, z2);
+
+  // Initialize control point domain
+  _origin._x = (x2 + x1) / 2.0;
+  _origin._y = (y2 + y1) / 2.0;
+  _origin._z = (z2 + z1) / 2.0;
+
+  // Initialize x-axis and y-axis
+  image.GetOrientation(_xaxis, _yaxis, _zaxis);
+
+  double a = x1 * _xaxis[0] + y1 * _xaxis[1] + z1 * _xaxis[2];
+  double b = x1 * _yaxis[0] + y1 * _yaxis[1] + z1 * _yaxis[2];
+  double c = x1 * _zaxis[0] + y1 * _zaxis[1] + z1 * _zaxis[2];
+  x1 = a;
+  y1 = b;
+  z1 = c;
+  a = x2 * _xaxis[0] + y2 * _xaxis[1] + z2 * _xaxis[2];
+  b = x2 * _yaxis[0] + y2 * _yaxis[1] + z2 * _yaxis[2];
+  c = x2 * _zaxis[0] + y2 * _zaxis[1] + z2 * _zaxis[2];
+  x2 = a;
+  y2 = b;
+  z2 = c;
+
+  // Initialize control point dimensions
+  _x = round((x2 - x1) / xsize) + 1;
+  _y = round((y2 - y1) / ysize) + 1;
+  if (z2 > z1) {
+    _z = round((z2 - z1) / zsize) + 1;
+  } else {
+    _z = 1;
+  }
+
+  // Initialize control point spacing
+  _dx = (x2 - x1) / (_x - 1);
+  _dy = (y2 - y1) / (_y - 1);
+  if (z2 > z1) {
+    _dz = (z2 - z1) / (_z - 1);
+  } else {
+    _dz = 1;
+  }
+
+  // Initialize transformation matrix
+  _matL2W = irtkMatrix(4, 4);
+  _matW2L = irtkMatrix(4, 4);
+
+  // Update transformation matrix
+  this->UpdateMatrix();
+
+  // Intialize memory for control point values
+  _xdata = this->Allocate(_xdata, _x, _y, _z);
+  _ydata = this->Allocate(_ydata, _x, _y, _z);
+  _zdata = this->Allocate(_zdata, _x, _y, _z);
+
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z];
+  if (_z == 1) {
+    for (i = 0; i < 2*_x*_y*_z; i++) {
+      _status[i] = _Active;
+    }
+    for (i = 2*_x*_y*_z; i < 3*_x*_y*_z; i++) {
+      _status[i] = _Passive;
+    }
+  } else {
+    for (i = 0; i < 3*_x*_y*_z; i++) {
+      _status[i] = _Active;
+    }
+  }
+
+  for (k = 0; k < image.GetZ(); k++) {
+    for (j = 0; j < image.GetY(); j++) {
+      for (i = 0; i < image.GetX(); i++) {
+        this->Put(i, j, k, image(i, j, k, 0), image(i, j, k, 1), image(i, j, k, 2));
+      }
+    }
+  }
+
+}
+
 irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(double x1, double y1, double z1,
     double x2, double y2, double z2,
     double dx, double dy, double dz,
@@ -1347,4 +1447,37 @@ double irtkLinearFreeFormTransformation::Inverse(double &x, double &y, double &z
   z -= w;
 
   return 0;
+}
+
+void irtkLinearFreeFormTransformation::Compose(irtkTransformation *t1)
+{
+	int i, j, k;
+  double x1, y1, z1, x2, y2, z2;
+
+  // Allocate transformation
+  irtkLinearFreeFormTransformation *t2 = new irtkLinearFreeFormTransformation(*this);
+
+  // Compose t2 o t1
+  for (i = 0; i < this->GetX(); i++) {
+    for (j = 0; j < this->GetY(); j++) {
+      for (k = 0; k < this->GetZ(); k++) {
+        x1 = i;
+        y1 = j;
+        z1 = k;
+        this->LatticeToWorld(x1, y1, z1);
+        x2 = x1;
+        y2 = y1;
+        z2 = z1;
+				// Apply first transformation
+        t1->Transform(x2, y2, z2);
+        // Apply second transformation
+        t2->Transform(x2, y2, z2);
+        // Update to displacement
+        this->Put(i, j, k, x2 - x1, y2- y1, z2 - z1);
+      }
+    }
+  }
+
+  // Delete transformation
+  delete t2;
 }

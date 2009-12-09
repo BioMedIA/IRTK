@@ -113,7 +113,7 @@ public:
   irtkBSplineFreeFormTransformation3D();
 
   /// Constructor
-  irtkBSplineFreeFormTransformation3D(irtkBaseImage &, double = 1, double = 1, double = 1);
+  irtkBSplineFreeFormTransformation3D(irtkBaseImage &, double, double, double);
 
   /// Constructor
   irtkBSplineFreeFormTransformation3D(double x1, double y1, double z1,
@@ -162,6 +162,9 @@ public:
 
   /// Transforms a point using the local transformation component only
   virtual void LocalTransform (double &, double &, double &, double = 0);
+
+  /// Calculates displacement
+  virtual void Displacement(double &, double &, double &, double = 0);
 
   /// Calculates displacement using the global transformation component only
   virtual void GlobalDisplacement(double &, double &, double &, double = 0);
@@ -403,6 +406,11 @@ inline void irtkBSplineFreeFormTransformation3D::LocalDisplacement(double &x, do
 
   // Calculate FFD
   this->FFD1(x, y, z);
+}
+
+inline void irtkBSplineFreeFormTransformation3D::Displacement(double &x, double &y, double &z, double)
+{
+	this->LocalDisplacement(x, y, z);
 }
 
 inline const char *irtkBSplineFreeFormTransformation3D::NameOfClass()

@@ -74,6 +74,9 @@ public:
   /// Transforms a point using the local transformation component only
   virtual void LocalTransform (double &, double &, double &, double = 0);
 
+  /// Calculates displacement
+  virtual void Displacement(double &, double &, double &, double = 0);
+
   /// Calculates displacement using the global transformation component only
   virtual void GlobalDisplacement(double &, double &, double &, double = 0);
 

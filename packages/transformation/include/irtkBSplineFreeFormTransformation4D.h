@@ -98,7 +98,7 @@ public:
   irtkBSplineFreeFormTransformation4D();
 
   /// Constructor
-  irtkBSplineFreeFormTransformation4D(irtkBaseImage &, double = 1, double = 1, double = 1, double = 1);
+  irtkBSplineFreeFormTransformation4D(irtkBaseImage &, double, double, double, double);
 
   /// Constructor
   irtkBSplineFreeFormTransformation4D(double x1, double y1, double z1, double t1,
@@ -147,6 +147,9 @@ public:
 
   /// Transforms a point using the local transformation component only
   virtual void LocalTransform (double &, double &, double &, double = 0);
+
+  /// Calculates displacement
+  virtual void Displacement(double &, double &, double &, double = 0);
 
   /// Calculates displacement using the global transformation component only
   virtual void GlobalDisplacement(double &, double &, double &, double = 0);
@@ -381,6 +384,11 @@ inline void irtkBSplineFreeFormTransformation4D::LocalDisplacement(double &x, do
 
   // Calculate FFD
   this->FFD1(x, y, z, this->TimeToLattice(t));
+}
+
+inline void irtkBSplineFreeFormTransformation4D::Displacement(double &x, double &y, double &z, double t)
+{
+	this->LocalDisplacement(x, y, z, t);
 }
 
 inline const char *irtkBSplineFreeFormTransformation4D::NameOfClass()

@@ -90,6 +90,21 @@ void irtkHomogeneousTransformation::Transform(double &x, double &y, double &z, d
   z = c;
 }
 
+void irtkHomogeneousTransformation::Displacement(double &x, double &y, double &z, double)
+{
+  double a, b, c;
+
+  // Pre-multiply point with transformation matrix
+  a = (_matrix(0, 0)*x+_matrix(0, 1)*y+_matrix(0, 2)*z+_matrix(0, 3));
+  b = (_matrix(1, 0)*x+_matrix(1, 1)*y+_matrix(1, 2)*z+_matrix(1, 3));
+  c = (_matrix(2, 0)*x+_matrix(2, 1)*y+_matrix(2, 2)*z+_matrix(2, 3));
+
+  // Copy result back
+  x = a - x;
+  y = b - y;
+  z = c - z;
+}
+
 double irtkHomogeneousTransformation::Inverse(double &x, double &y, double &z, double, double)
 {
   double a, b, c;

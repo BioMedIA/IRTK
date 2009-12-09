@@ -141,7 +141,8 @@ irtkTransformation *irtkTransformation::New(char *name)
     transformation->Read(name);
     return transformation;
   case IRTKTRANSFORMATION_LINEAR_FFD:
-    transformation = new irtkLinearFreeFormTransformation;
+  case IRTKTRANSFORMATION_LINEAR_FFD_EXT1:
+     transformation = new irtkLinearFreeFormTransformation;
     transformation->Read(name);
     return transformation;
   case IRTKTRANSFORMATION_MFFD:
@@ -167,8 +168,33 @@ irtkTransformation *irtkTransformation::New(char *name)
     return transformation;
 #endif
   default:
-    cerr << "irtkTransformation::New: Unknown transformation file format" << endl;
+    cerr << "irtkTransformation::New: Unknown transformation file format: " << trans_type << endl;
     exit(1);
+  }
+}
+
+void irtkTransformation::Displacement(irtkGenericImage<double> &image)
+{
+	int i, j, k;
+	double x, y, z;
+
+  // Calculate displacement field
+  for (k = 0; k < image.GetZ(); k++) {
+    for (j = 0; j < image.GetY(); j++) {
+      for (i = 0; i < image.GetX(); i++) {
+        x = i;
+        y = j;
+        z = k;
+        // Transform point into world coordinates
+        image.ImageToWorld(x, y, z);
+        // Calculate displacement
+        this->Displacement(x, y, z);
+        // Store displacement
+        image(i, j, k, 0) = x;
+        image(i, j, k, 1) = y;
+        image(i, j, k, 2) = z;
+       }
+    }
   }
 }
 

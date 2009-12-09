@@ -101,6 +101,9 @@ public:
   /// Transforms a point using the local transformation component only
   virtual void LocalTransform (double &, double &, double &, double = 0) = 0;
 
+  /// Calculate displacement
+  virtual void Displacement(double &, double &, double &, double = 0) = 0;
+
   /// Calculates displacement using the global transformation component only
   virtual void GlobalDisplacement(double &, double &, double &, double = 0);
 
@@ -127,6 +130,9 @@ public:
 
   /// Calculate the determinant of the Jacobian of the global transformation
   virtual double GlobalJacobian(double, double, double, double = 0);
+
+  /// Calculate displacement vectors for image
+  virtual void Displacement(irtkGenericImage<double> &);
 
   /// Checks whether transformation is an identity mapping (abstract)
   virtual Bool IsIdentity() = 0;
