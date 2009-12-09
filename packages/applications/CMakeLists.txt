@@ -51,6 +51,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdaverage ffdaverage.cc)
     ADD_EXECUTABLE(ffdboundary ffdboundary.cc)
     ADD_EXECUTABLE(ffdcollapse ffdcollapse.cc)
+    ADD_EXECUTABLE(ffdcombine ffdcombine.cc)
     ADD_EXECUTABLE(ffdcreate ffdcreate.cc)
     ADD_EXECUTABLE(ffdedit ffdedit.cc)
     ADD_EXECUTABLE(ffdinfo ffdinfo.cc)
@@ -61,7 +62,6 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdtransform ffdtransform.cc)
     ADD_EXECUTABLE(flirt2dof flirt2dof.cc)
     ADD_EXECUTABLE(fluid fluid.cc)
-    ADD_EXECUTABLE(gradVecFlow gradVecFlow.cc)
     ADD_EXECUTABLE(hreg hreg.cc)
     ADD_EXECUTABLE(image2dof image2dof.cc)
     ADD_EXECUTABLE(jacobian jacobian.cc)
@@ -103,7 +103,7 @@ ELSE(BUILD_CONDOR_EXE)
  
 INSTALL_TARGETS(/bin approximate approximate4D areg atlas compare demons
 dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
-evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
+evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcombine ffdcreate ffdedit 
 ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
 hreg image2dof jacobian mat2dof mareg mnreg motiontrack mrreg nreg normalize 
 pareg pevaluation phreg pnreg prreg ptransformation rreg subtract sareg 
