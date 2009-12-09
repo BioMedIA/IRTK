@@ -138,11 +138,7 @@ void irtkImageFreeFormRegistration::Initialize()
   _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
 
   // Create FFD
-  if (_mffd->NumberOfLevels() == 0) {
-    _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
-  } else {
-    _affd = (irtkBSplineFreeFormTransformation *)_mffd->PopLocalTransformation();
-  }
+  _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
 
   // Initialize pointers
   _tmpImage         = NULL;
@@ -288,9 +284,9 @@ void irtkImageFreeFormRegistration::Finalize(int level)
 
       // Create new FFD
       _affd = new irtkBSplineFreeFormTransformation(*_target,
-          this->_DX / pow(2.0, this->_NumberOfLevels-level),
-          this->_DY / pow(2.0, this->_NumberOfLevels-level),
-          this->_DZ / pow(2.0, this->_NumberOfLevels-level));
+              this->_DX / pow(2.0, this->_NumberOfLevels-level),
+              this->_DY / pow(2.0, this->_NumberOfLevels-level),
+              this->_DZ / pow(2.0, this->_NumberOfLevels-level));
     }
   }
 
