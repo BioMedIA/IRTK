@@ -40,6 +40,7 @@ irtkImageFreeFormRegistration::irtkImageFreeFormRegistration()
   _DZ          = 20;
   _Subdivision = True;
   _Mode        = RegisterXYZ;
+  _MFFDMode    = True;
 }
 
 void irtkImageFreeFormRegistration::GuessParameter()
@@ -138,7 +139,15 @@ void irtkImageFreeFormRegistration::Initialize()
   _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
 
   // Create FFD
-  _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
+  if (_MFFDMode == False) {
+    if (_mffd->NumberOfLevels() == 0) {
+      _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
+    } else {
+      _affd = (irtkBSplineFreeFormTransformation *)_mffd->PopLocalTransformation();
+    }
+  } else {
+    _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
+  }
 
   // Initialize pointers
   _tmpImage         = NULL;
