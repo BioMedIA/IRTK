@@ -101,6 +101,9 @@ protected:
   /// Registration mode
   irtkImageFreeFormRegistrationMode _Mode;
 
+  /// Multilevel mode
+  Bool _MFFDMode;
+
   /// Initial set up for the registration
   virtual void Initialize();
 
@@ -197,6 +200,9 @@ public:
   // Access parameters for registration mode
   virtual SetMacro(Mode, irtkImageFreeFormRegistrationMode);
   virtual GetMacro(Mode, irtkImageFreeFormRegistrationMode);
+
+  virtual SetMacro(MFFDMode, Bool);
+  virtual GetMacro(MFFDMode, Bool);
 };
 
 inline void irtkImageFreeFormRegistration::SetOutput(irtkTransformation *transformation)
