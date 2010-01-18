@@ -198,7 +198,7 @@ void ConvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGenericIm
   DirectFFT(RealPartFilter,ImaginaryPartFilter);
   
   //2) filtering in Fourier spaces
-  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  CoefMult=(float)(sqrt((double)RealPartSignal->GetX())*sqrt((double)RealPartSignal->GetY())*sqrt((double)RealPartSignal->GetZ()));
   
   for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
     a=RealPartSignal->Get(x, y, z, 0);
@@ -226,7 +226,7 @@ void ConvolutionInFourierNoFilterTransfo(irtkGenericImage<float> * RealPartSigna
   DirectFFT(RealPartSignal,ImaginaryPartSignal);
   
   //2) filtering in Fourier spaces
-  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  CoefMult=(float)(sqrt((double)RealPartSignal->GetX())*sqrt((double)RealPartSignal->GetY())*sqrt((double)RealPartSignal->GetZ()));
   
   for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
     a=RealPartSignal->Get(x, y, z, 0);
@@ -259,7 +259,7 @@ void DeconvolutionInFourier(irtkGenericImage<float> * RealPartSignal,irtkGeneric
   DirectFFT(RealPartFilter,ImaginaryPartFilter);
   
   //2) filtering in Fourier spaces
-  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  CoefMult=(float)(sqrt((double)RealPartSignal->GetX())*sqrt((double)RealPartSignal->GetY())*sqrt((double)RealPartSignal->GetZ()));
   
   for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
     a=RealPartSignal->Get(x, y, z, 0);
@@ -290,7 +290,7 @@ void DeconvolutionInFourierNoFilterTransfo(irtkGenericImage<float> * RealPartSig
   DirectFFT(RealPartSignal,ImaginaryPartSignal);
   
   //2) filtering in Fourier spaces
-  CoefMult=(float)(sqrt(RealPartSignal->GetX())*sqrt(RealPartSignal->GetY())*sqrt(RealPartSignal->GetZ()));
+  CoefMult=(float)(sqrt((double)RealPartSignal->GetX())*sqrt((double)RealPartSignal->GetY())*sqrt((double)RealPartSignal->GetZ()));
   
   for (z = 0; z < RealPartSignal->GetZ(); z++) for (y = 0; y < RealPartSignal->GetY(); y++) for (x = 0; x < RealPartSignal->GetX(); x++){
     a=RealPartSignal->Get(x, y, z, 0);
