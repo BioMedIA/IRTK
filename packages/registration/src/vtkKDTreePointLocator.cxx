@@ -665,7 +665,7 @@ bool vtkKDTreePointLocator::SearchForClosestPoint(
         // in that node to x.
 
         int numIds = node->NodeData.t.PointIDs->GetNumberOfIds();
-        int *ids = node->NodeData.t.PointIDs->GetPointer(0);
+        int *ids = (int*) node->NodeData.t.PointIDs->GetPointer(0);
 #ifdef DEBUG
         numDrips += numIds;
 #endif

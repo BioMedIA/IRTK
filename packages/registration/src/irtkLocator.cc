@@ -24,7 +24,7 @@ irtkLocator::irtkLocator()
 int irtkLocator::FindClosestPoint(double *xyz)
 {
   if (loc_type == 0) {
-    cell_locator->FindClosestPoint(xyz, closestPoint, cell, cellId, subId,
+    cell_locator->FindClosestPoint(xyz, &closestPoint[0], cell, (vtkIdType&) cellId, subId,
                                    dist2);
     xyz[0] = closestPoint[0];
     xyz[1] = closestPoint[1];
