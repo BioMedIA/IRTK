@@ -74,6 +74,8 @@ int main(int argc, char **argv)
   erosion.SetOutput(&image);
   for (i = 0; i < iterations; i++) {
     dilation.Run();
+  } 
+  for (i = 0; i < iterations; i++) {
     erosion.Run();
   }
   cout << "done" << endl;
