@@ -219,10 +219,10 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
   }
 
   // Delete reader
-  //delete reader;
+  delete reader;
 
   // Delete image
-  //delete image;
+  delete image;
 }
 
 template <class VoxelType> void irtkGenericImage<VoxelType>::Write(const char *filename)

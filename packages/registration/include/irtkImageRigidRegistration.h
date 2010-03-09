@@ -14,7 +14,6 @@
 
 #define _IRTKIMAGERIGIDREGISTRATION_H
 
-#include <ctime>
 /**
  * Filter for rigid registration based on voxel similarity measures.
  *
@@ -29,7 +28,6 @@ class irtkImageRigidRegistration : public irtkImageRegistration
 
 protected:
 
-  double _clockAcc;
   /// Evaluate the similarity measure for a given transformation.
   virtual double Evaluate();
 

@@ -53,27 +53,7 @@ public:
   /// Evaluate similarity measure
   virtual double Evaluate();
 
-  virtual int** GetBins();
-
-  virtual void PutBins(int**);
-
-  virtual void PutNSamp(int);
-
 };
-
-inline int** irtkCrossCorrelationSimilarityMetric::GetBins()
-{
-	return NULL;
-}
-
-inline void irtkCrossCorrelationSimilarityMetric::PutBins(int** _bins)
-{
-}
-
-inline void irtkCrossCorrelationSimilarityMetric::PutNSamp(int _nsamp)
-{
-}
-
 
 inline irtkCrossCorrelationSimilarityMetric::irtkCrossCorrelationSimilarityMetric()
 {

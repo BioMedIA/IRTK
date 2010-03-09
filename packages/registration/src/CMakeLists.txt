@@ -21,7 +21,6 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkImageRegistration.h
 ../include/irtkImageRigidRegistration2D.h
 ../include/irtkImageRigidRegistration.h
-../include/irtkImageRigidRegistrationGPU.h
 ../include/irtkJointEntropySimilarityMetric.h
 ../include/irtkKappaSimilarityMetric.h
 ../include/irtkLabelConsistencySimilarityMetric.h
@@ -63,7 +62,6 @@ SET(REGISTRATION_INCLUDES
 ../include/vtkKDTreePointLocator.h)
 
 SET(REGISTRATION_SRCS 
-rigidRegistrationGPU.cu
 irtkConjugateGradientDescentOptimizer.cc
 irtkDemonsRegistration.cc
 irtkDownhillDescentOptimizer.cc
@@ -78,7 +76,6 @@ irtkImageFluidRegistration2D.cc
 irtkImageRegistration.cc
 irtkImageRigidRegistration.cc
 irtkImageRigidRegistration2D.cc
-irtkImageRigidRegistrationGPU.cc
 irtkGenericHistogramSimilarityMetric.cc
 irtkGradientDescentConstrainedOptimizer.cc
 irtkGradientDescentOptimizer.cc

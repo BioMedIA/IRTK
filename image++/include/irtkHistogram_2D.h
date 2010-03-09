@@ -73,12 +73,6 @@ public:
   /// Clear and copy histogram
   void Reset(const irtkHistogram_2D &);
 
-  int ** GetBins() const;
-
-  void PutBins(int**);
-
-  void PutNSamp(int);
-
   /// Get number of bins in x-direction
   int  GetNumberOfBinsX() const;
 

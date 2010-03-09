@@ -55,11 +55,6 @@ public:
   /// Evaluate similarity measure
   virtual double Evaluate() = 0;
 
-  virtual int** GetBins() = 0;
-
-  virtual void PutBins(int**) = 0;
-
-  virtual void PutNSamp(int) = 0;
 };
 
 inline irtkSimilarityMetric::irtkSimilarityMetric()
@@ -74,7 +69,6 @@ inline irtkSimilarityMetric::~irtkSimilarityMetric()
 #include <irtkCrossCorrelationSimilarityMetric.h>
 #include <irtkMLSimilarityMetric.h>
 #include <irtkHistogramSimilarityMetric.h>
-
 
 inline irtkSimilarityMetric *irtkSimilarityMetric::New(irtkSimilarityMetric *metric)
 {
