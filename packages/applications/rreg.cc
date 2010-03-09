@@ -11,6 +11,8 @@
 =========================================================================*/
 
 #include <irtkRegistration.h>
+#include <time.h>
+
 
 // Default filenames
 char *source_name = NULL, *target_name = NULL;
@@ -91,6 +93,7 @@ int main(int argc, char **argv)
 
   // Create registration
   irtkImageRegistration *registration;
+  irtkImageRegistration *registrationGPU;
 
   // Create registration filter
   if ((target.GetZ() == 1) && (source.GetZ() == 1)) {
@@ -111,6 +114,7 @@ int main(int argc, char **argv)
 
     // Registration is 3D
     registration = new irtkImageRigidRegistration;
+	registrationGPU = new irtkImageRigidRegistrationGPU;
 
   }
 
@@ -407,24 +411,47 @@ int main(int argc, char **argv)
   registration->SetInput(&target, &source);
   registration->SetOutput(transformation);
 
+  registrationGPU->SetInput(&target, &source);
+  registrationGPU->SetOutput(transformation);
+
   // Read parameter if there any, otherwise make an intelligent guess
   if (parin_name != NULL) {
     registration->irtkImageRegistration::Read(parin_name);
+	registrationGPU->irtkImageRegistration::Read(parin_name);
   } else {
     registration->GuessParameter();
+	registrationGPU->GuessParameter();
   }
 
   if (padding != MIN_GREY) {
     registration->SetTargetPadding(padding);
+	registrationGPU->SetTargetPadding(padding);
   }
 
   // Write parameters if necessary
   if (parout_name != NULL) {
     registration->irtkImageRegistration::Write(parout_name);
+	registrationGPU->irtkImageRegistration::Write(parout_name);
   }
 
+   time_t start,end;
+  char szInput [256];
+  double dif;
+
+  time (&start);
+//   registration->Run();
+  time (&end);
+  dif = difftime (end,start);
+  printf ("Reg took %.2lf seconds to run.\n", dif );
+//	system("pause");
+
+   time (&start);
   // Run registration filter
-  registration->Run();
+  registrationGPU->Run();
+  time (&end);
+  dif = difftime (end,start);
+  printf ("GPU Accelerated took %.2lf seconds to run.\n", dif );
+system("pause");
 
   // Write the final transformation estimate
   if (dofout_name != NULL) {

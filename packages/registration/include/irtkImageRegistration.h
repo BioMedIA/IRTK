@@ -225,6 +225,7 @@ inline void irtkImageRegistration::Debug(string message)
 }
 
 #include <irtkImageRigidRegistration.h>
+#include <irtkImageRigidRegistrationGPU.h>
 #include <irtkImageAffineRegistration.h>
 #include <irtkImageFreeFormRegistration.h>
 #include <irtkImageFluidRegistration.h>

@@ -59,7 +59,26 @@ public:
   /// Evaluate similarity measure
   virtual double Evaluate();
 
+  virtual int** GetBins();
+
+  virtual void PutBins(int**);
+
+  virtual void PutNSamp(int);
 };
+
+inline int** irtkMLSimilarityMetric::GetBins()
+{
+	return NULL;
+}
+
+inline void irtkMLSimilarityMetric::PutBins(int** _bins)
+{
+}
+
+inline void irtkMLSimilarityMetric::PutNSamp(int _nsamp)
+{
+}
+
 
 inline irtkMLSimilarityMetric::irtkMLSimilarityMetric(irtkEMClassification *classification)
 {

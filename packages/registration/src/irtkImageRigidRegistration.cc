@@ -16,6 +16,8 @@
 
 #include <irtkMultiThreadedImageRigidRegistration.h>
 
+#include <ctime>
+
 void irtkImageRigidRegistration::GuessParameter()
 {
   int i;
@@ -92,6 +94,7 @@ void irtkImageRigidRegistration::Initialize()
 {
   // Call base class
   this->irtkImageRegistration::Initialize();
+  
 
   // Invert rigid transformation (to be backwards compatible)
   ((irtkRigidTransformation *)_transformation)->Invert();
@@ -110,6 +113,9 @@ void irtkImageRigidRegistration::Finalize()
 
 double irtkImageRigidRegistration::Evaluate()
 {
+
+	if (_clockAcc < 0) _clockAcc = 0;
+	std::clock_t start = std::clock();
 
 #ifndef HAS_TBB
   int i, j, k, t;
@@ -139,6 +145,7 @@ double irtkImageRigidRegistration::Evaluate()
   parallel_reduce(blocked_range<int>(0, _target->GetZ(), 20), evaluate);
 #else
 
+  
   for (t = 0; t < _target->GetT(); t++) {
 
     // Initialize iterator
@@ -155,6 +162,9 @@ double irtkImageRigidRegistration::Evaluate()
                 (iterator._y > _source_y1) && (iterator._y < _source_y2) &&
                 (iterator._z > _source_z1) && (iterator._z < _source_z2)) {
               // Add sample to metric
+					//float test = _interpolator->EvaluateInside(i,j,k, t)/ 32767;
+					//int test = *(_source->GetPointerToVoxels(i,j,k));
+					//printf("x: %d y: %d z: %d val: %d\n",i,j,k,test);
               _metric->Add(*ptr2target, round(_interpolator->EvaluateInside(iterator._x, iterator._y, iterator._z, t)));
             }
             iterator.NextX();
@@ -175,9 +185,13 @@ double irtkImageRigidRegistration::Evaluate()
 #endif
 
 
+
   // Invert transformation
   ((irtkRigidTransformation *)_transformation)->Invert();
 
+  std::cout<< ( ( std::clock() - start ) / (double)CLOCKS_PER_SEC ) <<'\n';
+  _clockAcc += (( std::clock() - start ) / (double)CLOCKS_PER_SEC);
+	std::cout<< ( _clockAcc ) <<'\n';
   // Evaluate similarity measure
   return _metric->Evaluate();
 }

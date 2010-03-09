@@ -53,7 +53,34 @@ public:
   /// Evaluate similarity measure
   virtual double Evaluate();
 
+  virtual int** GetBins();
+
+  virtual void PutBins(int**);
+
+  virtual void PutNSamp(int);
+
+  virtual void PutSSDVal(int);
 };
+
+inline int** irtkSSDSimilarityMetric::GetBins()
+{
+	return NULL;
+}
+
+inline void irtkSSDSimilarityMetric::PutBins(int** _bins)
+{
+	_ssd = **_bins;
+}
+
+inline void irtkSSDSimilarityMetric::PutNSamp(int _nsamp)
+{
+	_n = _nsamp;
+}
+
+inline void irtkSSDSimilarityMetric::PutSSDVal(int ssd)
+{
+	_ssd = ssd;
+}
 
 inline irtkSSDSimilarityMetric::irtkSSDSimilarityMetric()
 {

@@ -53,6 +53,12 @@ public:
   /// Reset similarity metric
   virtual void Reset(irtkSimilarityMetric *);
 
+  virtual int** GetBins();
+
+  virtual void PutBins(int**);
+
+  virtual void PutNSamp(int);
+
   /// Return number of bins in X
   int NumberOfBinsX();
 
@@ -106,6 +112,21 @@ inline void irtkHistogramSimilarityMetric::Combine(irtkSimilarityMetric *metric)
 inline void irtkHistogramSimilarityMetric::Reset()
 {
   _histogram->Reset();
+}
+
+inline int** irtkHistogramSimilarityMetric::GetBins()
+{
+	return _histogram->GetBins();
+}
+
+inline void irtkHistogramSimilarityMetric::PutBins(int** _bins)
+{
+	_histogram->PutBins(_bins);
+}
+
+inline void irtkHistogramSimilarityMetric::PutNSamp(int _nsamp)
+{
+	_histogram->PutNSamp(_nsamp);
 }
 
 inline void irtkHistogramSimilarityMetric::Reset(irtkSimilarityMetric *metric)

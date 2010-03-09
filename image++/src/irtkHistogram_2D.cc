@@ -144,6 +144,22 @@ void irtkHistogram_2D::Reset(const irtkHistogram_2D &h)
     }
   }
 }
+
+int ** irtkHistogram_2D::GetBins() const
+{
+	return _bins;
+}
+
+void irtkHistogram_2D::PutBins(int** bins)
+{
+	_bins = bins;
+}
+
+void irtkHistogram_2D::PutNSamp(int nsamp)
+{
+	_nsamp = nsamp;
+}
+
 void irtkHistogram_2D::PutMin(double min_x, double min_y)
 {
   _min_x = min_x;
