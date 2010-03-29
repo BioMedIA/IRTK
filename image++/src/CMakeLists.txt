@@ -32,6 +32,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkGenericImage.h
 ../include/irtkGIPL.h
 ../include/irtkGradientImage.h
+../include/irtkGradientImageFilter.h
 ../include/irtkGradientImageX.h
 ../include/irtkGradientImageY.h
 ../include/irtkGradientImageZ.h
@@ -107,6 +108,7 @@ irtkGaussianInterpolateImageFunction2D.cc
 irtkGaussianNoise.cc
 irtkGaussianNoiseWithPadding.cc
 irtkGenericImage.cc
+irtkGradientImageFilter.cc
 irtkGradientImage.cc
 irtkGradientImageX.cc
 irtkGradientImageY.cc
