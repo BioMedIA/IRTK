@@ -152,7 +152,7 @@ void irtkImageHomogeneousTransformation::Run()
   // Loop over all voxels in the output (reference) volume
   for (l = 0; l < this->_output->GetT(); l++) {
     int t = round(this->_input->TimeToImage(this->_output->ImageToTime(l)));
-    if ((t >= 0) || (t < this->_input->GetT())) {
+    if ((t >= 0) && (t < this->_input->GetT())) {
 
 #ifdef HAS_TBB
       parallel_for(blocked_range<int>(0, this->_output->GetZ(), 1), irtkMultiThreadedImageHomogeneousTransformation(this, l, t));

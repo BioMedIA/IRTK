@@ -144,7 +144,7 @@ void irtkImageTransformation2::Run()
   for (l = 0; l < _output->GetT(); l++) {
     t = round(this->_input->TimeToImage(this->_output->ImageToTime(l)));
 
-    if ((t >= 0) || (t < this->_input->GetT())) {
+    if ((t >= 0) && (t < this->_input->GetT())) {
 
       // Calculate time
       double time = this->_output->ImageToTime(l);
