@@ -39,13 +39,13 @@ template <class VoxelType> class irtkImageToImage : public irtkObject
 
 private:
 
-  /// Buffer
-  irtkGenericImage<VoxelType> *_tmp;
-
   /// Debugging flag
   Bool _DebugFlag;
 
 protected:
+
+  /// Buffer
+  irtkGenericImage<VoxelType> *_tmp;
 
   /// Input image for filter
   irtkGenericImage<VoxelType> *_input;
