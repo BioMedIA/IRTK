@@ -85,10 +85,13 @@ public:
   virtual void MStep();
 
   /// Estimates posterior probabilities
-  virtual void EStepGMM();
+  virtual void EStepGMM(bool uniform_prior = false);
 
-  /// Estimates parameters
-  virtual void MStepGMM();
+  /// Estimates parameters in GMM
+  virtual void MStepGMM(bool uniform_prior = false);
+
+  /// Estimates parameters in GMM with equal variance
+  virtual void MStepVarGMM(bool uniform_prior = false);
 
   /// Computes log likelihood for current parameters
   virtual double LogLikelihood();
@@ -124,7 +127,10 @@ public:
   /// Initialize filter
   virtual void InitialiseGMM();
 
-  /// Initialize atlas if GMM parameters were given first
+  /// Initialize posteriors if GMM parameters were given first
+  void InitialisePosteriors();
+
+  /// Initialize atlas if no probability maps were given
   void InitialiseAtlas();
 
   /// Initialize Gaussian Mixture Parameters and calculate initial posteriors
@@ -140,7 +146,7 @@ public:
   virtual double Iterate(int iteration);
 
   /// Execute one iteration and return log likelihood
-  virtual double IterateGMM(int iteration);
+  virtual double IterateGMM(int iteration, bool equal_var = false, bool uniform_prior = false);
 
   /// Construct segmentation based on current posterior probabilities
   virtual void ConstructSegmentation(irtkRealImage &);
@@ -175,6 +181,7 @@ public:
 
   void InitialiseGMMParameters3();
   void InitialiseGMMParameters(int n);
+  void UniformPrior();
 
 
 

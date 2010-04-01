@@ -124,7 +124,7 @@ void irtkEMClassification::InitialiseGMM()
 }
 
 
-void irtkEMClassification::InitialiseAtlas()
+void irtkEMClassification::InitialisePosteriors()
 {
   int i;
 
@@ -150,6 +150,51 @@ void irtkEMClassification::InitialiseAtlas()
   }
   EStepGMM();
 
+}
+
+void irtkEMClassification::InitialiseAtlas()
+{
+  int i;
+
+  if (_number_of_tissues == 0) {
+    cerr<<"Can't initialize atlas, no tissues given"<<endl;
+    exit(1);
+  }
+
+  if (_number_of_voxels == 0) {
+    cerr<<"Can't initialize atlas, no input given"<<endl;
+    exit(1);
+  }
+
+  if (_output.GetNumberOfTissues() == 0) {
+    cerr<<"Initializing atlas ...";
+    for (i = 0; i < _number_of_tissues; i++) _atlas.AddImage(_input);
+    cerr<<" done."<<endl;
+  } else {
+    if (_output.GetNumberOfTissues()!=_number_of_tissues) {
+      cerr<<"Error: Number of tissues mismatch:"<<_output.GetNumberOfTissues()<<endl;
+      exit(1);
+    }
+  }
+  EStepGMM();
+
+}
+
+void irtkEMClassification::UniformPrior()
+{
+  int i, k;
+  
+  _atlas.First();
+  irtkRealPixel *pm = _mask.GetPointerToVoxels();
+  for (i=0; i< _input.GetNumberOfVoxels(); i++) {
+    if (*pm == 1) {
+      for (k = 0; k < _number_of_tissues; k++) {
+        _atlas.SetValue(k,1.0/_number_of_tissues);
+        }
+      }
+      pm++;
+      _atlas.Next();
+    }
 }
 
 void irtkEMClassification::InitialiseGMMParameters3()
@@ -225,7 +270,7 @@ void irtkEMClassification::InitialiseGMMParameters(int n, double *m, double *s, 
   }
 
   PrintGMM();
-  InitialiseAtlas();
+  InitialisePosteriors();
 
 }
 
@@ -432,7 +477,7 @@ void irtkEMClassification::BrainmaskInput()
   _input.Write("_i.nii.gz");
 }
 
-void irtkEMClassification::MStepGMM()
+void irtkEMClassification::MStepGMM(bool uniform_prior)
 {
   int i, k;
   vector<double> mi_num(_number_of_tissues);
@@ -481,7 +526,8 @@ void irtkEMClassification::MStepGMM()
       cerr <<"Tissue "<< k <<": Division by zero while computing tissue mean!" << endl;
       exit(1);
     }
-    _c[k]=denom[k]/num_vox[k];
+     if (uniform_prior) _c[k]=1.0/_number_of_tissues;
+     else _c[k]=denom[k]/num_vox[k];
   }
 
   _output.First();
@@ -505,7 +551,85 @@ void irtkEMClassification::MStepGMM()
   }
 }
 
-void irtkEMClassification::EStepGMM()
+void irtkEMClassification::MStepVarGMM(bool uniform_prior)
+{
+  int i, k;
+  vector<double> mi_num(_number_of_tissues);
+  double sigma_num;
+  vector<double> denom(_number_of_tissues);
+  vector<double> num_vox(_number_of_tissues);
+
+  for (k = 0; k < _number_of_tissues; k++) {
+    mi_num[k] = 0;
+  }
+
+    sigma_num = 0;
+
+  for (k = 0; k < _number_of_tissues; k++) {
+    denom[k] = 0;
+  }
+
+  for (k = 0; k < _number_of_tissues; k++) {
+    num_vox[k] = 0;
+  }
+
+
+  _output.First();
+  irtkRealPixel *ptr = _input.GetPointerToVoxels();
+  irtkRealPixel *pm = _mask.GetPointerToVoxels();
+
+  for (i = 0; i < _input.GetNumberOfVoxels(); i++) {
+    // Check for backgound
+    if (*pm == 1) {
+      for (k = 0; k < _number_of_tissues; k++) {
+        mi_num[k] += _output.GetValue(k) * *ptr;
+        denom[k]  += _output.GetValue(k);
+        num_vox[k]+= 1;
+      }
+    }
+    ptr++;
+    pm++;
+    _output.Next();
+  }
+
+
+  for (k = 0; k < _number_of_tissues; k++) {
+    if (denom[k] != 0) {
+      _mi[k] = mi_num[k] / denom[k];
+    } else {
+      cerr << "Division by zero while computing tissue mean!" << endl;
+      //exit(1);
+    }
+     if (uniform_prior) _c[k]=1.0/_number_of_tissues;
+     else _c[k]=denom[k]/num_vox[k];
+  }
+
+  _output.First();
+  ptr = _input.GetPointerToVoxels();
+  pm = _mask.GetPointerToVoxels();
+
+  for (i = 0; i < _input.GetNumberOfVoxels(); i++) {
+    // Check for backgound
+    if (*pm == 1) {
+      for (k = 0; k <_number_of_tissues; k++) {
+        sigma_num += (_output.GetValue(k) * (*ptr - _mi[k]) * (*ptr - _mi[k]));
+      }
+    }
+    ptr++;
+    pm++;
+    _output.Next();
+  }
+
+  double sum =0;
+  for (k = 0; k <_number_of_tissues; k++) sum += denom[k];
+  for (k = 0; k <_number_of_tissues; k++) {
+    if (sum>0) _sigma[k] = sigma_num / sum;
+  }
+}
+
+
+
+void irtkEMClassification::EStepGMM(bool uniform_prior)
 {
   int i, k;
   double x;
@@ -528,7 +652,7 @@ void irtkEMClassification::EStepGMM()
       for (k = 0; k < _number_of_tissues; k++) {
         temp = G[k].Evaluate(x);
         gv[k] = temp;
-        temp = temp * _c[k];
+        if (!uniform_prior) temp = temp * _c[k];
         numerator[k] = temp;
         denominator += temp;
       }
@@ -599,10 +723,11 @@ double irtkEMClassification::Iterate(int iteration)
   return LogLikelihood();
 }
 
-double irtkEMClassification::IterateGMM(int iteration)
+double irtkEMClassification::IterateGMM(int iteration, bool equal_var, bool uniform_prior)
 {
   if (iteration > 1) this->EStepGMM();
-  this->MStepGMM();
+  if (equal_var) this->MStepVarGMM(uniform_prior);
+  else this->MStepGMM(uniform_prior);
   PrintGMM();
 
   return LogLikelihoodGMM();

@@ -27,6 +27,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(emsbc emsbc.cc)
     ADD_EXECUTABLE(gmm gmm.cc)
     ADD_EXECUTABLE(gmm-par gmm-par.cc)
+    ADD_EXECUTABLE(gmm-pv-par gmm-pv-par.cc)
     ADD_EXECUTABLE(ems_hard_segmentation hard_segmentation.cc)
     ADD_EXECUTABLE(enlarge_image enlarge_image.cc)
 

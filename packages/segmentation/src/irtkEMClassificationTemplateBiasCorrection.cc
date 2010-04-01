@@ -196,7 +196,7 @@ void irtkEMClassificationTemplateBiasCorrection::Initialise(bool nomatch)
   SetInput(_uncorrected);
   InitialiseGMMParameters();
   PrintGMM();
-  InitialiseAtlas();
+  InitialisePosteriors();
   LogLikelihoodGMM();
 }
 
