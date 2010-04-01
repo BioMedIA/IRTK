@@ -138,7 +138,7 @@ inline void irtkProbabilisticAtlas::SetValue(unsigned int channel, irtkRealPixel
 {
   if ((channel >= 0) && (channel < _images.size())) *_pointers[channel] = value;
   else {
-    cerr << "Channel identificator out of range." <<endl;
+    cerr << "Channel identificator " << channel << " out of range." <<endl;
     exit(1);
   }
 }
