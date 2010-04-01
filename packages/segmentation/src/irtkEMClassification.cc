@@ -166,12 +166,12 @@ void irtkEMClassification::InitialiseAtlas()
     exit(1);
   }
 
-  if (_output.GetNumberOfTissues() == 0) {
+  if (_atlas.GetNumberOfTissues() == 0) {
     cerr<<"Initializing atlas ...";
     for (i = 0; i < _number_of_tissues; i++) _atlas.AddImage(_input);
     cerr<<" done."<<endl;
   } else {
-    if (_output.GetNumberOfTissues()!=_number_of_tissues) {
+    if (_atlas.GetNumberOfTissues()!=_number_of_tissues) {
       cerr<<"Error: Number of tissues mismatch:"<<_output.GetNumberOfTissues()<<endl;
       exit(1);
     }
