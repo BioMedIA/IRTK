@@ -1835,8 +1835,8 @@ void irtkRView::ReadTransformation(char *name) {
 		} else {
 			_sourceTransformFilter[i]->InvertOff();
 		}
-
 	}
+	this->Initialize();
 }
 
 void irtkRView::WriteTransformation(char *name) {
