@@ -62,14 +62,14 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(voxelsize voxelsize.cc)
     ADD_EXECUTABLE(histogram histogram.cc)
     ADD_EXECUTABLE(sbig  sbig.cc)	
-    ADD_EXECUTABLE(AnisoDiff AnisoDiff.cc)
+    ADD_EXECUTABLE(anisoDiff AnisoDiff.cc)
     
   ENDIF (BUILD_MPI_EXE)
 
 INSTALL_TARGETS(/bin binarize blur closing convert dilation
 dicom2image dmap edgedetect erosion flip giplmagic headertool info lcc
 lcc_iterative makesequence makevolume mcubes msample noise opening padding 
-raw2image reflect region resample threshold voxelsize histogram sbig AnisoDiff)
+raw2image reflect region resample threshold voxelsize histogram sbig anisoDiff)
 
 ENDIF (BUILD_CONDOR_EXE)
 
