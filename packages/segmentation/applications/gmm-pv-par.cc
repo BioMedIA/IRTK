@@ -25,6 +25,15 @@ bool equal_variance = false;
 bool uniform_prior = false;
 bool uniform_prior_last_iter = false;
 bool pv_post = false;
+bool first = true;
+
+bool debug=false;
+
+// specific parameters for neonatal segmentation
+irtkGreyImage * non_brain = NULL;
+irtkGreyImage * smask = NULL;
+double lcc_treshold = 0.5;
+
 
 void usage()
 {
@@ -38,7 +47,7 @@ void usage()
   cerr<<" -stdev_equal  ...  variances (s1 ... sn) are fixed to be equal for all classes"<< endl;
   cerr<<" -uniform_prior ... mixing proportions (c1 ... cn) are fixed to be equal"<< endl;
   cerr<<" -uniform_prior_last_iter ... only last iteration is calculated with uniform priors"<< endl;
-  cerr<<" -pv_postprocess ... GMM fitting is followed by removal of partial volume misclassifications"<< endl;
+  cerr<<" -pv_neonatal ... GMM fitting is followed by removal of partial volume misclassifications"<< endl;
   cerr<<"       under construction ..."<< endl;
   cerr<<""<< endl;
   exit(1);
@@ -177,12 +186,47 @@ int main(int argc, char **argv)
       argv++;
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-pv_postprocess") == 0)) {
+    if ((ok == False) && (strcmp(argv[1], "-pv_neonatal") == 0)) {
       argc--;
       argv++;
       pv_post=true;
       ok = True;
     }
+    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+      argc--;
+      argv++;
+      debug=true;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-lcc_treshold") == 0)) {
+      argc--;
+      argv++;
+      lcc_treshold = atof(argv[1]);
+      argc--;
+      argv++;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-subcortical_mask") == 0)) {
+      argc--;
+      argv++;
+      cerr<<"Reading subcortical mask: "<<argv[1]<<endl;
+      smask = new irtkGreyImage;
+      smask->Read(argv[1]);
+      argc--;
+      argv++;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-non_brain") == 0)) {
+      argc--;
+      argv++;
+      non_brain = new irtkGreyImage;
+      non_brain->Read(argv[1]);
+      argc--;
+      argv++;
+      ok = True;
+    }
+
+
     if (ok == False) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -191,6 +235,7 @@ int main(int argc, char **argv)
 
   //Initialise
   irtkEMClassification classification;
+  classification.SetDebugFlag(debug);
   classification.SetInput(image);
   classification.SetPadding(padding);
   classification.CreateMask();
@@ -210,15 +255,38 @@ int main(int argc, char **argv)
     classification.EStepGMM(true);
 
   classification.WriteGaussianParameters("parameters.txt");
-
-  irtkRealImage segmentation;
-  classification.ConstructSegmentationNoBG(segmentation);
-  segmentation.Write(output_name);
+  classification.ConstructSegmentation();
+  classification.WriteSegmentation("segGMM.nii.gz");
   
   if(pv_post)
   {
     classification.InitialiseAtlas();
+    classification.InitialisePVSegmentation();
     classification.UniformPrior();
+
+
+     i=0;
+     cerr<<"Iteration "<<i+1<<": ";
+     while ((i<iterations)&&(classification.PVStep(3,4,2,5,1,lcc_treshold,first,non_brain)))
+   {
+     cerr<<"Iteration "<<i+2<<": ";
+     first = false;
+     if (debug)
+     {
+       char name[100];
+       sprintf(name, "seg%d.nii.gz",i+10);
+       classification.WriteSegmentation(name);
+     }
+     i++;
+   }
+    classification.WriteSegmentation("seg-post.nii.gz");
+    classification.ConstructSegmentationBrainNonBrain(3,4,2,5,1,smask);
+    classification.WriteSegmentation(output_name);
+    classification.WritePVProbMap(0,"bg.nii.gz");
+    classification.WritePVProbMap(1,"cortex.nii.gz");
+    classification.WritePVProbMap(2,"wm1.nii.gz");
+    classification.WritePVProbMap(3,"wm2.nii.gz");
+    classification.WritePVProbMap(4,"csf.nii.gz");
   }
 }
 

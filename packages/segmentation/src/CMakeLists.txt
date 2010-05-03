@@ -9,6 +9,7 @@ irtkEMClassificationTemplateBiasCorrection.cc
 irtkGaussian.cc
 irtkIntensityMatching.cc
 irtkMultiChannelImage.cc
+irtkMeanShift.cc
 irtkProbabilisticAtlas.cc)
 
 ADD_LIBRARY(segmentation++ ${SEGMENTATION_SRCS})

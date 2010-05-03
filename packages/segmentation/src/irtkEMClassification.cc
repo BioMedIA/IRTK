@@ -18,6 +18,9 @@
 
 #include <irtkHistogram.h>
 
+#include <irtkMeanShift.h>
+
+
 
 irtkEMClassification::irtkEMClassification()
 {
@@ -29,6 +32,7 @@ irtkEMClassification::irtkEMClassification()
   _G = NULL;
   _number_of_voxels = 0;
   _background_tissue = -1;
+  _debug = false;
 
 }
 
@@ -56,6 +60,7 @@ irtkEMClassification::irtkEMClassification(int noTissues, irtkRealImage **atlas,
   _f = 0;
   _number_of_voxels = 0;
   _G = NULL;
+  _debug = false;
 }
 
 irtkEMClassification::irtkEMClassification(int noTissues, irtkRealImage **atlas)
@@ -74,6 +79,7 @@ irtkEMClassification::irtkEMClassification(int noTissues, irtkRealImage **atlas)
   _f = 0;
   _G = NULL;
   _background_tissue = -1;
+  _debug = false;
 }
 
 irtkEMClassification::~irtkEMClassification()
@@ -149,6 +155,35 @@ void irtkEMClassification::InitialisePosteriors()
     }
   }
   EStepGMM();
+
+}
+
+void irtkEMClassification::InitialisePVSegmentation()
+{
+  int i;
+
+  if (_number_of_tissues == 0) {
+    cerr<<"Can't initialize atlas, no tissues given"<<endl;
+    exit(1);
+  }
+
+  if (_number_of_voxels == 0) {
+    cerr<<"Can't initialize atlas, no input given"<<endl;
+    exit(1);
+  }
+
+  if (_pv_output.GetNumberOfTissues() == 0) {
+    cerr<<"Initializing PV ...";
+    for (i = 0; i < _number_of_tissues; i++) _pv_output.AddImage(_input);
+    cerr<<" done."<<endl;
+  } else {
+/*
+    if (_output.GetNumberOfTissues()!=_number_of_tissues) {
+      cerr<<"Error: Number of tissues mismatch:"<<_output.GetNumberOfTissues()<<endl;
+      exit(1);
+    }
+*/   cerr<<"Warning: Attempt to initialise PV segmentation. Current number of tissues: "<<_pv_output.GetNumberOfTissues()<<endl;
+  }
 
 }
 
@@ -879,13 +914,7 @@ void irtkEMClassification::ConstructSegmentationWithPadding(irtkRealImage &segme
   irtkRealPixel *ptr;
 
   cerr<<"Constructing segmentation with Padding"<<endl;
-  /*  if (_number_of_tissues != 3)
-    {
-      cerr<<"Expects 3 tissue classes."<<endl;
-      return;
-    }
-  */
-  // Initialize pointers of probability maps
+   // Initialize pointers of probability maps
   _output.First();
 
   // Initialize segmentation to same size as input
@@ -907,6 +936,72 @@ void irtkEMClassification::ConstructSegmentationWithPadding(irtkRealImage &segme
     } else *ptr=_padding;
     ptr++;
     _output.Next();
+  }
+}
+
+void irtkEMClassification::ConstructSegmentation()
+{
+  int i, j;
+  double max;
+  irtkRealPixel *ptr;
+
+  cerr<<"Constructing segmentation with Padding"<<endl;
+   // Initialize pointers of probability maps
+  _output.First();
+
+  // Initialize segmentation to same size as input
+  _segmentation = _input;
+  ptr = _segmentation.GetPointerToVoxels();
+
+  for (i = 0; i < _input.GetNumberOfVoxels(); i++) {
+
+    if (*ptr != _padding) {
+      max  = 0;
+      *ptr = 0;
+      for (j = 0; j < _number_of_tissues; j++) {
+        if (_output.GetValue(j) > max) {
+          max  = _output.GetValue(j);
+          *ptr = j+1;
+          //if ( (j+1) == _number_of_tissues) *ptr=0;
+        }
+      }
+    } else *ptr=_padding;
+    ptr++;
+    _output.Next();
+  }
+}
+
+void irtkEMClassification::ConstructSegmentationFromPV()
+{
+  int i, j,k;
+  double max;
+  irtkRealPixel *ptr,*ptrm;
+
+  if (_debug) cerr<<"Updating segmentation with PV"<<endl;
+
+  // Initialize pointers of probability maps
+  _output.First();
+  _pv_output.First();
+  ptr = _segmentation.GetPointerToVoxels();
+  ptrm = _mask.GetPointerToVoxels();
+
+
+  for (i = 0; i < _input.GetNumberOfVoxels(); i++) 
+  {
+    if (*ptrm>_padding) 
+    {
+      max  = 0;
+      *ptr = 0;
+      for (j = 0; j < _number_of_tissues; j++) 
+        if (_pv_output.GetValue(j) > max) 
+        {
+          max  = _pv_output.GetValue(j);
+          *ptr = j+1;
+        }
+    }
+    ptr++;
+    ptrm++;
+    _pv_output.Next();
   }
 }
 
@@ -1045,4 +1140,554 @@ void irtkEMClassification::GInit()
   }
 }
 
+bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, double lcc_treshold, bool first, irtkGreyImage * eyes)
+{
+  int i,j,k,l,n;
+  int labelId[5], labelCount[4], nonBrainCount;
+  double lambda = 0, wm1Prior,wm2Prior,cortexPrior,csfPrior,wm1New,wm2New,cortexNew,csfNew,backgroundPrior,backgroundNew, bgPrior;
+  bool reduceWM = 0, reduceGM = 0, reduceCSF = 0;
+  int increaseBG = 0;
+  bool change=true;
+  int offset[26][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1},{1,1,0},{1,0,1},{0,1,1},{1,-1,0},{1,0,-1},{0,1,-1},{-1,1,0},{-1,0,1},{0,-1,1},{-1,-1,0},{-1,0,-1},{0,-1,-1},{1,1,1},{1,1,-1},{1,-1,1},{-1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
+  int neighbour_num = 26;
+  double PVtissues[10];
+
+
+  cerr<<"PVStep ... ";//<<endl;
+
+  labelId[0]=wm1Label;
+  labelId[1]=cortexLabel;
+  labelId[2]=csfLabel;
+  labelId[3]=backgroundLabel;
+  labelId[4]=wm2Label;
+
+  if (first)
+  {
+    if (_debug) cerr<<"First iteration."<<endl;
+    _brain = _mask;
+    irtkGreyImage bg(_segmentation);
+    irtkMeanShift mshbg(bg);
+    mshbg.SetOutput(&bg);
+    mshbg.Lcc(1);
+    bg.Write("bglcc.nii.gz");
+    for(k=0;k<_segmentation.GetZ();k++)
+      for(j=0;j<_segmentation.GetY();j++)
+        for(i=0;i<_segmentation.GetX();i++)
+        {
+          if ( _segmentation.Get(i,j,k)==csfLabel)
+          {
+            _atlas.SetValue(i,j,k,backgroundLabel-1,0);
+            _atlas.SetValue(i,j,k,cortexLabel-1,0);
+            _atlas.SetValue(i,j,k,wm1Label-1,0);
+            _atlas.SetValue(i,j,k,wm2Label-1,0);
+            _atlas.SetValue(i,j,k,csfLabel-1,1);
+            _brain.Put(i,j,k,0);
+          }
+          if (( _segmentation.Get(i,j,k)==backgroundLabel)&&(bg.Get(i,j,k)==1))
+          {
+            _atlas.SetValue(i,j,k,backgroundLabel-1,1);
+            _atlas.SetValue(i,j,k,cortexLabel-1,0);
+            _atlas.SetValue(i,j,k,wm1Label-1,0);
+            _atlas.SetValue(i,j,k,wm2Label-1,0);
+            _atlas.SetValue(i,j,k,csfLabel-1,0);
+            _brain.Put(i,j,k,0);
+          }
+       }
+       if (_debug) _brain.Write("brain1.nii.gz");
+  }
+  
+
+  //largest connected component on WM, brain (WM and GM) and background
+  irtkGreyImage wm(_segmentation);
+  irtkGreyImage gm(_segmentation);
+  for(k=0;k<_segmentation.GetZ();k++)
+    for(j=0;j<_segmentation.GetY();j++)
+      for(i=0;i<_segmentation.GetX();i++)
+        if (( _segmentation.Get(i,j,k)==wm1Label)||( _segmentation.Get(i,j,k) == wm2Label )) 
+        {
+          wm.Put(i,j,k,1);
+          gm.Put(i,j,k,1);
+        }
+        else 
+        {
+          wm.Put(i,j,k,0);
+          if ( _segmentation.Get(i,j,k)==cortexLabel) gm.Put(i,j,k,1);
+          else gm.Put(i,j,k,0);
+        }
+ 
+   irtkDilation<irtkGreyPixel> dilation;
+   irtkErosion<irtkGreyPixel> erosion;
+
+
+   if (_debug) wm.Write("wm.nii.gz");
+   irtkMeanShift msh(wm);
+   irtkGreyImage wmlcc(wm);
+   msh.SetOutput(&wmlcc);
+   msh.LccS(1, lcc_treshold);
+   if (_debug) wmlcc.Write("wm-lcc.nii.gz");
+
+   irtkGreyImage gmlcc(gm);
+   if (_debug) gm.Write("gm2.nii.gz");
+   erosion.SetInput(&gm);
+   erosion.SetOutput(&gm);
+   erosion.Run();
+   if (_debug) gm.Write("gm-e-lcc.nii.gz");
+   irtkMeanShift msh2(gm);
+   msh2.SetOutput(&gmlcc);
+   msh2.Lcc(1);
+   dilation.SetInput(&gmlcc);
+   dilation.SetOutput(&gmlcc);
+   dilation.Run();
+   if (_debug) gmlcc.Write("gm-lcc.nii.gz");
+
+  //DistanceTransform(3,4);
+
+  change = false;
+  for(k=0;k<_segmentation.GetZ();k++)
+    for(j=0;j<_segmentation.GetY();j++)
+      for(i=0;i<_segmentation.GetX();i++)
+      {
+
+        if(_mask.GetAsDouble(i,j,k)==1)
+        {
+
+          //find which tissues to reduce
+
+          reduceWM = 0;
+          reduceGM = 0;
+          increaseBG = 0;
+
+          if((_segmentation.GetAsDouble(i,j,k)==wm1Label) || (_segmentation.GetAsDouble(i,j,k)==wm2Label))
+            if (wmlcc.Get(i,j,k)==0) 
+            {
+              reduceWM = 1;
+              change=true;
+            }
+          if((_segmentation.GetAsDouble(i,j,k)==wm1Label) || (_segmentation.GetAsDouble(i,j,k)==wm2Label) || (_segmentation.GetAsDouble(i,j,k)==cortexLabel))
+            if (gmlcc.Get(i,j,k)==0)
+            { 
+              reduceWM = 1;
+              reduceGM = 1;
+              //increaseBG = 1;
+              change=true;
+             }
+
+          //Calculate number of labels in 26-neighbourhood
+          for(l=0;l<=4;l++) labelCount[l]=0;
+          for(n=0;n<neighbour_num;n++)
+            for(l=0;l<=4;l++) 
+              if(((i+offset[n][0])>=0) && ((i+offset[n][0])<_segmentation.GetX()) && ((j+offset[n][1])>=0) && ((j+offset[n][1])<_segmentation.GetY()) && ((k+offset[n][2])>=0) && ((k+offset[n][2])<_segmentation.GetZ())) 
+                if (_segmentation.Get(i+offset[n][0],j+offset[n][1],k+offset[n][2])==labelId[l]) labelCount[l]++;
+
+          double sum = 0;
+          for(n=0;n<_number_of_tissues;n++)
+            for(l=0;l<n;l++) 
+            {
+              PVtissues[round(n*(n-1)/2) + l] = labelCount[n]*labelCount[l];
+              sum += labelCount[n]*labelCount[l];
+            }
+          for(n=0;n<_number_of_tissues;n++)
+            for(l=0;l<n;l++) 
+            {
+              PVtissues[round(n*(n-1)/2) + l] /= sum;
+            }
+          
+
+          //background for WM voxels
+          if((_segmentation.GetAsDouble(i,j,k)==wm1Label)||(_segmentation.GetAsDouble(i,j,k)==wm2Label))
+            if(labelCount[3]>0) 
+            {
+              reduceWM = 1;
+              //increaseBG = 1;
+            if((_segmentation.GetAsDouble(i,j,k)==wm1Label)||(_segmentation.GetAsDouble(i,j,k)==wm2Label))
+              change = true;
+            }
+
+           //identify csf-gm boundary csf index = 2 and gm index = 1 => csf-gm PV index =  2
+          if((_segmentation.GetAsDouble(i,j,k)==wm1Label)||(_segmentation.GetAsDouble(i,j,k)==wm2Label))
+             if (PVtissues[2]>0.33) 
+             { 
+               reduceWM = 1;
+               change = true;
+             }
+
+           //identify csf-gm boundary csf index = 2 and gm index = 1 => csf-gm PV index =  2, with degree of certanty about wm
+           if((_segmentation.GetAsDouble(i,j,k)==wm1Label)||(_segmentation.GetAsDouble(i,j,k)==wm2Label))
+             if ((PVtissues[2]>0)&&((labelCount[0]+labelCount[4])<13) )
+             { 
+               reduceWM = 1;               
+               change = true;
+             }
+
+           //identify csf-bg boundary csf index = 2 and gm index = 3 => csf-gm PV index =  5 
+          //also consider wm-bg boundary as csf can be misclassified for wm. wm index = 0,5 and bg index = 3 => bg-wm PV index =  3,9
+           if(_segmentation.GetAsDouble(i,j,k)==cortexLabel)
+             if ((PVtissues[3]>0.33)||(PVtissues[9]>0.33)||(PVtissues[5]>0.33))
+             { 
+               reduceWM = 1;
+               reduceGM = 1;
+               change = true;
+             }
+
+           //identify csf-wm1 boundary csf index = 2 and wm2 index = 0 => csf-wm1 PV index =  1
+           if((_segmentation.GetAsDouble(i,j,k)==wm2Label))
+             if (PVtissues[1]>0.33) 
+             { 
+               reduceWM = 1;
+               reduceGM = 1;
+               change = true;
+             }
+
+          cortexPrior = _atlas.GetValue(i,j,k,cortexLabel-1);
+          wm1Prior = _atlas.GetValue(i,j,k,wm1Label-1);
+          wm2Prior = _atlas.GetValue(i,j,k,wm2Label-1);
+          csfPrior = _atlas.GetValue(i,j,k,csfLabel-1);
+          backgroundPrior = _atlas.GetValue(i,j,k,backgroundLabel-1);
+
+
+          if ((reduceWM)&&(!reduceGM))
+          {
+            _atlas.SetValue(i,j,k,wm1Label-1,lambda*wm1Prior);
+            _atlas.SetValue(i,j,k,wm2Label-1,lambda*wm2Prior);
+            if ((cortexPrior>0)||(csfPrior>0))
+            {
+             cortexNew = cortexPrior+ (1-lambda)*(wm1Prior+wm2Prior)*cortexPrior/(cortexPrior+csfPrior);
+             csfNew = csfPrior + (1-lambda)*(wm1Prior+wm2Prior)*csfPrior/(cortexPrior+csfPrior);
+            }
+            else
+            {
+	      cortexNew = cortexPrior+ (1-lambda)*(wm1Prior+wm2Prior)*0.5;
+              csfNew = csfPrior+ (1-lambda)*(wm1Prior+wm2Prior)*0.5;
+            }
+            _atlas.SetValue(i,j,k,cortexLabel-1,cortexNew);
+            _atlas.SetValue(i,j,k,csfLabel-1,csfNew);
+            _brain.Put(i,j,k,0);
+           }
+
+            if ((reduceWM)&&(reduceGM))
+            {
+              _atlas.SetValue(i,j,k,wm1Label-1,lambda*wm1Prior);
+              _atlas.SetValue(i,j,k,wm2Label-1,lambda*wm2Prior);
+              _atlas.SetValue(i,j,k,cortexLabel-1,lambda*cortexPrior);
+              csfNew = csfPrior + (1-lambda)*(wm1Prior+wm2Prior+cortexPrior);
+              _atlas.SetValue(i,j,k,csfLabel-1,csfNew);
+              _brain.Put(i,j,k,0);
+            }
+          }
+        }
+
+    if (_debug) _atlas.Write(0,"csfPVmod.nii.gz");
+    if (_debug) _atlas.Write(1,"gmPVmod.nii.gz");
+    if (_debug) _atlas.Write(2,"wm1PVmod.nii.gz");
+    if (_debug) _atlas.Write(3,"wm2PVmod.nii.gz");
+    if (_debug) _atlas.Write(4,"bgPVmod.nii.gz");
+    if (_debug) _brain.Write("brain2.nii.gz");
+    
+    EStep();
+    ConstructSegmentationWithPadding(_segmentation);
+    if (change) cerr<<"there was change."<<endl;
+    else cerr<<"no more change."<<endl;
+    return change;
+
+}
+
+void irtkEMClassification::WritePVProbMap(int i, char *filename)
+{
+  _pv_output.Write(i, filename);
+}
+
+
+void irtkEMClassification::ConstructPVSegmentation()
+{
+  int i,j,k,l,n;
+  double temp;
+
+//Please note that in this approach we trust the segmentation a lot so we do not assume that there is noise (this is reasonable for modern MR)
+//Single voxel surounded by other tissues will therefore be considered as correctly classified rather than noisy
+
+  if (_debug) cerr<<"Constructing PV segmentation"<<endl;
+
+  vector<int> labelCount(_number_of_tissues);
+  int offset[26][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1},{1,1,0},{1,0,1},{0,1,1},{1,-1,0},{1,0,-1},{0,1,-1},{-1,1,0},{-1,0,1},{0,-1,1},{-1,-1,0},{-1,0,-1},{0,-1,-1},{1,1,1},{1,1,-1},{1,-1,1},{-1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
+  int neighbour_num = 26;
+  int pure_treshold = 19;
+
+  int label1,label2;
+
+
+  for(k=0;k<_segmentation.GetZ();k++)
+    for(j=0;j<_segmentation.GetY();j++)
+      for(i=0;i<_segmentation.GetX();i++)
+      {
+        if(_mask.GetAsDouble(i,j,k)==1)
+        {
+          //initialise number of labels in neighbourhood
+          for(l=0;l<_number_of_tissues;l++) labelCount[l]=0;
+
+          //count number of labels in neighbourhood
+          for(n=0;n<neighbour_num;n++)
+            for(l=0;l<_number_of_tissues;l++) 
+              if(((i+offset[n][0])>=0) && ((i+offset[n][0])<_segmentation.GetX()) && ((j+offset[n][1])>=0) && ((j+offset[n][1])<_segmentation.GetY()) && ((k+offset[n][2])>=0) && ((k+offset[n][2])<_segmentation.GetZ())) 
+                if (_segmentation.Get(i+offset[n][0],j+offset[n][1],k+offset[n][2]) == (l+1)) labelCount[l]++;
+           //also count the current voxels
+           labelCount[round(_segmentation.Get(i,j,k)-1)]++;
+
+          //initialise pv segmentation
+          for(l=0;l<_number_of_tissues;l++) _pv_output.SetValue(i,j,k,l,0);
+
+          //pure tissue
+          if(labelCount[round(_segmentation.Get(i,j,k)-1)]>=pure_treshold)
+            _pv_output.SetValue(i,j,k,round(_segmentation.Get(i,j,k)-1),1);
+          //mixed tissue
+          else
+          {
+           //find 2 main tissues in neighbourhood
+            label1=0; label2=1;
+            if(labelCount[label2]>labelCount[label1])
+            {label1=1;label2=0;}
+            for(l=2;l<_number_of_tissues;l++) 
+              if (labelCount[l]>=labelCount[label1])
+              { 
+                label2=label1;
+                label1=l;
+              }
+              else if (labelCount[l]>=labelCount[label2]) label2 = l;
+            //Calculate mixing proportions
+            temp = (_mi[label2]-_input.Get(i,j,k))/(_mi[label2]-_mi[label1]);
+           // cerr<<temp<<" ";
+            if (temp<0) temp=0;
+            if (temp>1) temp=1;
+            _pv_output.SetValue(i,j,k,label1,temp);
+            _pv_output.SetValue(i,j,k,label2,1-temp);
+            //cerr<<temp<<" ";
+          }
+        }
+      }
+  if (_debug) _pv_output.Write(0,"csfPV.nii.gz");
+  if (_debug) _pv_output.Write(1,"gmPV.nii.gz");
+  if (_debug) _pv_output.Write(2,"wm1PV.nii.gz");
+  if (_debug) _pv_output.Write(3,"wm2PV.nii.gz");
+  if (_debug) _pv_output.Write(4,"bgPV.nii.gz");
+
+}
+
+void irtkEMClassification::ConstructSegmentationBrainNonBrain(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, irtkGreyImage * smask)
+{
+  cerr<<"Constructing segmentation Brain-NonBrain"<<endl;
+  int i,j,k,l,n;
+  int labelId[5], labelCount[5], nonBrainCount, distance;
+  //int offset[6][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1}};
+  //int neighbour_num = 6;
+  int offset[26][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1},{1,1,0},{1,0,1},{0,1,1},{1,-1,0},{1,0,-1},{0,1,-1},{-1,1,0},{-1,0,1},{0,-1,1},{-1,-1,0},{-1,0,-1},{0,-1,-1},{1,1,1},{1,1,-1},{1,-1,1},{-1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
+  int neighbour_num = 26;
+  int pure_treshold = 19;
+  int nonbrain_treshold = 19;
+  double distance_treshold = 3;
+  double bg_distance_treshold = 3;
+
+  labelId[0]=wm1Label;
+  labelId[1]=cortexLabel;
+  labelId[2]=csfLabel;
+  labelId[3]=backgroundLabel;
+  labelId[4]=wm2Label;
+  double alpha;
+  _brain.Write("brain.nii.gz");
+  irtkGreyImage braincount(_brain);
+
+  if(smask != NULL) _smask = *smask;
+  else _smask = _mask;
+
+  irtkGreyImage background(_segmentation);
+  irtkGreyPixel * ptr = background.GetPointerToVoxels();
+  for (i=0; i<background.GetNumberOfVoxels();i++)
+  {
+    if(*ptr <= 1) *ptr = 1;
+    else *ptr = 0;
+    ptr++;
+  }
+  background.Write("background.nii.gz");
+  irtkMeanShift msh(background);
+  msh.SetOutput(&background);
+  msh.Lcc(1);
+  background.Write("background-lcc.nii.gz");
+  irtkGreyImage pvseg(_segmentation);
+  _segmentation = background;
+  DistanceTransform(1,1);
+  background = _distance;
+  background.Write("background-distance.nii.gz");
+
+  _segmentation = pvseg;
+  
+  DistanceTransform(3,4);
+  
+ //cerr<<_segmentation.GetX()<<" "<<_segmentation.GetY()<<" "<<_segmentation.GetZ()<<endl;
+  for(k=0;k<_segmentation.GetZ();k++)
+    for(j=0;j<_segmentation.GetY();j++)
+      for(i=0;i<_segmentation.GetX();i++)
+      {
+        if(_mask.GetAsDouble(i,j,k)==1)
+        {
+          for(l=0;l<=4;l++) labelCount[l]=0;
+          nonBrainCount = 0;
+
+          for(n=0;n<neighbour_num;n++)
+            for(l=0;l<=4;l++) 
+              if(((i+offset[n][0])>=0) && ((i+offset[n][0])<_segmentation.GetX()) && ((j+offset[n][1])>=0) && ((j+offset[n][1])<_segmentation.GetY()) && ((k+offset[n][2])>=0) && ((k+offset[n][2])<_segmentation.GetZ())) 
+                if (_segmentation.Get(i+offset[n][0],j+offset[n][1],k+offset[n][2])==labelId[l]) labelCount[l]++;
+
+          for(n=0;n<neighbour_num;n++)
+            if(((i+offset[n][0])>=0) && ((i+offset[n][0])<_segmentation.GetX()) && ((j+offset[n][1])>=0) && ((j+offset[n][1])<_segmentation.GetY()) && ((k+offset[n][2])>=0) && ((k+offset[n][2])<_segmentation.GetZ())) 
+              if (_brain.Get(i+offset[n][0],j+offset[n][1],k+offset[n][2])==0) nonBrainCount++;
+
+              braincount.Put(i,j,k,nonBrainCount);
+
+
+              //csf-bg
+              if ((nonBrainCount>nonbrain_treshold) || ((_segmentation.Get(i,j,k) == backgroundLabel)&&(_brain.Get(i,j,k)==0)) || ((_distance.Get(i,j,k)>distance_treshold)&&(background(i,j,k)<bg_distance_treshold)))
+              {
+                alpha = (_input.Get(i,j,k)-_mi[backgroundLabel-1])/(_mi[csfLabel-1]-_mi[backgroundLabel-1]);
+                if (labelCount[3]>=pure_treshold) alpha = 0;
+                if (labelCount[2]>=pure_treshold) alpha = 1;
+                if (alpha < 0) alpha = 0;
+                if (alpha > 1) alpha = 1;
+                _pv_output.SetValue(i,j,k,backgroundLabel-1,1-alpha);
+                _pv_output.SetValue(i,j,k,csfLabel-1,alpha);
+                _pv_output.SetValue(i,j,k,cortexLabel-1,0);
+                _pv_output.SetValue(i,j,k,wm1Label-1,0);
+                _pv_output.SetValue(i,j,k,wm2Label-1,0);
+              }
+              else
+              {
+                //gm-wm1-wm2
+                if ((_brain.Get(i,j,k)==1)&&(_distance.Get(i,j,k)<=distance_treshold))
+                {
+                  //gm-wm1
+                  alpha = (_input.Get(i,j,k)-_mi[cortexLabel-1])/(_mi[wm1Label-1]-_mi[cortexLabel-1]);
+                  if (labelCount[1]>=pure_treshold) alpha = 0;
+                  if (labelCount[0]>=pure_treshold) alpha = 1;
+                  if (alpha < 0) alpha = 0;
+                  if (alpha <= 1)
+                  {
+                    _pv_output.SetValue(i,j,k,cortexLabel-1,1-alpha);
+                    _pv_output.SetValue(i,j,k,wm1Label-1,alpha);
+                    _pv_output.SetValue(i,j,k,backgroundLabel-1,0);
+                    _pv_output.SetValue(i,j,k,csfLabel-1,0);
+                    _pv_output.SetValue(i,j,k,wm2Label-1,0);
+                  }
+                  //wm1-wm2
+                  else
+                  {
+                    alpha = (_input.Get(i,j,k)-_mi[wm1Label-1])/(_mi[wm2Label-1]-_mi[wm1Label-1]);
+                    if (labelCount[4]>=pure_treshold) alpha = 1;
+                    if (alpha > 1) alpha = 1;
+                    _pv_output.SetValue(i,j,k,wm1Label-1,1-alpha);
+                    _pv_output.SetValue(i,j,k,wm2Label-1,alpha);
+                    _pv_output.SetValue(i,j,k,backgroundLabel-1,0);
+                    _pv_output.SetValue(i,j,k,csfLabel-1,0);
+                    _pv_output.SetValue(i,j,k,cortexLabel-1,0);
+                   }
+                 }
+                 //csf-gm
+                 //if (_brain.Get(i,j,k)==0) //&&(nonBrainCount<=nonbrain_treshold))
+                 else
+                 {
+                   alpha = (_input.Get(i,j,k)-_mi[cortexLabel-1])/(_mi[csfLabel-1]-_mi[cortexLabel-1]);
+                   if (alpha < 0) alpha = 0;
+                   if (alpha > 1) alpha = 1;
+                   _pv_output.SetValue(i,j,k,cortexLabel-1,1-alpha);
+                   _pv_output.SetValue(i,j,k,csfLabel-1,alpha);
+                   _pv_output.SetValue(i,j,k,backgroundLabel-1,0);
+                   _pv_output.SetValue(i,j,k,wm1Label-1,0);
+                   _pv_output.SetValue(i,j,k,wm2Label-1,0);
+                 }
+              }
+    }
+  }
+  if (_debug) braincount.Write("nonbraincount.nii.gz");
+  if (_debug) _distance.Write("distance.nii.gz");
+  ConstructSegmentationFromPV();
+}
+
+
+void irtkEMClassification::DistanceTransform( int label1, int label2)
+{
+  int i,j,k,x,y,z;
+  double dx,dy,dz;
+  double dv[3];
+  double d,value;
+  _distance=_mask;
+  int offset[26][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1},{1,1,0},{1,0,1},{0,1,1},{1,-1,0},{1,0,-1},{0,1,-1},{-1,1,0},{-1,0,1},{0,-1,1},{-1,-1,0},{-1,0,-1},{0,-1,-1},{1,1,1},{1,1,-1},{1,-1,1},{-1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
+  int neighbour_num = 26;
+
+  _input.GetPixelSize(&dx,&dy,&dz);
+  dv[0]=dx;
+  dv[1]=dy;
+  dv[2]=dz;
+
+  irtkRealPixel *pd = _distance.GetPointerToVoxels();
+  irtkRealPixel *pm = _mask.GetPointerToVoxels();
+  irtkGreyPixel *psm = _smask.GetPointerToVoxels();
+  irtkRealPixel *ps = _segmentation.GetPointerToVoxels();
+
+  //initialize distance map
+  for(i=0;i<_distance.GetNumberOfVoxels();i++)
+  {
+    if((*pm==0)||(*psm==1)) *pd = -1;
+    else  *pd = 1000;
+    if ((*pd>=0)&&((*ps == label1)||(*ps==label2))) *pd =0;
+    pd++;
+    pm++;
+    psm++;
+    ps++;
+  }
+  if (_debug) _distance.Write("d1.nii.gz");
+  if (_debug) _smask.Write("smask.nii.gz");
+
+  //initialise queue for calculating distance
+  queue<irtkPoint> voxels;
+
+  for(k=0;k<_distance.GetZ();k++)
+    for(j=0;j<_distance.GetY();j++)
+      for(i=0;i<_distance.GetX();i++)
+        if(_distance.GetAsDouble(i,j,k)==0)
+        {
+          irtkPoint p(i,j,k);
+          voxels.push(p);
+        }
+  while (!voxels.empty())
+  {
+    x=voxels.front()._x;
+    y=voxels.front()._y;
+    z=voxels.front()._z;
+    value = _distance.Get(x,y,z);
+
+    for (i=0; i<neighbour_num; i++)
+    {
+      d=0;
+      for(j=0;j<3;j++) d+=offset[i][j]*offset[i][j]*dv[j]*dv[j];
+      d=sqrt(d);
+      if (((x+offset[i][0])>=0)&&((x+offset[i][0])<_distance.GetX()) && ((y+offset[i][1])>=0) && ((y+offset[i][1])<_distance.GetY()) && ((z+offset[i][2])>=0) && ((z+offset[i][2])<_distance.GetZ()))
+        if (_distance.Get(x+offset[i][0],y+offset[i][1],z+offset[i][2]) > (value+d))
+        {
+          //cerr<<x<<" "<<y<<" "<<z<<endl;
+          _distance.Put(x+offset[i][0],y+offset[i][1],z+offset[i][2],value+d);
+          irtkPoint p(x+offset[i][0],y+offset[i][1],z+offset[i][2]);
+          voxels.push(p);
+        }
+    }
+    voxels.pop();
+  }
+
+  if (_debug) _distance.Write("d2.nii.gz");
+}
+
+void irtkEMClassification::WritePVSegmentation()
+{
+  for (int i=0; i<_number_of_tissues;i++)
+  {
+    char name[100];
+    sprintf(name, "tissue%d.nii.gz",i);
+    _pv_output.Write(i,name);
+  }
+}
 
