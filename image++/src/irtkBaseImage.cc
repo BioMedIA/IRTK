@@ -212,14 +212,6 @@ void irtkBaseImage::PutMinMaxAsDouble(double min, double max)
   }
 }
 
-void irtkBaseImage::PutImageAttributes(const irtkImageAttributes &attr)
-{
-	if ((_attr._x != attr._x) || (_attr._y != attr._y) || (_attr._z != attr._z) || (_attr._t != attr._t)){
-		cerr << "rtkBaseImage::PutImageAttributes: Warning, changing image size here" << endl;
-	}
-	_attr = attr;
-}
-
 void irtkBaseImage::Print()
 {
   // Print image dimensions

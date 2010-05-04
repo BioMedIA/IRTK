@@ -80,9 +80,6 @@ public:
 
   /// Gets the image attributes
   virtual irtkImageAttributes GetImageAttributes() const;
-
-  /// Sets the image attributes
-  virtual void PutImageAttributes(const irtkImageAttributes &);
   
   /// Initialize image from attributes
   virtual void Initialize(const irtkImageAttributes &) = 0;
