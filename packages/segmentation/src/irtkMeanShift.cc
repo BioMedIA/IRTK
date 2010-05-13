@@ -178,6 +178,8 @@ double irtkMeanShift::findGMvar()
     sigma=abs(BinToValue(i)-_gm)/k;
     cerr<<"Pos "<<BinToValue(i)<<": sigma = "<<sigma<<endl;
   }
+
+  return sigma;
 }
 
 double irtkMeanShift::findMax(double tr1, double tr2)
