@@ -442,7 +442,7 @@ void irtkEMClassification::EStep()
 void irtkEMClassification::WStep()
 {
   int i,k;
-  double num, den, dn[2];
+  double num, den;
   cerr<<"Calculating weights ...";
   irtkRealPixel *pi=_input.GetPointerToVoxels();
   irtkRealPixel *pw=_weights.GetPointerToVoxels();
@@ -490,7 +490,8 @@ void irtkEMClassification::WStep()
 }
 void irtkEMClassification::BrainmaskInput()
 {
-  int i,k;
+  int i;
+
   cerr<<"brainmasking ...";
   irtkRealPixel *pi=_input.GetPointerToVoxels();
   _atlas.First();
@@ -973,7 +974,7 @@ void irtkEMClassification::ConstructSegmentation()
 
 void irtkEMClassification::ConstructSegmentationFromPV()
 {
-  int i, j,k;
+  int i, j;
   double max;
   irtkRealPixel *ptr,*ptrm;
 
@@ -1143,9 +1144,9 @@ void irtkEMClassification::GInit()
 bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, double lcc_treshold, bool first, irtkGreyImage * eyes)
 {
   int i,j,k,l,n;
-  int labelId[5], labelCount[4], nonBrainCount;
-  double lambda = 0, wm1Prior,wm2Prior,cortexPrior,csfPrior,wm1New,wm2New,cortexNew,csfNew,backgroundPrior,backgroundNew, bgPrior;
-  bool reduceWM = 0, reduceGM = 0, reduceCSF = 0;
+  int labelId[5], labelCount[4];
+  double lambda = 0, wm1Prior,wm2Prior,cortexPrior,csfPrior,cortexNew,csfNew,backgroundPrior;
+  bool reduceWM = 0, reduceGM = 0;
   int increaseBG = 0;
   bool change=true;
   int offset[26][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1},{1,1,0},{1,0,1},{0,1,1},{1,-1,0},{1,0,-1},{0,1,-1},{-1,1,0},{-1,0,1},{0,-1,1},{-1,-1,0},{-1,0,-1},{0,-1,-1},{1,1,1},{1,1,-1},{1,-1,1},{-1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
@@ -1475,7 +1476,7 @@ void irtkEMClassification::ConstructSegmentationBrainNonBrain(int wm1Label, int 
 {
   cerr<<"Constructing segmentation Brain-NonBrain"<<endl;
   int i,j,k,l,n;
-  int labelId[5], labelCount[5], nonBrainCount, distance;
+  int labelId[5], labelCount[5], nonBrainCount;
   //int offset[6][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1}};
   //int neighbour_num = 6;
   int offset[26][3] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1},{1,1,0},{1,0,1},{0,1,1},{1,-1,0},{1,0,-1},{0,1,-1},{-1,1,0},{-1,0,1},{0,-1,1},{-1,-1,0},{-1,0,-1},{0,-1,-1},{1,1,1},{1,1,-1},{1,-1,1},{-1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};

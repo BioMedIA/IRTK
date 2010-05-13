@@ -205,7 +205,7 @@ void irtkIntensityMatching::WeightedLeastSqaures(double *x1, double *y1, double 
   double x=0,y=0,xy=0,x2=0,y2=0;
   double ex,ey,ex2,exy,ey2;
   double varx, vary, covxy;
-  double k,l,w;
+  double w;
   double sum=0;
 
   for (i=0; i<no; i++) {
@@ -267,7 +267,7 @@ void irtkIntensityMatching::MatchMeanAndVariance(double *x1, double *y1, double 
   double x=0,y=0,xy=0,x2=0,y2=0;
   double ex,ey,ex2,exy,ey2;
   double varx, vary, covxy;
-  double k,l,w;
+  double w;
   double sum=0;
 
   for (i=0; i<no; i++) {

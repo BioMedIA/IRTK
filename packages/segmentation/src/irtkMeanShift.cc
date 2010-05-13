@@ -170,7 +170,7 @@ double irtkMeanShift::findGMvar()
 {
   double k;
   int mean = ValueToBin(_gm);
-  double sigma;
+  double sigma=0;
 
   for (int i=mean; i>=0; i--)
   {
@@ -194,6 +194,7 @@ double irtkMeanShift::findMax(double tr1, double tr2)
   //cerr<<imin<<" "<<imax<<endl;
   //cerr<<j1<<" "<<j2<<endl;
 
+  i0 = j1;
   for (i=j1; i<=j2; i++)
   {
     //cerr<<_density[i]<<" ";
@@ -224,7 +225,7 @@ double irtkMeanShift::findMin(double tr1, double tr2)
 
   j1=ValueToBin(tr1);
   j2=ValueToBin(tr2);
-
+  i0=j1;
 
   for (i=j1; i<=j2; i++)
   {
@@ -332,7 +333,6 @@ void irtkMeanShift::SetTreshold()
   double pos1=0, pos2=_limit;
   double bw=2*_nBins;
   double h1=0, h2=bw;
-  int i;
 
   cerr<<"calculating treshold ... ";
 
@@ -349,8 +349,8 @@ int irtkMeanShift::Lcc(int label, bool add_second)
  int i,j,k;
  int lcc_size = 0;
  int lcc2_size = 0;
- int lcc_x, lcc_y, lcc_z;
- int lcc2_x, lcc2_y, lcc2_z;
+ int lcc_x = 0, lcc_y = 0, lcc_z = 0, lcc2_x = 0, lcc2_y = 0, lcc2_z = 0;
+
  //cerr<<"Finding Lcc"<<endl;
   _map=_image;
   //_image.Write("image.nii.gz");

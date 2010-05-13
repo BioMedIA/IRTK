@@ -111,7 +111,6 @@ int main(int argc, char **argv)
 
   int i=1;
   double rel_diff;
-  double f=0,f0=0;
 
   do
   {
