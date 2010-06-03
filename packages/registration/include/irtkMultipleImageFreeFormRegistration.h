@@ -92,6 +92,9 @@ protected:
   /// Subdivide FFD between resolution levels
   Bool _Subdivision;
 
+  /// Multilevel mode
+  Bool _MFFDMode;
+
   /// Speedup factor when calculating derivative
   double _SpeedupFactor;
 
@@ -187,6 +190,10 @@ public:
   virtual GetMacro(DZ, double);
   virtual SetMacro(SpeedupFactor, double);
   virtual GetMacro(SpeedupFactor, double);
+  virtual SetMacro(Lambda1, double);
+  virtual GetMacro(Lambda1, double);
+  virtual SetMacro(MFFDMode, Bool);
+  virtual GetMacro(MFFDMode, Bool);
 
 };
 

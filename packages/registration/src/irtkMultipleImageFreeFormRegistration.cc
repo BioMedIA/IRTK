@@ -41,6 +41,7 @@ irtkMultipleImageFreeFormRegistration::irtkMultipleImageFreeFormRegistration()
   _DY          = 20;
   _DZ          = 20;
   _Subdivision = True;
+  _MFFDMode    = True;
 }
 
 void irtkMultipleImageFreeFormRegistration::GuessParameter()
@@ -129,6 +130,9 @@ void irtkMultipleImageFreeFormRegistration::GuessParameter()
 
 void irtkMultipleImageFreeFormRegistration::Initialize()
 {
+  int i, j;
+  double u;
+  
   // Print debugging information
   this->Debug("irtkMultipleImageFreeFormRegistration::Initialize");
 
@@ -139,10 +143,14 @@ void irtkMultipleImageFreeFormRegistration::Initialize()
   _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
 
   // Create FFD
-  if (_mffd->NumberOfLevels() == 0) {
-    _affd = new irtkBSplineFreeFormTransformation(*_target[0], this->_DX, this->_DY, this->_DZ);
+  if (_MFFDMode == False) {
+    if (_mffd->NumberOfLevels() == 0) {
+      _affd = new irtkBSplineFreeFormTransformation(*_target[0], this->_DX, this->_DY, this->_DZ);
+    } else {
+      _affd = (irtkBSplineFreeFormTransformation *)_mffd->PopLocalTransformation();
+    }
   } else {
-    _affd = (irtkBSplineFreeFormTransformation *)_mffd->PopLocalTransformation();
+    _affd = new irtkBSplineFreeFormTransformation(*_target[0], this->_DX, this->_DY, this->_DZ);
   }
 
   // Initialize pointers
@@ -150,6 +158,13 @@ void irtkMultipleImageFreeFormRegistration::Initialize()
   _affdLookupTable  = NULL;
   _mffdLookupTable  = NULL;
   _localLookupTable = new float [FFDLOOKUPTABLESIZE];
+
+  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
+    u = i / (FFDLOOKUPTABLESIZE / 4.0);
+    j = (int)floor(u);
+    u = u - j;
+    _localLookupTable[i] = _affd->B(j, 1-u);
+  }
 
 }
 
@@ -212,19 +227,9 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
     }
   }
 
-  // Allocate memory for local lookuptable
-  _localLookupTable = new float [FFDLOOKUPTABLESIZE];
-
-  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-    u = i / (FFDLOOKUPTABLESIZE / 4.0);
-    j = (int)floor(u);
-    u = u - j;
-    _localLookupTable[i] = _affd->B(j, 1-u);
-  }
-
   // Padding of FFD
-  cout << "Fix irtkPadding(*tmp_target, this->_TargetPadding, _affd);" << endl;
-  //irtkPadding(*tmp_target, this->_TargetPadding, _affd);
+  //cout << "Fix irtkPadding(*tmp_target, this->_TargetPadding, _affd);" << endl;
+  irtkPadding(tmp_target, this->_TargetPadding, _affd, _numberOfImages);
 }
 
 void irtkMultipleImageFreeFormRegistration::Finalize()
@@ -297,9 +302,7 @@ void irtkMultipleImageFreeFormRegistration::UpdateLUT()
           ptr2affd[1] = y + ptr2mffd[1];
           ptr2affd[2] = z + ptr2mffd[2];
           ptr2mffd += 3;
-          ptr2affd++;
-          ptr2affd++;
-          ptr2affd++;
+          ptr2affd += 3;
         }
       }
     }
@@ -513,8 +516,8 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 {
   float *ptr;
   irtkPoint p1, p2;
-  double bi, bj, bk, dx, dy, dz, p[3];
-  int i, j, k, i1, i2, j1, j2, k1, k2, dim, t, n;
+  double bi, bj, bk, dx, dy, dz, p[3],x,y,z;
+  int i, j, k, i1, i2, j1, j2, k1, k2, dim, t, n,min,max;
   irtkGreyPixel *ptr2target, *ptr2tmp;
   irtkSimilarityMetric *tmpMetricA, *tmpMetricB;
 
@@ -538,16 +541,18 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
   // Initialize metrics for forward and backward derivative steps
   tmpMetricA->Reset(_metric);
   tmpMetricB->Reset(_metric);
+  // Calculate whether this DOF corresponds to x, y or z-displacement
+  dim = int(index / (_affd->GetX()*_affd->GetY()*_affd->GetZ()));
 
   for (n = 0; n < _numberOfImages; n++) {
 
     // Calculate bounding box of control point in world coordinates
     _affd->BoundingBox(index, p1, p2);
-    _target[n]->WorldToImage(p1);
-    _target[n]->WorldToImage(p2);
+    _target[0]->WorldToImage(p1);
+    _target[0]->WorldToImage(p2);
 
     // Calculate bounding box of control point in image coordinates
-    _affd->BoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+    _affd->MultiBoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
     // Calculate incremental changes in lattice coordinates when looping
     // over target
@@ -555,73 +560,78 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
     dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
     dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
 
-    // Calculate whether this DOF corresponds to x, y or z-displacement
-    dim = int(index / (_affd->GetX()*_affd->GetY()*_affd->GetZ()));
+	min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
+	max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
 
     // Loop over all voxels in the target (reference) volume
-    for (t = 0; t < _target[n]->GetT(); t++) {
-      for (k = k1; k <= k2; k++) {
-        bk = step * _localLookupTable[round(dz*(k-p1._z))];
-        for (j = j1; j <= j2; j++) {
-          ptr2target = _target[n]->GetPointerToVoxels(i1, j, k, t);
-          ptr        = &(_affdLookupTable[n][3*_target[n]->VoxelToIndex(i1, j, k)]);
-          bj = bk * _localLookupTable[round(dy*(j-p1._y))];
-          ptr2tmp  = _tmpImage[n]->GetPointerToVoxels(i1, j, k, t);
-          for (i = i1; i <= i2; i++) {
+	for (t = 0; t < _target[n]->GetT(); t++) {
+		for (k = k1; k <= k2; k++) {
+			for (j = j1; j <= j2; j++) {
+				ptr2target = _target[n]->GetPointerToVoxels(i1, j, k, t);
+				ptr        = &(_affdLookupTable[n][3*_target[n]->VoxelToIndex(i1, j, k)]);
+				ptr2tmp  = _tmpImage[n]->GetPointerToVoxels(i1, j, k, t);
+				for (i = i1; i <= i2; i++) {
+					x = i; y = j; z = k;
+					_target[n]->ImageToWorld(x,y,z);
+					_target[0]->WorldToImage(x,y,z);
+					if(round(dz*(z-p1._z))<=max && round(dz*(z-p1._z))>=min){
+						bk = step * _localLookupTable[round(dz*(z-p1._z))];
+						if(round(dy*(y-p1._y))<=max && round(dy*(y-p1._y))>=min){
+							bj = bk * _localLookupTable[round(dy*(y-p1._y))];
+							// Check whether reference point is valid
+							if (*ptr2target >= 0 && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
+									bi = bj * _localLookupTable[round(dx*(x-p1._x))];
+									// Delete old samples from both metrics
+									if (*ptr2tmp != -1) {
+										tmpMetricA->Delete(*ptr2target, *ptr2tmp);
+										tmpMetricB->Delete(*ptr2target, *ptr2tmp);
+									}
 
-            // Check whether reference point is valid
-            if (*ptr2target >= 0) {
-              bi = bj * _localLookupTable[round(dx*(i-p1._x))];
+									p[0] = ptr[0];
+									p[1] = ptr[1];
+									p[2] = ptr[2];
+									p[dim] += bi;
 
-              // Delete old samples from both metrics
-              if (*ptr2tmp != -1) {
-                tmpMetricA->Delete(*ptr2target, *ptr2tmp);
-                tmpMetricB->Delete(*ptr2target, *ptr2tmp);
-              }
+									// Convert transformed point to image coordinates
+									_source[n]->WorldToImage(p[0], p[1], p[2]);
 
-              p[0] = ptr[0];
-              p[1] = ptr[1];
-              p[2] = ptr[2];
-              p[dim] += bi;
+									// Check whether transformed point is inside volume
+									if ((p[0] > _source_x1[n]) && (p[0] < _source_x2[n]) &&
+										(p[1] > _source_y1[n]) && (p[1] < _source_y2[n]) &&
+										(p[2] > _source_z1[n]) && (p[2] < _source_z2[n])) {
 
-              // Convert transformed point to image coordinates
-              _source[n]->WorldToImage(p[0], p[1], p[2]);
+											// Add sample to metric
+											tmpMetricA->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
+									}
 
-              // Check whether transformed point is inside volume
-              if ((p[0] > _source_x1[n]) && (p[0] < _source_x2[n]) &&
-                  (p[1] > _source_y1[n]) && (p[1] < _source_y2[n]) &&
-                  (p[2] > _source_z1[n]) && (p[2] < _source_z2[n])) {
+									p[0] = ptr[0];
+									p[1] = ptr[1];
+									p[2] = ptr[2];
+									p[dim] -= bi;
 
-                // Add sample to metric
-                tmpMetricA->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
-              }
+									// Convert transformed point to image coordinates
+									_source[n]->WorldToImage(p[0], p[1], p[2]);
 
-              p[0] = ptr[0];
-              p[1] = ptr[1];
-              p[2] = ptr[2];
-              p[dim] -= bi;
+									// Check whether transformed point is inside volume
+									if ((p[0] > _source_x1[n]) && (p[0] < _source_x2[n]) &&
+										(p[1] > _source_y1[n]) && (p[1] < _source_y2[n]) &&
+										(p[2] > _source_z1[n]) && (p[2] < _source_z2[n])) {
 
-              // Convert transformed point to image coordinates
-              _source[n]->WorldToImage(p[0], p[1], p[2]);
+											// Add sample to metric
+											tmpMetricB->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
+									}
+							}
 
-              // Check whether transformed point is inside volume
-              if ((p[0] > _source_x1[n]) && (p[0] < _source_x2[n]) &&
-                  (p[1] > _source_y1[n]) && (p[1] < _source_y2[n]) &&
-                  (p[2] > _source_z1[n]) && (p[2] < _source_z2[n])) {
-
-                // Add sample to metric
-                tmpMetricB->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
-              }
-            }
-
-            // Increment pointers to next voxel
-            ptr2target++;
-            ptr2tmp++;
-            ptr += 3;
-          }
-        }
-      }
-    }
+							// Increment pointers to next voxel
+							ptr2target++;
+							ptr2tmp++;
+							ptr += 3;
+						}
+					}
+				}
+			}
+		}
+	}
   }
 
   // Save value of DOF for which we calculate the derivative
@@ -772,6 +782,21 @@ Bool irtkMultipleImageFreeFormRegistration::Read(char *buffer1, char *buffer2, i
     }
     ok = True;
   }
+  if (strstr(buffer1, "MFFDMode") != NULL) {
+    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
+      this->_MFFDMode = False;
+      cout << "MFFDMode is ... false" << endl;
+    } else {
+      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+        this->_MFFDMode = True;
+        cout << "MFFDMode is ... true" << endl;
+      } else {
+        cerr << "Can't read boolean value = " << buffer2 << endl;
+        exit(1);
+      }
+    }
+    ok = True;
+  }
 
   if (ok == False) {
     return this->irtkMultipleImageRegistration::Read(buffer1, buffer2, level);
@@ -795,6 +820,11 @@ void irtkMultipleImageFreeFormRegistration::Write(ostream &to)
     to << "Subdivision                       = False" << endl;
   }
   to << "Speedup factor                    = " << this->_SpeedupFactor << endl;
+  if (_MFFDMode == True) {
+    to << "MFFDMode                       = True" << endl;
+  } else {
+    to << "MFFDMode                       = False" << endl;
+  }
 
   this->irtkMultipleImageRegistration::Write(to);
 }

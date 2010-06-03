@@ -100,10 +100,47 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding, irtkFreeFormTransf
   }
 }
 
+void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTransformation3D *ffd, int numberOfImages)
+{
+  int i, j, k, x, y, z, x1, y1, z1, x2, y2, z2, ok, index;
+  int t, n;
+
+  // Calculate number of active and passive control points
+  for (i = 0; i < ffd->GetX(); i++) {
+    for (j = 0; j < ffd->GetY(); j++) {
+      for (k = 0; k < ffd->GetZ(); k++) {
+        // Convert control points to index
+        index = ffd->LatticeToIndex(i, j, k);
+
+		ok = False;
+
+		for (n = 0; n < numberOfImages; n++){
+			// Calculate bounding box of control point in voxels
+			ffd->BoundingBox(image[n], index, x1, y1, z1, x2, y2, z2);
+			for (t = 0; t < image[n]->GetT(); t++) {
+				for (z = z1; z <= z2; z++) {
+					for (y = y1; y <= y2; y++) {
+						for (x = x1; x <= x2; x++) {
+							if (image[n]->GetAsDouble(x, y, z, t) > padding) {
+								ok = True;
+							}
+						}
+					}
+				}
+			}
+		}
+        if (ok == False) {
+          ffd->PutStatus(i, j, k, _Passive);
+        }
+      }
+    }
+  }
+}
+
 double GuessResolution(double xsize, double ysize, double zsize)
 {
-  if ((xsize >= ysize) && (xsize >= zsize)) return xsize;
-  if ((ysize >= xsize) && (ysize >= zsize)) return ysize;
+  if ((xsize <= ysize) && (xsize <= zsize)) return xsize;
+  if ((ysize <= xsize) && (ysize <= zsize)) return ysize;
   return zsize;
 }
 

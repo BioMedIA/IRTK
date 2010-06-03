@@ -221,6 +221,8 @@ inline void irtkMultipleImageRegistration::SetInput(irtkGreyImage **target, irtk
   int i;
 
   _numberOfImages = n;
+  _target = new irtkGreyImage*[_numberOfImages];
+  _source = new irtkGreyImage*[_numberOfImages];
   for (i = 0; i < _numberOfImages; i++) {
     _target[i] = target[i];
     _source[i] = source[i];

@@ -97,6 +97,8 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
 
 irtkMultipleImageRegistration::~irtkMultipleImageRegistration()
 {
+	delete []_target;
+	delete []_source;
 #ifdef HISTORY
   delete history;
 #endif
@@ -146,10 +148,16 @@ void irtkMultipleImageRegistration::Initialize(int level)
     // Copy source and target to temp space
     tmp_target[n] = new irtkGreyImage(*_target[n]);
     tmp_source[n] = new irtkGreyImage(*_source[n]);
+	
+	/*char buffer[255];
+	sprintf(buffer, "target%d.nii", n);
+	_target[n]->Write(buffer);
+	sprintf(buffer, "source%d.nii", n);
+	_source[n]->Write(buffer);*/
 
     // Swap source and target with temp space copies
-    swap(tmp_target, _target);
-    swap(tmp_source, _source);
+    swap(tmp_target[n], _target[n]);
+    swap(tmp_source[n], _source[n]);
 
     // Blur images if necessary
     if (_TargetBlurring[level] > 0) {
@@ -236,27 +244,26 @@ void irtkMultipleImageRegistration::Initialize(int level)
   }
 
   for (n = 0; n < _numberOfImages; n++) {
-
-    // Check whether dynamic range of data is not to large
-    if (target_max - target_min > MAX_GREY) {
-      cerr << this->NameOfClass()
-           << "::Initialize: Dynamic range of target is too large" << endl;
-      exit(1);
-    } else {
-      for (t = 0; t < _target[n]->GetT(); t++) {
-        for (k = 0; k < _target[n]->GetZ(); k++) {
-          for (j = 0; j < _target[n]->GetY(); j++) {
-            for (i = 0; i < _target[n]->GetX(); i++) {
-              if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
-                _target[n]->Put(i, j, k, t, _target[n]->Get(i, j, k, t) - target_min);
-              } else {
-                _target[n]->Put(i, j, k, t, -1);
-              }
-            }
-          }
-        }
-      }
-    }
+	  // Check whether dynamic range of data is not to large
+	  if (target_max - target_min > MAX_GREY) {
+		  cerr << this->NameOfClass()
+			  << "::Initialize: Dynamic range of target is too large" << endl;
+		  exit(1);
+	  } else {
+		  for (t = 0; t < _target[n]->GetT(); t++) {
+			  for (k = 0; k < _target[n]->GetZ(); k++) {
+				  for (j = 0; j < _target[n]->GetY(); j++) {
+					  for (i = 0; i < _target[n]->GetX(); i++) {
+						  if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
+							  _target[n]->Put(i, j, k, t, _target[n]->Get(i, j, k, t) - target_min);
+						  } else {
+							  _target[n]->Put(i, j, k, t, -1);
+						  }
+					  }
+				  }
+			  }
+		  }
+	  }
 
     if ((_SimilarityMeasure == SSD) || (_SimilarityMeasure == CC) ||
         (_SimilarityMeasure == LC)  || (_SimilarityMeasure == K) || (_SimilarityMeasure == ML)) {
@@ -433,19 +440,16 @@ void irtkMultipleImageRegistration::Finalize()
   delete []_source_z2;
 
   for (n = 0; n < _numberOfImages; n++) {
-    delete tmp_target[n];
-    delete tmp_source[n];
     delete _interpolator[n];
   }
 
-  delete []tmp_target;
-  delete []tmp_source;
   delete []_interpolator;
 }
 
 void irtkMultipleImageRegistration::Finalize(int level)
 {
-  // Print final transformation
+  int n;
+	// Print final transformation
   cout << "Final transformation for level = " << level+1 << endl;;
   _transformation->Print();
 
@@ -460,12 +464,12 @@ void irtkMultipleImageRegistration::Finalize(int level)
     delete metric;
   }
 #endif
-
-  delete tmp_target;
-  delete tmp_source;
-  delete _metric;
-  delete _optimizer;
-  delete _interpolator;
+  for (n = 0; n < _numberOfImages; n++) {
+	  delete tmp_target[n];
+	  delete tmp_source[n];
+  }
+  delete []tmp_target;
+  delete []tmp_source;
 }
 
 void irtkMultipleImageRegistration::Run()
