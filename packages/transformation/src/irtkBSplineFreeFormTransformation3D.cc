@@ -380,6 +380,7 @@ irtkBSplineFreeFormTransformation3D::~irtkBSplineFreeFormTransformation3D()
   _x = 0;
   _y = 0;
   _z = 0;
+
 }
 
 void irtkBSplineFreeFormTransformation3D::FFD1(double &x, double &y, double &z) const
@@ -1296,6 +1297,30 @@ void irtkBSplineFreeFormTransformation3D::BoundingBox(irtkGreyImage *image, int 
   // Transform world coordinates to image coordinates
   image->WorldToImage(x1, y1, z1);
   image->WorldToImage(x2, y2, z2);
+
+  // Calculate bounding box in image coordinates
+  i1 = (x1 < 0) ? 0 : int(x1)+1;
+  j1 = (y1 < 0) ? 0 : int(y1)+1;
+  k1 = (z1 < 0) ? 0 : int(z1)+1;
+  i2 = (int(x2) >= image->GetX()) ? image->GetX()-1 : int(x2);
+  j2 = (int(y2) >= image->GetY()) ? image->GetY()-1 : int(y2);
+  k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
+}
+
+void irtkBSplineFreeFormTransformation3D::MultiBoundingBox(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
+{
+  double x1, y1, z1, x2, y2, z2;
+
+  // Calculate bounding box in world coordinates
+  this->BoundingBox(index, x1, y1, z1, x2, y2, z2, fraction*2);
+
+  // Transform world coordinates to image coordinates
+  image->WorldToImage(x1, y1, z1);
+  image->WorldToImage(x2, y2, z2);
+
+  if(x2<x1) {i1 = x2; x2 = x1; x1 = i1;}
+  if(y2<y1) {j1 = y2; y2 = y1; y1 = j1;}
+  if(z2<z1) {k1 = z2; z2 = z1; z1 = k1;}
 
   // Calculate bounding box in image coordinates
   i1 = (x1 < 0) ? 0 : int(x1)+1;

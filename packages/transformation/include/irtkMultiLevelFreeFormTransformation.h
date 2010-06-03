@@ -65,6 +65,9 @@ public:
   /// Push local transformation on stack
   virtual void PushLocalTransformation(irtkFreeFormTransformation *);
 
+  /// Combine local transformation on stack
+  virtual void CombineLocalTransformation();
+
   /// Pop local transformation from stack
   virtual irtkFreeFormTransformation *PopLocalTransformation();
 

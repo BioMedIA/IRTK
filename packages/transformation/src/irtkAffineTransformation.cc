@@ -545,7 +545,6 @@ irtkCifstream& irtkAffineTransformation::Read(irtkCifstream& from)
 
   return from;
 }
-
 irtkCofstream& irtkAffineTransformation::Write(irtkCofstream& to)
 {
   int i;

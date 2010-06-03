@@ -204,6 +204,9 @@ public:
   virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &,
                            int &, int &, int &, double = 1) const;
 
+  virtual void MultiBoundingBox(irtkGreyImage *, int, int &, int &, int &,
+                           int &, int &, int &, double = 1) const;
+
   /// Prints the parameters of the transformation
   virtual void Print();
 

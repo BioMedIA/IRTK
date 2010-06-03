@@ -780,3 +780,25 @@ void irtkMultiLevelFreeFormTransformation::Print()
 
 }
 
+void irtkMultiLevelFreeFormTransformation::CombineLocalTransformation()
+{
+  irtkFreeFormTransformation *first,*second;
+  int i;
+  first = NULL;
+  second = NULL;
+  while(_NumberOfLevels>1){
+	  first = this->PopLocalTransformation();
+	  second = this->PopLocalTransformation();
+	  if(first->NumberOfDOFs() == second->NumberOfDOFs()){
+		  for(i=0;i<first->NumberOfDOFs();i++){
+			  second->Put(i,first->Get(i)+second->Get(i));
+		  }
+	  }else{
+		cerr << "Combine Local Transformation failed, unequal DOF" <<endl;
+	  }
+	  this->PushLocalTransformation(second);
+	  delete first;
+
+  }
+}
+
