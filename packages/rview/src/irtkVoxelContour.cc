@@ -177,7 +177,6 @@ void irtkVoxelContour::Initialise(irtkRView *rview, irtkGreyImage* viewer)
       }
       break;
   }
-
   // Get attributes of viewer
   irtkImageAttributes attr = _rview->_targetImage->GetImageAttributes();
 
@@ -254,17 +253,17 @@ void irtkVoxelContour::Initialise(irtkRView *rview, irtkGreyImage* viewer)
   }
   if ((axis[0] == 1) && (axis[1] == 2)) {
     irtkImageAttributes tmp;
-    tmp._y = attr._x;
-    tmp._z = attr._y;
-    tmp._x = attr._z;
-    tmp._dy = attr._dx;
-    tmp._dz = attr._dy;
-    tmp._dx = attr._dz;
+    tmp._x = attr._y;
+    tmp._y = attr._z;
+    tmp._z = attr._x;
+    tmp._dx = attr._dy;
+    tmp._dy = attr._dz;
+    tmp._dz = attr._dx;
     for (i = 0; i < 3; i++) {
-      tmp._yaxis[i] = attr._xaxis[i];
-      tmp._zaxis[i] = attr._yaxis[i];
-      tmp._xaxis[i] = attr._zaxis[i];
-    }
+      tmp._xaxis[i] = attr._yaxis[i];
+      tmp._yaxis[i] = attr._zaxis[i];
+      tmp._zaxis[i] = attr._xaxis[i];
+     }
     _raster->Initialize(tmp);
     x1 = y2;
     y1 = z2;
@@ -291,6 +290,7 @@ void irtkVoxelContour::Initialise(irtkRView *rview, irtkGreyImage* viewer)
   _raster->ImageToWorld(x1, y1, z1);
   _rview->_targetImage->ImageToWorld(x2, y2, z2);
   _raster->PutOrigin(x2 - x1, y2 - y1, z2 - z1);
+
 }
 
 void irtkVoxelContour::AddPoint(irtkPoint p, int width)
@@ -305,7 +305,6 @@ void irtkVoxelContour::AddPoint(irtkPoint p, int width)
     cerr << "Please, always initialise irtkVoxelContour before adding any points!" << endl;
     exit(1);
   }
-
   _raster->WorldToImage(p);
   x = round(p._x);
   y = round(p._y);
