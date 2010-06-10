@@ -45,11 +45,11 @@ void newt2(float x[], int n, int *check, void (*vecfunc)(int, float [], float []
   irtkMatrix jacobian(3,3); /* Jacobian of transformation*/
   indx=ivector(1,n);
   fjac=matrix(1,n,1,n);
-  g=vector(1,n);
-  p=vector(1,n);
-  xold=vector(1,n);
+  g=::vector(1,n);
+  p=::vector(1,n);
+  xold=::vector(1,n);
 
-  fvec=vector(1,n);
+  fvec=::vector(1,n);
   nn=n;
   nrfuncv=vecfunc;
   f=fmin(x);
