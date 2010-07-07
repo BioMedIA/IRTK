@@ -383,9 +383,9 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkLin
   _xdata = this->Allocate(_xdata, _x, _y, _z);
   _ydata = this->Allocate(_ydata, _x, _y, _z);
   _zdata = this->Allocate(_zdata, _x, _y, _z);
-  for (i = -4; i < _x+4; i++) {
+  for (k = -4; k < _z+4; k++) {
     for (j = -4; j < _y+4; j++) {
-      for (k = -4; k < _z+4; k++) {
+      for (i = -4; i < _x+4; i++) {
         _xdata[k][j][i] = ffd._xdata[k][j][i];
         _ydata[k][j][i] = ffd._ydata[k][j][i];
         _zdata[k][j][i] = ffd._zdata[k][j][i];
@@ -439,9 +439,9 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkBSp
   _xdata = this->Allocate(_xdata, _x, _y, _z);
   _ydata = this->Allocate(_ydata, _x, _y, _z);
   _zdata = this->Allocate(_zdata, _x, _y, _z);
-  for (i = -4; i < _x+4; i++) {
+  for (k = -4; k < _z+4; k++) {
     for (j = -4; j < _y+4; j++) {
-      for (k = -4; k < _z+4; k++) {
+      for (i = -4; i < _x+4; i++) {
         x = i;
         y = j;
         z = k;
@@ -1451,16 +1451,16 @@ double irtkLinearFreeFormTransformation::Inverse(double &x, double &y, double &z
 
 void irtkLinearFreeFormTransformation::Compose(irtkTransformation *t1)
 {
-	int i, j, k;
+  int i, j, k;
   double x1, y1, z1, x2, y2, z2;
 
   // Allocate transformation
   irtkLinearFreeFormTransformation *t2 = new irtkLinearFreeFormTransformation(*this);
 
   // Compose t2 o t1
-  for (i = 0; i < this->GetX(); i++) {
+  for (k = 0; k < this->GetZ(); k++) {
     for (j = 0; j < this->GetY(); j++) {
-      for (k = 0; k < this->GetZ(); k++) {
+      for (i = 0; i < this->GetX(); i++) {
         x1 = i;
         y1 = j;
         z1 = k;
@@ -1468,12 +1468,12 @@ void irtkLinearFreeFormTransformation::Compose(irtkTransformation *t1)
         x2 = x1;
         y2 = y1;
         z2 = z1;
-				// Apply first transformation
+        // Apply first transformation
         t1->Transform(x2, y2, z2);
         // Apply second transformation
         t2->Transform(x2, y2, z2);
         // Update to displacement
-        this->Put(i, j, k, x2 - x1, y2- y1, z2 - z1);
+        this->Put(i, j, k, x2 - x1, y2 - y1, z2 - z1);
       }
     }
   }
