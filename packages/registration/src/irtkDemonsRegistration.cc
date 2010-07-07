@@ -16,28 +16,43 @@
 
 #include <irtkGaussianBlurring.h>
 
+#include <irtkGradientImageFilter.h>
+
+#define EPSILON 0.001
+
+int regrid = False;
+
+irtkRealImage *tmp_target_dem, *tmp_source_dem;
+
 irtkDemonsRegistration::irtkDemonsRegistration()
 {
-  // Default parameters for target image
-  _TargetBlurring     = 1;
-  _TargetResolution   = 0;
+  int i;
 
-  // Default parameters for source image
-  _SourceBlurring     = 1;
-  _SourceResolution   = 0;
+  for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+    // Default parameters for target image
+    _TargetBlurring[i]      = 0;
+    _TargetResolution[i][0] = 0;
+    _TargetResolution[i][1] = 0;
+    _TargetResolution[i][2] = 0;
+
+    // Default parameters for source image
+    _SourceBlurring[i]      = 0;
+    _SourceResolution[i][0] = 0;
+    _SourceResolution[i][1] = 0;
+    _SourceResolution[i][2] = 0;
+
+    // Default parameters for smoothing
+    _Smoothing[i]           = 0;
+
+  }
 
   // Default parameters for registration
   _NumberOfLevels     = 1;
   _NumberOfIterations = 200;
-  _ReductionFactor    = 2;
   _StepSize           = 0.005;
   _Epsilon            = 0.001;
-
-  // Default parameters for smoothing
-  _Smoothing          = 8;
-
-  // Default parameters for optimization
-  _InterpolationMode  = Interpolation_Linear;
+  _Regridding         = 10;
+  _Symmetric          = False;
 
   _TargetPadding = MIN_GREY;
   _SourcePadding = MIN_GREY;
@@ -47,24 +62,29 @@ irtkDemonsRegistration::irtkDemonsRegistration()
   _source = NULL;
 
   // Set output
-  _transformation = NULL;
+  _transformation1 = NULL;
+  _transformation2 = NULL;
 
-  // Type of demons
-  _Mode = _CompositiveDemons;
+  // Set ffds
+  _ffd1 = NULL;
+  _ffd2 = NULL;
 
   // Debug flag
   _DebugFlag = False;
 
   // Allocate interpolation object
-  _interpolator = new irtkLinearInterpolateImageFunction;
+  _interpolator1 = new irtkLinearInterpolateImageFunction;
+  _interpolator2 = new irtkLinearInterpolateImageFunction;
 
   // Allocate test transformation
-  _transformation2 = new irtkFluidFreeFormTransformation;
+  _transhist1 = new irtkFluidFreeFormTransformation;
+  _transhist2 = new irtkFluidFreeFormTransformation;
 }
 
 irtkDemonsRegistration::~irtkDemonsRegistration()
 {
-  delete _interpolator;
+  delete _interpolator1;
+  delete _interpolator2;
 }
 
 void irtkDemonsRegistration::GuessParameter()
@@ -87,21 +107,28 @@ void irtkDemonsRegistration::Initialize()
     exit(1);
   }
 
-  if (_transformation == NULL) {
+  if ((_transformation1 == NULL) || (_transformation2 == NULL)) {
     cerr << "irtkDemonsRegistration::Run: Filter has no transformation output" << endl;
     exit(1);
   }
+}
 
-  // Push local transformation back on transformation stack
-  _ffd = (irtkLinearFreeFormTransformation *)_transformation->PopLocalTransformation();
+void irtkDemonsRegistration::Initialize(int level)
+{
+  irtkImageAttributes attr;
 
-  // Invert transformation
-  _transformation->Invert();
+  // Copy source and target to temp space
+  tmp_target_dem = new irtkRealImage(*_target);
+  tmp_source_dem = new irtkRealImage(*_source);
+
+  // Swap source and target with temp space copies
+  swap(tmp_target_dem, _target);
+  swap(tmp_source_dem, _source);
 
   // Blur images if necessary
-  if (_TargetBlurring > 0) {
+  if (_TargetBlurring[level] > 0) {
     cout << "Blurring target ... "; cout.flush();
-    irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(_TargetBlurring,
+    irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(_TargetBlurring[level],
         _TargetPadding);
     blurring.SetInput (_target);
     blurring.SetOutput(_target);
@@ -109,9 +136,9 @@ void irtkDemonsRegistration::Initialize()
     cout << "done" << endl;
   }
 
-  if (_SourceBlurring > 0) {
+  if (_SourceBlurring[level] > 0) {
     cout << "Blurring source ... "; cout.flush();
-    irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(_SourceBlurring,
+    irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(_SourceBlurring[level],
         _SourcePadding);
     blurring.SetInput (_source);
     blurring.SetOutput(_source);
@@ -123,9 +150,9 @@ void irtkDemonsRegistration::Initialize()
   if (_TargetResolution > 0) {
     cout << "Resampling target ... "; cout.flush();
     // Create resampling filter
-    irtkResamplingWithPadding<irtkRealPixel> resample(_TargetResolution,
-        _TargetResolution,
-        _TargetResolution,
+    irtkResamplingWithPadding<irtkRealPixel> resample(_TargetResolution[level][0],
+        _TargetResolution[level][1],
+        _TargetResolution[level][2],
         _TargetPadding);
     resample.SetInput (_target);
     resample.SetOutput(_target);
@@ -135,9 +162,9 @@ void irtkDemonsRegistration::Initialize()
   if (_SourceResolution > 0) {
     cout << "Resampling source ... "; cout.flush();
     // Create resampling filter
-    irtkResamplingWithPadding<irtkRealPixel> resample(_SourceResolution,
-        _SourceResolution,
-        _SourceResolution,
+    irtkResamplingWithPadding<irtkRealPixel> resample(_SourceResolution[level][0],
+        _SourceResolution[level][1],
+        _SourceResolution[level][2],
         _SourcePadding);
     resample.SetInput (_source);
     resample.SetOutput(_source);
@@ -145,326 +172,169 @@ void irtkDemonsRegistration::Initialize()
     cout << "done" << endl;
   }
 
+  if (_ffd1 == NULL) {
+    // We are at the highest level of the pyramid, so create initial free-form deformations
+    _ffd1 = new irtkLinearFreeFormTransformation(*_target, _target->GetXSize(), _target->GetYSize(), _target->GetZSize());
+    _ffd2 = new irtkLinearFreeFormTransformation(*_source, _source->GetXSize(), _source->GetYSize(), _source->GetZSize());
+
+    // Push local transformation back on transformation stack
+    _transformation1->PushLocalTransformation(_ffd1);
+    _transformation2->PushLocalTransformation(_ffd2);
+  } else {
+    // Create linear free-form deformations
+    _ffd1 = new irtkLinearFreeFormTransformation(*_target, _target->GetXSize(), _target->GetYSize(), _target->GetZSize());
+    _ffd2 = new irtkLinearFreeFormTransformation(*_source, _source->GetXSize(), _source->GetYSize(), _source->GetZSize());
+
+    // Compose exisiting free-formations with new ones
+    _ffd1->Compose(_transformation1->PopLocalTransformation());
+    _ffd2->Compose(_transformation2->PopLocalTransformation());
+
+    // Push local transformation back on transformation stack
+    _transformation1->PushLocalTransformation(_ffd1);
+    _transformation2->PushLocalTransformation(_ffd2);
+  }
+
+  // Extract image attributes
+  attr = _target->GetImageAttributes();
+  attr._t = 3;
+
+  // Create local displacement field with same size as target
+  _local1.Initialize(attr);
+  _local2.Initialize(attr);
+
+  // Setup interpolation for the source image
+  _interpolator1->SetInput(_source);
+  _interpolator1->Initialize();
+  _interpolator2->SetInput(_target);
+  _interpolator2->Initialize();
+
+  // Calculate the source image domain in which we can interpolate
+  _interpolator1->Inside(_source_x1, _source_y1, _source_z1,
+                         _source_x2, _source_y2, _source_z2);
+  _interpolator2->Inside(_target_x1, _target_y1, _target_z1,
+                         _target_x2, _target_y2, _target_z2);
+
+  // Temporary image equals target image
+  _sourceTmp = *_target;
+  _targetTmp = *_target;
+
+  // Generate transformed tmp images
+  _imagetransformation1.SetInput (_source, _transformation1);
+  _imagetransformation1.SetOutput(&_sourceTmp);
+  _imagetransformation1.PutInterpolator(_interpolator1);
+  _imagetransformation1.Run();
+
+  _imagetransformation2.SetInput (_target, _transformation2);
+  _imagetransformation2.SetOutput(&_targetTmp);
+  _imagetransformation2.PutInterpolator(_interpolator2);
+  _imagetransformation2.Run();
+
+  // Extract image attributes
+  attr = _target->GetImageAttributes();
+
+  // Compute gradient of target image
+  irtkGradientImageFilter<irtkRealPixel> gradient1(irtkGradientImageFilter<irtkRealPixel>::GRADIENT_VECTOR);
+  gradient1.SetInput (_target);
+  gradient1.SetOutput(&_targetGradient);
+  gradient1.Run();
+
+  // Compute gradient of source image
+  irtkGradientImageFilter<irtkRealPixel> gradient2(irtkGradientImageFilter<irtkRealPixel>::GRADIENT_VECTOR);
+  gradient2.SetInput (_source);
+  gradient2.SetOutput(&_sourceGradient);
+  gradient2.Run();
+
   cout << "Target image (reference)" << endl;
   _target->Print();
 
   cout << "Source image (transform)" << endl;
   _source->Print();
-}
 
-void irtkDemonsRegistration::Initialize(int level)
-{
-  int i, j, k, i1, j1, k1, i2, j2, k2;
-  double x, y, z;
-  irtkImageAttributes attr;
-
-  // Extract image attributes
-  attr = _target->GetImageAttributes();
-
-  // Push local transformation back on transformation stack
-  _transformation->PushLocalTransformation(_ffd);
-
-  // Create global displacement field with same size as target
-  _globalDX.Initialize(attr);
-  _globalDY.Initialize(attr);
-  _globalDZ.Initialize(attr);
-
-  // Calculate global displacement field
-  for (k = 0; k < _target->GetZ(); k++) {
-    for (j = 0; j < _target->GetY(); j++) {
-      for (i = 0; i < _target->GetX(); i++) {
-        // Current point
-        x = i;
-        y = j;
-        z = k;
-        // Transform point into world coordinates
-        _target->ImageToWorld(x, y, z);
-        // Calculate displacement
-        _transformation->Displacement(x, y, z);
-        // Store displacement
-        _globalDX(i, j, k) = x;
-        _globalDY(i, j, k) = y;
-        _globalDZ(i, j, k) = z;
-      }
-    }
-  }
-
-  // Push local transformation back on transformation stack
-  _ffd = (irtkLinearFreeFormTransformation *)_transformation->PopLocalTransformation();
-
-  // Create local displacement field with same size as target
-  _localDX.Initialize(attr);
-  _localDY.Initialize(attr);
-  _localDZ.Initialize(attr);
-
-  // Create temporary displacement field with same size as target
-  _tmpDX.Initialize(attr);
-  _tmpDY.Initialize(attr);
-  _tmpDZ.Initialize(attr);
-
-  // Setup interpolation for the source image
-  _interpolator->SetInput(_source);
-  _interpolator->Initialize();
-
-  // Calculate the source image domain in which we can interpolate
-  _interpolator->Inside(_source_x1, _source_y1, _source_z1,
-                        _source_x2, _source_y2, _source_z2);
-
-  // Temporary image equals source image
-  _tmp = *_target;
-
-  // Update tmp image
-  for (k = 0; k < _target->GetZ(); k++) {
-    for (j = 0; j < _target->GetY(); j++) {
-      for (i = 0; i < _target->GetX(); i++) {
-        x = i;
-        y = j;
-        z = k;
-        // Transform point into world coordinates
-        _target->ImageToWorld(x, y, z);
-
-        // Transform point
-        x += _globalDX(i, j, k);
-        y += _globalDY(i, j, k);
-        z += _globalDZ(i, j, k);
-
-        // Transform point into image coordinates
-        _source->WorldToImage(x, y, z);
-
-        /*
-        // Interpolate intensity
-        if ((x > _source_x1) && (x < _source_x2) &&
-            (y > _source_y1) && (y < _source_y2) &&
-            (z > _source_z1) && (z < _source_z2)) {
-          _tmp(i, j, k) = round(_interpolator->EvaluateInside(x, y, z));
-      }
-        */
-
-        _tmp(i, j, k) = round(_interpolator->Evaluate(x, y, z));
-      }
-    }
-  }
-
-  // Extract image attributes
-  attr = _target->GetImageAttributes();
-
-  // Create images for gradient
-  _targetGradientX.Initialize(attr);
-  _targetGradientY.Initialize(attr);
-  _targetGradientZ.Initialize(attr);
-
-  // Calculate gradient
-  for (k = 0; k < _target->GetZ(); k++) {
-    for (j = 0; j < _target->GetY(); j++) {
-      for (i = 0; i < _target->GetX(); i++) {
-        i1 = i - 1;
-        if (i1 < 0) i1 = 0;
-        i2 = i + 1;
-        if (i2 > _target->GetX()-1) i2 = _target->GetX()-1;
-        j1 = j - 1;
-        if (j1 < 0) j1 = 0;
-        j2 = j + 1;
-        if (j2 > _target->GetY()-1) j2 = _target->GetY()-1;
-        k1 = k - 1;
-        if (k1 < 0) k1 = 0;
-        k2 = k + 1;
-        if (k2 > _target->GetZ()-1) k2 = _target->GetZ()-1;
-        _targetGradientX(i, j, k) = _target->Get(i2, j, k) - _target->Get(i1, j, k);
-        _targetGradientY(i, j, k) = _target->Get(i, j2, k) - _target->Get(i, j1, k);
-        _targetGradientZ(i, j, k) = _target->Get(i, j, k2) - _target->Get(i, j, k1);
-      }
-    }
-  }
-
-  // Extract image attributes
-  attr = _source->GetImageAttributes();
-
-  // Create images for gradient
-  _sourceGradientX.Initialize(attr);
-  _sourceGradientY.Initialize(attr);
-  _sourceGradientZ.Initialize(attr);
-
-  // Calculate gradient
-  for (k = 0; k < _source->GetZ(); k++) {
-    for (j = 0; j < _source->GetY(); j++) {
-      for (i = 0; i < _source->GetX(); i++) {
-        i1 = i - 1;
-        if (i1 < 0) i1 = 0;
-        i2 = i + 1;
-        if (i2 > _source->GetX()-1) i2 = _source->GetX()-1;
-        j1 = j - 1;
-        if (j1 < 0) j1 = 0;
-        j2 = j + 1;
-        if (j2 > _source->GetY()-1) j2 = _source->GetY()-1;
-        k1 = k - 1;
-        if (k1 < 0) k1 = 0;
-        k2 = k + 1;
-        if (k2 > _source->GetZ()-1) k2 = _source->GetZ()-1;
-        _sourceGradientX(i, j, k) = _source->Get(i2, j, k) - _source->Get(i1, j, k);
-        _sourceGradientY(i, j, k) = _source->Get(i, j2, k) - _source->Get(i, j1, k);
-        _sourceGradientZ(i, j, k) = _source->Get(i, j, k2) - _source->Get(i, j, k1);
-      }
-    }
-  }
-}
-
-void irtkDemonsRegistration::Add()
-{
-  int i, j, k;
-
-  irtkLinearFreeFormTransformation *ffd = new irtkLinearFreeFormTransformation(*_target, 1, 1, 1);
-
-  for (k = 0; k < ffd->GetZ(); k++) {
-    for (j = 0; j < ffd->GetY(); j++) {
-      for (i = 0; i < ffd->GetX(); i++) {
-        ffd->Put(i, j, k, _localDX(i, j, k), _localDY(i, j, k), _localDZ(i, j, k));
-      }
-    }
-  }
-  _transformation2->PushLocalTransformation(ffd);
+  // Print level
+  cout << "Starting level " << level+1 << endl;;
 }
 
 void irtkDemonsRegistration::Finalize()
-{
-  // Push local transformation back on transformation stack
-  _transformation->PushLocalTransformation(_ffd);
-
-  // Invert transformation
-  _transformation->Invert();
-
-  _transformation2->irtkTransformation::Write("fluid.dof.gz");
-}
+{}
 
 void irtkDemonsRegistration::Finalize(int level)
 {
-  int i, j, k;
-  double x, y, z, x1, y1, z1, x2, y2, z2;
+  // Print level
+  cout << "Finished level " << level+1 << endl;;
 
-  // Create interpolators for displacement fields
-  irtkLinearInterpolateImageFunction *interpolatorDX = new irtkLinearInterpolateImageFunction;
-  interpolatorDX->SetInput(&_globalDX);
-  interpolatorDX->Initialize();
-  irtkLinearInterpolateImageFunction *interpolatorDY = new irtkLinearInterpolateImageFunction;
-  interpolatorDY->SetInput(&_globalDY);
-  interpolatorDY->Initialize();
-  irtkLinearInterpolateImageFunction *interpolatorDZ = new irtkLinearInterpolateImageFunction;
-  interpolatorDZ->SetInput(&_globalDZ);
-  interpolatorDZ->Initialize();
+  // Swap source and target back with temp space copies (see Initialize)
+  swap(tmp_target_dem, _target);
+  swap(tmp_source_dem, _source);
 
-  for (k = 0; k < _ffd->GetZ(); k++) {
-    for (j = 0; j < _ffd->GetY(); j++) {
-      for (i = 0; i < _ffd->GetX(); i++) {
-        x = i;
-        y = j;
-        z = k;
-        // Current point into world coordinates
-        _ffd->LatticeToWorld(x, y, z);
+  delete tmp_target_dem;
+  delete tmp_source_dem;
+}
 
-        // Calculate previous displacement
-        x1 = x;
-        y1 = y;
-        z1 = z;
-        _transformation->Displacement(x1, y1, z1);
+void irtkDemonsRegistration::Smooth(double sigma)
+{
+  if (sigma > 0) {
+    irtkGaussianBlurring<double> blurring(sigma);
 
-        // Calculate current displacement
-        _target->WorldToImage(x, y, z);
-        x2 =  interpolatorDX->Evaluate(x, y, z);
-        y2 =  interpolatorDY->Evaluate(x, y, z);
-        z2 =  interpolatorDZ->Evaluate(x, y, z);
+    // Smooth displacement
+    blurring.SetInput(&_local1);
+    blurring.SetOutput(&_local1);
+    blurring.Run();
 
-        _ffd->Put(i, j, k, x2 - x1, y2 - y1, z2 - z1);
-      }
+    // Smooth displacement
+    if (_Symmetric) {
+      blurring.SetInput(&_local2);
+      blurring.SetOutput(&_local2);
+      blurring.Run();
     }
   }
 
-  // Delete interpolators for displacement fields
-  delete interpolatorDX;
-  delete interpolatorDY;
-  delete interpolatorDZ;
+  if (_StepSize > 0) {
+    _local1 *= _StepSize;
+    _local2 *= _StepSize;
+  }
 }
 
-void irtkDemonsRegistration::Run(irtkRealImage target, irtkRealImage source, int level)
+void irtkDemonsRegistration::Update()
 {
-  int iter;
-  double xsize, ysize, zsize;
-  irtkRealImage *ptr2target, *ptr2source;
+  irtkLinearFreeFormTransformation *ffd1 = new irtkLinearFreeFormTransformation(_local1);
+  irtkLinearFreeFormTransformation *ffd2 = new irtkLinearFreeFormTransformation(_local2);
 
-  // Resample target image
-  target.GetPixelSize(&xsize, &ysize, &zsize);
-  irtkResamplingWithPadding<irtkRealPixel> resample1(_ReductionFactor * xsize,
-      _ReductionFactor * ysize,
-      _ReductionFactor * zsize,
-      -1);
-  resample1.SetInput (&target);
-  resample1.SetOutput(&target);
-  resample1.Run();
+  // Concatenate displacement fields
+  _ffd1->Compose(ffd1);
+  _ffd2->Compose(ffd2);
 
-  // Resample source image
-  source.GetPixelSize(&xsize, &ysize, &zsize);
-  irtkResamplingWithPadding<irtkRealPixel> resample2(_ReductionFactor * xsize,
-      _ReductionFactor * ysize,
-      _ReductionFactor * zsize,
-      -1);
-  resample2.SetInput (&source);
-  resample2.SetOutput(&source);
-  resample2.Run();
+  delete ffd1;
+  delete ffd2;
 
-  // Here appears the magic
-  ptr2target = _target;
-  ptr2source = _source;
-  _target = &target;
-  _source = &source;
+  // Update source image
+  _imagetransformation1.Run();
 
-  // Recursion
-  if (level < _NumberOfLevels) {
-    this->Run(target, source, level + 1);
+  // Compute gradient of source image
+  irtkGradientImageFilter<irtkRealPixel> gradient1(irtkGradientImageFilter<irtkRealPixel>::GRADIENT_VECTOR);
+  gradient1.SetInput (&_sourceTmp);
+  gradient1.SetOutput(&_sourceGradient);
+  gradient1.Run();
+
+  // If symmetric version:
+  if (_Symmetric) {
+
+    // Update target image
+    _imagetransformation2.Run();
+
+    // Compute gradient of target image
+    irtkGradientImageFilter<irtkRealPixel> gradient2(irtkGradientImageFilter<irtkRealPixel>::GRADIENT_VECTOR);
+    gradient2.SetInput (&_targetTmp);
+    gradient2.SetOutput(&_targetGradient);
+    gradient2.Run();
   }
-
-  // Initialize for this level
-  this->Initialize(level);
-
-  // Print resolution level
-  cout << "Resolution level no. " << level << endl;
-
-  // Run the registration filter
-  for (iter = 0; iter < _NumberOfIterations; iter++) {
-
-    // Print out iteration number
-    cout << "Iteration = " << iter + 1 << " (out of " << _NumberOfIterations << ") "<< endl;
-
-    // Compute force
-    Force();
-
-    // Smooth force
-    Smooth();
-
-    // Update images and displacement fields
-    Update();
-  }
-
-
-  // Do the final cleaning up for this level
-  this->Finalize(level);
-
-  // Here disappers the magic
-  _target = ptr2target;
-  _source = ptr2source;
 }
 
 void irtkDemonsRegistration::Run()
 {
-  int iter;
+  int iter, level;
 
-  // Do the initial set up for all levels
+  // Do the initial set up
   this->Initialize();
-
-  // Run the registration filter at high resolutions
-  if (_NumberOfLevels > 1) {
-    this->Run(*_target, *_source, 2);
-  }
-
-  // Initialize for this level
-  this->Initialize(1);
 
   // Save pre-processed images if we are debugging
   if (_DebugFlag == True) {
@@ -475,77 +345,132 @@ void irtkDemonsRegistration::Run()
     _target->Write(buffer);
   }
 
-  // Start on this level
-  cout << "Resolution level no. 1" << endl;
+  // Loop over levels
+  for (level = _NumberOfLevels-1; level >= 0; level--) {
 
-  // Run the registration filter
-  for (iter = 0; iter < _NumberOfIterations; iter++) {
+    // Print resolution level
+    cout << "Resolution level no. " << level+1 << endl;
 
-    // Print out iteration number
-    cout << "Iteration = " << iter + 1 << " (out of " << _NumberOfIterations << ") "<< endl;
+    // Initialize for this level
+    this->Initialize(level);
 
-    // Compute force
-    Force();
+    // Run the registration filter
+    for (iter = 0; iter < _NumberOfIterations; iter++) {
 
-    //    Force2();
+      // Print out iteration number
+      cout << "Iteration = " << iter + 1 << " (out of " << _NumberOfIterations << ") "<< endl;
 
-    // Smooth force
-    Smooth();
+      // Compute force
+      if (Force() < _Epsilon) {
+        break;
+      }
 
-    if (_DebugFlag == True) {
-      char buffer[255];
-      sprintf(buffer, "local_dx_%.3d.nii.gz", iter);
-      _localDX.Write(buffer);
-      sprintf(buffer, "local_dy_%.3d.nii.gz", iter);
-      _localDY.Write(buffer);
-      sprintf(buffer, "local_dz_%.3d.nii.gz", iter);
-      _localDZ.Write(buffer);
-      sprintf(buffer, "global_dx_%.3d.nii.gz", iter);
-      _globalDX.Write(buffer);
-      sprintf(buffer, "global_dy_%.3d.nii.gz", iter);
-      _globalDY.Write(buffer);
-      sprintf(buffer, "global_dz_%.3d.nii.gz", iter);
-      _globalDZ.Write(buffer);
+      // Smooth force
+      Smooth(_Smoothing[level]);
+
+      // Automatically compute step size
+      /*
+      if (iter == 0) {
+        double min, max;
+        _local1.GetMinMax(&min, &max);
+        _StepSize = 0.5 / (fabs(min) > fabs(max) ? fabs(min) : fabs(max));
+        cout << "Automatically computing step size as " << _StepSize << endl;
+        _local1 *= _StepSize;
+        _local2 *= _StepSize;
+      }
+*/
+
+      if (_DebugFlag == True) {
+        char buffer[255];
+
+        sprintf(buffer, "local_%.3d.nii.gz", iter);
+        _local1.Write(buffer);
+        sprintf(buffer, "tmp_source_%.3d.nii.gz", iter);
+        _sourceTmp.Write(buffer);
+        sprintf(buffer, "tmp_target_%.3d.nii.gz", iter);
+        _targetTmp.Write(buffer);
+      }
+
+      // Regrid
+      if ((iter+1) % _Regridding == 0) {
+        regrid = True;
+        cout << "regridding at iteration = " << iter+1 << endl;
+      } else {
+        regrid = False;
+      }
+      regrid = False;
+
+      // Update images and displacement fields
+      Update();
     }
 
-    // Update images and displacement fields
-    Update();
+    // Do the final cleaning up
+    this->Finalize(level);
   }
 
-  // Do the final cleaning up for this level
-  this->Finalize(1);
-
-  // Do the final cleaning up for all levels
+  // Do the final cleaning up
   this->Finalize();
 }
 
-void irtkDemonsRegistration::Force()
+double irtkDemonsRegistration::Force()
 {
   int i, j, k;
-  double ssd;
+  double ssd, mag, rms;
+  irtkMatrix m(3, 3);
 
+  m(0, 0) = _target->GetImageAttributes()._xaxis[0];
+  m(1, 0) = _target->GetImageAttributes()._xaxis[1];
+  m(2, 0) = _target->GetImageAttributes()._xaxis[2];
+  m(0, 1) = _target->GetImageAttributes()._yaxis[0];
+  m(1, 1) = _target->GetImageAttributes()._yaxis[1];
+  m(2, 1) = _target->GetImageAttributes()._yaxis[2];
+  m(0, 2) = _target->GetImageAttributes()._zaxis[0];
+  m(1, 2) = _target->GetImageAttributes()._zaxis[1];
+  m(2, 2) = _target->GetImageAttributes()._zaxis[2];
+
+  rms = 0;
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
-        ssd  = _target->Get(i, j, k) - _tmp(i, j, k);
-        _localDX(i, j, k) = ssd * _sourceGradientX(i, j, k) * _StepSize;
-        _localDY(i, j, k) = ssd * _sourceGradientY(i, j, k) * _StepSize;
-        _localDZ(i, j, k) = ssd * _sourceGradientZ(i, j, k) * _StepSize;
+        mag = _sourceGradient(i, j, k, 0)*_sourceGradient(i, j, k, 0) + _sourceGradient(i, j, k, 1)*_sourceGradient(i, j, k, 1) +
+              _sourceGradient(i, j, k, 2)*_sourceGradient(i, j, k, 2);
+        ssd = (_targetTmp(i, j, k) - _sourceTmp(i, j, k)) / (mag + 0.0001 + (_targetTmp(i, j, k) - _sourceTmp(i, j, k)) * (_targetTmp(i, j, k) - _sourceTmp(i, j, k)));
+        _local1(i, j, k, 0) = ssd * (m(0, 0) * _sourceGradient(i, j, k, 0) + m(0, 1) * _sourceGradient(i, j, k, 1) + m(0, 2) * _sourceGradient(i, j, k, 2));
+        _local1(i, j, k, 1) = ssd * (m(1, 0) * _sourceGradient(i, j, k, 0) + m(1, 1) * _sourceGradient(i, j, k, 1) + m(1, 2) * _sourceGradient(i, j, k, 2));
+        _local1(i, j, k, 2) = ssd * (m(2, 0) * _sourceGradient(i, j, k, 0) + m(2, 1) * _sourceGradient(i, j, k, 1) + m(2, 2) * _sourceGradient(i, j, k, 2));
+        rms += fabs(_targetTmp(i, j, k) - _sourceTmp(i, j, k));
       }
     }
   }
+
+  if (_Symmetric) {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          ssd  = _sourceTmp(i, j, k) - _targetTmp(i, j, k);
+          _local2(i, j, k, 0) = ssd * (m(0, 0) * _targetGradient(i, j, k, 0) + m(0, 1) * _targetGradient(i, j, k, 1) + m(0, 2) * _targetGradient(i, j, k, 2));
+          _local2(i, j, k, 1) = ssd * (m(1, 0) * _targetGradient(i, j, k, 0) + m(1, 1) * _targetGradient(i, j, k, 1) + m(1, 2) * _targetGradient(i, j, k, 2));
+          _local2(i, j, k, 2) = ssd * (m(2, 0) * _targetGradient(i, j, k, 0) + m(2, 1) * _targetGradient(i, j, k, 1) + m(2, 2) * _targetGradient(i, j, k, 2));
+          rms += _local2(i, j, k, 0)*_local2(i, j, k, 0) + _local2(i, j, k, 1)*_local2(i, j, k, 1) + _local2(i, j, k, 2)*_local2(i, j, k, 2);
+        }
+      }
+    }
+  }
+  cout << "SSD Metric = " << sqrt(rms) / _target->GetNumberOfVoxels() << endl;
+  return sqrt(rms) / _target->GetNumberOfVoxels();
 }
 
-void irtkDemonsRegistration::Force2()
+double irtkDemonsRegistration::Force2()
 {
-  int i1, j1, k1, i2, j2, k2, i, j, k, l, m, n, nsample, size = 2;
+  double rms;
+  int i, j, k, l, m, n, nsample, size = 3;
 
   // Create images for gradient
-  irtkRealImage Imean(_target->GetImageAttributes());
-  irtkRealImage Jmean(_target->GetImageAttributes());
-  irtkRealImage A(_target->GetImageAttributes());
-  irtkRealImage B(_target->GetImageAttributes());
-  irtkRealImage C(_target->GetImageAttributes());
+  irtkGenericImage<double> Imean(_target->GetImageAttributes());
+  irtkGenericImage<double> Jmean(_target->GetImageAttributes());
+  irtkGenericImage<double> A(_target->GetImageAttributes());
+  irtkGenericImage<double> B(_target->GetImageAttributes());
+  irtkGenericImage<double> C(_target->GetImageAttributes());
 
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
@@ -554,52 +479,22 @@ void irtkDemonsRegistration::Force2()
         Imean(i, j, k) = 0;
         Jmean(i, j, k) = 0;
         for (n = -size; n <= size; n++) {
-          for (m = -size; m <= size; m++) {
-            for (l = -size; l <= size; l++) {
-              if ((i+l >= 0) && (i+l < _target->GetX()) &&
-                  (j+m >= 0) && (j+m < _target->GetY()) &&
-                  (k+n >= 0) && (k+n < _target->GetZ())) {
-                Imean(i, j, k) = _target->Get(i+l, j+m, k+n);
-                Jmean(i, j, k) = _source->Get(i+l, j+m, k+n);
-                nsample++;
+          if ((k+n >= 0) && (k+n < _target->GetZ())) {
+            for (m = -size; m <= size; m++) {
+              if ((j+m >= 0) && (j+m < _target->GetY())) {
+                for (l = -size; l <= size; l++) {
+                  if ((i+l >= 0) && (i+l < _target->GetX())) {
+                    Imean(i, j, k) += _targetTmp(i+l, j+m, k+n);
+                    Jmean(i, j, k) += _sourceTmp(i+l, j+m, k+n);
+                    nsample++;
+                  }
+                }
               }
             }
           }
         }
-        Imean(i, j, k) /= n;
-        Jmean(i, j, k) /= n;
-      }
-    }
-  }
-  for (k = 0; k < _target->GetZ(); k++) {
-    for (j = 0; j < _target->GetY(); j++) {
-      for (i = 0; i < _target->GetX(); i++) {
-        A(i, j, k) = (_target->Get(i, j, k) - Imean(i, j, k)) * (_source->Get(i, j, k) - Jmean(i, j, k));
-        B(i, j, k) = (_target->Get(i, j, k) - Imean(i, j, k)) * (_target->Get(i, j, k) - Imean(i, j, k));
-        C(i, j, k) = (_source->Get(i, j, k) - Jmean(i, j, k)) * (_source->Get(i, j, k) - Jmean(i, j, k));
-      }
-    }
-  }
-
-  // Calculate gradient
-  for (k = 0; k < _source->GetZ(); k++) {
-    for (j = 0; j < _source->GetY(); j++) {
-      for (i = 0; i < _source->GetX(); i++) {
-        i1 = i - 1;
-        if (i1 < 0) i1 = 0;
-        i2 = i + 1;
-        if (i2 > _source->GetX()-1) i2 = _source->GetX()-1;
-        j1 = j - 1;
-        if (j1 < 0) j1 = 0;
-        j2 = j + 1;
-        if (j2 > _source->GetY()-1) j2 = _source->GetY()-1;
-        k1 = k - 1;
-        if (k1 < 0) k1 = 0;
-        k2 = k + 1;
-        if (k2 > _source->GetZ()-1) k2 = _source->GetZ()-1;
-        _sourceGradientX(i, j, k) = Jmean(i2, j, k) - Jmean(i1, j, k);
-        _sourceGradientY(i, j, k) = Jmean(i, j2, k) - Jmean(i, j1, k);
-        _sourceGradientZ(i, j, k) = Jmean(i, j, k2) - Jmean(i, j, k1);
+        Imean(i, j, k) /= (double)nsample;
+        Jmean(i, j, k) /= (double)nsample;
       }
     }
   }
@@ -607,300 +502,261 @@ void irtkDemonsRegistration::Force2()
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
-        double x = 2 * A(i, j, k) / (B(i, j, k) * C(i, j, k)) * (Imean(i, j, k) - A(i, j, k) / C(i, j, k) * Jmean(i, j, k));
-        _localDX(i, j, k) = x * _sourceGradientX(i, j, k) * _StepSize;
-        _localDY(i, j, k) = x * _sourceGradientY(i, j, k) * _StepSize;
-        _localDZ(i, j, k) = x * _sourceGradientZ(i, j, k) * _StepSize;
-      }
-    }
-  }
-}
-
-void irtkDemonsRegistration::Smooth()
-{
-  if (_Smoothing > 0) {
-    irtkGaussianBlurring<irtkRealPixel> blurring(_Smoothing);
-
-    // Smooth X-displacement
-    blurring.SetInput(&_localDX);
-    blurring.SetOutput(&_localDX);
-    blurring.Run();
-
-    // Smooth Y-displacement
-    blurring.SetInput(&_localDY);
-    blurring.SetOutput(&_localDY);
-    blurring.Run();
-
-    // Smooth Z-displacement
-    blurring.SetInput(&_localDZ);
-    blurring.SetOutput(&_localDZ);
-    blurring.Run();
-  }
-}
-
-void irtkDemonsRegistration::Update()
-{
-  int i, j, k, i1, j1, k1, i2, j2, k2;
-  double x, y, z;
-
-  if (_Mode == _AdditiveDemons) {
-    // Add displacement field
-    _globalDX += _localDX;
-    _globalDY += _localDY;
-    _globalDZ += _localDZ;
-  } else {
-  	Add();
-
-  	// Concatenate displacement field
-    irtkLinearInterpolateImageFunction interpolatorDX;
-    interpolatorDX.SetInput(&_globalDX);
-    interpolatorDX.Initialize();
-    irtkLinearInterpolateImageFunction interpolatorDY;
-    interpolatorDY.SetInput(&_globalDY);
-    interpolatorDY.Initialize();
-    irtkLinearInterpolateImageFunction interpolatorDZ;
-    interpolatorDZ.SetInput(&_globalDZ);
-    interpolatorDZ.Initialize();
-
-    // Update tmp image
-    for (k = 0; k < _target->GetZ(); k++) {
-      for (j = 0; j < _target->GetY(); j++) {
-        for (i = 0; i < _target->GetX(); i++) {
-          x = i;
-          y = j;
-          z = k;
-
-          // Transform point into world coordinates
-          _target->ImageToWorld(x, y, z);
-
-          // Transform point
-          x += _localDX(i, j, k);
-          y += _localDY(i, j, k);
-          z += _localDZ(i, j, k);
-
-          // Transform point into image coordinates
-          _target->WorldToImage(x, y, z);
-
-          _tmpDX(i, j, k) = _localDX(i, j, k) + interpolatorDX.Evaluate(x, y, z);
-          _tmpDY(i, j, k) = _localDY(i, j, k) + interpolatorDY.Evaluate(x, y, z);
-          _tmpDZ(i, j, k) = _localDZ(i, j, k) + interpolatorDZ.Evaluate(x, y, z);
+        nsample = 0;
+        for (n = -size; n <= size; n++) {
+          if ((k+n >= 0) && (k+n < _target->GetZ())) {
+            for (m = -size; m <= size; m++) {
+              if ((j+m >= 0) && (j+m < _target->GetY())) {
+                for (l = -size; l <= size; l++) {
+                  if ((i+l >= 0) && (i+l < _target->GetX())) {
+                    A(i, j, k) += (_targetTmp(i+l, j+m, k+n) - Imean(i+l, j+m, k+n)) *
+                                  (_sourceTmp(i+l, j+m, k+n) - Jmean(i+l, j+m, k+n));
+                    B(i, j, k) += (_targetTmp(i+l, j+m, k+n) - Imean(i+l, j+m, k+n)) *
+                                  (_targetTmp(i+l, j+m, k+n) - Imean(i+l, j+m, k+n));
+                    C(i, j, k) += (_sourceTmp(i+l, j+m, k+n) - Jmean(i+l, j+m, k+n)) *
+                                  (_sourceTmp(i+l, j+m, k+n) - Jmean(i+l, j+m, k+n));
+                    nsample++;
+                  }
+                }
+              }
+            }
+          }
         }
+        A(i, j, k) /= (double)nsample;
+        B(i, j, k) /= (double)nsample;
+        C(i, j, k) /= (double)nsample;
       }
     }
+  }
 
-    // Reset displacements
-    for (k = 0; k < _target->GetZ(); k++) {
-      for (j = 0; j < _target->GetY(); j++) {
-        for (i = 0; i < _target->GetX(); i++) {
-          _localDX(i, j, k) = 0;
-          _localDY(i, j, k) = 0;
-          _localDZ(i, j, k) = 0;
-          _globalDX(i, j, k) = _tmpDX(i, j, k);
-          _globalDY(i, j, k) = _tmpDY(i, j, k);
-          _globalDZ(i, j, k) = _tmpDZ(i, j, k);
+  rms = 0;
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        if ((B(i, j, k) > EPSILON) && (C(i, j, k) > EPSILON)) {
+          double x = -2 * A(i, j, k) / (B(i, j, k) * C(i, j, k)) * (Jmean(i, j, k) - A(i, j, k) / B(i, j, k) * Imean(i, j, k));
+          if ((fabs(Imean(i, j, k) - _targetTmp(i, j, k)) > EPSILON) && (fabs(Jmean(i, j, k) - _sourceTmp(i, j, k)) > EPSILON)) {
+            _local1(i, j, k, 0) = x * _sourceGradient(i, j, k, 0);
+            _local1(i, j, k, 1) = x * _sourceGradient(i, j, k, 1);
+            _local1(i, j, k, 2) = x * _sourceGradient(i, j, k, 2);
+          } else {
+            _local1(i, j, k, 0) = 0;
+            _local1(i, j, k, 1) = 0;
+            _local1(i, j, k, 2) = 0;
+          }
+        } else {
+          _local1(i, j, k, 0) = 0;
+          _local1(i, j, k, 1) = 0;
+          _local1(i, j, k, 2) = 0;
         }
       }
     }
   }
 
-  // Update tmp image
-  for (k = 0; k < _target->GetZ(); k++) {
-    for (j = 0; j < _target->GetY(); j++) {
-      for (i = 0; i < _target->GetX(); i++) {
-        x = i;
-        y = j;
-        z = k;
-        // Transform point into world coordinates
-        _target->ImageToWorld(x, y, z);
-
-        // Transform point
-        x += _globalDX(i, j, k);
-        y += _globalDY(i, j, k);
-        z += _globalDZ(i, j, k);
-
-        // Transform point into image coordinates
-        _source->WorldToImage(x, y, z);
-
-        /*
-        // Interpolate intensity
-        if ((x > _source_x1) && (x < _source_x2) &&
-            (y > _source_y1) && (y < _source_y2) &&
-            (z > _source_z1) && (z < _source_z2)) {
-          _tmp(i, j, k) = round(_interpolator->EvaluateInside(x, y, z));
-      }
-        */
-
-        _tmp(i, j, k) = round(_interpolator->Evaluate(x, y, z));
+  if (_Symmetric) {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          _local2(i, j, k, 0) = 0; //x * _targetGradient(i, j, k, 0) * _StepSize;
+          _local2(i, j, k, 1) = 0; //x * _targetGradient(i, j, k, 1) * _StepSize;
+          _local2(i, j, k, 2) = 0; //x * _targetGradient(i, j, k, 2) * _StepSize;
+          //        }
+        }
       }
     }
   }
-
-  // Calculate gradient
-  for (k = 0; k < _source->GetZ(); k++) {
-    for (j = 0; j < _source->GetY(); j++) {
-      for (i = 0; i < _source->GetX(); i++) {
-        i1 = i - 1;
-        if (i1 < 0) i1 = 0;
-        i2 = i + 1;
-        if (i2 > _source->GetX()-1) i2 = _source->GetX()-1;
-        j1 = j - 1;
-        if (j1 < 0) j1 = 0;
-        j2 = j + 1;
-        if (j2 > _source->GetY()-1) j2 = _source->GetY()-1;
-        k1 = k - 1;
-        if (k1 < 0) k1 = 0;
-        k2 = k + 1;
-        if (k2 > _source->GetZ()-1) k2 = _source->GetZ()-1;
-        _sourceGradientX(i, j, k) = _tmp(i2, j, k) - _tmp(i1, j, k);
-        _sourceGradientY(i, j, k) = _tmp(i, j2, k) - _tmp(i, j1, k);
-        _sourceGradientZ(i, j, k) = _tmp(i, j, k2) - _tmp(i, j, k1);
-      }
-    }
-  }
-
+  cout << "NCC Metric = " << sqrt(rms) / _target->GetNumberOfVoxels() << endl;
+  return sqrt(rms) / _target->GetNumberOfVoxels();
 }
 
-void irtkDemonsRegistration::SetParameter(const irtkDemonsRegistration *r)
+Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
-  // Default parameters for target image
-  _TargetBlurring     = r->_TargetBlurring;
-  _TargetResolution   = r->_TargetResolution;
+  int i, n, ok = False;
+  double dx, dy, dz;
 
-  // Default parameters for source image
-  _SourceBlurring     = r->_SourceBlurring;
-  _SourceResolution   = r->_SourceResolution;
+  // Resolution level
+  if (strstr(buffer1, "Resolution level") != NULL) {
+    level = atoi(buffer2)-1;
+    ok = True;
+  }
+  // Target blurring
+  if (strstr(buffer1, "Target blurring (in mm)") != NULL) {
+    if (level == -1) {
+      for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+        this->_TargetBlurring[i] = pow(2.0, double(i)) * atof(buffer2);
+      }
+    } else {
+      this->_TargetBlurring[level] = atof(buffer2);
+    }
+    ok = True;
+  }
+  // Target resolution
+  if (strstr(buffer1, "Target resolution (in mm)") != NULL) {
+    _target->GetPixelSize(&dx, &dy, &dz);
+    if (level == -1) {
+      n = sscanf(buffer2, "%lf %lf %lf", &(this->_TargetResolution[0][0]),  &(this->_TargetResolution[0][1]),  &(this->_TargetResolution[0][2]));
+      if (n == 1) {
+        this->_TargetResolution[0][1] = this->_TargetResolution[0][0];
+        this->_TargetResolution[0][2] = this->_TargetResolution[0][0];
+      }
+      if (this->_TargetResolution[0][0] == 0) this->_TargetResolution[0][0] = dx;
+      if (this->_TargetResolution[0][1] == 0) this->_TargetResolution[0][1] = dy;
+      if (this->_TargetResolution[0][2] == 0) this->_TargetResolution[0][2] = dz;
+      for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+        this->_TargetResolution[i][0] = pow(2.0, double(i)) * this->_TargetResolution[0][0];
+        this->_TargetResolution[i][1] = pow(2.0, double(i)) * this->_TargetResolution[0][1];
+        this->_TargetResolution[i][2] = pow(2.0, double(i)) * this->_TargetResolution[0][2];
+      }
+    } else {
+      n = sscanf(buffer2, "%lf %lf %lf", &(this->_TargetResolution[level][0]),  &(this->_TargetResolution[level][1]),  &(this->_TargetResolution[level][2]));
+      if (n == 1) {
+        this->_TargetResolution[level][1] = this->_TargetResolution[level][0];
+        this->_TargetResolution[level][2] = this->_TargetResolution[level][0];
+      }
+      if (this->_TargetResolution[level][0] == 0) this->_TargetResolution[level][0] = dx;
+      if (this->_TargetResolution[level][1] == 0) this->_TargetResolution[level][1] = dy;
+      if (this->_TargetResolution[level][2] == 0) this->_TargetResolution[level][2] = dz;
+    }
+    ok = True;
+  }
+  // Source blurring
+  if (strstr(buffer1, "Source blurring (in mm)") != NULL) {
+    if (level == -1) {
+      for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+        this->_SourceBlurring[i] = pow(2.0, double(i)) * atof(buffer2);
+      }
+    } else {
+      this->_SourceBlurring[level] = atof(buffer2);
+    }
+    ok = True;
+  }
+  // Source resolution
+  if (strstr(buffer1, "Source resolution (in mm)") != NULL) {
+    _source->GetPixelSize(&dx, &dy, &dz);
+    if (level == -1) {
+      n = sscanf(buffer2, "%lf %lf %lf", &(this->_SourceResolution[0][0]),  &(this->_SourceResolution[0][1]),  &(this->_SourceResolution[0][2]));
+      if (n == 1) {
+        this->_SourceResolution[0][1] = this->_SourceResolution[0][0];
+        this->_SourceResolution[0][2] = this->_SourceResolution[0][0];
+      }
+      if (this->_SourceResolution[0][0] == 0) this->_SourceResolution[0][0] = dx;
+      if (this->_SourceResolution[0][1] == 0) this->_SourceResolution[0][1] = dy;
+      if (this->_SourceResolution[0][2] == 0) this->_SourceResolution[0][2] = dz;
+      for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+        this->_SourceResolution[i][0] = pow(2.0, double(i)) * this->_SourceResolution[0][0];
+        this->_SourceResolution[i][1] = pow(2.0, double(i)) * this->_SourceResolution[0][1];
+        this->_SourceResolution[i][2] = pow(2.0, double(i)) * this->_SourceResolution[0][2];
+      }
+    } else {
+      n = sscanf(buffer2, "%lf %lf %lf", &(this->_SourceResolution[level][0]),  &(this->_SourceResolution[level][1]),  &(this->_SourceResolution[level][2]));
+      if (n == 1) {
+        this->_SourceResolution[level][1] = this->_SourceResolution[level][0];
+        this->_SourceResolution[level][2] = this->_SourceResolution[level][0];
+      }
+      if (this->_SourceResolution[level][0] == 0) this->_SourceResolution[level][0] = dx;
+      if (this->_SourceResolution[level][1] == 0) this->_SourceResolution[level][1] = dy;
+      if (this->_SourceResolution[level][2] == 0) this->_SourceResolution[level][2] = dz;
+    }
+    ok = True;
+  }
+  if (strstr(buffer1, "No. of resolution levels") != NULL) {
+    this->_NumberOfLevels = atoi(buffer2);
+    ok = True;
+  }
+  if (strstr(buffer1, "No. of iterations") != NULL) {
+    this->_NumberOfIterations = atoi(buffer2);
+    ok = True;
+  }
+  if (strstr(buffer1, "Regridding") != NULL) {
+    this->_Regridding = atoi(buffer2);
+    ok = True;
+  }
+  // Source blurring
+  if (strstr(buffer1, "Smoothing") != NULL) {
+    if (level == -1) {
+      for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+        this->_Smoothing[i] = pow(2.0, double(i)) * atof(buffer2);
+      }
+    } else {
+      this->_Smoothing[level] = atof(buffer2);
+    }
+    ok = True;
+  }
+  if (strstr(buffer1, "Step size") != NULL) {
+    this->_StepSize = atoi(buffer2);
+    ok = True;
+  }
+  if (strstr(buffer1, "Epsilon") != NULL) {
+    this->_Epsilon = atof(buffer2);
+    ok = True;
+  }
+  if (strstr(buffer1, "Padding value") != NULL) {
+    this->_TargetPadding = atoi(buffer2);
+    ok = True;
+  }
 
-  // Default parameters for registration
-  _NumberOfLevels     = r->_NumberOfLevels;
-  _NumberOfIterations = r->_NumberOfIterations;
-  _ReductionFactor    = r->_ReductionFactor;
+  if (ok == False) {
+    cerr << "irtkDemonsRegistration::Read: Can't parse line " << buffer1 << endl;
+    exit(1);
+  }
 
-  // Default parameters for smoothing
-  _Smoothing          = r->_Smoothing;
+  return ok;
+}
 
-  // Default parameters for optimization
-  _InterpolationMode  = r->_InterpolationMode;
+void irtkDemonsRegistration::Write(ostream &to)
+{
+  int i;
+
+  to << "\n#\n# Registration parameters\n#\n\n";
+  to << "No. of resolution levels          = " << this->_NumberOfLevels << endl;
+  to << "Epsilon                           = " << this->_Epsilon << endl;
+  to << "Padding value                     = " << this->_TargetPadding << endl;
+  to << "No. of iterations                 = " << this->_NumberOfIterations << endl;
+  to << "Step size                         = " << this->_StepSize << endl;
+  to << "Regridding                        = " << this->_Regridding << endl;
+
+  for (i = 0; i < this->_NumberOfLevels; i++) {
+    to << "\n#\n# Registration parameters for resolution level " << i+1 << "\n#\n\n";
+    to << "Resolution level                  = " << i+1 << endl;
+    to << "Target blurring (in mm)           = " << this->_TargetBlurring[i] << endl;
+    to << "Target resolution (in mm)         = " << this->_TargetResolution[i][0] << " " << this->_TargetResolution[i][1] << " " << this->_TargetResolution[i][2] << endl;
+    to << "Source blurring (in mm)           = " << this->_SourceBlurring[i] << endl;
+    to << "Source resolution (in mm)         = " << this->_SourceResolution[i][0] << " " << this->_SourceResolution[i][1] << " " << this->_SourceResolution[i][2] << endl;
+    to << "Smoothing                         = " << this->_Smoothing[i] << endl;
+  }
 }
 
 void irtkDemonsRegistration::Read(char *filename)
 {
+  int level;
+  char buffer1[255], *buffer2;
+
   ifstream from(filename);
+
   if (!from) {
     cerr << "irtkDemonsRegistration::Read: Can't open file " << filename
     << endl;
     exit(1);
   }
 
-  // Read out base registration parameters
-  from >> this;
+  level = -1;
+  while (from.eof() != True) {
+    if (read_line(from, buffer1, buffer2) != 0) {
+      if (this->Read(buffer1, buffer2, level) == False) {
+        cerr << "Couldn't parse line: " << buffer1 << endl;
+      }
+    }
+  }
 }
 
 void irtkDemonsRegistration::Write(char *filename)
 {
   ofstream to(filename);
+
   if (!to) {
-    cerr << "irtkRegistration::Write: Can't open file " << filename;
+    cerr << "irtkDemonsRegistration::Write: Can't open file " << filename;
     exit(1);
   }
 
-  // Write out base registration parameters
-  to << this;
+  this->Write(to);
 }
-
-istream& operator>> (istream &from, irtkDemonsRegistration *r)
-{
-  int ok;
-  char buffer1[255], *buffer2;
-
-  while (from.eof() != True) {
-
-    ok = False;
-    if (read_line(from, buffer1, buffer2) == 0) break;
-
-    // Target blurring
-    if (strstr(buffer1, "Target blurring (in mm)") != NULL) {
-      r->_TargetBlurring = atof(buffer2);
-      cout << "Target blurring is ... " << r->_TargetBlurring << endl;
-      ok = True;
-    }
-    // Target resolution
-    if (strstr(buffer1, "Target resolution (in mm)") != NULL) {
-      r->_TargetResolution = atof(buffer2);
-      cout << "Target resolution is ... " << r->_TargetResolution << endl;
-      ok = True;
-    }
-    // Source blurring
-    if (strstr(buffer1, "Source blurring (in mm)") != NULL) {
-      r->_SourceBlurring = atof(buffer2);
-      cout << "Source blurring is ... " << r->_SourceBlurring << endl;
-      ok = True;
-    }
-    // Source resolution
-    if (strstr(buffer1, "Source resolution (in mm)") != NULL) {
-      r->_SourceResolution = atof(buffer2);
-      cout << "Source resolution is ... " << r->_SourceResolution << endl;
-      ok = True;
-    }
-    if (strstr(buffer1, "No. of resolution levels") != NULL) {
-      r->_NumberOfLevels = atoi(buffer2);
-      cout << "No. of resolution levels is ... " << r->_NumberOfLevels << endl;
-      ok = True;
-    }
-    if (strstr(buffer1, "No. of iterations") != NULL) {
-      r->_NumberOfIterations = atoi(buffer2);
-      cout << "No. of iterations is ... " << r->_NumberOfIterations << endl;
-      ok = True;
-    }
-    if (strstr(buffer1, "Step size") != NULL) {
-      r->_StepSize = atof(buffer2);
-      cout << "Step size ... " << r->_StepSize << endl;
-      ok = True;
-    }
-    if (strstr(buffer1, "Epsilon") != NULL) {
-      r->_Epsilon = atof(buffer2);
-      cout << "Epsilon ... " << r->_Epsilon << endl;
-      ok = True;
-    }
-    if (strstr(buffer1, "Reduction factor") != NULL) {
-      r->_ReductionFactor = atof(buffer2);
-      cout << "Reduction factor for images is ... " << r->_ReductionFactor
-      << endl;
-      ok = True;
-    }
-    if (strstr(buffer1, "Smoothing factor") != NULL) {
-      r->_Smoothing = atof(buffer2);
-      cout << "Smoothing factor for deformations is ... " << r->_Smoothing
-      << endl;
-      ok = True;
-    }
-    // Check if we parse every line
-    if (ok != True) {
-      cerr << "istream& operator>> irtkRegistration: Ignoring line "
-      << buffer2 << endl;
-    }
-  }
-
-  return from;
-}
-
-ostream& operator<< (ostream &to, const irtkDemonsRegistration *r)
-{
-  to << "#\n# Target image parameters\n#\n\n";
-  to << "Target blurring (in mm)           = " << r->_TargetBlurring << endl;
-  to << "Target resolution (in mm)         = " << r->_TargetResolution << endl;
-
-  to << "\n#\n# Source image parameters\n#\n\n";
-  to << "Source blurring (in mm)           = " << r->_SourceBlurring << endl;
-  to << "Source resolution (in mm)         = " << r->_SourceResolution << endl;
-
-  to << "\n#\n# Registration parameters\n#\n\n";
-  to << "No. of resolution levels          = " << r->_NumberOfLevels << endl;
-  to << "No. of iterations                 = " << r->_NumberOfIterations << endl;
-  to << "Step size                         = " << r->_StepSize << endl;
-  to << "Epsilon                           = " << r->_Epsilon << endl;
-  to << "Reduction factor                  = " << r->_ReductionFactor << endl;
-  to << "Smoothing factor                  = " << r->_Smoothing << endl;
-
-  return to;
-}
-

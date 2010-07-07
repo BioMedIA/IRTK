@@ -14,6 +14,8 @@
 
 #define _IRTKDEMONSREGISTRATION_H
 
+#define MAX_NO_RESOLUTIONS 10
+
 #include <irtkImage.h>
 
 #include <irtkResampling.h>
@@ -22,7 +24,7 @@
 
 #include <irtkTransformation.h>
 
-typedef enum { _AdditiveDemons, _CompositiveDemons } irtkDemonsMode;
+#include <irtkUtil.h>
 
 /**
  * Generic for image registration based on voxel similarity measures.
@@ -39,12 +41,6 @@ typedef enum { _AdditiveDemons, _CompositiveDemons } irtkDemonsMode;
 class irtkDemonsRegistration
 {
 
-  /// Interface to input file stream
-  friend istream& operator>> (istream&, irtkDemonsRegistration*);
-
-  /// Interface to output file stream
-  friend ostream& operator<< (ostream&, const irtkDemonsRegistration*);
-
 protected:
 
   /** First input image. This image is denoted as target image and its
@@ -58,60 +54,65 @@ protected:
    */
   irtkRealImage *_source;
 
+  /** Temporary target image
+   */
+  irtkRealImage _targetTmp;
+
   /** Temporary source image
    */
-  irtkRealImage _tmp;
+  irtkRealImage _sourceTmp;
 
   /** Gradient of the source image.
    */
-  irtkRealImage _sourceGradientX, _sourceGradientY, _sourceGradientZ;
+  irtkRealImage _sourceGradient;
 
   /** Gradient of the target image.
    */
-  irtkRealImage _targetGradientX, _targetGradientY, _targetGradientZ;
-
-  /** Temporary displacement field.
-   */
-  irtkRealImage _tmpDX, _tmpDY, _tmpDZ;
+  irtkRealImage _targetGradient;
 
   /** Local displacement field.
    */
-  irtkRealImage _localDX, _localDY, _localDZ;
-
-  /** Total displacement field.
-   */
-  irtkRealImage _globalDX, _globalDY, _globalDZ;
+  irtkGenericImage<double> _local1, _local2;
 
   /// Output
-  irtkMultiLevelFreeFormTransformation *_transformation;
+  irtkMultiLevelFreeFormTransformation *_transformation1;
   irtkMultiLevelFreeFormTransformation *_transformation2;
 
+  irtkMultiLevelFreeFormTransformation *_transhist1;
+  irtkMultiLevelFreeFormTransformation *_transhist2;
+
   /// Linear free-form transformation
-  irtkLinearFreeFormTransformation *_ffd;
+  irtkLinearFreeFormTransformation *_ffd1;
+  irtkLinearFreeFormTransformation *_ffd2;
+
+  /// Transformation filters
+  irtkImageTransformation _imagetransformation1;
+  irtkImageTransformation _imagetransformation2;
 
   /// Interpolator
-  irtkInterpolateImageFunction *_interpolator;
-
-  /// Demons mode
-  irtkDemonsMode _Mode;
+  irtkInterpolateImageFunction *_interpolator1;
+  irtkInterpolateImageFunction *_interpolator2;
 
   /// Blurring of target image (in mm)
-  double _TargetBlurring;
+  double _TargetBlurring[MAX_NO_RESOLUTIONS];
 
   /// Resolution of target image (in mm)
-  double _TargetResolution;
+  double _TargetResolution[MAX_NO_RESOLUTIONS][3];
+
+  /// Blurring of source image (in mm)
+  double _SourceBlurring[MAX_NO_RESOLUTIONS];
+
+  /// Resolution of source image (in mm)
+  double _SourceResolution[MAX_NO_RESOLUTIONS][3];
 
   /// Padding value of target image
   short  _TargetPadding;
 
-  /// Blurring of source image (in mm)
-  double _SourceBlurring;
-
-  /// Resolution of source image (in mm)
-  double _SourceResolution;
-
   /// Padding value of source image
   short  _SourcePadding;
+
+  /// Smoothing of deformation field at every iteration
+  double _Smoothing[MAX_NO_RESOLUTIONS];
 
   /// Number of levels of multiresolution pyramid
   int    _NumberOfLevels;
@@ -125,14 +126,11 @@ protected:
   /// Epsilon
   double _Epsilon;
 
-  /// Reduction factor in multi-resolution pyramid
-  double _ReductionFactor;
+  /// Regridding
+  int _Regridding;
 
-  /// Smoothing of deformation field at every iteration
-  double _Smoothing;
-
-  /// Interpolation mode to use during resampling and registration
-  irtkInterpolationMode _InterpolationMode;
+  /// Symmetric demons?
+  Bool _Symmetric;
 
   /// Debugging flag
   int    _DebugFlag;
@@ -141,25 +139,28 @@ protected:
   double _source_x1, _source_y1, _source_z1;
   double _source_x2, _source_y2, _source_z2;
 
+  /// Target image domain which can be interpolated fast
+  double _target_x1, _target_y1, _target_z1;
+  double _target_x2, _target_y2, _target_z2;
+
   /// Initial set up for the registration
   virtual void Initialize();
 
-  /// Initial set up for the registration
+  /// Initial set up for specific level
   virtual void Initialize(int);
 
   /// Final set up for the registration
   virtual void Finalize();
 
-  /// Final set up for the registration
+  /// Final set up for specific level
   virtual void Finalize(int);
 
   /// Compute force
-  virtual void Force();
-  virtual void Force2();
-  virtual void Add();
+  virtual double Force();
+  virtual double Force2();
 
   /// Compute smoothing
-  virtual void Smooth();
+  virtual void Smooth(double);
 
   /// Compute update
   virtual void Update();
@@ -176,49 +177,35 @@ public:
   virtual void SetInput (irtkRealImage *, irtkRealImage *);
 
   /// Sets output for the registration filter
-  virtual void SetOutput(irtkMultiLevelFreeFormTransformation *);
+  virtual void SetOutput(irtkMultiLevelFreeFormTransformation *, irtkMultiLevelFreeFormTransformation *);
 
   /// Runs the registration filter
   virtual void Run();
 
-  /// Runs the registration filter
-  virtual void Run(irtkRealImage, irtkRealImage, int);
-
-  /// Copy parameters
-  virtual void SetParameter(const irtkDemonsRegistration *r);
-
   /// Read registration parameters from file
   virtual void Read (char *);
 
+  /// Parse parameter line
+  virtual Bool Read(char *, char *, int &);
+
   /// Write registration parameters to file
   virtual void Write(char *);
+
+  /// Write parameters to stream
+  virtual void Write(ostream &);
 
   /// Guess parameters
   virtual void GuessParameter();
 
   // Access parameters
-  virtual SetMacro(TargetBlurring,     double);
-  virtual GetMacro(TargetBlurring,     double);
-  virtual SetMacro(TargetResolution,   double);
-  virtual GetMacro(TargetResolution,   double);
   virtual SetMacro(TargetPadding,      short);
   virtual GetMacro(TargetPadding,      short);
-  virtual SetMacro(SourceBlurring,     double);
-  virtual GetMacro(SourceBlurring,     double);
-  virtual SetMacro(SourceResolution,   double);
-  virtual GetMacro(SourceResolution,   double);
   virtual SetMacro(SourcePadding,      short);
   virtual GetMacro(SourcePadding,      short);
   virtual SetMacro(NumberOfLevels,     int);
   virtual GetMacro(NumberOfLevels,     int);
   virtual SetMacro(NumberOfIterations, int);
   virtual GetMacro(NumberOfIterations, int);
-  virtual SetMacro(ReductionFactor,    double);
-  virtual GetMacro(ReductionFactor,    double);
-  virtual SetMacro(Smoothing,          double);
-  virtual GetMacro(Smoothing,          double);
-  virtual SetMacro(InterpolationMode,  irtkInterpolationMode);
-  virtual GetMacro(InterpolationMode,  irtkInterpolationMode);
   virtual SetMacro(DebugFlag, int);
   virtual GetMacro(DebugFlag, int);
 
@@ -231,9 +218,11 @@ inline void irtkDemonsRegistration::SetInput(irtkRealImage *target, irtkRealImag
   _source = source;
 }
 
-inline void irtkDemonsRegistration::SetOutput(irtkMultiLevelFreeFormTransformation *transformation)
+inline void irtkDemonsRegistration::SetOutput(irtkMultiLevelFreeFormTransformation *transformation1,
+    irtkMultiLevelFreeFormTransformation *transformation2)
 {
-  _transformation = transformation;
+  _transformation1 = transformation1;
+  _transformation2 = transformation2;
 }
 
 // Function to read in a line from an istream, to be used by derived classes

@@ -14,7 +14,7 @@
 
 // Default filenames
 char *source_name = NULL, *target_name = NULL;
-char *dofin_name  = NULL, *dofout_name = NULL;
+char *dofin_name  = NULL, *dofout1_name = NULL, *dofout2_name = NULL;
 char *parin_name  = NULL, *parout_name = NULL;
 
 int main(int argc, char **argv)
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   irtkDemonsRegistration *registration = new irtkDemonsRegistration;
 
   // Create initial multi-level free-form deformation
-  irtkMultiLevelFreeFormTransformation *mffd = NULL;
+  irtkMultiLevelFreeFormTransformation *mffd1 = NULL, *mffd2 = NULL;
 
   // Parse source and target images
   target_name = argv[1];
@@ -66,8 +66,8 @@ int main(int argc, char **argv)
   dy = 1;
   dz = 1;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+  ok = False;
+  if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
@@ -78,7 +78,10 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
-      dofout_name = argv[1];
+      dofout1_name = argv[1];
+      argc--;
+      argv++;
+      dofout2_name = argv[1];
       argc--;
       argv++;
       ok = True;
@@ -265,71 +268,48 @@ int main(int argc, char **argv)
 
   // If there is an region of interest, use it
   if ((target_x1 != 0) || (target_x2 != target.GetX()) ||
-      (target_y1 != 0) || (target_y2 != target.GetY()) ||
-      (target_z1 != 0) || (target_z2 != target.GetZ())) {
+        (target_y1 != 0) || (target_y2 != target.GetY()) ||
+        (target_z1 != 0) || (target_z2 != target.GetZ())) {
     target = target.GetRegion(target_x1, target_y1, target_z1,
                               target_x2, target_y2, target_z2);
   }
 
   // If there is an region of interest for the source image, use it
   if ((source_x1 != 0) || (source_x2 != source.GetX()) ||
-      (source_y1 != 0) || (source_y2 != source.GetY()) ||
-      (source_z1 != 0) || (source_z2 != source.GetZ())) {
+        (source_y1 != 0) || (source_y2 != source.GetY()) ||
+        (source_z1 != 0) || (source_z2 != source.GetZ())) {
     source = source.GetRegion(source_x1, source_y1, source_z1,
                               source_x2, source_y2, source_z2);
   }
 
-  if (dofin_name != NULL) {
-    if (irtkRigidTransformation::CheckHeader(dofin_name) == True) {
-      mffd = new irtkMultiLevelFreeFormTransformation;
-      mffd->irtkTransformation::Read(dofin_name);
-    } else {
-      if (irtkAffineTransformation::CheckHeader(dofin_name) == True) {
-        mffd = new irtkMultiLevelFreeFormTransformation;
-        mffd->irtkTransformation::Read(dofin_name);
-      } else {
-        if (irtkMultiLevelFreeFormTransformation::CheckHeader(dofin_name) == True) {
-          mffd = new irtkMultiLevelFreeFormTransformation;
-          mffd->irtkTransformation::Read(dofin_name);
-        } else {
-          cerr << "Input transformation is not of type rigid, affine " << endl;
-          cerr << "or multi-level free form deformation" << endl;
-          exit(1);
-        }
-      }
-    }
-  } else {
-    // Otherwise use identity transformation to start
-    mffd = new irtkMultiLevelFreeFormTransformation;
-  }
-
-  // and add ffd to multi-level ffd
-  irtkLinearFreeFormTransformation *ffd = new irtkLinearFreeFormTransformation(target, dx, dy, dz);
-
-  // Add ffd
-  mffd->PushLocalTransformation(ffd);
+  mffd1 = new irtkMultiLevelFreeFormTransformation;
+  mffd2 = new irtkMultiLevelFreeFormTransformation;
 
   // Set input and output for the registration filter
   registration->SetInput(&target, &source);
-  registration->SetOutput(mffd);
+  registration->SetOutput(mffd1, mffd2);
 
   // Read parameter if there any, otherwise make an intelligent guess
   if (parin_name != NULL) {
-    registration->Read(parin_name);
+  registration->Read(parin_name);
   } else {
     registration->GuessParameter();
   }
 
   // Write parameters if necessary
   if (parout_name != NULL) {
-    registration->Write(parout_name);
+  registration->Write(parout_name);
   }
 
   // Run registration filter
   registration->Run();
 
   // Write the final transformation estimate
-  if (dofout_name != NULL) {
-    mffd->irtkTransformation::Write(dofout_name);
+  if (dofout1_name != NULL) {
+  mffd1->irtkTransformation::Write(dofout1_name);
+  }
+  // Write the final transformation estimate
+  if (dofout1_name != NULL) {
+  mffd2->irtkTransformation::Write(dofout2_name);
   }
 }
