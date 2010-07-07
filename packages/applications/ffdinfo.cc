@@ -33,6 +33,10 @@ int main(int argc, char **argv)
   // Read transformation
   irtkTransformation *transform = irtkTransformation::New(argv[1]);
   irtkMultiLevelFreeFormTransformation *mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transform);
+  cout << "Done" << endl;
+
+  // Print transformation
+  cout << "Transformation is " << mffd->NameOfClass() << endl;
 
   for (n = 0; n < mffd->NumberOfLevels(); n++) {
 
@@ -49,6 +53,7 @@ int main(int argc, char **argv)
 
     // Print information about local transformation
     cout << "Local transformation no. " << n+1 << ":" << endl;
+    cout << "Local transformation is a " << ffd->NameOfClass() << endl;
     cout << "Control points: \t" << ffd->GetX() << " x " << ffd->GetY()
          << " x " << ffd->GetZ() << endl;
     cout << "Orientation: \t\t" << xaxis[0] << " " << xaxis[1] << " "
@@ -82,9 +87,9 @@ int main(int argc, char **argv)
         }
       }
     }
-    cout << "Active control points: \t " << active << " ("
+    cout << "Active control points:  " << active << " ("
          << active*100.0/(active+passive) << "%)" << endl;
-    cout << "Passive control points: \t " << passive << " ("
+    cout << "Passive control points: " << passive << " ("
          << passive*100.0/(active+passive) << "%)" << endl;
   }
 }
