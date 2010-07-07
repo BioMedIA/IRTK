@@ -79,8 +79,7 @@ irtkModelGradientSimilarityMetric::~irtkModelGradientSimilarityMetric() {
 
 double irtkModelGradientSimilarityMetric::Evaluate(double *point, double *normal, double *)
 {
-	int i;
-	double x, y, z, mag, dir[3];
+	double mag, dir[3];
 
 	// Transform point to image coordinates
 	_image->WorldToImage(point[0], point[1], point[2]);
