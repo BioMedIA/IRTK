@@ -79,7 +79,7 @@ void padding(irtkGreyImage image, irtkMultiLevelFreeFormTransformation *mffd)
   int i, j, k, x, y, z, x1, y1, z1, x2, y2, z2, ok, index;
 
   // Extract current transformation level
-  irtkFreeFormTransformation3D *ffd = dynamic_cast<irtkFreeFormTransformation3D *>(mffd->GetLocalTransformation(0));
+  irtkFreeFormTransformation3D *ffd = dynamic_cast<irtkFreeFormTransformation3D *>(mffd->GetLocalTransformation(mffd->NumberOfLevels()-1));
 
   if (ffd == NULL) {
     cerr << "Free-form transformation is not 3D" << endl;
