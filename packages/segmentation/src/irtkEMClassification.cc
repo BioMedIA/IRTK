@@ -1320,7 +1320,7 @@ bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, i
                change = true;
              }
 
-           //identify csf-bg boundary csf index = 2 and gm index = 3 => csf-gm PV index =  5 
+           //identify csf-bg boundary csf index = 2 and bg index = 3 => csf-bg PV index =  5 
           //also consider wm-bg boundary as csf can be misclassified for wm. wm index = 0,5 and bg index = 3 => bg-wm PV index =  3,9
            if(_segmentation.GetAsDouble(i,j,k)==cortexLabel)
              if ((PVtissues[3]>0.33)||(PVtissues[9]>0.33)||(PVtissues[5]>0.33))
@@ -1483,6 +1483,7 @@ void irtkEMClassification::ConstructSegmentationBrainNonBrain(int wm1Label, int 
   int neighbour_num = 26;
   int pure_treshold = 19;
   int nonbrain_treshold = 19;
+  int nontissue_treshold = 7;
   double distance_treshold = 3;
   double bg_distance_treshold = 3;
 
@@ -1560,7 +1561,8 @@ void irtkEMClassification::ConstructSegmentationBrainNonBrain(int wm1Label, int 
               else
               {
                 //gm-wm1-wm2
-                if ((_brain.Get(i,j,k)==1)&&(_distance.Get(i,j,k)<=distance_treshold))
+		//it is brain tissue and distance from wm is within limits and there is WM tissue in neighbourhood 
+                if ((_brain.Get(i,j,k)==1)&&(_distance.Get(i,j,k)<=distance_treshold)&&((labelCount[0]+labelCount[4])>nontissue_treshold))
                 {
                   //gm-wm1
                   alpha = (_input.Get(i,j,k)-_mi[cortexLabel-1])/(_mi[wm1Label-1]-_mi[cortexLabel-1]);
@@ -1589,17 +1591,31 @@ void irtkEMClassification::ConstructSegmentationBrainNonBrain(int wm1Label, int 
                    }
                  }
                  //csf-gm
+		 //if it is non-brain or distance from WM is outside limit or there is not WM tissue in neigbourhood
                  //if (_brain.Get(i,j,k)==0) //&&(nonBrainCount<=nonbrain_treshold))
                  else
                  {
-                   alpha = (_input.Get(i,j,k)-_mi[cortexLabel-1])/(_mi[csfLabel-1]-_mi[cortexLabel-1]);
-                   if (alpha < 0) alpha = 0;
-                   if (alpha > 1) alpha = 1;
-                   _pv_output.SetValue(i,j,k,cortexLabel-1,1-alpha);
-                   _pv_output.SetValue(i,j,k,csfLabel-1,alpha);
-                   _pv_output.SetValue(i,j,k,backgroundLabel-1,0);
-                   _pv_output.SetValue(i,j,k,wm1Label-1,0);
-                   _pv_output.SetValue(i,j,k,wm2Label-1,0);
+		   //but only in the proximity of non-brain tissue csf is considered
+		   if((nonBrainCount>nontissue_treshold)||(_brain.Get(i,j,k)==0))
+		   {
+                     alpha = (_input.Get(i,j,k)-_mi[cortexLabel-1])/(_mi[csfLabel-1]-_mi[cortexLabel-1]);
+                     if (alpha < 0) alpha = 0;
+                     if (alpha > 1) alpha = 1;
+                     _pv_output.SetValue(i,j,k,cortexLabel-1,1-alpha);
+                     _pv_output.SetValue(i,j,k,csfLabel-1,alpha);
+                     _pv_output.SetValue(i,j,k,backgroundLabel-1,0);
+                     _pv_output.SetValue(i,j,k,wm1Label-1,0);
+                     _pv_output.SetValue(i,j,k,wm2Label-1,0);
+		   }
+		   //only GM can be present here
+		   else
+		   {
+                     _pv_output.SetValue(i,j,k,cortexLabel-1,1);
+                     _pv_output.SetValue(i,j,k,csfLabel-1,0);
+                     _pv_output.SetValue(i,j,k,backgroundLabel-1,0);
+                     _pv_output.SetValue(i,j,k,wm1Label-1,0);
+                     _pv_output.SetValue(i,j,k,wm2Label-1,0);
+		   }
                  }
               }
     }
