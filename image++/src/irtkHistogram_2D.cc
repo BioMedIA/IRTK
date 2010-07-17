@@ -764,6 +764,19 @@ void irtkHistogram_2D::Write(char *filename)
   }
 }
 
+void irtkHistogram_2D::WriteAsImage(char *filename)
+{
+  int i, j;
+  irtkGenericImage<int> image(_nbins_x, _nbins_y, 1);
+
+  for (j = 0; j < _nbins_y; j++) {
+    for (i = 0; i < _nbins_x; i++) {
+      image(i, j, 0) = _bins[j][i];
+    }
+  }
+  image.Write(filename);
+}
+
 void irtkHistogram_2D::Print()
 {
   int i, j;

@@ -232,6 +232,9 @@ public:
   /// Write histogram
   void Write(char *filename);
 
+  /// Write histogram as 2D image
+  void WriteAsImage(char *filename);
+
   /// Print histogram
   void Print();
 };
