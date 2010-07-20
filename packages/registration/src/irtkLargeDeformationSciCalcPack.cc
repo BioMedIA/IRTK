@@ -570,6 +570,9 @@ void FFTconvolver3D::InitiateConvolver(int NBX,int NBY, int NBZ,float w1,float s
   this->RealFilterForFFT.CreateVoidField(this->NXfft, this->NYfft, this->NZfft); //filter - real part
   this->ImagFilterForFFT.CreateVoidField(this->NXfft, this->NYfft, this->NZfft); //filter - imaginary part
   
+  //allocate memory for the temporary image
+  this->ImageTemp.CreateVoidField(this->NXfft,this->NYfft,this->NZfft);
+  
   //define the kernel and transform it in Fourier spaces
   this->MakeSumOf4AnisotropicGaussianFilters(w1,sX1,sY1,sZ1,w2,sX2,sY2,sZ2,w3,sX3,sY3,sZ3,w4,sX4,sY4,sZ4);
 }
@@ -579,10 +582,6 @@ void FFTconvolver3D::MakeSumOf4AnisotropicGaussianFilters(float weight1,float si
   int k,x,y,z;
   float SumLoc;
   float weight,sigmaX,sigmaY,sigmaZ;
-  ScalarField ImageTemp;
-  
-  //allocation of a temporary image
-  ImageTemp.CreateVoidField(this->NXfft,this->NYfft,this->NZfft);
   
   //compute and save the 4 kernels
   for (k=0;k<4;k++){
@@ -594,30 +593,30 @@ void FFTconvolver3D::MakeSumOf4AnisotropicGaussianFilters(float weight1,float si
     
     //design the current kernel with no influence of the weight
     for (z=0;z<this->NZfft/2;z++) for (y=0;y<this->NYfft/2;y++) for (x=0;x<this->NXfft/2;x++)
-          ImageTemp.P((float)(exp( -(float)(x*x)/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp( -(float)(x*x)/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=0;z<this->NZfft/2;z++) for (y=0;y<this->NYfft/2;y++) for (x=this->NXfft/2;x<this->NXfft;x++)
-          ImageTemp.P((float)(exp( -(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp( -(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=0;z<this->NZfft/2;z++) for (y=this->NYfft/2;y<this->NYfft;y++) for (x=0;x<this->NXfft/2;x++)
-          ImageTemp.P((float)(exp( -(float)(x*x)/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp( -(float)(x*x)/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=0;z<this->NZfft/2;z++) for (y=this->NYfft/2;y<this->NYfft;y++) for (x=this->NXfft/2;x<this->NXfft;x++)
-          ImageTemp.P((float)(exp( -(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp( -(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)(z*z)/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=this->NZfft/2;z<this->NZfft;z++) for (y=0;y<this->NYfft/2;y++) for (x=0;x<this->NXfft/2;x++)
-          ImageTemp.P((float)(exp(-(float)(x*x)/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp(-(float)(x*x)/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=this->NZfft/2;z<this->NZfft;z++) for (y=0;y<this->NYfft/2;y++) for (x=this->NXfft/2;x<this->NXfft;x++)
-          ImageTemp.P((float)(exp(-(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp(-(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)(y*y)/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=this->NZfft/2;z<this->NZfft;z++) for (y=this->NYfft/2;y<this->NYfft;y++) for (x=0;x<this->NXfft/2;x++)
-          ImageTemp.P((float)(exp(-(float)(x*x)/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp(-(float)(x*x)/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
     for (z=this->NZfft/2;z<this->NZfft;z++) for (y=this->NYfft/2;y<this->NYfft;y++) for (x=this->NXfft/2;x<this->NXfft;x++)
-          ImageTemp.P((float)(exp(-(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
+          this->ImageTemp.P((float)(exp(-(float)((this->NXfft-x)*(this->NXfft-x))/(2.*sigmaX*sigmaX) -(float)((this->NYfft-y)*(this->NYfft-y))/(2.*sigmaY*sigmaY) -(float)((this->NZfft-z)*(this->NZfft-z))/(2.*sigmaZ*sigmaZ))),x,y,z);
     
     //normalization of the current filter and copy in RealFilterForFFT
     SumLoc=0.;
-    for (z=0;z<this->NZfft;z++) for (y=0;y<this->NYfft;y++) for (x=0;x<this->NXfft;x++) SumLoc+=ImageTemp.G(x,y,z);
+    for (z=0;z<this->NZfft;z++) for (y=0;y<this->NYfft;y++) for (x=0;x<this->NXfft;x++) SumLoc+=this->ImageTemp.G(x,y,z);
     if (k==0){
-      for (z=0;z<this->NZfft;z++) for (y=0;y<this->NYfft;y++) for (x=0;x<this->NXfft;x++) this->RealFilterForFFT.P(weight*ImageTemp.G(x,y,z)/SumLoc,x,y,z);
+      for (z=0;z<this->NZfft;z++) for (y=0;y<this->NYfft;y++) for (x=0;x<this->NXfft;x++) this->RealFilterForFFT.P(weight*this->ImageTemp.G(x,y,z)/SumLoc,x,y,z);
     }
     else{
-      for (z=0;z<this->NZfft;z++) for (y=0;y<this->NYfft;y++) for (x=0;x<this->NXfft;x++) this->RealFilterForFFT.P(this->RealFilterForFFT.G(x,y,z)+weight*ImageTemp.G(x,y,z)/SumLoc,x,y,z);
+      for (z=0;z<this->NZfft;z++) for (y=0;y<this->NYfft;y++) for (x=0;x<this->NXfft;x++) this->RealFilterForFFT.P(this->RealFilterForFFT.G(x,y,z)+weight*this->ImageTemp.G(x,y,z)/SumLoc,x,y,z);
     }
   }
   
@@ -959,9 +958,10 @@ void Cpt_Grad_ScalarField(ScalarField * SField,VectorField * Gradient,int Specif
     //1) COMPUTATIONS IN ONLY ONE TIME FRAME -> 3D image returned
   
     //1.1) allocate memory in Gradient if not done
-    if ((NBX!=Gradient->NX)||(NBY!=Gradient->NY)||(NBZ!=Gradient->NZ))
+    if ((NBX!=Gradient->NX)||(NBY!=Gradient->NY)||(NBZ!=Gradient->NZ)){
       Gradient->CreateVoidField(NBX,NBY,NBZ);
-    
+      cout << "Gradient added in Cpt_Grad_ScalarField\n";
+    }
     //1.2) Calculations
     t=SpecificTimeFrame;
     
@@ -1257,7 +1257,7 @@ void Cpt_JacobianDeterminant(VectorField * VField,ScalarField * DetJ,int Specifi
 }
 
 //Compute the 4D forward mapping 'Fmap' from the velocity field 'VeloField'
-void ForwardMappingFromVelocityField(VectorField * VeloField,VectorField * Fmap,VectorField * MapSrcImag,int ConvergenceSteps,float DeltaX){
+void ForwardMappingFromVelocityField(VectorField * VeloField,VectorField * Fmap,VectorField * MapSrcImag,int ConvergenceSteps,float DeltaX,int StartPoint){
   float VecTemp[3];
   float VecTemp2[3];
   int NBX,NBY,NBZ,NBT;
@@ -1272,47 +1272,75 @@ void ForwardMappingFromVelocityField(VectorField * VeloField,VectorField * Fmap,
   NBT=VeloField->NT;
   DeltaT_div_DeltaX=1./((NBT-1.)*DeltaX);
   
-  //allocate memory in GradScalVF if not done
+    //allocate memory in GradScalVF if not done
   if ((NBX!=Fmap->NX)||(NBY!=Fmap->NY)||(NBZ!=Fmap->NZ)||(NBT!=Fmap->NT))
     Fmap->CreateVoidField(NBX,NBY,NBZ,NBT);
+
   
   //JO at the first time subdivision
-  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-    Fmap->P(MapSrcImag->G(0,x,y,z),0,x,y,z,0);
-    Fmap->P(MapSrcImag->G(1,x,y,z),1,x,y,z,0);
-    Fmap->P(MapSrcImag->G(2,x,y,z),2,x,y,z,0);
+  if ((StartPoint<0)||(StartPoint>NBT-1)){ //normal ForwardMapping from the initial time
+    StartPoint=0;
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+      Fmap->P(MapSrcImag->G(0,x,y,z),0,x,y,z,0);
+      Fmap->P(MapSrcImag->G(1,x,y,z),1,x,y,z,0);
+      Fmap->P(MapSrcImag->G(2,x,y,z),2,x,y,z,0);
+    }
+  }
+  else{
+    for (t=0;t<=StartPoint;t++){  //ForwardMapping from the a time between 0 and 1
+      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+        Fmap->P(MapSrcImag->G(0,x,y,z),0,x,y,z,t);
+        Fmap->P(MapSrcImag->G(1,x,y,z),1,x,y,z,t);
+        Fmap->P(MapSrcImag->G(2,x,y,z),2,x,y,z,t);
+      }
+    }
   }
   
+  
   //JO at the other time subdivisions
-  for (t=1;t<NBT;t++){
-    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-      //init
-      VecTemp[0]=0.; 
-      VecTemp[1]=0.;
-      VecTemp[2]=0.;
-      
-      //convergence
-      for (i=0;i<ConvergenceSteps;i++){
-        VecTemp2[0]=VeloField->G(0,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1);
-        VecTemp2[1]=VeloField->G(1,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1);
-        VecTemp2[2]=VeloField->G(2,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1);
+  for (t=StartPoint+1;t<NBT;t++){
+    if (ConvergenceSteps<=1){ // simple integration scheme (centered in time)
+      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+        VecTemp[0]=(VeloField->G(0,x,y,z,t-1)+VeloField->G(0,x,y,z,t))*DeltaT_div_DeltaX/2;
+        VecTemp[1]=(VeloField->G(1,x,y,z,t-1)+VeloField->G(1,x,y,z,t))*DeltaT_div_DeltaX/2;
+        VecTemp[2]=(VeloField->G(2,x,y,z,t-1)+VeloField->G(2,x,y,z,t))*DeltaT_div_DeltaX/2;
         
-        VecTemp[0]=(VecTemp2[0]+VeloField->G(0,x,y,z,t))*DeltaT_div_DeltaX/2;
-        VecTemp[1]=(VecTemp2[1]+VeloField->G(1,x,y,z,t))*DeltaT_div_DeltaX/2;
-        VecTemp[2]=(VecTemp2[2]+VeloField->G(2,x,y,z,t))*DeltaT_div_DeltaX/2;
+        //find the original coordinates
+        Fmap->P(Fmap->G(0,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),0,x,y,z,t);
+        Fmap->P(Fmap->G(1,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),1,x,y,z,t);
+        Fmap->P(Fmap->G(2,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),2,x,y,z,t);
       }
-      
-      //find the original coordinates
-      Fmap->P(Fmap->G(0,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),0,x,y,z,t);
-      Fmap->P(Fmap->G(1,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),1,x,y,z,t);
-      Fmap->P(Fmap->G(2,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),2,x,y,z,t);
+    }
+    else{ // leap frog scheme
+      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+        //init
+        VecTemp[0]=0.; 
+        VecTemp[1]=0.;
+        VecTemp[2]=0.;
+        
+        //convergence
+        for (i=0;i<ConvergenceSteps;i++){
+          VecTemp2[0]=VeloField->G(0,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1);
+          VecTemp2[1]=VeloField->G(1,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1);
+          VecTemp2[2]=VeloField->G(2,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1);
+          
+          VecTemp[0]=(VecTemp2[0]+VeloField->G(0,x,y,z,t))*DeltaT_div_DeltaX/2;
+          VecTemp[1]=(VecTemp2[1]+VeloField->G(1,x,y,z,t))*DeltaT_div_DeltaX/2;
+          VecTemp[2]=(VecTemp2[2]+VeloField->G(2,x,y,z,t))*DeltaT_div_DeltaX/2;
+        }
+        
+        //find the original coordinates
+        Fmap->P(Fmap->G(0,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),0,x,y,z,t);
+        Fmap->P(Fmap->G(1,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),1,x,y,z,t);
+        Fmap->P(Fmap->G(2,x-VecTemp[0],y-VecTemp[1],z-VecTemp[2],t-1),2,x,y,z,t);
+      }
     }
   }
 }
 
 
 //Compute the 4D backward mapping 'Bmap' from the velocity field 'VeloField'
-void BackwardMappingFromVelocityField(VectorField * VeloField,VectorField * Bmap,VectorField * MapTrgImag,int ConvergenceSteps,float DeltaX){
+void BackwardMappingFromVelocityField(VectorField * VeloField,VectorField * Bmap,VectorField * MapTrgImag,int ConvergenceSteps,float DeltaX,int StartPoint){
   float VecTemp[3];
   float VecTemp2[3];
   int NBX,NBY,NBZ,NBT;
@@ -1332,35 +1360,60 @@ void BackwardMappingFromVelocityField(VectorField * VeloField,VectorField * Bmap
     Bmap->CreateVoidField(NBX,NBY,NBZ,NBT);
   
   //Bmap at the last time subdivision
-  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-    Bmap->P(MapTrgImag->G(0,x,y,z),0,x,y,z,NBT-1);
-    Bmap->P(MapTrgImag->G(1,x,y,z),1,x,y,z,NBT-1);
-    Bmap->P(MapTrgImag->G(2,x,y,z),2,x,y,z,NBT-1);
+  if ((StartPoint<0)||(StartPoint>NBT-1)){ //normal ForwardMapping from the initial time
+    StartPoint=NBT-1;
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+      Bmap->P(MapTrgImag->G(0,x,y,z),0,x,y,z,NBT-1);
+      Bmap->P(MapTrgImag->G(1,x,y,z),1,x,y,z,NBT-1);
+      Bmap->P(MapTrgImag->G(2,x,y,z),2,x,y,z,NBT-1);
+    }
+  }
+  else{
+    for (t=NBT-1;t>=StartPoint;t--){  //ForwardMapping from the a time between 0 and 1
+      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+        Bmap->P(MapTrgImag->G(0,x,y,z),0,x,y,z,t);
+        Bmap->P(MapTrgImag->G(1,x,y,z),1,x,y,z,t);
+        Bmap->P(MapTrgImag->G(2,x,y,z),2,x,y,z,t);
+      }
+    }
   }
   
   //Bmap at the other time subdivisions
-  for (t=NBT-2;t>=0;t--){
-    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-      //init
-      VecTemp[0]=0.; 
-      VecTemp[1]=0.;
-      VecTemp[2]=0.;
-      
-      //convergence
-      for (i=0;i<ConvergenceSteps;i++){
-        VecTemp2[0]=VeloField->G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1);
-        VecTemp2[1]=VeloField->G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1);
-        VecTemp2[2]=VeloField->G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1);
+  for (t=StartPoint-1;t>=0;t--){
+    if (ConvergenceSteps<=1){ // simple integration scheme (centered in time)
+      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+        VecTemp[0]=(VeloField->G(0,x,y,z,t+1)+VeloField->G(0,x,y,z,t))*DeltaT_div_DeltaX/2;
+        VecTemp[1]=(VeloField->G(1,x,y,z,t+1)+VeloField->G(1,x,y,z,t))*DeltaT_div_DeltaX/2;
+        VecTemp[2]=(VeloField->G(2,x,y,z,t+1)+VeloField->G(2,x,y,z,t))*DeltaT_div_DeltaX/2;
         
-        VecTemp[0]=(VecTemp2[0]+VeloField->G(0,x,y,z,t))*DeltaT_div_DeltaX/2;
-        VecTemp[1]=(VecTemp2[1]+VeloField->G(1,x,y,z,t))*DeltaT_div_DeltaX/2;
-        VecTemp[2]=(VecTemp2[2]+VeloField->G(2,x,y,z,t))*DeltaT_div_DeltaX/2;
+        Bmap->P(Bmap->G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),0,x,y,z,t);
+        Bmap->P(Bmap->G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),1,x,y,z,t);
+        Bmap->P(Bmap->G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),2,x,y,z,t);
       }
-      
-      //find the original coordinates
-      Bmap->P(Bmap->G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),0,x,y,z,t);
-      Bmap->P(Bmap->G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),1,x,y,z,t);
-      Bmap->P(Bmap->G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),2,x,y,z,t);
+    }
+    else{ // leap frog scheme
+      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+        //init
+        VecTemp[0]=0.; 
+        VecTemp[1]=0.;
+        VecTemp[2]=0.;
+        
+        //convergence
+        for (i=0;i<ConvergenceSteps;i++){
+          VecTemp2[0]=VeloField->G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1);
+          VecTemp2[1]=VeloField->G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1);
+          VecTemp2[2]=VeloField->G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1);
+          
+          VecTemp[0]=(VecTemp2[0]+VeloField->G(0,x,y,z,t))*DeltaT_div_DeltaX/2;
+          VecTemp[1]=(VecTemp2[1]+VeloField->G(1,x,y,z,t))*DeltaT_div_DeltaX/2;
+          VecTemp[2]=(VecTemp2[2]+VeloField->G(2,x,y,z,t))*DeltaT_div_DeltaX/2;
+        }
+        
+        //find the original coordinates
+        Bmap->P(Bmap->G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),0,x,y,z,t);
+        Bmap->P(Bmap->G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),1,x,y,z,t);
+        Bmap->P(Bmap->G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t+1),2,x,y,z,t);
+      }
     }
   }
 }
@@ -1368,17 +1421,20 @@ void BackwardMappingFromVelocityField(VectorField * VeloField,VectorField * Bmap
 
 //We consider here that 'PartialVeloField' contributes to 'VeloField'   (VeloField= [A velocity field] + PartialVeloField).
 //This function then computes 'PartialFmap' which is the partial forward mapping due to the contribution of PartialVeloField.
-void ComputePartialForwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialFmap,VectorField * MapSrcImag,int ConvergenceSteps,float DeltaX){
-  float VecTemp[3];
-  float VecTemp2[3];
+//Imporant: Should only be used for the transportation of the source image
+void ComputePartialForwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialFmap,VectorField * MapSrcImag,VectorField * MapTrgImag,int ConvergenceSteps,float DeltaX){
   int NBX,NBY,NBZ,NBT;
   int i,x,y,z;
-  int x1,y1,z1;
-  int x2,y2,z2;
-  int t,t2;
+  float x1,y1,z1;
+  float x2,y2,z2;
+  float x3,y3,z3;
+  float x4,y4,z4;
+  float xS,yS,zS;
+  int t;
   float DeltaT_div_DeltaX;
-  VectorField Bmap;  //total Backward mapping from the current decomposition to 0
-  
+  VectorField TotalBmap;  //total Backward mapping from the [new time_sub-1] to 0
+  VectorField TotalBmap2;  //total Backward mapping from the [new time_sub] to 0
+
   //1) initialisation
   //1.1) constants
   NBX=VeloField->NX;
@@ -1391,8 +1447,9 @@ void ComputePartialForwardMapping(VectorField * VeloField,VectorField * PartialV
   if ((NBX!=PartialFmap->NX)||(NBY!=PartialFmap->NY)||(NBZ!=PartialFmap->NZ)||(NBT!=PartialFmap->NT))
     PartialFmap->CreateVoidField(NBX,NBY,NBZ,NBT);
   
-  //1.3) allocate memory for Bmap
-  Bmap.CreateVoidField(NBX,NBY,NBZ,NBT);
+  //1.3) allocate memory for TotalBmap
+  TotalBmap.CreateVoidField(NBX,NBY,NBZ,NBT);
+  TotalBmap2.CreateVoidField(NBX,NBY,NBZ,NBT);
   
   //1.4) PartialFmap at the first time subdivision
   for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
@@ -1403,62 +1460,210 @@ void ComputePartialForwardMapping(VectorField * VeloField,VectorField * PartialV
   
   //2) PartialFmap at the other time subdivisions
   for (t=1;t<NBT;t++){
-    //2.1) compute the total backward mapping from t to 0
     
-    //2.1.1) Bmap at the time subdivision t
+    //2.1) compute the total backward mapping from t-1 to 0
+    BackwardMappingFromVelocityField(VeloField,&TotalBmap,MapTrgImag,ConvergenceSteps,1,t-1);
+    
+    //2.2) compute the total backward mapping from t to 0
+    BackwardMappingFromVelocityField(VeloField,&TotalBmap2,MapTrgImag,ConvergenceSteps,1,t);
+    
+    //2.3) compute partial forward map at t from the one at t-1
     for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-      Bmap.P(static_cast<float>(x),0,x,y,z,t);
-      Bmap.P(static_cast<float>(y),1,x,y,z,t);
-      Bmap.P(static_cast<float>(z),2,x,y,z,t);
-    }
-    
-    //2.1.2) Bmap at the other time subdivisions
-    for (t2=t-1;t2>=0;t2--){
-      for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-        //init
-        VecTemp[0]=0.; VecTemp[1]=0.; VecTemp[2]=0.;
+      //2.3.1) first estimation
+      //2.3.1.a) first guess of where the information comes from at t-1
+      x1=PartialFmap->G(0,x,y,z,t-1); y1=PartialFmap->G(1,x,y,z,t-1); z1=PartialFmap->G(2,x,y,z,t-1);
+      x2=TotalBmap.G(0,x1,y1,z1,0);   y2=TotalBmap.G(1,x1,y1,z1,0);   z2=TotalBmap.G(2,x1,y1,z1,0); //TotalBmap -> t-1
+      
+      xS=x-PartialVeloField->G(0,x2,y2,z2,t-1)*DeltaT_div_DeltaX;
+      yS=y-PartialVeloField->G(1,x2,y2,z2,t-1)*DeltaT_div_DeltaX;
+      zS=z-PartialVeloField->G(2,x2,y2,z2,t-1)*DeltaT_div_DeltaX;
+      
+      //2.3.1.b) first transport of the information
+      PartialFmap->P(PartialFmap->G(0,xS,yS,zS,t-1),0,x,y,z,t);
+      PartialFmap->P(PartialFmap->G(1,xS,yS,zS,t-1),1,x,y,z,t);
+      PartialFmap->P(PartialFmap->G(2,xS,yS,zS,t-1),2,x,y,z,t);
+      
+      
+      //2.3.1) leap frog style improvement of the estimation
+      for (i=0;i<ConvergenceSteps*2;i++){
+        //2.3.2.a) where the information comes from at t-1
+        x1=PartialFmap->G(0,xS,yS,zS,t-1); y1=PartialFmap->G(1,xS,yS,zS,t-1); z1=PartialFmap->G(2,xS,yS,zS,t-1);
+        x2=TotalBmap.G(0,x1,y1,z1,0);      y2=TotalBmap.G(1,x1,y1,z1,0);      z2=TotalBmap.G(2,x1,y1,z1,0); //TotalBmap -> t-1
         
-        //convergence
-        for (i=0;i<ConvergenceSteps;i++){
-          VecTemp2[0]=VeloField->G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t2+1);
-          VecTemp2[1]=VeloField->G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t2+1);
-          VecTemp2[2]=VeloField->G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t2+1);
-          
-          VecTemp[0]=(VecTemp2[0]+VeloField->G(0,x,y,z,t2))*DeltaT_div_DeltaX/2;
-          VecTemp[1]=(VecTemp2[1]+VeloField->G(1,x,y,z,t2))*DeltaT_div_DeltaX/2;
-          VecTemp[2]=(VecTemp2[2]+VeloField->G(2,x,y,z,t2))*DeltaT_div_DeltaX/2;
-        }
+        x3=PartialFmap->G(0,x,y,z,t);   y3=PartialFmap->G(1,x,y,z,t);   z3=PartialFmap->G(2,x,y,z,t);
+        x4=TotalBmap2.G(0,x3,y3,z3,0);  y4=TotalBmap2.G(1,x3,y3,z3,0);  z4=TotalBmap2.G(2,x3,y3,z3,0); //TotalBmap2 -> t
         
-        //find the original coordinates
-        Bmap.P(Bmap.G(0,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t2+1),0,x,y,z,t2);
-        Bmap.P(Bmap.G(1,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t2+1),1,x,y,z,t2);
-        Bmap.P(Bmap.G(2,x+VecTemp[0],y+VecTemp[1],z+VecTemp[2],t2+1),2,x,y,z,t2);
+        xS=x-(PartialVeloField->G(0,x2,y2,z2,t-1)+PartialVeloField->G(0,x4,y4,z4,t))*DeltaT_div_DeltaX/2.;
+        yS=y-(PartialVeloField->G(1,x2,y2,z2,t-1)+PartialVeloField->G(1,x4,y4,z4,t))*DeltaT_div_DeltaX/2.;
+        zS=z-(PartialVeloField->G(2,x2,y2,z2,t-1)+PartialVeloField->G(2,x4,y4,z4,t))*DeltaT_div_DeltaX/2.;
+        
+        //2.3.1.b) update the transport of the information
+        PartialFmap->P(PartialFmap->G(0,xS,yS,zS,t-1),0,x,y,z,t);
+        PartialFmap->P(PartialFmap->G(1,xS,yS,zS,t-1),1,x,y,z,t);
+        PartialFmap->P(PartialFmap->G(2,xS,yS,zS,t-1),2,x,y,z,t);
       }
-    }
-    
-    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
-      //2.2) estimate where the point (x,y,z,t-1) comes from at T=0 using the partial map  -> (x1,y1,z1)
-      x1=PartialFmap->G(0,x,y,z,t-1);
-      y1=PartialFmap->G(1,x,y,z,t-1);
-      z1=PartialFmap->G(2,x,y,z,t-1);
-      
-      //2.3) estimate where the point (x1,y1,z1,0) will be at T=t-1 using the total map  -> (x2,y2,z2)
-      x2=Bmap.G(0,x1,y1,z1,0);
-      y2=Bmap.G(1,x1,y1,z1,0);
-      z2=Bmap.G(2,x1,y1,z1,0);
-      
-      //2.4) compute the partial forward mapping at (x,y,z,t) (x2,y2,z2) (THE VECTOR SHOULD BE RE-ORIENTED)
-      VecTemp[0]=x-PartialVeloField->G(0,x2,y2,z2,t-1)*DeltaT_div_DeltaX;
-      VecTemp[1]=y-PartialVeloField->G(1,x2,y2,z2,t-1)*DeltaT_div_DeltaX;
-      VecTemp[2]=z-PartialVeloField->G(2,x2,y2,z2,t-1)*DeltaT_div_DeltaX;
-      
-      PartialFmap->P(PartialFmap->G(0,VecTemp[0],VecTemp[1],VecTemp[2],t-1),0,x,y,z,t);
-      PartialFmap->P(PartialFmap->G(1,VecTemp[0],VecTemp[1],VecTemp[2],t-1),1,x,y,z,t);
-      PartialFmap->P(PartialFmap->G(2,VecTemp[0],VecTemp[1],VecTemp[2],t-1),2,x,y,z,t);
     }
   }
 }
 
+
+//We consider here that 'PartialVeloField' contributes to 'VeloField'   (VeloField= [A velocity field] + PartialVeloField). MapTrgImag is the mapping of Trg image (possibly not the identity).
+//This function then computes 'PartialBmap' which is the partial backward mapping due to the contribution of PartialVeloField.
+//Imporant: Should only be used for the transportation of the target image
+void ComputePartialBackwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialBmap,VectorField * MapSrcImag,int ConvergenceSteps,float DeltaX){
+  int NBX,NBY,NBZ,NBT;
+  int i,x,y,z;
+  float x1,y1,z1;
+  float x2,y2,z2;
+  float x3,y3,z3;
+  float x4,y4,z4;
+  float xS,yS,zS;
+  int t;
+  float DeltaT_div_DeltaX;
+  VectorField TotalFmap;  //total forward mapping from the [new time_sub-1] to 0
+  VectorField TotalFmap2;  //total forwrd mapping from the [new time_sub] to 0
+
+  //1) initialisation
+  //1.1) constants
+  NBX=VeloField->NX;
+  NBY=VeloField->NY;
+  NBZ=VeloField->NZ;
+  NBT=VeloField->NT;
+  DeltaT_div_DeltaX=1./((NBT-1.)*DeltaX);
+  
+  //1.2) allocate memory in GradScalVF if not done
+  if ((NBX!=PartialBmap->NX)||(NBY!=PartialBmap->NY)||(NBZ!=PartialBmap->NZ)||(NBT!=PartialBmap->NT))
+    PartialBmap->CreateVoidField(NBX,NBY,NBZ,NBT);
+  
+  //1.3) allocate memory for TotalFmap
+  TotalFmap.CreateVoidField(NBX,NBY,NBZ,NBT);
+  TotalFmap2.CreateVoidField(NBX,NBY,NBZ,NBT);
+  
+  //1.4) PartialBmap at the first time subdivision
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+    PartialBmap->P(MapSrcImag->G(0,x,y,z),0,x,y,z,NBT-1);
+    PartialBmap->P(MapSrcImag->G(1,x,y,z),1,x,y,z,NBT-1);
+    PartialBmap->P(MapSrcImag->G(2,x,y,z),2,x,y,z,NBT-1);
+  }
+  
+  //2) PartialBmap at the other time subdivisions
+  for (t=NBT-2;t>=0;t--){
+    
+    //2.1) compute the total forward mapping from 0 to t+1
+    ForwardMappingFromVelocityField(VeloField,&TotalFmap,MapSrcImag,ConvergenceSteps,1,t+1);
+    
+    //2.2) compute the total forward mapping from 0 to t
+    ForwardMappingFromVelocityField(VeloField,&TotalFmap2,MapSrcImag,ConvergenceSteps,1,t);
+    
+    //2.3) compute partial forward map at t from the one at t+1
+    for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+      //2.3.1) first estimation
+      //2.3.1.a) first guess of where the information comes from at t-1
+      //if ((y<1)||(y>38)) cout << "in3\n";
+
+      x1=PartialBmap->G(0,x,y,z,t+1); y1=PartialBmap->G(1,x,y,z,t+1); z1=PartialBmap->G(2,x,y,z,t+1);
+      x2=TotalFmap.G(0,x1,y1,z1,NBT-1);   y2=TotalFmap.G(1,x1,y1,z1,NBT-1);   z2=TotalFmap.G(2,x1,y1,z1,NBT-1); //TotalFmap -> t+1
+      //if ((y<1)||(y>38)) cout << "in4\n";
+      
+      xS=x+PartialVeloField->G(0,x2,y2,z2,t+1)*DeltaT_div_DeltaX;
+      yS=y+PartialVeloField->G(1,x2,y2,z2,t+1)*DeltaT_div_DeltaX;
+      zS=z+PartialVeloField->G(2,x2,y2,z2,t+1)*DeltaT_div_DeltaX;
+      //if ((y<1)||(y>38)) cout << "in5\n";
+      
+      //2.3.1.b) first transport of the information
+      PartialBmap->P(PartialBmap->G(0,xS,yS,zS,t+1),0,x,y,z,t);
+      PartialBmap->P(PartialBmap->G(1,xS,yS,zS,t+1),1,x,y,z,t);
+      PartialBmap->P(PartialBmap->G(2,xS,yS,zS,t+1),2,x,y,z,t);
+      
+      //2.3.1) leap frog style improvement of the estimation
+      for (i=0;i<ConvergenceSteps*2;i++){
+        //2.3.2.a) where the information comes from at t-1
+        x1=PartialBmap->G(0,xS,yS,zS,t+1); y1=PartialBmap->G(1,xS,yS,zS,t+1); z1=PartialBmap->G(2,xS,yS,zS,t+1);
+        x2=TotalFmap.G(0,x1,y1,z1,NBT-1);      y2=TotalFmap.G(1,x1,y1,z1,NBT-1);      z2=TotalFmap.G(2,x1,y1,z1,NBT-1); //TotalFmap -> t-1
+        
+        x3=PartialBmap->G(0,x,y,z,t);   y3=PartialBmap->G(1,x,y,z,t);   z3=PartialBmap->G(2,x,y,z,t);
+        x4=TotalFmap2.G(0,x3,y3,z3,NBT-1);  y4=TotalFmap2.G(1,x3,y3,z3,NBT-1);  z4=TotalFmap2.G(2,x3,y3,z3,NBT-1); //TotalFmap2 -> t
+        
+        xS=x+(PartialVeloField->G(0,x2,y2,z2,t+1)+PartialVeloField->G(0,x4,y4,z4,t))*DeltaT_div_DeltaX/2.;
+        yS=y+(PartialVeloField->G(1,x2,y2,z2,t+1)+PartialVeloField->G(1,x4,y4,z4,t))*DeltaT_div_DeltaX/2.;
+        zS=z+(PartialVeloField->G(2,x2,y2,z2,t+1)+PartialVeloField->G(2,x4,y4,z4,t))*DeltaT_div_DeltaX/2.;
+        
+        //2.3.1.b) update the transport of the information
+        PartialBmap->P(PartialBmap->G(0,xS,yS,zS,t+1),0,x,y,z,t);
+        PartialBmap->P(PartialBmap->G(1,xS,yS,zS,t+1),1,x,y,z,t);
+        PartialBmap->P(PartialBmap->G(2,xS,yS,zS,t+1),2,x,y,z,t);
+      }
+    }
+  }
+}
+
+
+
+//We consider here that 'PartialVeloField' contributes to 'VeloField'   (VeloField= [A velocity field] + PartialVeloField).
+//This function then computes 'PartialLocBmap' which is the partial forward mapping ONLY AT 'TargetSubdiv' FROM 'SourceSubdiv' due to the contribution of PartialVeloField.
+//-> PartialLocBmap represents where will be the coordinates of the points of time subdivision 'SourceSubdiv' after transportation to time subdivision 'TargetSubdiv'
+//Important: no mapping of the source or target map is supported here
+//Imporant: Should only be used for the transportation of the source image
+void ComputeLagrangianPartialBackwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialLocBmap,int SourceSubdiv,int TargetSubdiv,float DeltaX){
+  int NBX,NBY,NBZ,NBT;
+  int x,y,z,t;
+  float x1,y1,z1;
+  float x2,y2,z2;
+  float x3,y3,z3;
+  float DeltaT_div_DeltaX;
+  float DX,DY,DZ;
+  float DX2,DY2,DZ2;
+  
+  //1) initialisation
+  //1.1) constants
+  NBX=VeloField->NX;
+  NBY=VeloField->NY;
+  NBZ=VeloField->NZ;
+  NBT=VeloField->NT;
+  DeltaT_div_DeltaX=1./((NBT-1.)*DeltaX);
+  
+  //1.2) allocate memory in GradScalVF if not done
+  if ((NBX!=PartialLocBmap->NX)||(NBY!=PartialLocBmap->NY)||(NBZ!=PartialLocBmap->NZ)||(NBT!=1))
+    PartialLocBmap->CreateVoidField(NBX,NBY,NBZ,1);
+  
+  //2) Compute the transportation of the points of time SourceSubdiv to TargetSubdiv
+  for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) for (x=0;x<NBX;x++){
+    
+    //initial coordinates
+    x1=x*1.;  y1=y*1.;  z1=z*1.;  //for the transportation in the complete velocity field
+    x2=x*1.;  y2=y*1.;  z2=z*1.;  //for the transportation in the partial velocity field
+    
+    //transportation
+    for (t=SourceSubdiv;t<TargetSubdiv;t++){
+      x3=x1; y3=y1; z3=z1;
+      
+      DX=VeloField->G(0,x3,y3,z3,t)*DeltaT_div_DeltaX;
+      DY=VeloField->G(1,x3,y3,z3,t)*DeltaT_div_DeltaX;
+      DZ=VeloField->G(2,x3,y3,z3,t)*DeltaT_div_DeltaX;
+      
+      DX2=(VeloField->G(0,x3,y3,z3,t)+VeloField->G(0,x3+DX,y3+DY,z3+DZ,t+1))*DeltaT_div_DeltaX/2.;
+      DY2=(VeloField->G(1,x3,y3,z3,t)+VeloField->G(1,x3+DX,y3+DY,z3+DZ,t+1))*DeltaT_div_DeltaX/2.;
+      DZ2=(VeloField->G(2,x3,y3,z3,t)+VeloField->G(2,x3+DX,y3+DY,z3+DZ,t+1))*DeltaT_div_DeltaX/2.;
+      DX=DX2;
+      DY=DY2;
+      DZ=DZ2;
+      
+      x1=x1+DX;
+      y1=y1+DY;
+      z1=z1+DZ;
+      
+      x2=x2+(PartialVeloField->G(0,x3,y3,z3,t)+PartialVeloField->G(0,x1,y1,z1,t+1))*DeltaT_div_DeltaX/2.;
+      y2=y2+(PartialVeloField->G(1,x3,y3,z3,t)+PartialVeloField->G(1,x1,y1,z1,t+1))*DeltaT_div_DeltaX/2.;
+      z2=z2+(PartialVeloField->G(2,x3,y3,z3,t)+PartialVeloField->G(2,x1,y1,z1,t+1))*DeltaT_div_DeltaX/2.;
+      
+    }
+    
+    //save where will be the point x,y,z
+    PartialLocBmap->P(x2,0,x,y,z);
+    PartialLocBmap->P(y2,1,x,y,z);
+    PartialLocBmap->P(z2,2,x,y,z);
+  }
+}
 
 
 //Compute the projection of a 3D image 'ImageTime0' using Forward Mapping 'Fmap'.
@@ -1571,3 +1776,256 @@ float CalcSqrtSumOfSquaredDif(ScalarField * I1,ScalarField * I2){
   return L2_norm;
 }
 
+
+
+///...
+void TransportMomentum(ScalarField *InitialMomentum,VectorField *TempInvDiffeo, ScalarField *Momentum,float DeltaX,int t)
+{	int x,y,z;
+	int NBX,NBY,NBZ;
+        float d11,d12,d13,d21,d22,d23,d31,d32,d33;
+	float temp;
+	NBX=TempInvDiffeo->NX;
+	NBY=TempInvDiffeo->NY;
+	NBZ=TempInvDiffeo->NZ;
+	for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++)
+	{
+	  d11=(TempInvDiffeo->G(0,x+1,y,z,t)-TempInvDiffeo->G(0,x-1,y,z,t))/(2.*DeltaX);
+	  d12=(TempInvDiffeo->G(0,x,y+1,z,t)-TempInvDiffeo->G(0,x,y-1,z,t))/(2.*DeltaX);
+	  d13=(TempInvDiffeo->G(0,x,y,z+1,t)-TempInvDiffeo->G(0,x,y,z-1,t))/(2.*DeltaX);
+	  d21=(TempInvDiffeo->G(1,x+1,y,z,t)-TempInvDiffeo->G(1,x-1,y,z,t))/(2.*DeltaX);
+	  d22=(TempInvDiffeo->G(1,x,y+1,z,t)-TempInvDiffeo->G(1,x,y-1,z,t))/(2.*DeltaX);
+	  d23=(TempInvDiffeo->G(1,x,y,z+1,t)-TempInvDiffeo->G(1,x,y,z-1,t))/(2.*DeltaX);
+	  d31=(TempInvDiffeo->G(2,x+1,y,z,t)-TempInvDiffeo->G(2,x-1,y,z,t))/(2.*DeltaX);
+	  d32=(TempInvDiffeo->G(2,x,y+1,z,t)-TempInvDiffeo->G(2,x,y-1,z,t))/(2.*DeltaX);
+	  d33=(TempInvDiffeo->G(2,x,y,z+1,t)-TempInvDiffeo->G(2,x,y,z-1,t))/(2.*DeltaX);
+	  temp = InitialMomentum->G(TempInvDiffeo->G(0,x,y,z,t),TempInvDiffeo->G(1,x,y,z,t),TempInvDiffeo->G(2,x,y,z,t),0);
+	  Momentum->P( temp* (d11*(d22*d33-d32*d23)-d21*(d12*d33-d32*d13)+d31*(d12*d23-d22*d13)),x,y,z);
+	}
+	//1.2.2) boundaries at 0.
+	z=0;
+	for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) Momentum->P(InitialMomentum->G(x,y,z,0),x,y,z);
+	z=NBZ-1;
+	for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) Momentum->P(InitialMomentum->G(x,y,z,0),x,y,z);
+	y=0;
+	for (z=0;z<NBZ;z++) for (x=0;x<NBX;x++) Momentum->P(InitialMomentum->G(x,y,z,0),x,y,z);
+	y=NBY-1;
+	for (z=0;z<NBZ;z++) for (x=0;x<NBX;x++) Momentum->P(InitialMomentum->G(x,y,z,0),x,y,z);
+	x=0;
+	for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) Momentum->P(InitialMomentum->G(x,y,z,0),x,y,z);
+	x=NBX-1;
+	for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) Momentum->P(InitialMomentum->G(x,y,z,0),x,y,z);
+
+	//1.2.3) 2D image case
+	//float max=0.0;
+	if (NBZ==1) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++)
+	{
+	  d11=(TempInvDiffeo->G(0,x+1,y,0,t)-TempInvDiffeo->G(0,x-1,y,0,t))/(2.*DeltaX);
+	  d12=(TempInvDiffeo->G(0,x,y+1,0,t)-TempInvDiffeo->G(0,x,y-1,0,t))/(2.*DeltaX);
+	  d21=(TempInvDiffeo->G(1,x+1,y,0,t)-TempInvDiffeo->G(1,x-1,y,0,t))/(2.*DeltaX);
+	  d22=(TempInvDiffeo->G(1,x,y+1,0,t)-TempInvDiffeo->G(1,x,y-1,0,t))/(2.*DeltaX);
+	  temp = InitialMomentum->G(TempInvDiffeo->G(0,x,y,0,t),TempInvDiffeo->G(1,x,y,0,t),TempInvDiffeo->G(2,x,y,0,t),0);
+	  //if (max<abs(temp*(d11*d22-d21*d12))){max=abs(temp*(d11*d22-d21*d12));}
+	  Momentum->P(temp*(d11*d22-d21*d12),x,y,0);
+	}
+	//cout << "c'est penible  "<< Momentum->GetMaxAbsVal() <<"\n";
+}
+
+/// Bug - Not VaLidated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void AddTransportMomentum(ScalarField *InitialMomentum,VectorField *TempInvDiffeo, ScalarField *Momentum,float DeltaX,float cste, int t)
+{	int x,y,z;
+	int NBX,NBY,NBZ;
+    float d11,d12,d13,d21,d22,d23,d31,d32,d33;
+	float temp;
+	NBX=TempInvDiffeo->NX;
+	NBY=TempInvDiffeo->NY;
+	NBZ=TempInvDiffeo->NZ;
+	for (z=1;z<NBZ-1;z++) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++)
+	{
+	  d11=(TempInvDiffeo->G(0,x+1,y,z,t)-TempInvDiffeo->G(0,x-1,y,z,t))/(2.*DeltaX);
+	  d12=(TempInvDiffeo->G(0,x,y+1,z,t)-TempInvDiffeo->G(0,x,y-1,z,t))/(2.*DeltaX);
+	  d13=(TempInvDiffeo->G(0,x,y,z+1,t)-TempInvDiffeo->G(0,x,y,z-1,t))/(2.*DeltaX);
+	  d21=(TempInvDiffeo->G(1,x+1,y,z,t)-TempInvDiffeo->G(1,x-1,y,z,t))/(2.*DeltaX);
+	  d22=(TempInvDiffeo->G(1,x,y+1,z,t)-TempInvDiffeo->G(1,x,y-1,z,t))/(2.*DeltaX);
+	  d23=(TempInvDiffeo->G(1,x,y,z+1,t)-TempInvDiffeo->G(1,x,y,z-1,t))/(2.*DeltaX);
+	  d31=(TempInvDiffeo->G(2,x+1,y,z,t)-TempInvDiffeo->G(2,x-1,y,z,t))/(2.*DeltaX);
+	  d32=(TempInvDiffeo->G(2,x,y+1,z,t)-TempInvDiffeo->G(2,x,y-1,z,t))/(2.*DeltaX);
+	  d33=(TempInvDiffeo->G(2,x,y,z+1,t)-TempInvDiffeo->G(2,x,y,z-1,t))/(2.*DeltaX);
+	  temp = InitialMomentum->G(TempInvDiffeo->G(0,x,y,z,t),TempInvDiffeo->G(1,x,y,z,t),TempInvDiffeo->G(2,x,y,z,t),0);
+	  Momentum->Add(cste* temp* (d11*(d22*d33-d32*d23)-d21*(d12*d33-d32*d13)+d31*(d12*d23-d22*d13)),x,y,z);
+	}
+	//1.2.2) boundaries at 0.
+	z=0;
+	for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) Momentum->Add(cste*InitialMomentum->G(x,y,z,0),x,y,z);
+	z=NBZ-1;
+	for (y=0;y<NBY;y++) for (x=0;x<NBX;x++) Momentum->Add(cste*InitialMomentum->G(x,y,z,0),x,y,z);
+	y=0;
+	for (z=0;z<NBZ;z++) for (x=0;x<NBX;x++) Momentum->Add(cste*InitialMomentum->G(x,y,z,0),x,y,z);
+	y=NBY-1;
+	for (z=0;z<NBZ;z++) for (x=0;x<NBX;x++) Momentum->Add(cste*InitialMomentum->G(x,y,z,0),x,y,z);
+	x=0;
+	for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) Momentum->Add(cste*InitialMomentum->G(x,y,z,0),x,y,z);
+	x=NBX-1;
+	for (z=0;z<NBZ;z++) for (y=0;y<NBY;y++) Momentum->Add(cste*InitialMomentum->G(x,y,z,0),x,y,z);
+
+	//1.2.3) 2D image case
+	if (NBZ==1) for (y=1;y<NBY-1;y++) for (x=1;x<NBX-1;x++)
+	{
+	  d11=(TempInvDiffeo->G(0,x+1,y,0,t)-TempInvDiffeo->G(0,x-1,y,0,t))/(2.*DeltaX);
+	  d12=(TempInvDiffeo->G(0,x,y+1,0,t)-TempInvDiffeo->G(0,x,y-1,0,t))/(2.*DeltaX);
+	  d21=(TempInvDiffeo->G(1,x+1,y,0,t)-TempInvDiffeo->G(1,x-1,y,0,t))/(2.*DeltaX);
+	  d22=(TempInvDiffeo->G(1,x,y+1,0,t)-TempInvDiffeo->G(1,x,y-1,0,t))/(2.*DeltaX);
+	  temp = InitialMomentum->G(TempInvDiffeo->G(0,x,y,0,t),TempInvDiffeo->G(1,x,y,0,t));
+	  Momentum->Add(cste*temp*(d11*d22-d21*d12),x,y,0);
+	}
+}
+
+///...
+void TransportImage(ScalarField *InitialImage, VectorField *TempInvDiffeo, ScalarField *Image, int t)
+{
+	int x,y,z;
+    for (z = 0; z < InitialImage->NZ; z++) for (y = 0; y < InitialImage->NY; y++) for (x = 0; x < InitialImage->NX; x++)
+	{
+		Image->P(InitialImage->G(TempInvDiffeo->G(0,x,y,z,t),TempInvDiffeo->G(1,x,y,z,t),TempInvDiffeo->G(2,x,y,z,t),0),x,y,z,0);
+	}
+}
+
+///...
+void AddTransportImage(ScalarField *InitialImage, VectorField *TempInvDiffeo, ScalarField *Image, float cste, int t)
+{
+	int x,y,z;
+    for (z = 0; z < InitialImage->NZ; z++) for (y = 0; y < InitialImage->NY; y++) for (x = 0; x < InitialImage->NX; x++)
+	{
+		Image->Add(cste * InitialImage->G(TempInvDiffeo->G(0,x,y,z,t),TempInvDiffeo->G(1,x,y,z,t),TempInvDiffeo->G(2,x,y,z,t),0),x,y,z,0);
+	}
+}
+
+///...
+void DeepCopy(VectorField *VectorField1,VectorField *VectorField2,int t)
+{
+	int i,x,y,z;
+	for (i=0;i<3;i++)
+	{
+		for (z = 0; z < VectorField1->NZ; z++) for (y = 0; y < VectorField1->NY; y++) for (x = 0; x < VectorField1->NX; x++)
+		{
+			VectorField2->P(VectorField1->G(i,x,y,z),i,x,y,z,t);
+		}
+	}
+}
+
+///...
+void DeepCopy(ScalarField *ScalarField1,ScalarField *ScalarField2,int t)
+{
+	int x,y,z;
+	for (z = 0; z < ScalarField1->NZ; z++) for (y = 0; y < ScalarField1->NY; y++) for (x = 0; x < ScalarField1->NX; x++)
+	{
+		ScalarField2->P(ScalarField1->G(x,y,z),x,y,z,t);
+	}	
+}
+
+
+/// Compute the scalar product between the vector fields and put it in ScalarField0 (for which NT=1)
+void ScalarProduct(VectorField *VectorField1, VectorField *VectorField2, ScalarField *ScalarField0, int t,float cste)
+{
+	int i,x,y,z;
+	float temp;
+	for (z = 0; z < VectorField1->NZ; z++) for (y = 0; y < VectorField1->NY; y++) for (x = 0; x < VectorField1->NX; x++)
+	{
+		temp=0.0;
+		for (i=0;i<3;i++){temp+=VectorField1->G(i,x,y,z,t)*VectorField2->G(i,x,y,z,t);}
+		ScalarField0->P(cste*temp,x,y,z);
+	}
+}
+
+
+/// Compute the scalar product between the scalar fields and put it in ScalarField0 (for which NT=1)
+void ScalarProduct(ScalarField *ScalarField1, ScalarField *ScalarField2, ScalarField *ScalarField0, int t,float cste)
+{
+	int x,y,z;
+	for (z = 0; z < ScalarField1->NZ; z++) for (y = 0; y < ScalarField1->NY; y++) for (x = 0; x < ScalarField1->NX; x++)
+	{
+		ScalarField0->P(cste * ScalarField1->G(x,y,z,t)*ScalarField2->G(x,y,z,t),x,y,z);
+	}	
+}
+
+
+/// Add the scalar product between the vector fields to ScalarField0 (for which NT=1)
+void AddScalarProduct(VectorField *VectorField1, VectorField *VectorField2, ScalarField *ScalarField0, int t)
+{
+	int i,x,y,z;
+	for (z = 0; z < VectorField1->NZ; z++) for (y = 0; y < VectorField1->NY; y++) for (x = 0; x < VectorField1->NX; x++)
+	{
+		for (i=0;i<3;i++){ScalarField0->Add(VectorField1->G(i,x,y,z,t)*VectorField2->G(i,x,y,z,t),x,y,z);}
+	}	
+}
+
+
+/// Add the scalar product between the scalar fields to ScalarField0 (for which NT=1)
+void AddScalarProduct(ScalarField *ScalarField1, ScalarField *ScalarField2, ScalarField *ScalarField0, int t)
+{
+	int x,y,z;
+	for (z = 0; z < ScalarField1->NZ; z++) for (y = 0; y < ScalarField1->NY; y++) for (x = 0; x < ScalarField1->NX; x++)
+	{
+		ScalarField0->Add(ScalarField1->G(x,y,z,t)*ScalarField2->G(x,y,z,t),x,y,z);
+	}	
+}
+
+
+/// Add  ScalarField1 at time t1 to ScalarField2 at time t2
+void AddScalarField(ScalarField *ScalarField1, ScalarField *ScalarField2,float cste, int t1,int t2)
+{
+	int x,y,z;
+	for (z = 0; z < ScalarField1->NZ; z++) for (y = 0; y < ScalarField1->NY; y++) for (x = 0; x < ScalarField1->NX; x++)
+	{
+		ScalarField2->Add(cste*ScalarField1->G(x,y,z,t1),x,y,z,t2);
+	}	
+}
+/// Add  ScalarField1 at time t1 to ScalarField2 at time t2
+void AddVectorField(VectorField *VectorField1, VectorField *VectorField2,float cste, int t1,int t2)
+{
+	int i,x,y,z;
+	for (i=0;i<3;i++) for (z = 0; z < VectorField1->NZ; z++) for (y = 0; y < VectorField1->NY; y++) for (x = 0; x < VectorField1->NX; x++)
+	{
+		VectorField2->Add(cste*VectorField1->G(i,x,y,z,t1),i,x,y,z,t2);
+	}	
+}
+/// Multiply a vector field by the cste
+void MultiplyVectorField(VectorField *VectorField1, float cste,int t)
+{
+	int i,x,y,z;
+	for (i=0;i<3;i++) for (z = 0; z < VectorField1->NZ; z++) for (y = 0; y < VectorField1->NY; y++) for (x = 0; x < VectorField1->NX; x++)
+	{
+		VectorField1->P(cste*VectorField1->G(x,y,z,t),i,x,y,z,t);
+	}	
+}
+
+/// Sum two vector fields and put it in Output.
+void SumVectorField(VectorField *VectorField1, VectorField *VectorField2, VectorField *Output, int t1, int t2, int t3, float cste1 ,float cste2)
+{
+	int i,x,y,z;
+	for (i=0;i<3;i++) for (z = 0; z < VectorField1->NZ; z++) for (y = 0; y < VectorField1->NY; y++) for (x = 0; x < VectorField1->NX; x++)
+	{
+		Output->P(cste1 * VectorField1->G(i,x,y,z,t1) + cste2 * VectorField2->G(i,x,y,z,t2),i,x,y,z,t3);
+	}
+}
+/// compute the product element by element along each dimension
+void Product(ScalarField *ScalarField, VectorField *VectorField1, VectorField *VectorField2)
+{
+	int i,x,y,z;
+	for (i=0;i<3;i++) for (z = 0; z < ScalarField->NZ; z++) for (y = 0; y < ScalarField->NY; y++) for (x = 0; x < ScalarField->NX; x++)
+	{
+		VectorField2->P(VectorField1->G(i,x,y,z)*ScalarField->G(x,y,z),i,x,y,z);
+	}
+}
+
+
+///...
+float DotProduct(ScalarField *ScalarField1, ScalarField *ScalarField2, int t1,int t2)
+{
+	float result=0.0;
+	int x,y,z;
+	for (z = 0; z < ScalarField1->NZ; z++) for (y = 0; y < ScalarField1->NY; y++) for (x = 0; x < ScalarField1->NX; x++)
+	{
+		result += ScalarField1->G(x,y,z,t1) * ScalarField2->G(x,y,z,t2);
+	}
+	return result;
+}

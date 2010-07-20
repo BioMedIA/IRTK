@@ -155,6 +155,9 @@ class FFTconvolver3D{
     ScalarField RealFilterForFFT;
     ScalarField ImagFilterForFFT;
     
+    //temporary scalar field
+    ScalarField ImageTemp;
+    
     //design a kernel that is the sum of up to 4 Gaussians
     void MakeSumOf4AnisotropicGaussianFilters(float weight1,float sigmaX1,float sigmaY1,float sigmaZ1,float weight2,float sigmaX2,float sigmaY2,float sigmaZ2,float weight3,float sigmaX3,float sigmaY3,float sigmaZ3,float weight4,float sigmaX4,float sigmaY4,float sigmaZ4);
     
@@ -235,7 +238,8 @@ void Cpt_JacobianDeterminant(VectorField * VField,ScalarField * DetJ,int Specifi
 //  3 iterations are far enough but more iterations are suitable if the deformations have large 
 //  Jacobians.
 //* 'DeltaX' is the spatial step between two voxels.
-void ForwardMappingFromVelocityField(VectorField * VeloField,VectorField * Fmap,VectorField * MapSrcImag,int ConvergenceSteps=3,float DeltaX=1);
+//* If 'StartPoint'>=0 : The forward mapping does not start from 0 but StartPoint*DeltaT
+void ForwardMappingFromVelocityField(VectorField * VeloField,VectorField * Fmap,VectorField * MapSrcImag,int ConvergenceSteps=1,float DeltaX=1,int StartPoint=-1);
 
 //Compute the backward mapping 'Bmap' from the velocity field 'VeloField'. MapTrgImag is the
 //mapping of Trg image (possibly not the identity).
@@ -244,11 +248,27 @@ void ForwardMappingFromVelocityField(VectorField * VeloField,VectorField * Fmap,
 //  3 iterations are far enough but more iterations are suitable if the deformations have large 
 //  Jacobians.
 //* 'DeltaX' is the spatial step between two voxels.
-void BackwardMappingFromVelocityField(VectorField * VeloField,VectorField * Bmap,VectorField * MapTrgImag,int ConvergenceSteps=3,float DeltaX=1);
+//* If 'StartPoint'>=0 : The backward mapping does not start from 1 but StartPoint*DeltaT
+void BackwardMappingFromVelocityField(VectorField * VeloField,VectorField * Bmap,VectorField * MapTrgImag,int ConvergenceSteps=1,float DeltaX=1,int StartPoint=-1);
 
 //We consider here that 'PartialVeloField' contributes to 'VeloField'   (VeloField= [A velocity field] + PartialVeloField). MapSrcImag is the mapping of Src image (possibly not the identity).
 //This function then computes 'PartialFmap' which is the partial forward mapping due to the contribution of PartialVeloField.
-void ComputePartialForwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialFmap,VectorField * MapSrcImag,int ConvergenceSteps=3,float DeltaX=1);
+//Imporant: Should only be used for the transportation of the source image
+void ComputePartialForwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialFmap,VectorField * MapSrcImag,VectorField * MapTrgImag,int ConvergenceSteps=1,float DeltaX=1);
+
+
+//We consider here that 'PartialVeloField' contributes to 'VeloField'   (VeloField= [A velocity field] + PartialVeloField). MapTrgImag is the mapping of Trg image (possibly not the identity).
+//This function then computes 'PartialBmap' which is the partial backward mapping due to the contribution of PartialVeloField.
+//Imporant: Should only be used for the transportation of the target image
+void ComputePartialBackwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialBmap,VectorField * MapSrcImag,int ConvergenceSteps=1,float DeltaX=1);
+
+//We consider here that 'PartialVeloField' contributes to 'VeloField'   (VeloField= [A velocity field] + PartialVeloField).
+//This function then computes 'PartialLocBmap' which is the partial forward mapping ONLY AT 'TargetSubdiv' FROM 'SourceSubdiv' due to the contribution of PartialVeloField.
+//-> PartialLocBmap represents where will be the coordinates of the points of time subdivision 'SourceSubdiv' after transportation to time subdivision 'TargetSubdiv'
+//Important: no mapping of the source or tagrget map is supported here
+//Imporant: Should only be used for the transportation of the source image
+void ComputeLagrangianPartialBackwardMapping(VectorField * VeloField,VectorField * PartialVeloField,VectorField * PartialLocBmap,int SourceSubdiv,int TargetSubdiv,float DeltaX=1);
+
 
 //Compute the projection of a 3D image 'ImageTime0' using Forward Mapping 'Fmap'.
 //The image is projected at the time step 'TimeStepProj' of 'Fmap' and stored in 'ImageTimeT'.
@@ -271,5 +291,43 @@ void CptLengthOfFlow(VectorField * VeloField4Flow,VectorField * VeloField4Measur
 //compute the L_2 norm of the difference between two scalar fields
 float CalcSqrtSumOfSquaredDif(ScalarField * I1,ScalarField * I2);
 
+// Computes the transport of the initial momentum by the diffeo and stores it in Momentum
+void TransportMomentum(ScalarField *InitialMomentum, VectorField *InvDiffeo, ScalarField *Momentum,float DeltaX,int t=0);
 
+// Computes cste * transport momentum from the initial momentum by the diffeo and add it in Image.
+void AddTransportMomentum(ScalarField *InitialMomentum,VectorField *TempInvDiffeo, ScalarField *Momentum,float DeltaX,float cste=1.0, int t=0);
+
+// Computes the transport image from the initial image by the diffeo and stores it in Image.
+void TransportImage(ScalarField *InitialImage, VectorField *TempInvDiffeo, ScalarField *Image,int t=0);
+
+// Computes cste * transport image from the initial image by the diffeo and add it in Image.
+void AddTransportImage(ScalarField *InitialImage, VectorField *TempInvDiffeo, ScalarField *Image,float cste=1.0,int t=0);
+
+// Copies the values of a VectorField1(t=0) in VectorField2(t)
+void DeepCopy(VectorField *VectorField1,VectorField *VectorField2,int t);
+
+// Copies the values of a ScalarField1(t=0) in ScalarField2(t)
+void DeepCopy(ScalarField *ScalarField1,ScalarField *ScalarField2,int t);
+
+// Compute the L^2 scalar product and store it in ScalarField0
+void ScalarProduct(VectorField *VectorField1, VectorField *VectorField2, ScalarField *ScalarField0, int t=0,float cste = 1.0);
+void ScalarProduct(ScalarField *ScalarField1, ScalarField *ScalarField2, ScalarField *ScalarField0, int t=0, float cste = 1.0);
+
+// Compute the L^2 scalar product between two vectorfields at time t and add it to ScalarField0
+void AddScalarProduct(VectorField *VectorField1, VectorField *VectorField2, ScalarField *ScalarField0, int t=0);
+void AddScalarProduct(ScalarField *ScalarField1, ScalarField *ScalarField2, ScalarField *ScalarField0, int t=0);
+
+// Add  cste * ScalarField1 at time t1 to ScalarField2 at time t2
+void AddScalarField(ScalarField *ScalarField1, ScalarField *ScalarField2,float cste,int t1 = 0,int t2=0);
+// Add  cste * VectorField1 at time t1 to VectorField2 at time t2
+void AddVectorField(VectorField *VectorField1, VectorField *VectorField2,float cste,int t1 = 0,int t2=0);
+// Multiply a vector field by the cste
+void MultiplyVectorField(VectorField *VectorField1, float cste,int t=0);
+// 
+void SumVectorField(VectorField *VectorField1, VectorField *VectorField2, VectorField *Output, int t1=0,int t2=0,int t3=0, float cste1 = 1.0,float cste2 =1.0);
+// Compute the product element by element of ScalarField and VectorField and store it in VectorField2
+void Product(ScalarField *ScalarField, VectorField *VectorField1, VectorField *VectorField2);
+
+// Compute the dot product
+float DotProduct(ScalarField *ScalarField1, ScalarField *ScalarField2,int t1=0,int t2=0);
 #endif

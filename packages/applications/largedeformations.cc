@@ -13,7 +13,7 @@ void usage(){
   cerr << "  Primary options:\n";
   cerr << "    <-iterations n>      Number of iterations (default=10)\n";
   cerr << "    <-subdivisions n>    Number of subdivisons (default=10)\n";
-  cerr << "    <-MaxVeloUpdt n>     Maximum velocity update at each iteration (default=0.5 voxels)\n";
+  cerr << "    <-MaxVeloUpdt n>     Maximum velocity update at each iteration (default=0.4 voxels)\n";
   cerr << "  Inputs and Outputs:\n";
   cerr << "    <-PrefixInputs n>    Prefix of the files containing an initial velocity field (default=\"Null\")\n";
   cerr << "    <-PrefixOutputs n>   Prefix of the files containing the outputs (default=\"Outputs\")\n";
@@ -28,24 +28,25 @@ void usage(){
   cerr << "  Secondary options:\n";
   cerr << "    <-SplitKernels>      Split the contribution of each kernel\n";
   cerr << "    <-epsilon n>         Threshold on the normalized max update of the velicty field (default=0.2)\n";
-  cerr << "    <-GreyLevAlign>      Grey level linear alignment of each channel\n";
+  cerr << "    <-GreyLevAlign n>    Grey level linear alignment of each channel (Inputs: Padding Src - Padding Trg)\n";
   cerr << "    <-margins n>         Margin of the image where the calculations are reduced  (default=0 voxels)\n";
   cerr << "    <-WghtVeloField n>   Weight of the velocity field in the energy (default=1.) \n";
   cerr << "    <-RefMaxGrad n>      Value to manage the convergence. Automatically configured if <0 (default=-1.)\n";
   cerr << "    <-MapSrcImag n>      Compose the deformation with a f. mapping of the Src image (default=\"Null\")\n";
   cerr << "    <-MapTrgImag n>      Compose the deformation with a b. mapping of the Trg image (default=\"Null\")\n";
   cerr << "  Special Outputs:\n";
-  cerr << "    <-FlowLength>        Length of the deformation flow from each voxel\n";
+  cerr << "    <-FlowLength>        Amplitude of the deformation flow from each voxel\n";
   cerr << "    <-DetJacobian>       Determinant of the Jacobian at each voxel\n";
   cerr << "    <-FinalDefVec>       Vector field of the estimated deformation from [Source] to [Target]\n";
   cerr << "    <-FinalDefInvVec>    Vector field of the estimated deformation from [Target] to [Source]\n";
+  cerr << "    <-InitMomentum>      Esitmated initial momentum\n";
   cerr << "    <-FinalForwardMap>   Save the final forward mapping (from [Source] to [Target] at t=1)\n";
   cerr << "    <-FinalBackwardMap>  Save the final backward mapping (from [Target] to [Source] at t=0)\n";
   cerr << "    <-ShowSSD>           Show the Sum of the Squared Differences at t=1 ieration after iteration\n";
   cerr << "  \n";
   cerr << "  Measure the inverse typical amplitude of the updates between [Source] and [Target] \n";
   cerr << "  with a Gaussian kernel of stddev SigmaX SigmaY SigmaZ: <-TypicInvAmp SigmaX SigmaY SigmaZ>. \n";
-  cerr << "  This measure is 1/g(...) in the MICCAI paper and 1/f(...) in the WBIR paper.\n";
+  cerr << "  This measure is 1/g(.) in the MICCAI and WBIR papers.\n";
   cerr << "  Rem: Only this option will be taken into account and no further computation done.\n";
   
   exit(1);
@@ -236,6 +237,10 @@ int main(int argc, char **argv){
     if ((ok == False) && (strcmp(argv[1], "-GreyLevAlign") == 0)) {
       argc--; argv++;
       LargeDef.GreyLevAlign = 1;
+      LargeDef.GLA_Padding_Src = atof(argv[1]);
+      argc--; argv++;
+      LargeDef.GLA_Padding_Trg = atof(argv[1]);
+      argc--; argv++;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-SplitKernels") == 0)) {
@@ -305,6 +310,11 @@ int main(int argc, char **argv){
     if ((ok == False) && (strcmp(argv[1], "-FinalDefVec") == 0)) {
       argc--; argv++;
       LargeDef.FinalDefVec = 1;
+      ok = True;
+    }
+    if ((ok == False) && (strcmp(argv[1], "-InitMomentum") == 0)) {
+      argc--; argv++;
+      LargeDef.CptInitMomentum = 1;
       ok = True;
     }
     if ((ok == False) && (strcmp(argv[1], "-FinalDefInvVec") == 0)) {

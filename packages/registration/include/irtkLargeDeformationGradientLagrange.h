@@ -43,9 +43,11 @@ class LargeDefGradLagrange{
   virtual void SaveFlowLength(VectorField *,VectorField *,char *,char *);
   virtual void SaveVecDeformation(char *);
   virtual void SaveInvVecDeformation(char *);
+  virtual void SaveInitMomentum(char *);
   virtual void SaveFinalForwardMap(char *);
   virtual void SaveFinalBackwardMap(char *);
   virtual void SaveGlobalFlowLength(char *);
+  virtual void SaveSplittedVecDeformation(char *);
   virtual void SaveSplittedFlowLength(char *);
   virtual void SaveDetJacobian(char *);
   virtual void SaveSplittedDetJacobian(char *);
@@ -56,6 +58,8 @@ class LargeDefGradLagrange{
   ScalarField * ImTarget;     //3D image  * [nb channels]
   ScalarField J0;           //projection of 'ImTemplate' at a time between 0 and 1
   ScalarField J1;           //projection of 'ImTarget' at a time between 0 and 1
+  ScalarField InitialMomentum;
+  ScalarField GradInitialMomentum;
   VectorField GradJ0;
   ScalarField DetJacobians;
   VectorField ForwardMapping;
@@ -110,11 +114,14 @@ class LargeDefGradLagrange{
   int MeasureTypicAmp;
   float weightChannel[10];       //weight on each channel
   int GreyLevAlign;              //Grey level linear alignment of each channel if !=0
+  float GLA_Padding_Src;         //if grey level alignment: padding value for the source image
+  float GLA_Padding_Trg;         //if grey level alignment: padding value for the target image
   float WghtVelField;            //Weight of the velocity field in the energy
   int FlowLength;                //Save Length of the deformation flow from each voxel if .==1
   int DetJacobian;               //Save Determinant of the Jacobian at each voxel if .==1
   int FinalDefVec;               //Save Vector field of the estimated deformation from [Source] to [Target] if .==1
   int FinalDefInvVec;            //Save Vector field of the estimated deformation from [Target] to [Source] if .==1
+  int CptInitMomentum;              //Save the initial momentum if .==1
   int FinalForwardMap;           //Save the forward mapping at t=1
   int FinalBackwardMap;          //Save the backward mapping at t=0
   int ShowSSD;                   //Show the evolution of the Sum of Squared Differences at t=1

@@ -17,7 +17,7 @@ LargeDefGradLagrange::LargeDefGradLagrange(void){
   epsilon=0.2;
   iteration_nb=10;
   NbTimeSubdiv=10;
-  MaxVelocityUpdate=0.5;  //rem: Delta Voxels = 1
+  MaxVelocityUpdate=0.4;  //rem: Delta Voxels = 1
   weight1=100.; sigmaX1=1.;  sigmaY1=1.;  sigmaZ1=1.;
   weight2=0.;   sigmaX2=-1.; sigmaY2=-1.; sigmaZ2=-1.;
   weight3=0.;   sigmaX3=-1.; sigmaY3=-1.; sigmaZ3=-1.;
@@ -28,10 +28,13 @@ LargeDefGradLagrange::LargeDefGradLagrange(void){
   WghtVelField=1.;
   RefMaxGrad=-1.;
   GreyLevAlign=0;
+  GLA_Padding_Src=-1.;
+  GLA_Padding_Trg=-1.;
   FlowLength=0;
   DetJacobian=0;
   FinalDefVec=0;
   FinalDefInvVec=0;
+  CptInitMomentum=0;
   FinalForwardMap=0;
   FinalBackwardMap=0;
   ShowSSD=0;
@@ -137,24 +140,44 @@ void LargeDefGradLagrange::ReadAndTreatInputImages(void){
   }
   
   //5) LINEAR ALIGNMENT OF THE GREY LEVELS OF ImTarget ON THOSE OF ImTemplate
+  float PaddingValue;
+  int NbVoxelsOK;
+  PaddingValue=10;
+  
   if (GreyLevAlign!=0) for (i=0;i<this->NbChannels;i++){
     //compute mean and std dev of the source and target images
     mean1=0.;
-    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) mean1+=(double)this->ImTemplate[i].G(x,y,z);
-    mean1/=(double)(this->NZ*this->NY*this->NX);
+    NbVoxelsOK=0;
+    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) if (this->ImTemplate[i].G(x,y,z)>GLA_Padding_Src){
+      mean1+=(double)this->ImTemplate[i].G(x,y,z);
+      NbVoxelsOK++;
+    }
+    mean1/=(double)(NbVoxelsOK);
     
     mean2=0.;
-    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) mean2+=(double)this->ImTarget[i].G(x,y,z);
-    mean2/=(double)(this->NZ*this->NY*this->NX);
+    NbVoxelsOK=0;
+    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) if (this->ImTarget[i].G(x,y,z)>GLA_Padding_Trg){
+      mean2+=(double)this->ImTarget[i].G(x,y,z);
+      NbVoxelsOK++;
+    }
+    mean2/=(double)(NbVoxelsOK);
     
     std1=0.;
-    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) std1+=pow((double)this->ImTemplate[i].G(x,y,z)-mean1,2.);
-    std1/=(double)(this->NZ*this->NY*this->NX);
+    NbVoxelsOK=0;
+    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) if (this->ImTemplate[i].G(x,y,z)>GLA_Padding_Src){
+      std1+=pow((double)this->ImTemplate[i].G(x,y,z)-mean1,2.);
+      NbVoxelsOK++;
+    }
+    std1/=(double)(NbVoxelsOK);
     std1=sqrt(std1);
     
     std2=0.;
-    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) std2+=pow((double)this->ImTemplate[i].G(x,y,z)-mean2,2.);
-    std2/=(double)(this->NZ*this->NY*this->NX);
+    NbVoxelsOK=0;
+    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++) if (this->ImTarget[i].G(x,y,z)>GLA_Padding_Trg){
+      std2+=pow((double)this->ImTarget[i].G(x,y,z)-mean2,2.);
+      NbVoxelsOK++;
+    }
+    std2/=(double)(NbVoxelsOK);
     std2=sqrt(std2);
     
     cout << "Template: mean=" << mean1 << ", stddev=" << std1 << ".    Target: mean=" << mean2 << ", stddev=" << std2 << "\n";
@@ -162,7 +185,17 @@ void LargeDefGradLagrange::ReadAndTreatInputImages(void){
     
     for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
           this->ImTarget[i].P((this->ImTarget[i].G(x,y,z)-(float)mean2)*(((float)std1)/((float)std2))+(float)mean1,x,y,z);
+    
+    
+    for (z = 0; z < this->NZ; z++)  for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+          if ((this->ImTarget[i].G(x,y,z)<(GLA_Padding_Trg-(float)mean2)*(((float)std1)/((float)std2))+(float)mean1)||(this->ImTarget[i].G(x,y,z)<GLA_Padding_Src))
+            this->ImTarget[i].P(0.,x,y,z);
   }
+  
+  //this->ImTarget[0].Write("TrgNew.nii",SourceFiles[0]);
+  //this->ImTemplate[0].Write("SrcNew.nii",SourceFiles[0]);
+  
+  
   
   //6) MAPPING OF THE SOURCE IMAGE
   this->MappingSrcImag.CreateVoidField(this->NX,this->NY,this->NZ);
@@ -274,10 +307,23 @@ void LargeDefGradLagrange::AllocateAllVariables(void){
   this->GradE.CreateVoidField(this->NX,this->NY,this->NZ,this->NbTimeSubdiv);
   
   //contribution of each kernel in the energy gradient
-  if (SplitKernels!=0){
+  if (this->SplitKernels!=0){
     this->SplittedGradE=new VectorField [this->NbKernels];
     for (i=0;i<this->NbKernels;i++ )
       this->SplittedGradE[i].CreateVoidField(this->NX,this->NY,this->NZ,this->NbTimeSubdiv);
+  }
+  
+  //Initiate the initial momentum
+  if (CptInitMomentum!=0){
+    if ((this->SplitKernels!=0)||(this->NbChannels!=1)){ 
+      //we can only compute the initial momentum when we have one channel and no splitted kernel (should be extended)
+      cout << "Sorry, we were too lazy to program the estimation of the initial momentum with several channels or splitted kernels!\n";
+      CptInitMomentum=0;
+    }
+    else{
+      InitialMomentum.CreateVoidField(this->NX,this->NY,this->NZ);
+      GradInitialMomentum.CreateVoidField(this->NX,this->NY,this->NZ);
+    }
   }
 }
 
@@ -313,6 +359,17 @@ void LargeDefGradLagrange::ComputeEnergyGradient(int timeSubdiv,int IdChannel){
         }
       }
     }
+    
+    //computation of the initial momentum if asked
+    if (CptInitMomentum!=0) if (timeSubdiv==0){
+      for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++){
+        temp=(this->J0.G(x,y,z) - this->J1.G(x,y,z)) * this->DetJacobians.G(x,y,z);
+        this->GradInitialMomentum.P(this->WghtVelField*2*this->InitialMomentum.G(x,y,z)-2*temp,x,y,z);
+        //if (this->J0.G(x,y,z)!=this->J1.G(x,y,z)) cout << x << " " << y <<  " " << this->GradInitialMomentum.G(x,y,z) <<"\n";
+      }
+    }
+    
+    
   }
   else{  //CASE 2: SPLITTED KERNEL
     for (k=0;k<this->NbKernels;k++){
@@ -424,7 +481,23 @@ float LargeDefGradLagrange::UpdateVelocityField(int IterationNb){
     }
   }
   
-  //0) IF SPLITTED KERNEL: update the contribution of each kernel in the velocity field
+  //6) IF WE WANT TO MEASURE THE INITIAL MOMENTUM
+  if (CptInitMomentum!=0){
+    //...3D image
+    for (z = 1; z < this->NZ-2; z++) for (y = 1; y < this->NY-2; y++) for (x = 1; x < this->NX-2; x++){
+      this->InitialMomentum.P(this->InitialMomentum.G(x,y,z)-this->GradInitialMomentum.G(x,y,z)*MultFactor,x,y,z);
+    }
+    
+    //...2D images
+    if (this->NZ==1){
+      for (y = 1; y < this->NY-2; y++) for (x = 1; x < this->NX-2; x++){
+        this->InitialMomentum.P(this->InitialMomentum.G(x,y,0)-this->GradInitialMomentum.G(x,y,0)*MultFactor,x,y,0);
+      }
+    }
+  }
+  
+  
+  //7) IF SPLITTED KERNEL: update the contribution of each kernel in the velocity field
   if (SplitKernels!=0){
     for (k=0;k<this->NbKernels;k++){
       //...3D images
@@ -448,15 +521,8 @@ float LargeDefGradLagrange::UpdateVelocityField(int IterationNb){
 }
 
 
-
-
-
-
-
-
 ///save the result of the gradient descent (Beg 2005) for the current 3D image of the 4D time sequence
 void LargeDefGradLagrange::SaveResultGradientDescent(void){
-  
   //init -> compute the forward mapping and import the original input template (non pre-treated)
   ForwardMappingFromVelocityField(&this->VelocityField,&this->ForwardMapping,&this->MappingSrcImag);
   
@@ -467,6 +533,7 @@ void LargeDefGradLagrange::SaveResultGradientDescent(void){
   if (this->DetJacobian==1) this->SaveDetJacobian(this->PrefixOutputs);
   if (this->FinalDefVec==1) this->SaveVecDeformation(this->PrefixOutputs);
   if (this->FinalDefInvVec==1) this->SaveInvVecDeformation(this->PrefixOutputs);
+  if (this->CptInitMomentum==1) this->SaveInitMomentum(this->PrefixOutputs);
   if (this->FinalForwardMap==1) this->SaveFinalForwardMap(this->PrefixOutputs);
   if (this->FinalBackwardMap==1) this->SaveFinalBackwardMap(this->PrefixOutputs);
   
@@ -476,6 +543,7 @@ void LargeDefGradLagrange::SaveResultGradientDescent(void){
     this->SaveSplittedDeformations(this->PrefixOutputs);
     if (this->FlowLength==1) this->SaveSplittedFlowLength(this->PrefixOutputs);
     if (this->DetJacobian==1) this->SaveSplittedDetJacobian(this->PrefixOutputs);
+    if (this->FinalDefVec==1) this->SaveSplittedVecDeformation(this->PrefixOutputs);
   }
 }
 
@@ -727,10 +795,49 @@ void LargeDefGradLagrange::SaveDeformations(char Prefix[256]){
             Temp3DField.P(this->J0.G(x,y,z),x, y, z);
   }
   
+  
+  
+  /*TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE*/
+  //all tests:
+  //for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+  //Temp3DField.P(0.,x, y, z);
+  
+  //double circle
+  //for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+    //    if (sqrt(pow((float)(y)-54,2)+pow((float)(x)-69,2))<7) Temp3DField.P(100.,x, y, z);
+  
+  //for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+    //if (sqrt(pow((float)(y)-54,2)+pow((float)(x)-59,2))<7) Temp3DField.P(100.,x, y, z);
+  
+  //for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+    //    if (sqrt(pow((float)(y)-69,2)+pow((float)(x)-69,2))<2.6) Temp3DField.P(100.,x, y, z);
+  
+  //complex circle
+    //for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+  //      if (sqrt(pow((float)(y)-64,2)+pow((float)(x)-64,2))<20) Temp3DField.P(100.,x, y, z);
+  
+ /* for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+       if (sqrt(pow((float)(y)-64,2)+pow((float)(x)-64,2))<25) Temp3DField.P(100.,x, y, z);
+  
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+       if (sqrt(pow((float)(y)-64,2)+pow((float)(x)-39,2))<2.3) Temp3DField.P(0.,x, y, z);
+
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        if (sqrt(pow((float)(y)-64,2)+pow((float)(x)-41,2))<2.) Temp3DField.P(0.,x, y, z);
+  
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        if (sqrt(pow((float)(y)-64,2)+pow((float)(x)-43,2))<2.) Temp3DField.P(0.,x, y, z);
+  
+  for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+        if (sqrt(pow((float)(y)-64,2)+pow((float)(x)-45,2))<1) Temp3DField.P(0.,x, y, z);
+ */ 
+  /*TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE   TO REMOVE*/
+  
   strcpy(FileName,Prefix);
   strcat(FileName,Deformations);
   Temp4DField.Write(FileName,SourceFiles[0]);
-
+  
+  
   strcpy(FileName,Prefix);
   strcat(FileName,FinalDef);
   Temp3DField.Write(FileName,SourceFiles[0]);
@@ -761,10 +868,10 @@ void LargeDefGradLagrange::SaveSplittedDeformations(char Prefix[256]){
   //save the deformations
   for (k=0;k<this->NbKernels;k++){
     //compute the current forward mapping
-    if (k==0) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[0],&this->ForwardMapping,&this->MappingSrcImag);
-    if (k==1) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[1],&this->ForwardMapping,&this->MappingSrcImag);
-    if (k==2) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[2],&this->ForwardMapping,&this->MappingSrcImag);
-    if (k==3) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[3],&this->ForwardMapping,&this->MappingSrcImag);
+    if (k==0) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[0],&this->ForwardMapping,&this->MappingSrcImag,&this->MappingTrgImag);
+    if (k==1) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[1],&this->ForwardMapping,&this->MappingSrcImag,&this->MappingTrgImag);
+    if (k==2) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[2],&this->ForwardMapping,&this->MappingSrcImag,&this->MappingTrgImag);
+    if (k==3) ComputePartialForwardMapping(&this->VelocityField,&this->SplittedVelocityField[3],&this->ForwardMapping,&this->MappingSrcImag,&this->MappingTrgImag);
     
     //compute the deformations
     for (TimeLoc=0;TimeLoc<this->NbTimeSubdiv;TimeLoc++){
@@ -829,6 +936,82 @@ void LargeDefGradLagrange::SaveVecDeformation(char Prefix[256]){
   Temp3DField.Write(FileName,SourceFiles[0]);
 }
 
+
+
+///save the vector field that transforms [source] into [target]
+void LargeDefGradLagrange::SaveSplittedVecDeformation(char Prefix[256]){
+  int x, y, z,k;
+  ScalarField Temp3DField;
+  VectorField Temp3DVecField;
+  char FileName[256];
+  char VecDef_X_K1[256];
+  char VecDef_Y_K1[256];
+  char VecDef_Z_K1[256];
+  char VecDef_X_K2[256];
+  char VecDef_Y_K2[256];
+  char VecDef_Z_K2[256];
+  char VecDef_X_K3[256];
+  char VecDef_Y_K3[256];
+  char VecDef_Z_K3[256];
+  char VecDef_X_K4[256];
+  char VecDef_Y_K4[256];
+  char VecDef_Z_K4[256];
+  
+  //intialisation
+  Temp3DField.CreateVoidField(this->NX, this->NY, this->NZ);
+  Temp3DVecField.CreateVoidField(this->NX, this->NY, this->NZ);
+  
+  strcpy(VecDef_X_K1,"_VecDef_X_K1.nii");
+  strcpy(VecDef_Y_K1,"_VecDef_Y_K1.nii");
+  strcpy(VecDef_Z_K1,"_VecDef_Z_K1.nii");
+  strcpy(VecDef_X_K2,"_VecDef_X_K2.nii");
+  strcpy(VecDef_Y_K2,"_VecDef_Y_K2.nii");
+  strcpy(VecDef_Z_K2,"_VecDef_Z_K2.nii");
+  strcpy(VecDef_X_K3,"_VecDef_X_K3.nii");
+  strcpy(VecDef_Y_K3,"_VecDef_Y_K3.nii");
+  strcpy(VecDef_Z_K3,"_VecDef_Z_K3.nii");
+  strcpy(VecDef_X_K4,"_VecDef_X_K4.nii");
+  strcpy(VecDef_Y_K4,"_VecDef_Y_K4.nii");
+  strcpy(VecDef_Z_K4,"_VecDef_Z_K4.nii");
+
+  for (k=0;k<this->NbKernels;k++){
+
+    ComputeLagrangianPartialBackwardMapping(&this->VelocityField,&this->SplittedVelocityField[k],&Temp3DVecField,0,this->NbTimeSubdiv);
+    
+    //save the forward mapping in direction X
+    for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+          Temp3DField.P(Temp3DVecField.G(0,x,y,z)-(float)x,x, y, z);
+    strcpy(FileName,Prefix);
+    if (k==0) strcat(FileName,VecDef_X_K1);
+    if (k==1) strcat(FileName,VecDef_X_K2);
+    if (k==2) strcat(FileName,VecDef_X_K3);
+    if (k==3) strcat(FileName,VecDef_X_K4);
+    Temp3DField.Write(FileName,SourceFiles[0]);
+  
+    //save the forward mapping in direction Y
+    for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+          Temp3DField.P(Temp3DVecField.G(1,x,y,z)-(float)y,x, y, z);
+    strcpy(FileName,Prefix);
+    if (k==0) strcat(FileName,VecDef_Y_K1);
+    if (k==1) strcat(FileName,VecDef_Y_K2);
+    if (k==2) strcat(FileName,VecDef_Y_K3);
+    if (k==3) strcat(FileName,VecDef_Y_K4);
+    Temp3DField.Write(FileName,SourceFiles[0]);
+  
+    //save the forward mapping in direction Z
+    for (z = 0; z < this->NZ; z++) for (y = 0; y < this->NY; y++) for (x = 0; x < this->NX; x++)
+          Temp3DField.P(Temp3DVecField.G(2,x,y,z)-(float)z,x, y, z);
+    strcpy(FileName,Prefix);
+    if (k==0) strcat(FileName,VecDef_Z_K1);
+    if (k==1) strcat(FileName,VecDef_Z_K2);
+    if (k==2) strcat(FileName,VecDef_Z_K3);
+    if (k==3) strcat(FileName,VecDef_Z_K4);
+    Temp3DField.Write(FileName,SourceFiles[0]);
+  }
+}
+
+
+
 ///save the vector field that transforms [target] into [source]
 void LargeDefGradLagrange::SaveInvVecDeformation(char Prefix[256]){
   int x, y, z;
@@ -869,6 +1052,27 @@ void LargeDefGradLagrange::SaveInvVecDeformation(char Prefix[256]){
   strcat(FileName,VecInvDef_Z);
   Temp3DField.Write(FileName,SourceFiles[0]);
 }
+
+
+
+
+///save the  initial momentum that transforms [target] into [source]
+void LargeDefGradLagrange::SaveInitMomentum(char Prefix[256]){
+  char FileName[256];
+  char InitM[256];
+  
+  if (this->CptInitMomentum!=0){
+    //intialisation
+    strcpy(InitM,"_InitMomentum.nii");
+    
+    //save the initial momentum
+    strcpy(FileName,Prefix);
+    strcat(FileName,InitM);
+    InitialMomentum.Write(FileName,SourceFiles[0]);
+  }
+}
+
+
 
 ///save the final forward mapping from [source] into [target] at t=1
 void LargeDefGradLagrange::SaveFinalForwardMap(char Prefix[256]){
@@ -926,7 +1130,7 @@ void LargeDefGradLagrange::SaveFinalBackwardMap(char Prefix[256]){
 void LargeDefGradLagrange::SaveGlobalFlowLength(char Prefix[256]){
   char VeloLength[256];
   
-  strcpy(VeloLength,"LengthOfFlow.nii");
+  strcpy(VeloLength,"_LengthOfFlow.nii");
   this->SaveFlowLength(&this->VelocityField,&this->VelocityField,this->PrefixOutputs,VeloLength);
 
 }
@@ -938,10 +1142,10 @@ void LargeDefGradLagrange::SaveSplittedFlowLength(char Prefix[256]){
   char VeloLengthK3[256];
   char VeloLengthK4[256];
   
-  strcpy(VeloLengthK1,"LengthOfFlowK1.nii");
-  strcpy(VeloLengthK2,"LengthOfFlowK2.nii");
-  strcpy(VeloLengthK3,"LengthOfFlowK3.nii");
-  strcpy(VeloLengthK4,"LengthOfFlowK4.nii");
+  strcpy(VeloLengthK1,"_LengthOfFlowK1.nii");
+  strcpy(VeloLengthK2,"_LengthOfFlowK2.nii");
+  strcpy(VeloLengthK3,"_LengthOfFlowK3.nii");
+  strcpy(VeloLengthK4,"_LengthOfFlowK4.nii");
   
   if (this->NbKernels>0) this->SaveFlowLength(&this->VelocityField,&this->SplittedVelocityField[0],this->PrefixOutputs,VeloLengthK1);
   if (this->NbKernels>1) this->SaveFlowLength(&this->VelocityField,&this->SplittedVelocityField[1],this->PrefixOutputs,VeloLengthK2);
@@ -980,7 +1184,7 @@ void LargeDefGradLagrange::SaveDetJacobian(char Prefix[256]){
   BackwardMappingFromVelocityField(&this->VelocityField,&this->BackwardMapping,&this->MappingTrgImag);
   Cpt_JacobianDeterminant(&BackwardMapping,&DetJacobians,0);
   
-  strcpy(StrDetJacobians,"DetJacobian.nii");
+  strcpy(StrDetJacobians,"_DetJacobian.nii");
   
   strcpy(FileName,Prefix);
   strcat(FileName,StrDetJacobians);
@@ -990,6 +1194,7 @@ void LargeDefGradLagrange::SaveDetJacobian(char Prefix[256]){
 
 ///save the map of the determinant of Jacobians for each kernel in the context of sum of kernels
 void LargeDefGradLagrange::SaveSplittedDetJacobian(char Prefix[256]){
+  VectorField Temp3DVecField;
   int k;
   char FileName[256];
   char StrDetJacobiansK1[256];
@@ -997,20 +1202,16 @@ void LargeDefGradLagrange::SaveSplittedDetJacobian(char Prefix[256]){
   char StrDetJacobiansK3[256];
   char StrDetJacobiansK4[256];
   
-  strcpy(StrDetJacobiansK1,"DetJacobianK1.nii");
-  strcpy(StrDetJacobiansK2,"DetJacobianK2.nii");
-  strcpy(StrDetJacobiansK3,"DetJacobianK3.nii");
-  strcpy(StrDetJacobiansK4,"DetJacobianK4.nii");
-
+  strcpy(StrDetJacobiansK1,"_DetJacobianK1.nii");
+  strcpy(StrDetJacobiansK2,"_DetJacobianK2.nii");
+  strcpy(StrDetJacobiansK3,"_DetJacobianK3.nii");
+  strcpy(StrDetJacobiansK4,"_DetJacobianK4.nii");
+  Temp3DVecField.CreateVoidField(this->NX, this->NY, this->NZ);
   
-  //compute the determinant of jacobian   (TO CHANGE LIKE WHAT HAVE BEEN DONE WITH THE TOTAL DEFORMATION)
+  //compute the determinant of jacobian
   for (k=0;k<this->NbKernels;k++){
-    if (k==0) BackwardMappingFromVelocityField(&this->SplittedVelocityField[0],&this->BackwardMapping,&this->MappingTrgImag);
-    if (k==1) BackwardMappingFromVelocityField(&this->SplittedVelocityField[1],&this->BackwardMapping,&this->MappingTrgImag);
-    if (k==2) BackwardMappingFromVelocityField(&this->SplittedVelocityField[2],&this->BackwardMapping,&this->MappingTrgImag);
-    if (k==3) BackwardMappingFromVelocityField(&this->SplittedVelocityField[3],&this->BackwardMapping,&this->MappingTrgImag);
-    
-    Cpt_JacobianDeterminant(&BackwardMapping,&DetJacobians,0);
+    ComputeLagrangianPartialBackwardMapping(&this->VelocityField,&this->SplittedVelocityField[k],&Temp3DVecField,0,this->NbTimeSubdiv);
+    Cpt_JacobianDeterminant(&Temp3DVecField,&DetJacobians,0);
     
     strcpy(FileName,Prefix);
     if (k==0) strcat(FileName,StrDetJacobiansK1);
@@ -1147,7 +1348,6 @@ void LargeDefGradLagrange::Run_Default(void){
     
     //2.2) compute the backward mapping on space
     BackwardMappingFromVelocityField(&this->VelocityField,&this->BackwardMapping,&this->MappingTrgImag);
-    
     
     //2.3) LOOP ON THE TIME SUBDIVISIONS AND THE CHANNELS
     for (TimeSubdiv=0;TimeSubdiv<this->NbTimeSubdiv;TimeSubdiv++){//LOOP ON THE TIME SUBDIVISIONS
