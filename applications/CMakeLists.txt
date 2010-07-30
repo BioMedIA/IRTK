@@ -29,6 +29,7 @@ ELSE(BUILD_CONDOR_EXE)
 
   ELSE (BUILD_MPI_EXE)
 
+    ADD_EXECUTABLE(combineLabels combineLabels.cc)
     ADD_EXECUTABLE(convert convert.cc)
     ADD_EXECUTABLE(dilation dilation.cc)
     ADD_EXECUTABLE(erosion erosion.cc)
