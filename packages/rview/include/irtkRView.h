@@ -24,7 +24,7 @@ typedef enum { View_A,
                View_BoverA
              } irtkRViewMode;
 
-typedef enum { None,
+typedef enum { NoneDef,
                Displacement,
                Jacobian,
                Jacobian_Expansion,
