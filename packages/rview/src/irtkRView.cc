@@ -96,7 +96,7 @@ irtkRView::irtkRView(int x, int y) {
 	_DisplayMode = Neurological;
 
 	// Default: Deformation properties
-	_DeformationProperty = None;
+	_DeformationProperty = NoneDef;
 	_DeformationBlending = 0.5;
 
 	// Default: Axis labels
