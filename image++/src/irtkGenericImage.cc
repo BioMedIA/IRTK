@@ -302,7 +302,7 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::PutMinMax(VoxelType
   n   = this->GetNumberOfVoxels();
   ptr = this->GetPointerToVoxels();
   for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType(((ptr[i] - min_val) / (max_val - min_val)) *
+    ptr[i] = VoxelType(((ptr[i] - min_val) / double(max_val - min_val)) *
                        (max - min) + min);
   }
 }
