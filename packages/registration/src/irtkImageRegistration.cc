@@ -424,7 +424,7 @@ void irtkImageRegistration::Run()
 {
   int i, j, level;
   char buffer[256];
-  double step, epsilon, delta, maxChange;
+  double step, epsilon = 0, delta, maxChange = 0;
 
   // Print debugging information
   this->Debug("irtkImageRegistration::Run");
