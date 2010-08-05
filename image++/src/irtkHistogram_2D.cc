@@ -14,7 +14,7 @@
 
 #include <irtkHistogram.h>
 
-irtkHistogram_2D::irtkHistogram_2D(const irtkHistogram_2D &h)
+template <class HistogramType> irtkHistogram_2D<HistogramType>::irtkHistogram_2D(const irtkHistogram_2D &h)
 {
   int i, j;
 
@@ -28,7 +28,7 @@ irtkHistogram_2D::irtkHistogram_2D(const irtkHistogram_2D &h)
   _nbins_y = h._nbins_y;
   _nsamp   = h._nsamp;
   if ((_nbins_x < 1) || (_nbins_y < 1)) {
-    cerr << "irtkHistogram_2D::irtkHistogram_2D: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin";
     exit(1);
   }
   _bins  = Allocate(_bins, _nbins_x, _nbins_y);
@@ -39,12 +39,12 @@ irtkHistogram_2D::irtkHistogram_2D(const irtkHistogram_2D &h)
   }
 }
 
-irtkHistogram_2D::irtkHistogram_2D(int nbins_x, int nbins_y)
+template <class HistogramType> irtkHistogram_2D<HistogramType>::irtkHistogram_2D(int nbins_x, int nbins_y)
 {
   int i, j;
 
   if ((nbins_x < 1) || (nbins_y < 1)) {
-    cerr << "irtkHistogram_2D::irtkHistogram_2D: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin";
     exit(1);
   }
   _min_x   = 0;
@@ -64,8 +64,8 @@ irtkHistogram_2D::irtkHistogram_2D(int nbins_x, int nbins_y)
   }
 }
 
-irtkHistogram_2D::irtkHistogram_2D(double min_x, double max_x, double width_x,
-                                   double min_y, double max_y, double width_y)
+template <class HistogramType> irtkHistogram_2D<HistogramType>::irtkHistogram_2D(double min_x, double max_x, double width_x,
+    double min_y, double max_y, double width_y)
 {
   int i, j;
 
@@ -79,7 +79,7 @@ irtkHistogram_2D::irtkHistogram_2D(double min_x, double max_x, double width_x,
   _width_y = (_max_y - _min_y) / (double)_nbins_y;
   _nsamp = 0;
   if ((_nbins_x < 1) || (_nbins_y < 1)) {
-    cerr << "irtkHistogram_2D::irtkHistogram_2D: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin";
     exit(1);
   }
   _bins  = Allocate(_bins, _nbins_x, _nbins_y);
@@ -90,7 +90,7 @@ irtkHistogram_2D::irtkHistogram_2D(double min_x, double max_x, double width_x,
   }
 }
 
-irtkHistogram_2D::~irtkHistogram_2D()
+template <class HistogramType> irtkHistogram_2D<HistogramType>::~irtkHistogram_2D()
 {
   if ((_nbins_x > 0) && (_nbins_y > 0)) {
     Deallocate(_bins);
@@ -107,7 +107,7 @@ irtkHistogram_2D::~irtkHistogram_2D()
   _nsamp   = 0;
 }
 
-void irtkHistogram_2D::Reset()
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Reset()
 {
   int i, j;
 
@@ -119,7 +119,7 @@ void irtkHistogram_2D::Reset()
   _nsamp = 0;
 }
 
-void irtkHistogram_2D::Reset(const irtkHistogram_2D &h)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Reset(const irtkHistogram_2D &h)
 {
   int i, j;
 
@@ -144,7 +144,8 @@ void irtkHistogram_2D::Reset(const irtkHistogram_2D &h)
     }
   }
 }
-void irtkHistogram_2D::PutMin(double min_x, double min_y)
+
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::PutMin(double min_x, double min_y)
 {
   _min_x = min_x;
   _min_y = min_y;
@@ -153,13 +154,13 @@ void irtkHistogram_2D::PutMin(double min_x, double min_y)
   this->Reset();
 }
 
-void irtkHistogram_2D::GetMin(double *min_x, double *min_y) const
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::GetMin(double *min_x, double *min_y) const
 {
   *min_x = _min_x;
   *min_y = _min_y;
 }
 
-void irtkHistogram_2D::PutMax(double max_x, double max_y)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::PutMax(double max_x, double max_y)
 {
   _max_x = max_x;
   _max_y = max_y;
@@ -168,13 +169,13 @@ void irtkHistogram_2D::PutMax(double max_x, double max_y)
   this->Reset();
 }
 
-void irtkHistogram_2D::GetMax(double *max_x, double *max_y) const
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::GetMax(double *max_x, double *max_y) const
 {
   *max_x = _max_x;
   *max_y = _max_y;
 }
 
-void irtkHistogram_2D::PutWidth(double width_x, double width_y)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::PutWidth(double width_x, double width_y)
 {
   int i, j;
 
@@ -187,7 +188,7 @@ void irtkHistogram_2D::PutWidth(double width_x, double width_y)
   _width_x = (_max_x - _min_x) / (double)_nbins_x;
   _width_y = (_max_y - _min_y) / (double)_nbins_y;
   if ((_nbins_x < 1) || (_nbins_y < 1)) {
-    cerr << "irtkHistogram_2D::PutWidth: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::PutWidth: Should have at least one bin";
     exit(1);
   }
   _bins  = Allocate(_bins, _nbins_x, _nbins_y);
@@ -199,13 +200,13 @@ void irtkHistogram_2D::PutWidth(double width_x, double width_y)
   _nsamp = 0;
 }
 
-void irtkHistogram_2D::GetWidth(double *width_x, double *width_y) const
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::GetWidth(double *width_x, double *width_y) const
 {
   *width_x = _width_x;
   *width_y = _width_y;
 }
 
-void irtkHistogram_2D::PutNumberOfBins(int nbins_x, int nbins_y)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::PutNumberOfBins(int nbins_x, int nbins_y)
 {
   int i, j;
 
@@ -218,7 +219,7 @@ void irtkHistogram_2D::PutNumberOfBins(int nbins_x, int nbins_y)
   _width_x = (_max_x - _min_x) / (double)_nbins_x;
   _width_y = (_max_y - _min_y) / (double)_nbins_y;
   if ((_nbins_x < 1) || (_nbins_y < 1)) {
-    cerr << "irtkHistogram_2D::PutWidth: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::PutWidth: Should have at least one bin";
     exit(1);
   }
   _bins  = Allocate(_bins, _nbins_x, _nbins_y);
@@ -230,13 +231,13 @@ void irtkHistogram_2D::PutNumberOfBins(int nbins_x, int nbins_y)
   _nsamp = 0;
 }
 
-void irtkHistogram_2D::GetNumberOfBins(int *nbins_x, int *nbins_y) const
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::GetNumberOfBins(int *nbins_x, int *nbins_y) const
 {
   *nbins_x = _nbins_x;
   *nbins_y = _nbins_y;
 }
 
-void irtkHistogram_2D::AddSample(double x, double y)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::AddSample(double x, double y, HistogramType n)
 {
   int i, j;
 
@@ -250,11 +251,11 @@ void irtkHistogram_2D::AddSample(double x, double y)
   if (j < 0) j = 0;
   if (i > _nbins_x-1) i = _nbins_x - 1;
   if (j > _nbins_y-1) j = _nbins_y - 1;
-  _bins[j][i]++;
-  _nsamp++;
+  _bins[j][i] += n;
+  _nsamp      += n;
 }
 
-void irtkHistogram_2D::DelSample(double x, double y)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::DelSample(double x, double y, HistogramType n)
 {
   int i, j;
 
@@ -268,11 +269,11 @@ void irtkHistogram_2D::DelSample(double x, double y)
   if (j < 0) j = 0;
   if (i > _nbins_x-1) i = _nbins_x - 1;
   if (j > _nbins_y-1) j = _nbins_y - 1;
-  _bins[j][i]--;
-  _nsamp--;
+  _bins[j][i] -= n;
+  _nsamp      -= n;
 }
 
-void irtkHistogram_2D::HistogramX(irtkHistogram_1D &histogram)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::HistogramX(irtkHistogram_1D<HistogramType> &histogram)
 {
   int i, j;
 
@@ -288,7 +289,7 @@ void irtkHistogram_2D::HistogramX(irtkHistogram_1D &histogram)
   }
 }
 
-void irtkHistogram_2D::HistogramY(irtkHistogram_1D &histogram)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::HistogramY(irtkHistogram_1D<HistogramType> &histogram)
 {
   int i, j;
 
@@ -304,13 +305,38 @@ void irtkHistogram_2D::HistogramY(irtkHistogram_1D &histogram)
   }
 }
 
-double irtkHistogram_2D::MeanX()
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Log()
+{
+  int i, j;
+  HistogramType *ptr;
+
+  if (_nsamp == 0) {
+    cerr << "irtkHistogram_2D<HistogramType>::JointEntropy: No samples in Histogram" << endl;
+    return;
+  }
+
+  // Calculate joint entropy
+  ptr = &(_bins[0][0]);
+  for (j = 0; j < _nbins_y; j++) {
+    for (i = 0; i < _nbins_x; i++) {
+      if (*ptr > 0) {
+        *ptr = log(static_cast<double>(*ptr/(double)_nsamp));
+      } else {
+        *ptr = 0;
+      }
+      ptr++;
+    }
+  }
+}
+
+
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::MeanX()
 {
   int i, j;
   double val, tmp;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::MeanX: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::MeanX: No samples in Histogram" << endl;
     return 0;
   }
   val = 0;
@@ -323,7 +349,7 @@ double irtkHistogram_2D::MeanX()
   return val / (double)_nsamp;
 }
 
-double irtkHistogram_2D::MeanY()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::MeanY()
 {
   int i, j;
   double val, tmp;
@@ -342,13 +368,13 @@ double irtkHistogram_2D::MeanY()
   return val / (double)_nsamp;
 }
 
-double irtkHistogram_2D::VarianceX()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::VarianceX()
 {
   int i;
   double val;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::VarianceX: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::VarianceX: No samples in Histogram" << endl;
     return 0;
   }
   val  = 0;
@@ -358,13 +384,13 @@ double irtkHistogram_2D::VarianceX()
   return val - pow(this->MeanX(), 2.0);
 }
 
-double irtkHistogram_2D::VarianceY()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::VarianceY()
 {
   int i;
   double val;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::VarianceY: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::VarianceY: No samples in Histogram" << endl;
     return 0;
   }
   val  = 0;
@@ -374,31 +400,31 @@ double irtkHistogram_2D::VarianceY()
   return val - pow(this->MeanY(), 2.0);
 }
 
-double irtkHistogram_2D::StandardDeviationX()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::StandardDeviationX()
 {
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::StandardDeviationX: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::StandardDeviationX: No samples in Histogram" << endl;
     return 0;
   }
   return sqrt(this->VarianceX());
 }
 
-double irtkHistogram_2D::StandardDeviationY()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::StandardDeviationY()
 {
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::StandardDeviationY: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::StandardDeviationY: No samples in Histogram" << endl;
     return 0;
   }
   return sqrt(this->VarianceY());
 }
 
-double irtkHistogram_2D::Covariance()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::Covariance()
 {
   int i, j;
   double val, mean_x, mean_y;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::Covariance: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::Covariance: No samples in Histogram" << endl;
     return 0;
   }
   val  = 0;
@@ -414,13 +440,14 @@ double irtkHistogram_2D::Covariance()
   return val / (double)_nsamp;
 }
 
-double irtkHistogram_2D::EntropyX()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::EntropyX()
 {
-  int i, j, *ptr;
+  int i, j;
+  HistogramType *ptr;
   double val;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::EntropyX: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::EntropyX: No samples in Histogram" << endl;
     return 0;
   }
 
@@ -445,13 +472,14 @@ double irtkHistogram_2D::EntropyX()
   return - val / (double)_nsamp + log(static_cast<double>(_nsamp));
 }
 
-double irtkHistogram_2D::EntropyY()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::EntropyY()
 {
-  int i, j, tmp, *ptr;
+  int i, j, tmp;
+  HistogramType *ptr;
   double val;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::EntropyY: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::EntropyY: No samples in Histogram" << endl;
     return 0;
   }
 
@@ -469,13 +497,14 @@ double irtkHistogram_2D::EntropyY()
   return - val / (double)_nsamp + log(static_cast<double>(static_cast<double>(_nsamp)));
 }
 
-double irtkHistogram_2D::JointEntropy()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::JointEntropy()
 {
   double val;
-  int i, j, *ptr;
+  int i, j;
+  HistogramType *ptr;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::JointEntropy: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::JointEntropy: No samples in Histogram" << endl;
     return 0;
   }
 
@@ -493,13 +522,13 @@ double irtkHistogram_2D::JointEntropy()
   return - val / (double)_nsamp + log(static_cast<double>(_nsamp));
 }
 
-double irtkHistogram_2D::ConditionalMeanXY(int i)
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::ConditionalMeanXY(int i)
 {
   int j;
   double p, m;
 
   if ((i < 0) || (i > _nbins_y-1)) {
-    cerr << "irtkHistogram_2D::ConditionalMeanXY: No such bin " << i << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::ConditionalMeanXY: No such bin " << i << endl;
     return 0;
   }
   m = 0;
@@ -515,13 +544,13 @@ double irtkHistogram_2D::ConditionalMeanXY(int i)
   }
 }
 
-double irtkHistogram_2D::ConditionalMeanYX(int i)
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::ConditionalMeanYX(int i)
 {
   int j;
   double p, m;
 
   if ((i < 0) || (i > _nbins_x-1)) {
-    cerr << "irtkHistogram_2D::ConditionalMeanYX: No such bin " << i << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::ConditionalMeanYX: No such bin " << i << endl;
     return 0;
   }
   m = 0;
@@ -537,13 +566,13 @@ double irtkHistogram_2D::ConditionalMeanYX(int i)
   }
 }
 
-double irtkHistogram_2D::CorrelationRatioXY()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::CorrelationRatioXY()
 {
   int i;
   double c, m;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::CorrelationRatioXY: No samples in Histogram";
+    cerr << "irtkHistogram_2D<HistogramType>::CorrelationRatioXY: No samples in Histogram";
     cerr << endl;
     return 0;
   }
@@ -556,13 +585,13 @@ double irtkHistogram_2D::CorrelationRatioXY()
   return (c / this->VarianceX());
 }
 
-double irtkHistogram_2D::CorrelationRatioYX()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::CorrelationRatioYX()
 {
   int i;
   double c, m;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::CorrelationRatioYX: No samples in Histogram";
+    cerr << "irtkHistogram_2D<HistogramType>::CorrelationRatioYX: No samples in Histogram";
     cerr << endl;
     return 0;
   }
@@ -575,42 +604,42 @@ double irtkHistogram_2D::CorrelationRatioYX()
   return (c / this->VarianceY());
 }
 
-double irtkHistogram_2D::MutualInformation()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::MutualInformation()
 {
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::MutualInformation: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::MutualInformation: No samples in Histogram" << endl;
     return 0;
   }
 
   return this->EntropyX() + this->EntropyY() - this->JointEntropy();
 }
 
-double irtkHistogram_2D::NormalizedMutualInformation()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::NormalizedMutualInformation()
 {
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::NormalizedMutualInformation: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::NormalizedMutualInformation: No samples in Histogram" << endl;
     return 0;
   }
   return (this->EntropyX() + this->EntropyY()) / this->JointEntropy();
 }
 
-double irtkHistogram_2D::CrossCorrelation()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::CrossCorrelation()
 {
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::CrossCorrelation: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::CrossCorrelation: No samples in Histogram" << endl;
     return 0;
   }
   return fabs(this->Covariance() / (sqrt(this->VarianceX()) *
                                     sqrt(this->VarianceY())));
 }
 
-double irtkHistogram_2D::SumsOfSquaredDifferences()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::SumsOfSquaredDifferences()
 {
   int i, j;
   double val_x, val_y, ssd;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::SumsOfSquaredDifferences: ";
+    cerr << "irtkHistogram_2D<HistogramType>::SumsOfSquaredDifferences: ";
     cerr << "No samples in Histogram" << endl;
     return 0;
   }
@@ -629,17 +658,17 @@ double irtkHistogram_2D::SumsOfSquaredDifferences()
   return ssd;
 }
 
-double irtkHistogram_2D::LabelConsistency()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::LabelConsistency()
 {
   int i;
   long int n;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::LabelConsistency: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::LabelConsistency: No samples in Histogram" << endl;
     return 0;
   }
   if (_nbins_x != _nbins_y) {
-    cerr << "irtkHistogram_2D::LabelConsistency: Histogram must have equal number of bins in X and Y" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::LabelConsistency: Histogram must have equal number of bins in X and Y" << endl;
     return 0;
   }
 
@@ -650,16 +679,16 @@ double irtkHistogram_2D::LabelConsistency()
   return n / (double)_nsamp;
 }
 
-double irtkHistogram_2D::Kappa()
+template <class HistogramType> double irtkHistogram_2D<HistogramType>::Kappa()
 {
   int i, j;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D::Kappa: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::Kappa: No samples in Histogram" << endl;
     return 0;
   }
   if (_nbins_x != _nbins_y) {
-    cerr << "irtkHistogram_2D::Kappa: Histogram must have equal number of bins in X and Y" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::Kappa: Histogram must have equal number of bins in X and Y" << endl;
     return 0;
   }
 
@@ -688,14 +717,62 @@ double irtkHistogram_2D::Kappa()
   return ((po-pe)/(1-pe));
 }
 
-void irtkHistogram_2D::Read(char *filename)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Smooth()
+{
+  int i, j, k;
+  HistogramType **tmp, value;
+
+  if (_nsamp == 0) {
+    cerr << "irtkHistogram_2D<HistogramType>::Smooth: No samples in Histogram" << endl;
+    return;
+  }
+
+  // Smoothing kernel
+  double kernel[3] = { 1.0/6.0, 2.0/6.0, 1.0/6.0 };
+
+  // Allocate temporary memory
+  tmp  = Allocate(_bins, _nbins_x, _nbins_y);
+
+  // Smooth along the x-axis
+  for (j = 0; j < _nbins_y; j++) {
+    for (i = 0; i < _nbins_x; i++) {
+      value = 0;
+      for (k = 0; k < 3; k++) {
+        if ((i-1+k >= 0) && (i-1+k < _nbins_x)) {
+          value += kernel[k] * _bins[j][i-1+k];
+        }
+      }
+      tmp[j][i] = value;
+    }
+  }
+
+  // Smooth along the y-axis
+  _nsamp = 0;
+  for (i = 0; i < _nbins_x; i++) {
+    for (j = 0; j < _nbins_y; j++) {
+      value = 0;
+      for (k = 0; k < 3; k++) {
+        if ((j-1+k >= 0) && (j-1+k < _nbins_y)) {
+          value += kernel[k] * tmp[j-1+k][i];
+        }
+      }
+      _bins[j][i] = value;
+      _nsamp += value;
+    }
+  }
+
+  // Free tmp memory
+  Deallocate(tmp);
+}
+
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Read(char *filename)
 {
   int i, j;
   char buffer[255];
 
   ifstream from(filename);
   if (!from) {
-    cerr << "irtkHistogram_2D::Read: Can't open file " << filename << "\n";
+    cerr << "irtkHistogram_2D<HistogramType>::Read: Can't open file " << filename << "\n";
     exit(1);
   }
   if ((_nbins_x > 0) && (_nbins_y > 0)) {
@@ -706,7 +783,7 @@ void irtkHistogram_2D::Read(char *filename)
 
   from >> buffer;
   if (strcmp(buffer, "irtkHistogram_2D") != 0) {
-    cerr << "irtkHistogram_2D::Read: Invalid format" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::Read: Invalid format" << endl;
     exit(1);
   }
 
@@ -737,13 +814,13 @@ void irtkHistogram_2D::Read(char *filename)
   }
 }
 
-void irtkHistogram_2D::Write(char *filename)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Write(char *filename)
 {
   int i, j;
 
   ofstream to(filename);
   if (!to) {
-    cerr << "irtkHistogram_2D::Write: Can't open file " << filename << "\n";
+    cerr << "irtkHistogram_2D<HistogramType>::Write: Can't open file " << filename << "\n";
     exit(1);
   }
   to << "irtkHistogram_2D\n";
@@ -764,7 +841,7 @@ void irtkHistogram_2D::Write(char *filename)
   }
 }
 
-void irtkHistogram_2D::WriteAsImage(char *filename)
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::WriteAsImage(char *filename)
 {
   int i, j;
   irtkGenericImage<int> image(_nbins_x, _nbins_y, 1);
@@ -777,19 +854,19 @@ void irtkHistogram_2D::WriteAsImage(char *filename)
   image.Write(filename);
 }
 
-void irtkHistogram_2D::Print()
+template <class HistogramType> void irtkHistogram_2D<HistogramType>::Print()
 {
   int i, j;
 
   cout << _nbins_x << " "
-       << _nbins_y << " "
-       << _nsamp << " "
-       << _min_x << " "
-       << _max_x << " "
-       << _min_y << " "
-       << _max_y << " "
-       << _width_x << " "
-       << _width_y << endl;
+  << _nbins_y << " "
+  << _nsamp << " "
+  << _min_x << " "
+  << _max_x << " "
+  << _min_y << " "
+  << _max_y << " "
+  << _width_x << " "
+  << _width_y << endl;
   for (j = 0; j < _nbins_y; j++) {
     for (i = 0; i < _nbins_x; i++) {
       cout << _bins[j][i] << " ";
@@ -797,3 +874,6 @@ void irtkHistogram_2D::Print()
     cout << endl;
   }
 }
+
+template class irtkHistogram_2D<int>;
+template class irtkHistogram_2D<double>;

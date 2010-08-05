@@ -14,7 +14,7 @@
 
 #include <irtkHistogram.h>
 
-irtkHistogram_1D::irtkHistogram_1D(const irtkHistogram_1D &h)
+template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D(const irtkHistogram_1D &h)
 {
   int i;
 
@@ -23,18 +23,18 @@ irtkHistogram_1D::irtkHistogram_1D(const irtkHistogram_1D &h)
   _width = h._width;
   _nbins = h._nbins;
   _nsamp = h._nsamp;
-  if (_nbins > 0) _bins  = new int[_nbins];
+  if (_nbins > 0) _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     _bins[i] = h._bins[i];
   }
 }
 
-irtkHistogram_1D::irtkHistogram_1D(int nbins)
+template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D(int nbins)
 {
   int i;
 
   if (nbins < 1) {
-    cerr << "irtkHistogram_1D::irtkHistogram_1D: Should have at least one bin";
+    cerr << "irtkHistogram_1D<HistogramType>::irtkHistogram_1D: Should have at least one bin";
     exit(1);
   }
   _min   = 0;
@@ -42,13 +42,13 @@ irtkHistogram_1D::irtkHistogram_1D(int nbins)
   _width = 1;
   _nbins = nbins;
   _nsamp = 0;
-  if (_nbins > 0) _bins  = new int[_nbins];
+  if (_nbins > 0) _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     _bins[i] = 0;
   }
 }
 
-irtkHistogram_1D::irtkHistogram_1D(double min, double max, double width)
+template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D(double min, double max, double width)
 {
   int i;
 
@@ -58,40 +58,40 @@ irtkHistogram_1D::irtkHistogram_1D(double min, double max, double width)
   _width = (_max - _min) / (double)_nbins;
   _nsamp = 0;
   if (_nbins < 1) {
-    cerr << "irtkHistogram_1D::irtkHistogram_1D: Should have at least one bin";
+    cerr << "irtkHistogram_1D<HistogramType>::irtkHistogram_1D: Should have at least one bin";
     exit(1);
   }
-  if (_nbins > 0) _bins  = new int[_nbins];
+  if (_nbins > 0) _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     _bins[i] = 0;
   }
 }
 
-irtkHistogram_1D::irtkHistogram_1D(char *filename)
+template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D(char *filename)
 {
   int i;
   char buffer[255];
 
   ifstream from(filename);
   if (!from) {
-    cerr << "irtkHistogram_1D::Read: Can't open file " << filename << "\n";
+    cerr << "irtkHistogram_1D<HistogramType>::Read: Can't open file " << filename << "\n";
     exit(1);
   }
 
   from >> buffer;
   if (strcmp(buffer, "irtkHistogram_1D") != 0) {
-    cerr << "irtkHistogram_1D::Read: Invalid format" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Read: Invalid format" << endl;
     exit(1);
   }
   from >> _nbins >> _nsamp >> _min >> _max >> _width;
 
-  if (_nbins > 0) _bins  = new int[_nbins];
+  if (_nbins > 0) _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     from >> _bins[i];
   }
 }
 
-irtkHistogram_1D::~irtkHistogram_1D()
+template <class HistogramType> irtkHistogram_1D<HistogramType>::~irtkHistogram_1D()
 {
   if (_nbins > 0) {
     delete []_bins;
@@ -103,7 +103,7 @@ irtkHistogram_1D::~irtkHistogram_1D()
   _width = 0;
 }
 
-void irtkHistogram_1D::Reset()
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::Reset()
 {
   int i;
 
@@ -113,26 +113,26 @@ void irtkHistogram_1D::Reset()
   _nsamp = 0;
 }
 
-void irtkHistogram_1D::PutMin(double min)
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::PutMin(double min)
 {
   _min = min;
   _width = (_max - _min) / (double)_nbins;
   this->Reset();
 }
 
-void irtkHistogram_1D::PutMax(double max)
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::PutMax(double max)
 {
   _max = max;
   _width = (_max - _min) / (double)_nbins;
   this->Reset();
 }
 
-void irtkHistogram_1D::PutWidth(double width)
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::PutWidth(double width)
 {
   int i;
 
   if (round((_max - _min) / width) < 1) {
-    cerr << "irtkHistogram_1D::PutWidth: Should have at least one bin";
+    cerr << "irtkHistogram_1D<HistogramType>::PutWidth: Should have at least one bin";
     exit(1);
   }
 
@@ -146,19 +146,19 @@ void irtkHistogram_1D::PutWidth(double width)
   _width = (_max - _min) / (double)_nbins;
 
   // Allocate memory
-  _bins  = new int[_nbins];
+  _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     _bins[i] = 0;
   }
   _nsamp = 0;
 }
 
-void irtkHistogram_1D::PutNumberOfBins(int nbins)
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::PutNumberOfBins(int nbins)
 {
   int i;
 
   if (nbins < 1) {
-    cerr << "irtkHistogram_1D::PutNumberOfBins: Should have at least one bin";
+    cerr << "irtkHistogram_1D<HistogramType>::PutNumberOfBins: Should have at least one bin";
     exit(1);
   }
 
@@ -172,19 +172,19 @@ void irtkHistogram_1D::PutNumberOfBins(int nbins)
   _width = (_max - _min) / (double)_nbins;
 
   // Allocate memory
-  _bins  = new int[_nbins];
+  _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     _bins[i] = 0;
   }
   _nsamp = 0;
 }
 
-double irtkHistogram_1D::CDFToVal(double p)
+template <class HistogramType> double irtkHistogram_1D<HistogramType>::CDFToVal(double p)
 {
   int i, sum;
 
   if ((p < 0) || (p > 1)) {
-    cerr << "irtkHistogram_1D::CDFToVal: Must be between 0 and 1" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::CDFToVal: Must be between 0 and 1" << endl;
     exit(1);
   }
 
@@ -198,13 +198,30 @@ double irtkHistogram_1D::CDFToVal(double p)
   return BinToVal(i);
 }
 
-double irtkHistogram_1D::Mean()
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::Log()
+{
+  int i;
+
+  if (_nsamp == 0) {
+    cerr << "irtkHistogram_1D<HistogramType>::Log: No samples in irtkHistogram" << endl;
+    return;
+  }
+  for (i = 0; i < _nbins; i++) {
+    if (_bins[i] > 0) {
+      _bins[i] = log(static_cast<double>(_bins[i]/(double)_nsamp));
+    } else {
+      _bins[i] = 0;
+    }
+  }
+}
+
+template <class HistogramType> double irtkHistogram_1D<HistogramType>::Mean()
 {
   int i;
   double val;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_1D::Mean: No samples in irtkHistogram" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Mean: No samples in irtkHistogram" << endl;
     return 0;
   }
   val = 0;
@@ -214,13 +231,13 @@ double irtkHistogram_1D::Mean()
   return val / (double)_nsamp;
 }
 
-double irtkHistogram_1D::Variance()
+template <class HistogramType> double irtkHistogram_1D<HistogramType>::Variance()
 {
   int i;
   double val, mean;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_1D::Variance: No samples in irtkHistogram" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Variance: No samples in irtkHistogram" << endl;
     return 0;
   }
   val  = 0;
@@ -231,22 +248,22 @@ double irtkHistogram_1D::Variance()
   return val / (double)_nsamp;
 }
 
-double irtkHistogram_1D::StandardDeviation()
+template <class HistogramType> double irtkHistogram_1D<HistogramType>::StandardDeviation()
 {
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_1D::StandardDeviation: No samples in irtkHistogram" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::StandardDeviation: No samples in irtkHistogram" << endl;
     return 0;
   }
   return sqrt(this->Variance());
 }
 
-double irtkHistogram_1D::Entropy()
+template <class HistogramType> double irtkHistogram_1D<HistogramType>::Entropy()
 {
   int i;
   double val;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_1D::Entropy: No samples in irtkHistogram" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Entropy: No samples in irtkHistogram" << endl;
     return 0;
   }
   val = 0;
@@ -258,14 +275,49 @@ double irtkHistogram_1D::Entropy()
   return - val;
 }
 
-void irtkHistogram_1D::Read(char *filename)
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::Smooth()
+{
+  int i, k;
+  HistogramType *tmp, value;
+
+  if (_nsamp == 0) {
+    cerr << "irtkHistogram_1D<HistogramType>::Smooth: No samples in Histogram" << endl;
+    return;
+  }
+
+  // Smoothing kernel
+  double kernel[3] = { 1.0/6.0, 2.0/6.0, 1.0/6.0 };
+
+  // Allocate temporary memory
+  tmp  = new HistogramType[_nbins];
+
+  // Smooth
+  for (i = 0; i < _nbins; i++) {
+    value = 0;
+    for (k = 0; k < 3; k++) {
+      if ((i-1+k >= 0) && (i-1+k < _nbins)) {
+        value += kernel[k] * _bins[i-1+k];
+      }
+    }
+    tmp[i] = value;
+  }
+
+  // Copy smoothed histogram back
+  for (i = 0; i < _nbins; i++) _bins[i] = tmp[i];
+
+  // Free tmp memory
+  delete tmp;
+}
+
+
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::Read(char *filename)
 {
   int i;
   char buffer[255];
 
   ifstream from(filename);
   if (!from) {
-    cerr << "irtkHistogram_1D::Read: Can't open file " << filename << "\n";
+    cerr << "irtkHistogram_1D<HistogramType>::Read: Can't open file " << filename << "\n";
     exit(1);
   }
   if (_nbins > 0) {
@@ -275,24 +327,24 @@ void irtkHistogram_1D::Read(char *filename)
 
   from >> buffer;
   if (strcmp(buffer, "irtkHistogram_1D") != 0) {
-    cerr << "irtkHistogram_1D::Read: Invalid format" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Read: Invalid format" << endl;
     exit(1);
   }
 
   from >> _nbins >> _nsamp >> _min >> _max >> _width;
-  if (_nbins > 0) _bins  = new int[_nbins];
+  if (_nbins > 0) _bins  = new HistogramType[_nbins];
   for (i = 0; i < _nbins; i++) {
     from >> _bins[i];
   }
 }
 
-void irtkHistogram_1D::Write(char *filename)
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::Write(char *filename)
 {
   int i;
 
   ofstream to(filename);
   if (!to) {
-    cerr << "irtkHistogram_1D::Write: Can't open file " << filename << "\n";
+    cerr << "irtkHistogram_1D<HistogramType>::Write: Can't open file " << filename << "\n";
     exit(1);
   }
   to << "irtkHistogram_1D\n";
@@ -303,13 +355,17 @@ void irtkHistogram_1D::Write(char *filename)
   }
 }
 
-void irtkHistogram_1D::Print()
+template <class HistogramType> void irtkHistogram_1D<HistogramType>::Print()
 {
   int i;
 
   cout << _nbins << " " << _nsamp << " " << _min << " " << _max << " "
-       << _width << endl;
+  << _width << endl;
   for (i = 0; i < _nbins; i++) {
     cout << _bins[i] << endl;
   }
 }
+
+template class irtkHistogram_1D<int>;
+template class irtkHistogram_1D<double>;
+

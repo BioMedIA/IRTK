@@ -17,6 +17,6 @@
 #include <irtkHistogram_1D.h>
 #include <irtkHistogram_2D.h>
 
-typedef class irtkHistogram_1D irtkHistogram;
+typedef class irtkHistogram_1D<int> irtkHistogram;
 
 #endif

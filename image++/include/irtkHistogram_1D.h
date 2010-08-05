@@ -19,14 +19,14 @@
  *  This class defines and implements 2D histograms.
  */
 
-class irtkHistogram_1D : public irtkObject
+template <class HistogramType> class irtkHistogram_1D : public irtkObject
 {
 
   /// Number of bins
   int _nbins;
 
   /// Number of samples
-  int _nsamp;
+  HistogramType _nsamp;
 
   /// Min. value for samples, everything below is ignored
   double _min;
@@ -38,7 +38,7 @@ class irtkHistogram_1D : public irtkObject
   double _width;
 
   /// Dynamic memory for bins
-  int *_bins;
+  HistogramType *_bins;
 
 public:
 
@@ -85,22 +85,22 @@ public:
   void   PutWidth(double);
 
   /// Get number of samples in histogram
-  int NumberOfSamples() const;
+  HistogramType NumberOfSamples() const;
 
   /// Get number of samples in bin(i)
-  int operator()(int) const;
+  HistogramType operator()(int) const;
 
   /// Add counts to bin
-  void Add(int, int = 1);
+  void Add(int, HistogramType = 1);
 
   /// Delete counts from bin
-  void Delete(int, int = 1);
+  void Delete(int, HistogramType = 1);
 
   /// Add sample to bin
-  void AddSample(double);
+  void AddSample(double, HistogramType = 1);
 
   /// Delete sample from bin
-  void DelSample(double);
+  void DelSample(double, HistogramType = 1);
 
   /// Convert sample value to bin index
   int    ValToBin(double val);
@@ -126,6 +126,12 @@ public:
   /// Convert cumulative density distributions to sample value
   double CDFToVal(double p);
 
+  /// Log transform histogram
+  void Log();
+
+  /// Smooth histogram
+  void Smooth();
+
   /// Calculate mean
   double Mean();
 
@@ -148,47 +154,47 @@ public:
   void Print();
 };
 
-inline int irtkHistogram_1D::GetNumberOfBins() const
+template <class HistogramType> inline int irtkHistogram_1D<HistogramType>::GetNumberOfBins() const
 {
   return _nbins;
 }
 
-inline double irtkHistogram_1D::GetMin() const
+template <class HistogramType> inline double irtkHistogram_1D<HistogramType>::GetMin() const
 {
   return _min;
 }
 
-inline double irtkHistogram_1D::GetMax() const
+template <class HistogramType> inline double irtkHistogram_1D<HistogramType>::GetMax() const
 {
   return _max;
 }
 
-inline double irtkHistogram_1D::GetWidth() const
+template <class HistogramType> inline double irtkHistogram_1D<HistogramType>::GetWidth() const
 {
   return _width;
 }
 
-inline int irtkHistogram_1D::NumberOfSamples() const
+template <class HistogramType> inline HistogramType irtkHistogram_1D<HistogramType>::NumberOfSamples() const
 {
   return _nsamp;
 }
 
-inline int irtkHistogram_1D::operator()(int i) const
+template <class HistogramType> inline HistogramType irtkHistogram_1D<HistogramType>::operator()(int i) const
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins)) {
-    cerr << "irtkHistogram_1D::operator(): No such bin" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::operator(): No such bin" << endl;
     exit(1);
   }
 #endif
   return _bins[i];
 }
 
-inline void irtkHistogram_1D::Add(int i, int n)
+template <class HistogramType> inline void irtkHistogram_1D<HistogramType>::Add(int i, HistogramType n)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins)) {
-    cerr << "irtkHistogram_1D::Add: No such bin" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Add: No such bin" << endl;
     exit(1);
   }
 #endif
@@ -196,11 +202,11 @@ inline void irtkHistogram_1D::Add(int i, int n)
   _nsamp   += n;
 }
 
-inline void irtkHistogram_1D::Delete(int i, int n)
+template <class HistogramType> inline void irtkHistogram_1D<HistogramType>::Delete(int i, HistogramType n)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins)) {
-    cerr << "irtkHistogram_1D::Delete: No such bin" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::Delete: No such bin" << endl;
     exit(1);
   }
 #endif
@@ -208,7 +214,7 @@ inline void irtkHistogram_1D::Delete(int i, int n)
   _nsamp   -= n;
 }
 
-inline void irtkHistogram_1D::AddSample(double x)
+template <class HistogramType> inline void irtkHistogram_1D<HistogramType>::AddSample(double x, HistogramType n)
 {
   int index;
 
@@ -217,11 +223,11 @@ inline void irtkHistogram_1D::AddSample(double x)
   index = round(_nbins * (x - _min - 0.5*_width) / (_max - _min));
   if (index < 0) index = 0;
   if (index > _nbins-1) index = _nbins - 1;
-  _bins[index]++;
-  _nsamp++;
+  _bins[index] += n;
+  _nsamp       += n;
 }
 
-inline void irtkHistogram_1D::DelSample(double x)
+template <class HistogramType> inline void irtkHistogram_1D<HistogramType>::DelSample(double x, HistogramType n)
 {
   int index;
 
@@ -230,17 +236,17 @@ inline void irtkHistogram_1D::DelSample(double x)
   index = round(_nbins * (x - _min - 0.5*_width) / (_max - _min));
   if (index < 0) index = 0;
   if (index > _nbins-1) index = _nbins - 1;
-  _bins[index]--;
-  _nsamp--;
+  _bins[index] -= n;
+  _nsamp       -= n;
 }
 
-inline int irtkHistogram_1D::ValToBin(double val)
+template <class HistogramType> inline int irtkHistogram_1D<HistogramType>::ValToBin(double val)
 {
   int index;
 
 #ifndef NO_BOUNDS
   if ((val < _min) || (val > _max)) {
-    cerr << "irtkHistogram_1D::ValToBin: Must be between " << _min << " and "
+    cerr << "irtkHistogram_1D<HistogramType>::ValToBin: Must be between " << _min << " and "
          << _max << endl;
     exit(1);
   }
@@ -251,22 +257,22 @@ inline int irtkHistogram_1D::ValToBin(double val)
   return index;
 }
 
-inline double irtkHistogram_1D::BinToVal(int i)
+template <class HistogramType> inline double irtkHistogram_1D<HistogramType>::BinToVal(int i)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i > _nbins)) {
-    cerr << "irtkHistogram_1D::BinToVal: Must be between 0 and " << _nbins << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::BinToVal: Must be between 0 and " << _nbins << endl;
     exit(1);
   }
 #endif
   return (i*(_max - _min)/_nbins + _min) + _width/2.0;
 }
 
-inline double irtkHistogram_1D::BinToPDF(int i)
+template <class HistogramType> inline double irtkHistogram_1D<HistogramType>::BinToPDF(int i)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins)) {
-    cerr << "irtkHistogram_1D::BinToPDF: No such bin" << endl;
+    cerr << "irtkHistogram_1D<HistogramType>::BinToPDF: No such bin" << endl;
     exit(1);
   }
 #endif

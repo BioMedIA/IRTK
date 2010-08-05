@@ -19,7 +19,7 @@
  *  This class defines and implements 2D histograms.
  */
 
-class irtkHistogram_2D : public irtkObject
+template <class HistogramType> class irtkHistogram_2D : public irtkObject
 {
 
   /// Number of bins in x-direction
@@ -29,7 +29,7 @@ class irtkHistogram_2D : public irtkObject
   int _nbins_y;
 
   /// Number of samples
-  int _nsamp;
+  HistogramType _nsamp;
 
   /// Min. value for x-samples, everything below is ignored
   double _min_x;
@@ -50,7 +50,7 @@ class irtkHistogram_2D : public irtkObject
   double _width_y;
 
   /// Dynamic memory for bins
-  int **_bins;
+  HistogramType **_bins;
 
 public:
 
@@ -110,22 +110,22 @@ public:
   void   PutWidth(double, double);
 
   /// Get number of samples in histogram
-  int NumberOfSamples() const;
+  HistogramType NumberOfSamples() const;
 
   /// Get number of samples in bin(i, j)
-  int operator()(int, int) const;
+  HistogramType operator()(int, int) const;
 
   /// Add counts to bins
-  void Add(int, int, int = 1);
+  void Add(int, int, HistogramType = 1);
 
   /// Delete counts from bins
-  void Delete(int, int, int = 1);
+  void Delete(int, int, HistogramType = 1);
 
   /// Add samples
-  void AddSample(double, double);
+  void AddSample(double, double, HistogramType = 1);
 
   /// Delete samples
-  void DelSample(double, double);
+  void DelSample(double, double, HistogramType = 1);
 
   /// Convert sample value to bin index
   int  ValToBinX(double val);
@@ -140,10 +140,16 @@ public:
   double BinToValY(int    bin);
 
   /// Convert 2D Histogram to 1D Histogram
-  void HistogramX(irtkHistogram_1D &);
+  void HistogramX(irtkHistogram_1D<HistogramType> &);
 
   /// Convert 2D Histogram to 1D Histogram
-  void HistogramY(irtkHistogram_1D &);
+  void HistogramY(irtkHistogram_1D<HistogramType> &);
+
+  /// Log transform histogram
+  void Log();
+
+  /// Smooth histogram
+  void Smooth();
 
   /// Calculate joint probability p(x, y)
   double JointProbability(int, int);
@@ -239,37 +245,37 @@ public:
   void Print();
 };
 
-inline int irtkHistogram_2D::GetNumberOfBinsX() const
+template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::GetNumberOfBinsX() const
 {
   return _nbins_x;
 }
 
-inline int irtkHistogram_2D::GetNumberOfBinsY() const
+template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::GetNumberOfBinsY() const
 {
   return _nbins_y;
 }
 
-inline int irtkHistogram_2D::NumberOfSamples() const
+template <class HistogramType> inline HistogramType irtkHistogram_2D<HistogramType>::NumberOfSamples() const
 {
   return _nsamp;
 }
 
-inline int irtkHistogram_2D::operator()(int i, int j) const
+template <class HistogramType> inline HistogramType irtkHistogram_2D<HistogramType>::operator()(int i, int j) const
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_x) || (j < 0) || (j >= _nbins_y)) {
-    cerr << "irtkHistogram_2D::operator(): No such bin" << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::operator(): No such bin" << endl;
     exit(1);
   }
 #endif
   return _bins[j][i];
 }
 
-inline void irtkHistogram_2D::Add(int i, int j, int n)
+template <class HistogramType> inline void irtkHistogram_2D<HistogramType>::Add(int i, int j, HistogramType n)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_x) || (j < 0) || (j >= _nbins_y)) {
-    cerr << "irtkHistogram_2D::Add: No such bin " << i << " " << j << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::Add: No such bin " << i << " " << j << endl;
     exit(1);
   }
 #endif
@@ -277,11 +283,11 @@ inline void irtkHistogram_2D::Add(int i, int j, int n)
   _nsamp      += n;
 }
 
-inline void irtkHistogram_2D::Delete(int i, int j, int n)
+template <class HistogramType> inline void irtkHistogram_2D<HistogramType>::Delete(int i, int j, HistogramType n)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_x) || (j < 0) || (j >= _nbins_y)) {
-    cerr << "irtkHistogram_2D::Delete: No such bin " << i << " " << j << endl;
+    cerr << "irtkHistogram_2D<HistogramType>::Delete: No such bin " << i << " " << j << endl;
     exit(1);
   }
 #endif
@@ -289,13 +295,13 @@ inline void irtkHistogram_2D::Delete(int i, int j, int n)
   _nsamp      -= n;
 }
 
-inline int irtkHistogram_2D::ValToBinX(double val)
+template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::ValToBinX(double val)
 {
   int index;
 
 #ifndef NO_BOUNDS
   if ((val < _min_x) || (val > _max_x)) {
-    cerr << "irtkHistogram_2D::ValToBinX: Must be between " << _min_x << " and "
+    cerr << "irtkHistogram_2D<HistogramType>::ValToBinX: Must be between " << _min_x << " and "
          << _max_x << endl;
     exit(1);
   }
@@ -306,13 +312,13 @@ inline int irtkHistogram_2D::ValToBinX(double val)
   return index;
 }
 
-inline int irtkHistogram_2D::ValToBinY(double val)
+template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::ValToBinY(double val)
 {
   int index;
 
 #ifndef NO_BOUNDS
   if ((val < _min_y) || (val > _max_y)) {
-    cerr << "irtkHistogram_2D::ValToBinY: Must be between " << _min_y << " and "
+    cerr << "irtkHistogram_2D<HistogramType>::ValToBinY: Must be between " << _min_y << " and "
          << _max_y << endl;
     exit(1);
   }
@@ -323,7 +329,7 @@ inline int irtkHistogram_2D::ValToBinY(double val)
   return index;
 }
 
-inline double irtkHistogram_2D::BinToValX(int i)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::BinToValX(int i)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_x)) {
@@ -334,7 +340,7 @@ inline double irtkHistogram_2D::BinToValX(int i)
   return (i*(_max_x - _min_x)/_nbins_x + _min_x) + _width_x/2.0;
 }
 
-inline double irtkHistogram_2D::BinToValY(int i)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::BinToValY(int i)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_y)) {
@@ -345,7 +351,7 @@ inline double irtkHistogram_2D::BinToValY(int i)
   return (i*(_max_y - _min_y)/_nbins_y + _min_y) + _width_y/2.0;
 }
 
-inline double irtkHistogram_2D::JointProbability(int i, int j)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::JointProbability(int i, int j)
 {
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_x) || (j < 0) || (j >= _nbins_y)) {
@@ -357,7 +363,7 @@ inline double irtkHistogram_2D::JointProbability(int i, int j)
   return _bins[j][i] / (double) _nsamp;
 }
 
-inline double irtkHistogram_2D::MarginalProbabilityX(int i)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::MarginalProbabilityX(int i)
 {
   int j, n;
 
@@ -374,7 +380,7 @@ inline double irtkHistogram_2D::MarginalProbabilityX(int i)
   return n / (double) _nsamp;
 }
 
-inline double irtkHistogram_2D::MarginalProbabilityY(int i)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::MarginalProbabilityY(int i)
 {
   int j, n;
 
@@ -391,7 +397,7 @@ inline double irtkHistogram_2D::MarginalProbabilityY(int i)
   return n / (double) _nsamp;
 }
 
-inline double irtkHistogram_2D::ConditionalProbabilityXY(int i, int j)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::ConditionalProbabilityXY(int i, int j)
 {
   double p;
 
@@ -403,7 +409,7 @@ inline double irtkHistogram_2D::ConditionalProbabilityXY(int i, int j)
   }
 }
 
-inline double irtkHistogram_2D::ConditionalProbabilityYX(int i, int j)
+template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::ConditionalProbabilityYX(int i, int j)
 {
   double p;
 
