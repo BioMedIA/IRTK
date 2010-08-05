@@ -74,7 +74,7 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Initialize()
 
   // Make sure that output has the correct dimensions
   if (_type == GRADIENT_VECTOR) {
-  	irtkImageAttributes attr = this->_input->GetImageAttributes();
+    irtkImageAttributes attr = this->_input->GetImageAttributes();
     attr._t = 3;
     this->_output->Initialize(attr);
   } else {
@@ -91,25 +91,28 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
   this->Initialize();
 
   for (z = 0; z < this->_input->GetZ(); ++z) {
-    for (y = 0; y < this->_input->GetY(); ++y) {
-      for (x = 0; x < this->_input->GetX(); ++x) {
+    z1 = z - 1;
+    if (z1 < 0) z1 = 0;
+    z2 = z + 1;
+    if (z2 > this->_input->GetZ()-1) z2 = this->_input->GetZ()-1;
 
+    for (y = 0; y < this->_input->GetY(); ++y) {
+      y1 = y - 1;
+      if (y1 < 0) y1 = 0;
+      y2 = y + 1;
+      if (y2 > this->_input->GetY()-1) y2 = this->_input->GetY()-1;
+
+      for (x = 0; x < this->_input->GetX(); ++x) {
         x1 = x - 1;
         if (x1 < 0) x1 = 0;
         x2 = x + 1;
         if (x2 > this->_input->GetX()-1) x2 = this->_input->GetX()-1;
+
+        // Compute derivatives
         dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
 
-        y1 = y - 1;
-        if (y1 < 0) y1 = 0;
-        y2 = y + 1;
-        if (y2 > this->_input->GetY()-1) y2 = this->_input->GetY()-1;
         dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
 
-        z1 = z - 1;
-        if (z1 < 0) z1 = 0;
-        z2 = z + 1;
-        if (z2 > this->_input->GetZ()-1) z2 = this->_input->GetZ()-1;
         dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
 
         switch (_type) {
