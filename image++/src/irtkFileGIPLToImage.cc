@@ -69,7 +69,8 @@ void irtkFileGIPLToImage::ReadHeader()
   this->_attr._y = dim;
   this->ReadAsUShort(&dim, 1, 4);
   this->_attr._z = dim;
-  this->_attr._t = 1;
+  this->ReadAsUShort(&dim, 1, 6);
+  this->_attr._t = dim;
 
   // Read voxel dimensions
   this->ReadAsFloat(&size, 1, 10);
@@ -78,7 +79,8 @@ void irtkFileGIPLToImage::ReadHeader()
   this->_attr._dy = size;
   this->ReadAsFloat(&size, 1, 18);
   this->_attr._dz = size;
-  this->_attr._dt = 1;
+  this->ReadAsFloat(&size, 1, 22);
+  this->_attr._dt = size;
 
   // Read extension flag
   this->ReadAsUInt(&magic_ext, 1, 244);

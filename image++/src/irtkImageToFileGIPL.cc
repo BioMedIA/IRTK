@@ -25,7 +25,7 @@ void irtkImageToFileGIPL::Initialize()
 {
   int i;
   double min, max;
-  double xsize, ysize, zsize, xaxis[3], yaxis[3], zaxis[3], pos[3];
+  double xsize, ysize, zsize, tsize, xaxis[3], yaxis[3], zaxis[3], pos[3];
 
   // Initialize base class
   this->irtkImageToFile::Initialize();
@@ -34,7 +34,7 @@ void irtkImageToFileGIPL::Initialize()
   this->WriteAsShort(_input->GetX(), 0);
   this->WriteAsShort(_input->GetY(), 2);
   this->WriteAsShort(_input->GetZ(), 4);
-  this->WriteAsShort(1, 6);
+  this->WriteAsShort(_input->GetT(), 6);
 
   // Write type
   switch (this->_input->GetScalarType()) {
@@ -67,11 +67,11 @@ void irtkImageToFileGIPL::Initialize()
       exit(1);
   }
   // Write voxel dimensions
-  _input->GetPixelSize(&xsize, &ysize, &zsize);
+  _input->GetPixelSize(&xsize, &ysize, &zsize,&tsize);
   this->WriteAsFloat(static_cast<float>(xsize), 10);
   this->WriteAsFloat(static_cast<float>(ysize), 14);
   this->WriteAsFloat(static_cast<float>(zsize), 18);
-  this->WriteAsFloat(float(0), 22);
+  this->WriteAsFloat(static_cast<float>(tsize), 22);
 
   // Write patient description
   for (i = 0; i < 80; i++) {
