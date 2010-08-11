@@ -148,3 +148,4 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
 template class  irtkGradientImageFilter<unsigned char>;
 template class  irtkGradientImageFilter<short>;
 template class  irtkGradientImageFilter<float>;
+template class  irtkGradientImageFilter<double>;
