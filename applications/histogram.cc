@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 
   cout<<"Creating the histogram"<<endl;
   // Create the histogram
-  irtkHistogram_1D *hist = new irtkHistogram_1D(double(min) ,double(max) ,1);
+  irtkHistogram_1D<int> *hist = new irtkHistogram_1D<int>(double(min), double(max), 1);
 
   for (int x=0; x < input.GetX(); ++x) {
     for (int y = 0; y < input.GetY(); y++) {
