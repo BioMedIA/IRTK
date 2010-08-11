@@ -61,7 +61,7 @@ public:
   void Reset();
 
   /// Get number of bins in histogram
-  int  GetNumberOfBins() const;
+  int  NumberOfBins() const;
 
   /// Put number of bins in histogram
   void PutNumberOfBins(int);
@@ -154,7 +154,7 @@ public:
   void Print();
 };
 
-template <class HistogramType> inline int irtkHistogram_1D<HistogramType>::GetNumberOfBins() const
+template <class HistogramType> inline int irtkHistogram_1D<HistogramType>::NumberOfBins() const
 {
   return _nbins;
 }

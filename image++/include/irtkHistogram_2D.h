@@ -74,13 +74,13 @@ public:
   void Reset(const irtkHistogram_2D &);
 
   /// Get number of bins in x-direction
-  int  GetNumberOfBinsX() const;
+  int  NumberOfBinsX() const;
 
   /// Put number of bins in x-direction
   void PutNumberOfBinsX(int);
 
   /// Get number of bins in x-direction
-  int  GetNumberOfBinsY() const;
+  int  NumberOfBinsY() const;
 
   /// Put number of bins in x-direction
   void PutNumberOfBinsY(int);
@@ -245,12 +245,12 @@ public:
   void Print();
 };
 
-template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::GetNumberOfBinsX() const
+template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::NumberOfBinsX() const
 {
   return _nbins_x;
 }
 
-template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::GetNumberOfBinsY() const
+template <class HistogramType> inline int irtkHistogram_2D<HistogramType>::NumberOfBinsY() const
 {
   return _nbins_y;
 }
