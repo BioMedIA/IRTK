@@ -31,10 +31,10 @@ protected:
   irtkRView *_v;
 
   /// Global histogram for entire image
-  irtkHistogram_1D _globalHistogram;
+  irtkHistogram _globalHistogram;
 
   /// Global histogram for single segmentation
-  irtkHistogram_1D _localHistogram[SHRT_MAX+1];
+  irtkHistogram _localHistogram[SHRT_MAX+1];
 
 public:
 
