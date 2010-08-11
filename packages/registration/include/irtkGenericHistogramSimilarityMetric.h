@@ -141,12 +141,12 @@ inline irtkSimilarityMeasure irtkGenericHistogramSimilarityMetric::GetMeasure() 
 
 inline int irtkGenericHistogramSimilarityMetric::GetNumberOfBinsX() const
 {
-  return this->_histogram->GetNumberOfBinsX();
+  return this->_histogram->NumberOfBinsX();
 }
 
 inline int irtkGenericHistogramSimilarityMetric::GetNumberOfBinsY() const
 {
-  return this->_histogram->GetNumberOfBinsY();
+  return this->_histogram->NumberOfBinsY();
 }
 
 inline int irtkGenericHistogramSimilarityMetric::NumberOfSamples() const
