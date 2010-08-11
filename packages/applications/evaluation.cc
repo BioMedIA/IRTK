@@ -298,7 +298,7 @@ int main(int argc, char **argv)
   interpolator->Inside(x1, y1, z1, x2, y2, z2);
 
   // Create histogram
-  irtkHistogram_2D histogram(nbins_x, nbins_y);
+  irtkHistogram_2D<int> histogram(nbins_x, nbins_y);
   widthx = (target_max - target_min) / (nbins_x - 1.0);
   widthy = (source_max - source_min) / (nbins_y - 1.0);
 
