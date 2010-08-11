@@ -571,7 +571,7 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
       p = edt + i;
       q = f;
       for (k = 0; k < nZ; k++, p += nXY, q++) {
-        *p = *q;
+        *p = *q * _input->GetZSize() / _input->GetXSize();
       }
     }
   }
@@ -580,8 +580,8 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
 
 template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::Run()
 {
-  int nx, ny, nz, z;
-  double wx, wy, wz;
+  int nx, ny, nz, nt, x, y, z, t;
+  double wx, wy, wz, wt;
 
   // Do the initial set up
   this->Initialize();
@@ -590,22 +590,126 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::Run()
   nx = this->_input->GetX();
   ny = this->_input->GetY();
   nz = this->_input->GetZ();
+  nt = this->_input->GetT();
 
   // Calculate voxel size
   this->_input->GetPixelSize(&wx, &wy, &wz);
+  for ( t = 0; t < nt; t++){
+	  if (this->_distanceTransformMode == irtkEuclideanDistanceTransform::irtkDistanceTransform3D) {
+		  // Calculate 3D distance transform
+		  edtComputeEDT_3D_anisotropic( this->_input->GetPointerToVoxels(0,0,0,t),
+			  this->_output->GetPointerToVoxels(0,0,0,t),
+			  nx, ny, nz, wx, wy, wz);
+	  } else {
+		  for (z = 0; z < nz; z++) {
+			  // Calculate 2D distance transform slice by slice
+			  edtComputeEDT_2D_anisotropic( this->_input->GetPointerToVoxels(0, 0, z, t),
+				  this->_output->GetPointerToVoxels(0, 0, z, t),
+				  nx, ny, wx, wy);
+		  }
+	  }
+  }
+
+  // Do the final cleaning up
+  this->Finalize();
+}
+
+template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::Radial()
+{
+  int nx, ny, nz, x, y, z;
+  double min;
+
+  // Calculate image dimensions
+  nx = this->_input->GetX();
+  ny = this->_input->GetY();
+  nz = this->_input->GetZ();
 
   if (this->_distanceTransformMode == irtkEuclideanDistanceTransform::irtkDistanceTransform3D) {
-    // Calculate 3D distance transform
-    edtComputeEDT_3D_anisotropic( this->_input->GetPointerToVoxels(),
-                                  this->_output->GetPointerToVoxels(),
-                                  nx, ny, nz, wx, wy, wz);
+    // Calculate 3D Radial transform
+	  min = EDT_MAX_DISTANCE_SQUARED;
+	  for(x=0;x<nx;x++){
+		  for(y=0;y<ny;y++){
+			  for(z=0;z<nz;z++){
+				if(this->_input->GetAsDouble(x,y,z) < min)
+					min = this->_input->GetAsDouble(x,y,z);
+			  }
+		  }
+	  }
+	  for(x=0;x<nx;x++){
+		  for(y=0;y<ny;y++){
+			  for(z=0;z<nz;z++){
+				  this->_output->PutAsDouble(x,y,z,this->_input->GetAsDouble(x,y,z)-min);
+			  }
+		  }
+	  }
   } else {
-    for (z = 0; z < nz; z++) {
-      // Calculate 2D distance transform slice by slice
-      edtComputeEDT_2D_anisotropic( this->_input->GetPointerToVoxels(0, 0, z),
-                                    this->_output->GetPointerToVoxels(0, 0, z),
-                                    nx, ny, wx, wy);
-    }
+	  // Calculate 2D Radial transform	  
+	  for(z=0;z<nz;z++){
+		  min = EDT_MAX_DISTANCE_SQUARED;
+		  for(y=0;y<ny;y++){
+			  for(x=0;x<nz;x++){
+				if(this->_input->GetAsDouble(x,y,z) < min)
+					min = this->_input->GetAsDouble(x,y,z);
+			  }
+		  }
+		  for(y=0;y<ny;y++){
+			  for(x=0;x<nx;x++){
+				  this->_output->PutAsDouble(x,y,z,this->_input->GetAsDouble(x,y,z)-min);
+			  }
+		  }
+	  }
+  }
+
+  // Do the final cleaning up
+  this->Finalize();
+}
+
+template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::TRadial()
+{
+  int nx, ny, nz, x, y, z;
+  double min;
+
+  // Calculate image dimensions
+  nx = this->_input->GetX();
+  ny = this->_input->GetY();
+  nz = this->_input->GetZ();
+
+  if (this->_distanceTransformMode == irtkEuclideanDistanceTransform::irtkDistanceTransform3D) {
+    // Calculate 3D Radial transform
+	  min = EDT_MAX_DISTANCE_SQUARED;
+	  for(x=0;x<nx;x++){
+		  for(y=0;y<ny;y++){
+			  for(z=0;z<nz;z++){
+				if(this->_input->GetAsDouble(x,y,z) < min)
+					min = this->_input->GetAsDouble(x,y,z);
+			  }
+		  }
+	  }
+	  for(x=0;x<nx;x++){
+		  for(y=0;y<ny;y++){
+			  for(z=0;z<nz;z++){
+				  this->_output->PutAsDouble(x,y,z,this->_input->GetAsDouble(x,y,z)-min
+					  + abs(this->_input->GetAsDouble(x,y,z))/2);
+			  }
+		  }
+	  }
+  } else {
+	  // Calculate 2D Radial transform	  
+	  for(z=0;z<nz;z++){
+		  min = EDT_MAX_DISTANCE_SQUARED;
+		  for(y=0;y<ny;y++){
+			  for(x=0;x<nz;x++){
+				if(this->_input->GetAsDouble(x,y,z) < min)
+					min = this->_input->GetAsDouble(x,y,z);
+			  }
+		  }
+		  for(y=0;y<ny;y++){
+			  for(x=0;x<nx;x++){
+				  this->_output->PutAsDouble(x,y,z,this->_input->GetAsDouble(x,y,z)-min
+					  + abs(this->_input->GetAsDouble(x,y,z))/2);
+			  }
+		  }
+	  }
   }
 
   // Do the final cleaning up

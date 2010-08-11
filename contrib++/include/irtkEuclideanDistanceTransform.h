@@ -68,6 +68,12 @@ public:
 
   // Run distance transform
   virtual void Run();
+
+  // Get Radial
+  virtual void Radial();
+
+  // Get Radial+Thickness
+  virtual void TRadial();
 };
 
 template <class VoxelType> inline const char *irtkEuclideanDistanceTransform<VoxelType>::NameOfClass()
