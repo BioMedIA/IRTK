@@ -46,7 +46,7 @@ void normalise(irtkGreyImage &input, irtkRealImage &output)
   cerr << "Setting up input histogram..."; cout.flush();
   irtkGreyPixel min, max;
   input.GetMinMax(&min, &max);
-  irtkHistogram_1D histogram(max-min+1);
+  irtkHistogram histogram(max-min+1);
   histogram.PutMin(min-0.5);
   histogram.PutMax(max+0.5);
 
