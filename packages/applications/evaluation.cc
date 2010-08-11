@@ -361,7 +361,7 @@ int main(int argc, char **argv)
   if (verbose == True) {
     cout << "ROI Min and max of X is " << target_min << " and " << target_max << endl;
     cout << "ROI Min and max of Y is " << source_min << " and " << source_max << endl;
-    cout << "Number of bins  X x Y : " << histogram.GetNumberOfBinsX() << " x " << histogram.GetNumberOfBinsY() << endl;
+    cout << "Number of bins  X x Y : " << histogram.NumberOfBinsX() << " x " << histogram.NumberOfBinsY() << endl;
     cout << "Number of Samples: "     << histogram.NumberOfSamples() << endl;
     cout << "Mean of X: "             << histogram.MeanX() << endl;
     cout << "Mean of Y: "             << histogram.MeanY() << endl;

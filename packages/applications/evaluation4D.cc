@@ -232,7 +232,7 @@ int main(int argc, char **argv)
   interpolator->Inside(x1, y1, z1, x2, y2, z2);
 
   // Create histogram
-  irtkHistogram_2D histogram(nbins_x, nbins_y);
+  irtkHistogram_2D<int> histogram(nbins_x, nbins_y);
   histogram.PutMin(target_min - 0.5, source_min - 0.5);
   histogram.PutMax(target_max + 0.5, source_max + 0.5);
 
