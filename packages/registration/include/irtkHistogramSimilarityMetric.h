@@ -28,7 +28,7 @@ class irtkHistogramSimilarityMetric : public irtkSimilarityMetric
 protected:
 
   /// Histogram
-  irtkHistogram_2D *_histogram;
+  irtkHistogram_2D<int> *_histogram;
 
 public:
 
@@ -59,11 +59,14 @@ public:
   /// Return number of bins in Y
   int NumberOfBinsY();
 
+  /// Return pointer to histogram
+  irtkHistogram_2D<int> *GetPointerToHistogram();
+
 };
 
 inline irtkHistogramSimilarityMetric::irtkHistogramSimilarityMetric(int nbins_x, int nbins_y)
 {
-  _histogram = new irtkHistogram_2D(nbins_x, nbins_y);
+  _histogram = new irtkHistogram_2D<int>(nbins_x, nbins_y);
 }
 
 inline irtkHistogramSimilarityMetric::~irtkHistogramSimilarityMetric()
@@ -91,13 +94,13 @@ inline void irtkHistogramSimilarityMetric::Combine(irtkSimilarityMetric *metric)
     exit(1);
   }
 
-  if ((_histogram->GetNumberOfBinsX() != m->_histogram->GetNumberOfBinsX()) ||
-      (_histogram->GetNumberOfBinsY() != m->_histogram->GetNumberOfBinsY())) {
+  if ((_histogram->NumberOfBinsX() != m->_histogram->NumberOfBinsX()) ||
+      (_histogram->NumberOfBinsY() != m->_histogram->NumberOfBinsY())) {
     cerr << "irtkHistogramSimilarityMetric::Combine: Number of bins differs" << endl;
     exit(1);
   }
-  for (j = 0; j < _histogram->GetNumberOfBinsY(); j++) {
-    for (i = 0; i < _histogram->GetNumberOfBinsX(); i++) {
+  for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
+    for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
       _histogram->Add(i, j, m->_histogram->irtkHistogram_2D::operator()(i, j));
     }
   }
@@ -122,12 +125,17 @@ inline void irtkHistogramSimilarityMetric::Reset(irtkSimilarityMetric *metric)
 
 inline int irtkHistogramSimilarityMetric::NumberOfBinsX()
 {
-  return _histogram->GetNumberOfBinsX();
+  return _histogram->NumberOfBinsX();
 }
 
 inline int irtkHistogramSimilarityMetric::NumberOfBinsY()
 {
-  return _histogram->GetNumberOfBinsY();
+  return _histogram->NumberOfBinsY();
+}
+
+inline irtkHistogram_2D<int> * irtkHistogramSimilarityMetric::GetPointerToHistogram()
+{
+  return _histogram;
 }
 
 #include <irtkGenericHistogramSimilarityMetric.h>
