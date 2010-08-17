@@ -582,7 +582,7 @@ void Fl_RViewUI::InitializeMainWindow()
     o->end();
   }
   {
-    Fl_Value_Slider* o = zoom = new Fl_Value_Slider(190, 61, 280, 20);
+    Fl_Value_Slider* o = zoom = new Fl_Value_Slider(80, 61, 280, 20);
     o->type(5);
     o->box(FL_EMBOSSED_BOX);
     o->maximum(10);
@@ -590,6 +590,17 @@ void Fl_RViewUI::InitializeMainWindow()
     o->value(1);
     o->callback((Fl_Callback*)cb_zoom);
     o->when(FL_WHEN_RELEASE);
+  }
+  {
+	Fl_Value_Slider* o = lineThickness = new Fl_Value_Slider(460, 61, 100, 20, "line width: ");
+    o->type(5);
+    o->box(FL_EMBOSSED_BOX);
+	o->align(FL_ALIGN_LEFT);
+	o->range(1,10);
+    o->step(0.1);
+    o->value(2);
+    o->callback((Fl_Callback*)cb_lineThickness);
+	o->when(FL_WHEN_RELEASE);
   }
   {
     Fl_Roller *o = sliceX = new Fl_Roller(230, 700, 200, 20);

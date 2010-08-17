@@ -149,8 +149,16 @@ void Fl_RViewUI::cb_addLandmark(Fl_Button* o, void* v)
   label = new char[256];
   sprintf(label, "%s", ""); // To avoid zero-length format string warning
   if ((Fl_Browser *)v == rviewUI->targetLandmarkBrowser) {
+    if (rview->GetTrackTAG()){
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetMaxPosition(point,1);
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetWindowCenter(point,2);
+    }
     rview->AddTargetLandmark(point, label);
   } else {
+    if (rview->GetTrackTAG()){
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetMaxPosition(point,1);
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetWindowCenter(point,2);
+    }
     rview->AddSourceLandmark(point, label);
   }
 
@@ -269,8 +277,16 @@ void Fl_RViewUI::cb_insertLandmark(Fl_Button* o, void* v)
   label = new char[256];
   sprintf(label, "%s", ""); // To avoid zero-length format string warning
   if ((Fl_Browser *)v == rviewUI->targetLandmarkBrowser) {
+    if (rview->GetTrackTAG()){
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetMaxPosition(point,1);
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetWindowCenter(point,2);
+    }
     rview->InsertTargetLandmark(point, id, label);
   } else {
+    if (rview->GetTrackTAG()){
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetMaxPosition(point,1);
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetWindowCenter(point,2);
+    }
     rview->InsertSourceLandmark(point, id, label);
   }
 
@@ -462,6 +478,22 @@ void Fl_RViewUI::cb_viewROI(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
+void Fl_RViewUI::cb_trackTAG(Fl_Button* o, void* v)
+{
+  if (o->value() == 0) rview->TrackTAGOff();
+  if (o->value() == 1) rview->TrackTAGOn();
+  rview->Update();
+  viewer->redraw();
+}
+
+void Fl_RViewUI::cb_viewTagGrid(Fl_Button* o, void* v)
+{
+  if (o->value() == 0) rview->ViewTAGOff();
+  if (o->value() == 1) rview->ViewTAGOn();
+  rview->Update();
+  viewer->redraw();
+}
+
 void Fl_RViewUI::ShowObjectControlWindow()
 {
   int i;
@@ -503,6 +535,7 @@ void Fl_RViewUI::ShowObjectControlWindow()
 void Fl_RViewUI::UpdateObjectControlWindow()
 {
   rviewUI->viewLandmarks->value(rview->GetDisplayLandmarks());
+  rviewUI->viewTagGrid->value(rview->GetViewTAG());
 }
 
 void Fl_RViewUI::InitializeObjectControlWindow()
@@ -571,13 +604,22 @@ void Fl_RViewUI::InitializeObjectControlWindow()
       p->label(o);
     }
     {
-      Fl_Button* o = new Fl_Return_Button(169, 520, 52, 52, "FIT");
+      Fl_Button* o = new Fl_Return_Button(125, 520, 52, 52, "FIT");
       o->callback((Fl_Callback*)cb_fitLandmarks);
     }
     {
-      Fl_Button* o = new Fl_Button(299, 520, 52, 52, "ROI");
+      Fl_Button* o = new Fl_Button(211, 520, 52, 52, "ROI");
       o->callback((Fl_Callback*)cb_viewROI);
       o->type(FL_TOGGLE_BUTTON);
+    }
+	{
+      Fl_Button* o = new Fl_Button(297, 520, 52, 52, "TAG");
+      o->callback((Fl_Callback*)cb_trackTAG);
+      o->type(FL_TOGGLE_BUTTON);
+    }
+	{
+      Fl_Check_Button *o  = viewTagGrid = new Fl_Check_Button(39, 580, 60, 20, "Tag grid");
+      o->callback((Fl_Callback*)cb_viewTagGrid);
     }
     o->end(); // End of object display controls
   }

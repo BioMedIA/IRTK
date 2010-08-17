@@ -331,6 +331,9 @@ protected:
   /// Flag for display orientation
   irtkDisplayMode _DisplayMode;
 
+  /// Flag for line thickness
+  double _LineThickness;
+
   /// Flag for display of isolines from target image
   int _DisplayTargetContour;
 
@@ -366,6 +369,12 @@ protected:
 
   /// Flag for display of ROI
   int _DisplayROI;
+
+  /// Flag for track of tag using gravity window
+  int _TrackTAG;
+
+  /// Flag for display of tag grid pattern
+  int _ViewTAG;
 
   /// Flag for flipping X coordinates
   int _FlipX;
@@ -580,6 +589,12 @@ public:
   /// Current mouse wheel
   void MouseWheel(int, int, int);
 
+  /// Set glLine thickness
+  void SetLineThickness(double value);
+
+  /// Get glLine thickness
+  double GetLineThickness();
+
   /// Get an information string about the transformation level
   void GetTransformationText(list<char *> &);
 
@@ -717,6 +732,24 @@ public:
 
   /// Return display of ROI
   int GetDisplayROI();
+
+  /// Turn display of ROI
+  void TrackTAGOn();
+
+  /// Turn display of ROI
+  void TrackTAGOff();
+
+  /// Return display of ROI
+  int GetTrackTAG();
+
+    /// Turn display of ROI
+  void ViewTAGOn();
+
+  /// Turn display of ROI
+  void ViewTAGOff();
+
+  /// Return display of ROI
+  int GetViewTAG();
 
   /// Turn display of deformation arrows on
   void DisplayDeformationArrowsOn();
@@ -1050,6 +1083,16 @@ inline double irtkRView::GetViewMix()
   return _viewMix;
 }
 
+inline void irtkRView::SetLineThickness(double value)
+{
+  _LineThickness = value;
+}
+
+inline double irtkRView::GetLineThickness()
+{
+  return _LineThickness;
+}
+
 inline void irtkRView::DisplayTargetContoursOn()
 {
   _DisplayTargetContour = True;
@@ -1275,6 +1318,36 @@ inline void irtkRView::DisplayROIOff()
 inline int irtkRView::GetDisplayROI()
 {
   return _DisplayROI;
+}
+
+inline void irtkRView::TrackTAGOn()
+{
+  _TrackTAG = True;
+}
+
+inline void irtkRView::TrackTAGOff()
+{
+  _TrackTAG = False;
+}
+
+inline int irtkRView::GetTrackTAG()
+{
+  return _TrackTAG;
+}
+
+inline void irtkRView::ViewTAGOn()
+{
+  _ViewTAG = True;
+}
+
+inline void irtkRView::ViewTAGOff()
+{
+  _ViewTAG = False;
+}
+
+inline int irtkRView::GetViewTAG()
+{
+  return _ViewTAG;
 }
 
 #ifdef HAS_VTK
@@ -1523,13 +1596,13 @@ inline void irtkRView::Clip()
 inline void irtkRView::AddTargetLandmark(irtkPoint &point, char *)
 {
   // Add landmark as point, ignoring label for now
-  _targetLandmarks.Add(point);
+      _targetLandmarks.Add(point);
 }
 
 inline void irtkRView::AddSourceLandmark(irtkPoint &point, char *)
 {
-  // Add landmark as point, ignoring label for now
-  _sourceLandmarks.Add(point);
+  // Add landmark as point, ignoring label for now	
+	  _sourceLandmarks.Add(point);
 }
 
 inline void irtkRView::DeleteTargetLandmark(int id)

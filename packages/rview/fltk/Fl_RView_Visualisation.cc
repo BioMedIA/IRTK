@@ -99,7 +99,7 @@ void Fl_RViewUI::AddSource(char *filename)
 
 void Fl_RViewUI::cb_loadTarget(Fl_Button *, void *v)
 {
-  char *filename = fl_file_chooser("Load target image", "*.{gipl,gipl.gz,hdr,hdr.gz,nii,nii.gz,vtk}", "");
+  char *filename = fl_file_chooser("Load target image", "*.{gipl,gipl.Z,hdr,hdr.gz,nii,nii.gz}", "");
   if (filename != NULL) {
     rview->ReadTarget(filename);
     rview->Update();
@@ -111,7 +111,7 @@ void Fl_RViewUI::cb_loadTarget(Fl_Button *, void *v)
 
 void Fl_RViewUI::cb_loadSource(Fl_Button *, void *v)
 {
-  char *filename = fl_file_chooser("Load source image", "*.{gipl,gipl.gz,hdr,hdr.gz,nii,nii.gz,vtk}", "");
+  char *filename = fl_file_chooser("Load source image", "*.{gipl,gipl.Z,hdr,hdr.gz,nii,nii.gz}", "");
   if (filename != NULL) {
     rview->ReadSource(filename);
     rview->Update();
@@ -231,8 +231,15 @@ void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *v)
 
 void Fl_RViewUI::cb_TargetIsolines(Fl_Check_Button* o, void* v)
 {
-  if (o->value() == 0) rview->DisplayTargetContoursOff();
-  if (o->value() == 1) rview->DisplayTargetContoursOn();
+  if (o->value() == 0) rview->DisplayTargetContoursOff();;
+  if (o->value() == 1) rview->DisplayTargetContoursOn();;
+  rview->Update();
+  viewer->redraw();
+}
+
+void Fl_RViewUI::cb_lineThickness(Fl_Value_Slider* o, void* v)
+{
+  rview->SetLineThickness(o->value());
   rview->Update();
   viewer->redraw();
 }
@@ -689,6 +696,9 @@ void Fl_RViewUI::UpdateImageControlWindow()
   // Update isoline menus
   rviewUI->TargetIsolines->value(rview->GetDisplayTargetContours());
   rviewUI->SourceIsolines->value(rview->GetDisplaySourceContours());
+
+  // Update Line Thickness
+  rviewUI->lineThickness->value(rview->GetLineThickness());
 
   // Update viewing mode
   rviewUI->DisplayNeurological->value(0);

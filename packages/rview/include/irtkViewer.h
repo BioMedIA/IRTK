@@ -61,6 +61,9 @@ public:
   /// Draw control points as deformation grid
   virtual void DrawGrid();
 
+  /// Draw tag grid derived from target landmarks
+  virtual void DrawTagGrid();
+
   /// Draw landmarks
   void DrawLandmarks(irtkPointSet &, irtkGreyImage *, int = True);
 
@@ -87,6 +90,9 @@ public:
 
   /// Update
   Bool Update(irtkGreyImage *, irtkTransformation *);
+
+  /// Update Grid Pattern
+  Bool UpdateTagGrid(irtkGreyImage *, irtkTransformation *, irtkPointSet);
 
   /// Get width of viewer
   int GetWidth();

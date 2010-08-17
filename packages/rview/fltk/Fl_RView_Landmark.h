@@ -19,6 +19,8 @@ private:
 /// Widget for display control of landmarks
 Fl_Button *viewLandmarks;
 
+Fl_Check_Button *viewTagGrid;
+
 /// Widgets for landmark browsing
 Fl_Multi_Browser *targetLandmarkBrowser;
 Fl_Multi_Browser *sourceLandmarkBrowser;
@@ -28,6 +30,8 @@ Fl_Button *viewROI;
 
 /// Callbacks for landmarks and objects
 static void cb_viewROI(Fl_Button*, void*);
+static void cb_trackTAG(Fl_Button*, void*);
+static void cb_viewTagGrid(Fl_Button*, void*);
 static void cb_addLandmark(Fl_Button*, void*);
 static void cb_deleteLandmark(Fl_Button*, void*);
 static void cb_toggleLandmark(Fl_Input*, void*);

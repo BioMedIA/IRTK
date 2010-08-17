@@ -73,6 +73,7 @@ void usage ()
   cerr << "\t<-mix>                           Mixed viewport (checkerboard)\n";
   cerr << "\t<-tcolor color>                  Target image color\n";
   cerr << "\t<-scolor color>                  Source image color\n";
+  cerr << "\t<-line value>                    Line thickness\n";
   cerr << "\t   where color is  <red | blue | green | rainbow>\n";
   cerr << "\t<-diff>                          Subtraction view\n";
   cerr << "\t<-tcontour>                      Switch on target contours (see -tmin)\n";
@@ -534,7 +535,14 @@ int main(int argc, char** argv)
       rview->SegmentationUpdateOn();
       ok = True;
     }
-    if ((ok == False) && (strcmp(argv[1], "-tcolor") == 0)) {
+	if ((ok == False) && (strcmp(argv[1], "-line") == 0)) {
+      argc--;
+      argv++;
+	  rview->SetLineThickness(atoi(argv[1]));
+	  argc--;
+	  argv++;
+	}
+	if ((ok == False) && (strcmp(argv[1], "-tcolor") == 0)) {
       argc--;
       argv++;
       if (strcmp(argv[1], "red") == 0) {

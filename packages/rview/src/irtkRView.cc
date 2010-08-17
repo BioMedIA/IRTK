@@ -83,8 +83,14 @@ irtkRView::irtkRView(int x, int y) {
 	_DisplayTargetContour = False;
 	_DisplaySourceContour = False;
 
+	// Default: Line Thickness
+	_LineThickness = 2;
+
 	// Default: No ROI
 	_DisplayROI = False;
+
+	// Default: No TAG
+	_TrackTAG = False;
 
 	// Default: Cursor
 	_DisplayCursor = True;
@@ -477,7 +483,7 @@ void irtkRView::Draw() {
 		// Draw iso-contours in target image if needed
 		if (_DisplayTargetContour == True) {
 			_viewer[k]->DrawIsolines(_targetImageOutput[k],
-					_targetLookupTable->GetMinDisplayIntensity());
+				_targetLookupTable->GetMinDisplayIntensity());
 		}
 		// Draw iso-contours in source image if needed
 		if (_DisplaySourceContour == True) {
@@ -487,6 +493,13 @@ void irtkRView::Draw() {
 		// Draw segmentation if needed
 		if (_DisplaySegmentationContours == True) {
 			_viewer[k]->DrawSegmentationContour(_segmentationImageOutput[k]);
+		}
+		// Draw tag grid if needed
+		if (_ViewTAG == True) {
+			// Update grid information based on landmarks
+			if(_viewer[k]->UpdateTagGrid(_sourceImageOutput[k], _sourceTransform,_targetLandmarks) == True)
+				// If there are 4 landmarks
+				_viewer[k]->DrawTagGrid();
 		}
 
 		// Update image viewer if necessary

@@ -42,6 +42,15 @@ double  _BeforeY [MaxNumberOfCP][MaxNumberOfCP];
 double  _BeforeZ [MaxNumberOfCP][MaxNumberOfCP];
 _Status _CPStatus[MaxNumberOfCP][MaxNumberOfCP];
 
+int     _NumberOfGridX;
+int     _NumberOfGridY;
+double  _AfterGridX  [MaxNumberOfCP][MaxNumberOfCP];
+double  _AfterGridY  [MaxNumberOfCP][MaxNumberOfCP];
+double  _AfterGridZ  [MaxNumberOfCP][MaxNumberOfCP];
+double  _BeforeGridX [MaxNumberOfCP][MaxNumberOfCP];
+double  _BeforeGridY [MaxNumberOfCP][MaxNumberOfCP];
+double  _BeforeGridZ [MaxNumberOfCP][MaxNumberOfCP];
+
 // Define the default color scheme
 #define COLOR_GRID             glColor3f(1, 1, 0)
 #define COLOR_ARROWS           glColor3f(1, 1, 0)
@@ -292,6 +301,107 @@ Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
   return True;
 }
 
+Bool irtkViewer::UpdateTagGrid(irtkGreyImage *image, irtkTransformation *transformation, irtkPointSet landmark)
+{  
+	if(landmark.Size() == 4){	
+		irtkFreeFormTransformation *affd = NULL;
+		irtkMultiLevelFreeFormTransformation *mffd = NULL;
+		irtkPoint p1,p2;
+		double dx,dy,dz, t;
+		int i, j, k, i1, j1, k1, i2, j2, k2, index, m, n;
+		for (i = 0; i < landmark.Size(); i++) {
+			image->WorldToImage(landmark(i));
+		}
+		// Check transformation
+		mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
+
+		if (mffd == NULL) {
+			// Not an multi-level FFD, so let's try a single-level FFD
+			affd = dynamic_cast<irtkFreeFormTransformation *>(transformation);
+		} else {
+			affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
+		}
+
+		// Find out time
+		t = image->ImageToTime(0);
+
+		// Find out first corner of ROI
+		landmark.BoundingBox(p1,p2);
+		i1 = round(p1._x);
+		j1 = round(p1._y);
+		k1 = round(p1._z);
+
+		// Find out second corner of ROI
+		i2 = round(p2._x);
+		j2 = round(p2._y);
+		k2 = round(p2._z);
+
+		switch (_viewerMode) {
+	case Viewer_XY:
+		_NumberOfGridX = 9;
+		_NumberOfGridY = 9;
+		break;
+	case Viewer_XZ:
+		_NumberOfGridX = 9;
+		_NumberOfGridY = 9;
+		break;
+	case Viewer_YZ:
+		_NumberOfGridX = 9;
+		_NumberOfGridY = 9;
+		break;
+		}
+
+		dx = (i2 - i1)/8;
+		dy = (j2 - j1)/8;
+		dz = (k2 - k1)/8;
+
+		if(dx < 1) dx = 1;
+		if(dy < 1) dy = 1;
+		if(dz < 1) dz = 1;
+
+		for (k = k1; k <= k2; k = k+dz) {
+			for (j = j1; j <= j2; j = j+dy) {
+				for (i = i1; i <= i2; i = i+dx) {
+					// Calculate control points before and after deformation
+					switch (_viewerMode) {
+		  case Viewer_XY:
+			  m = (i-i1)/dx;
+			  n = (j-j1)/dy;
+			  break;
+		  case Viewer_XZ:
+			  m = (i-i1)/dx;
+			  n = (k-k1)/dz;
+			  break;
+		  case Viewer_YZ:
+			  m = (j-j1)/dy;
+			  n = (k-k1)/dz;
+			  break;
+		  default:
+			  break;
+					}
+					_BeforeGridX[m][n] = i;
+					_BeforeGridY[m][n] = j;
+					_BeforeGridZ[m][n] = k;
+					image->ImageToWorld(_BeforeGridX[m][n], _BeforeGridY[m][n], _BeforeGridZ[m][n]);
+					_AfterGridX[m][n] = _BeforeGridX[m][n];
+					_AfterGridY[m][n] = _BeforeGridY[m][n];
+					_AfterGridZ[m][n] = _BeforeGridZ[m][n];
+					if (mffd != NULL) {
+						mffd->Transform(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n], t);
+						mffd->irtkAffineTransformation::Inverse(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n]);
+					} else if(affd != NULL) {
+						affd->Transform(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n], t);
+					}
+					image->WorldToImage(_BeforeGridX[m][n], _BeforeGridY[m][n], _BeforeGridZ[m][n]);
+					image->WorldToImage(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n]);
+				}
+			}
+		}
+		return True;
+	}else
+		return False;
+}
+
 Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformation)
 {
   double dx, dy, t;
@@ -423,7 +533,7 @@ void irtkViewer::DrawIsolines(irtkGreyImage *image, int value)
 
   // Set color
   COLOR_ISOLINES;
-
+  glLineWidth(_rview->GetLineThickness());
   glBegin(GL_LINES);
 
   for (j = 0; j < this->GetHeight()-1; j++) {
@@ -434,6 +544,7 @@ void irtkViewer::DrawIsolines(irtkGreyImage *image, int value)
            (image->Get(i+1, j, 0) <= value))) {
         glVertex2f(_screenX1+i+0.5, _screenY1+j-0.5);
         glVertex2f(_screenX1+i+0.5, _screenY1+j+0.5);
+		
       }
       if (((image->Get(i, j, 0)   <= value) &&
            (image->Get(i, j+1, 0)  > value)) ||
@@ -445,12 +556,14 @@ void irtkViewer::DrawIsolines(irtkGreyImage *image, int value)
     }
   }
   glEnd();
+  glLineWidth(1);
 }
 
 void irtkViewer::DrawSegmentationContour(irtkGreyImage *image)
 {
   int i, j;
   unsigned char r, g, b;
+  glLineWidth(_rview->GetLineThickness());
 
   for (j = 1; j < this->GetHeight()-1; j++) {
     for (i = 1; i < this->GetWidth()-1; i++) {
@@ -489,6 +602,7 @@ void irtkViewer::DrawSegmentationContour(irtkGreyImage *image)
       }
     }
   }
+  glLineWidth(1);
 }
 
 void irtkViewer::DrawGrid()
@@ -497,6 +611,8 @@ void irtkViewer::DrawGrid()
 
   // Set color
   COLOR_GRID;
+
+  glLineWidth(_rview->GetLineThickness());
 
   glBegin(GL_LINES);
   for (j = 0; j < _NumberOfY; j++) {
@@ -512,6 +628,33 @@ void irtkViewer::DrawGrid()
     }
   }
   glEnd();
+
+  glLineWidth(1);
+}
+
+void irtkViewer::DrawTagGrid()
+{
+  int i, j;
+
+  // Set color
+  COLOR_GRID;
+  glLineWidth(_rview->GetLineThickness());
+
+  glBegin(GL_LINES);
+  for (j = 0; j < _NumberOfGridY; j++) {
+    for (i = 0; i < _NumberOfGridX-1; i++) {
+      glVertex2f(_screenX1+_AfterGridX[i][j],   _screenY1+_AfterGridY[i][j]);
+      glVertex2f(_screenX1+_AfterGridX[i+1][j], _screenY1+_AfterGridY[i+1][j]);
+    }
+  }
+  for (j = 0; j < _NumberOfGridY-1; j++) {
+    for (i = 0; i < _NumberOfGridX; i++) {
+      glVertex2f(_screenX1+_AfterGridX[i][j],   _screenY1+_AfterGridY[i][j]);
+      glVertex2f(_screenX1+_AfterGridX[i][j+1], _screenY1+_AfterGridY[i][j+1]);
+    }
+  }
+  glEnd();
+  glLineWidth(1);
 }
 
 void irtkViewer::DrawArrows()
