@@ -113,22 +113,25 @@ public:
   /// Inverts the transformation (abstract)
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.01) = 0;
 
-  /// Calculate the Jacobian of the transformation
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
+
+  /// Calculate the Jacobian of the transformation with respect to world coordinates
   virtual void Jacobian(irtkMatrix &, double, double, double, double = 0) = 0;
 
-  /// Calculate the Jacobian of the local transformation
+  /// Calculate the Jacobian of the local transformation with respect to world coordinates
   virtual void LocalJacobian(irtkMatrix &, double, double, double, double = 0) = 0;
 
-  /// Calculate the Jacobian of the global transformation
+  /// Calculate the Jacobian of the global transformation with respect to world coordinates
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0) = 0;
 
-  /// Calculate the determinant of the Jacobian of the transformation
+  /// Calculate the determinant of the Jacobian of the transformation with respect to world coordinates
   virtual double Jacobian(double, double, double, double = 0);
 
-  /// Calculate the determinant of the Jacobian of the local transformation
+  /// Calculate the determinant of the Jacobian of the local transformation with respect to world coordinates
   virtual double LocalJacobian(double, double, double, double = 0);
 
-  /// Calculate the determinant of the Jacobian of the global transformation
+  /// Calculate the determinant of the Jacobian of the global transformation with respect to world coordinates
   virtual double GlobalJacobian(double, double, double, double = 0);
 
   /// Calculate displacement vectors for image
@@ -228,6 +231,12 @@ inline void irtkTransformation::LocalDisplacement(double &x, double &y, double &
   x = a - x;
   y = b - y;
   z = c - z;
+}
+
+inline void irtkTransformation::JacobianDOFs(double [3], int, double, double, double, double)
+{
+	cerr << this->NameOfClass() << ": JacobianDOFs() not implemented for this class" << endl;
+	exit(1);
 }
 
 inline double irtkTransformation::Jacobian(double x, double y, double z, double t)
