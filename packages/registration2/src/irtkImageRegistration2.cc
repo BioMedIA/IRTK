@@ -655,6 +655,7 @@ void irtkImageRegistration2::EvaluateGradientNMI()
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
 
+      	// This code is based on an idea from Marc Modat for computing the NMI derivative as suggested in his niftyreg package
         if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
           irtkGreyPixel targetValue = *ptr2target;
           irtkRealPixel sourceValue = *ptr2source;
