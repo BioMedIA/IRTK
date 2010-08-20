@@ -28,6 +28,7 @@ IF (BUILD_CONDOR_EXE)
 ELSE(BUILD_CONDOR_EXE)
 
     ADD_EXECUTABLE(areg areg.cc)
+    ADD_EXECUTABLE(areg2 areg2.cc)
     ADD_EXECUTABLE(approximate approximate.cc)
     ADD_EXECUTABLE(approximate4D approximate4D.cc)
     ADD_EXECUTABLE(atlas atlas.cc)
@@ -65,6 +66,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(hreg hreg.cc)
     ADD_EXECUTABLE(image2dof image2dof.cc)
     ADD_EXECUTABLE(jacobian jacobian.cc)
+    ADD_EXECUTABLE(jactest jactest.cc)
     ADD_EXECUTABLE(largedeformations largedeformations.cc)
     ADD_EXECUTABLE(mat2dof mat2dof.cc)
     ADD_EXECUTABLE(mareg mareg.cc)
@@ -77,6 +79,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(msrreg msrreg.cc)
     ADD_EXECUTABLE(normalize normalize.cc)
     ADD_EXECUTABLE(nreg nreg.cc)
+    ADD_EXECUTABLE(nreg2 nreg2.cc)
     ADD_EXECUTABLE(pareg pareg.cc)
     ADD_EXECUTABLE(pcaloo pcaloo.cc)
     ADD_EXECUTABLE(pcanalysis pcanalysis.cc)
@@ -87,6 +90,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(prreg prreg.cc)
     ADD_EXECUTABLE(ptransformation ptransformation.cc)
     ADD_EXECUTABLE(rreg rreg.cc)
+    ADD_EXECUTABLE(rreg2 rreg2.cc)
     ADD_EXECUTABLE(sareg sareg.cc)
     ADD_EXECUTABLE(sevaluation sevaluation.cc)
     ADD_EXECUTABLE(shreg shreg.cc)
@@ -101,14 +105,14 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
-INSTALL_TARGETS(/bin approximate approximate4D areg atlas compare demons
-dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
+INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare 
+demons dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
 evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
 ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
-hreg image2dof jacobian mat2dof mareg mnreg motiontrack mrreg nreg normalize 
-pareg pevaluation phreg pnreg prreg ptransformation rreg subtract sareg 
-sevaluation shreg snreg srreg stransformation subtract symnreg 
-transformation transformation2 volumechange vtk2ffd)
+hreg image2dof jacobian mat2dof mareg mnreg motiontrack mrreg nreg nreg2 
+normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 
+subtract sareg sevaluation shreg snreg srreg stransformation subtract 
+symnreg transformation transformation2 volumechange vtk2ffd jactest)
 
 ENDIF (BUILD_CONDOR_EXE)
 

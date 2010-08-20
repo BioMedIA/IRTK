@@ -104,6 +104,7 @@ INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/image++/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/contrib++/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/transformation/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/registration/include)
+INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/registration2/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/segmentation/include)
 
 LINK_DIRECTORIES(${IRTK_BINARY_DIR}/lib) 
@@ -147,7 +148,7 @@ IF (BUILD_WITH_VTK)
 ENDIF (BUILD_WITH_VTK)
 
 
-LINK_LIBRARIES(segmentation++ registration++ transformation++ contrib++
+LINK_LIBRARIES(segmentation++ registration2++ registration++ transformation++ contrib++
 image++ geometry++ common++ recipes) 
 
 # Options to build with nifti, znz and possibly fslio

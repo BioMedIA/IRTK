@@ -1,4 +1,4 @@
-SUBDIRS(transformation registration rview segmentation applications)
+SUBDIRS(transformation registration registration2 rview segmentation applications)
 
 IF (BUILD_CARDIAC)
   SUBDIRS(cardiac)
