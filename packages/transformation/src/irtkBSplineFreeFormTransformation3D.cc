@@ -638,6 +638,21 @@ void irtkBSplineFreeFormTransformation3D::LocalJacobian(irtkMatrix &jac, double 
   jac(2, 2) += 1;
 }
 
+void irtkBSplineFreeFormTransformation3D::JacobianDOFs(double jac[3], int dof, double x, double y, double z, double)
+{
+	int i, j, k;
+
+  // Transforms index of control point location
+  this->IndexToLattice(dof, i, j, k);
+
+  // Compute lattice coordinates
+  this->WorldToLattice(x, y, z);
+
+  jac[0] = this->B(x - i) * this->B(y - j) * this->B(z - k);
+  jac[1] = jac[0];
+  jac[2] = jac[0];
+}
+
 double irtkBSplineFreeFormTransformation3D::Bending(double x, double y, double z)
 {
   int i, j, k, l, m, n, I, J, K, S, T, U;

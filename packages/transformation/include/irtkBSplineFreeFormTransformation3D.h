@@ -100,6 +100,9 @@ protected:
 
 public:
 
+  /// Returns the value of the B-spline basis function
+  static double B (double);
+
   /// Returns the value of the i-th B-spline basis function
   static double B (int, double);
 
@@ -181,6 +184,9 @@ public:
   /// Calculate the Jacobian of the global transformation
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
+
   /// Calculate the bending energy of the transformation
   virtual double Bending(double x, double y, double z);
 
@@ -204,6 +210,10 @@ public:
   virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &,
                            int &, int &, int &, double = 1) const;
 
+  /** Returns the bounding box for a control point (in pixels). The last
+   *  parameter specifies what fraction of the bounding box to return. The
+   *  default is 1 which equals 100% of the bounding box.
+   */
   virtual void MultiBoundingBox(irtkGreyImage *, int, int &, int &, int &,
                            int &, int &, int &, double = 1) const;
 
@@ -229,6 +239,20 @@ public:
   virtual ostream& Export(ostream&);
 
 };
+
+inline double irtkBSplineFreeFormTransformation3D::B(double x)
+{
+  x=fabs(x);
+  double value=0.0;
+  if(x<2.0)
+    if(x<1.0)
+      value = (double)(2.0f/3.0f + (0.5f*x-1.0)*x*x);
+    else {
+      x-=2.0f;
+      value = -x*x*x/6.0f;
+    }
+  return value;
+}
 
 inline double irtkBSplineFreeFormTransformation3D::B(int i, double t)
 {
