@@ -49,6 +49,24 @@ protected:
   /// Rotation around the z-axis (in degrees)
   double _rz;
 
+  /// Cosine of rotation angle rx
+  double _cosrx;
+
+  /// Cosine of rotation angle ry
+  double _cosry;
+
+  /// Cosine of rotation angle rz
+  double _cosrz;
+
+  /// Sine of rotation angle rx
+  double _sinrx;
+
+  /// Sine of rotation angle ry
+  double _sinry;
+
+  /// Sine of rotation angle rz
+  double _sinrz;
+
   /// Construct a matrix based on parameters passed in the array.
   virtual irtkMatrix Parameters2Matrix(double *) const;
 
@@ -69,6 +87,9 @@ public:
 
   /// Destructor
   virtual ~irtkRigidTransformation();
+
+  /// Reset transformation
+  virtual void Reset();
 
   /// Puts translation along the x-axis (transformation matrix is updated)
   void   PutTranslationX(double);
@@ -117,6 +138,9 @@ public:
 
   /// Transforms a point by the rotation part of the rigid transformation.
   virtual void Rotate(double& x, double& y, double& z);
+
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
 
   /// Checks whether transformation is an identity mapping
   virtual Bool IsIdentity();
@@ -206,8 +230,18 @@ inline irtkRigidTransformation::irtkRigidTransformation(const irtkRigidTransform
 }
 
 inline irtkRigidTransformation::~irtkRigidTransformation()
+{}
+
+inline void irtkRigidTransformation::Reset()
 {
+  // Initialize rotations and translations
+  _tx = _ty = _tz = 0;
+  _rx = _ry = _rz = 0;
+
+  // Update transformation matrix
+  this->UpdateMatrix();
 }
+
 
 inline void irtkRigidTransformation::PutRotationX(double rx)
 {

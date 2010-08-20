@@ -25,28 +25,29 @@ extern void visualize(irtkPointSet& pset, int nx, int ny, int nz);
 
 void irtkRigidTransformation::UpdateMatrix()
 {
-  double cosrx = cos(_rx*(M_PI/180.0));
-  double cosry = cos(_ry*(M_PI/180.0));
-  double cosrz = cos(_rz*(M_PI/180.0));
-  double sinrx = sin(_rx*(M_PI/180.0));
-  double sinry = sin(_ry*(M_PI/180.0));
-  double sinrz = sin(_rz*(M_PI/180.0));
+  // Update sines and cosines
+  _cosrx = cos(_rx*(M_PI/180.0));
+  _cosry = cos(_ry*(M_PI/180.0));
+  _cosrz = cos(_rz*(M_PI/180.0));
+  _sinrx = sin(_rx*(M_PI/180.0));
+  _sinry = sin(_ry*(M_PI/180.0));
+  _sinrz = sin(_rz*(M_PI/180.0));
 
   // Create a transformation whose transformation matrix is an identity matrix
   _matrix.Ident();
 
   // Add other transformation parameters to transformation matrix
-  _matrix(0,0) = cosry*cosrz;
-  _matrix(0,1) = cosry*sinrz;
-  _matrix(0,2) = -sinry;
+  _matrix(0,0) = _cosry*_cosrz;
+  _matrix(0,1) = _cosry*_sinrz;
+  _matrix(0,2) = -_sinry;
   _matrix(0,3) = _tx;
-  _matrix(1,0) = (sinrx*sinry*cosrz-cosrx*sinrz);
-  _matrix(1,1) = (sinrx*sinry*sinrz+cosrx*cosrz);
-  _matrix(1,2) = sinrx*cosry;
+  _matrix(1,0) = (_sinrx*_sinry*_cosrz-_cosrx*_sinrz);
+  _matrix(1,1) = (_sinrx*_sinry*_sinrz+_cosrx*_cosrz);
+  _matrix(1,2) = _sinrx*_cosry;
   _matrix(1,3) = _ty;
-  _matrix(2,0) = (cosrx*sinry*cosrz+sinrx*sinrz);
-  _matrix(2,1) = (cosrx*sinry*sinrz-sinrx*cosrz);
-  _matrix(2,2) = cosrx*cosry;
+  _matrix(2,0) = (_cosrx*_sinry*_cosrz+_sinrx*_sinrz);
+  _matrix(2,1) = (_cosrx*_sinry*_sinrz-_sinrx*_cosrz);
+  _matrix(2,2) = _cosrx*_cosry;
   _matrix(2,3) = _tz;
   _matrix(3,3) = 1.0;
 }
@@ -105,6 +106,14 @@ void irtkRigidTransformation::UpdateParameter()
   _rx = rigidParams[RX];
   _ry = rigidParams[RY];
   _rz = rigidParams[RZ];
+
+    // Update sines and cosines
+  _cosrx = cos(_rx*(M_PI/180.0));
+  _cosry = cos(_ry*(M_PI/180.0));
+  _cosrz = cos(_rz*(M_PI/180.0));
+  _sinrx = sin(_rx*(M_PI/180.0));
+  _sinry = sin(_ry*(M_PI/180.0));
+  _sinrz = sin(_rz*(M_PI/180.0));
 }
 
 void irtkRigidTransformation::Matrix2Parameters(irtkMatrix m, double* params) const
@@ -142,54 +151,54 @@ void irtkRigidTransformation::Matrix2Parameters(irtkMatrix m, double* params) co
 double irtkRigidTransformation::Get(int i) const
 {
   switch (i) {
-  case TX:
-    return _tx;
-    break;
-  case TY:
-    return _ty;
-    break;
-  case TZ:
-    return _tz;
-    break;
-  case RX:
-    return _rx;
-    break;
-  case RY:
-    return _ry;
-    break;
-  case RZ:
-    return _rz;
-    break;
-  default:
-    cerr << "irtkRigidTransformation::Get: No such dof" << endl;
-    return 0;
+    case TX:
+      return _tx;
+      break;
+    case TY:
+      return _ty;
+      break;
+    case TZ:
+      return _tz;
+      break;
+    case RX:
+      return _rx;
+      break;
+    case RY:
+      return _ry;
+      break;
+    case RZ:
+      return _rz;
+      break;
+    default:
+      cerr << "irtkRigidTransformation::Get: No such dof" << endl;
+      return 0;
   }
 }
 
 void irtkRigidTransformation::Put(int i, double x)
 {
   switch (i) {
-  case TX:
-    _tx = x;
-    break;
-  case TY:
-    _ty = x;
-    break;
-  case TZ:
-    _tz = x;
-    break;
-  case RX:
-    _rx = x;
-    break;
-  case RY:
-    _ry = x;
-    break;
-  case RZ:
-    _rz = x;
-    break;
-  default:
-    cerr << "irtkRigidTransformation::Put: No such dof" << endl;
-    exit(1);
+    case TX:
+      _tx = x;
+      break;
+    case TY:
+      _ty = x;
+      break;
+    case TZ:
+      _tz = x;
+      break;
+    case RX:
+      _rx = x;
+      break;
+    case RY:
+      _ry = x;
+      break;
+    case RZ:
+      _rz = x;
+      break;
+    default:
+      cerr << "irtkRigidTransformation::Put: No such dof" << endl;
+      exit(1);
   }
 
   // Update transformation matrix
@@ -205,7 +214,7 @@ int irtkRigidTransformation::CheckHeader(char *name)
 
   if (!from) {
     cerr << "irtkRigidTransformation::CheckHeader: Can't open file "
-         << name << "\n";
+    << name << "\n";
     exit(1);
   }
 
@@ -237,6 +246,58 @@ void irtkRigidTransformation::Rotate(double& x, double& y, double& z)
   x = a;
   y = b;
   z = c;
+}
+
+void irtkRigidTransformation::JacobianDOFs(double jac[3], int dof, double x, double y, double z, double)
+{
+  switch (dof) {
+    case TX:
+      jac[0]  = 1;
+      jac[1]  = 0;
+      jac[2]  = 0;
+      break;
+    case TY:
+      jac[0]  = 0;
+      jac[1]  = 1;
+      jac[2]  = 0;
+      break;
+    case TZ:
+      jac[0]  = 0;
+      jac[1]  = 0;
+      jac[2]  = 1;
+      break;
+    case RX:
+      // Ensure that the derivatives are expressed with respect to angles not radians
+      x *= (M_PI/180.0);
+      y *= (M_PI/180.0);
+      z *= (M_PI/180.0);
+      jac[0]  = 0;
+      jac[1]  = (_cosrx*_sinry*_cosrz+_sinrx*_sinrz)*x + (_cosrx*_sinry*_sinrz-_sinrx*_cosrz)*y + _cosrx*_cosry*z;
+      jac[2]  = (-_sinrx*_sinry*_cosrz+_cosrx*_sinrz)*x + (-_sinrx*_sinry*_sinrz-_cosrx*_cosrz)*y - _sinrx*_cosry*z;
+      break;
+    case RY:
+      // Ensure that the derivatives are expressed with respect to angles not radians
+      x *= (M_PI/180.0);
+      y *= (M_PI/180.0);
+      z *= (M_PI/180.0);
+      jac[0]  = -_sinry*_cosrz*x - _sinry*_sinrz*y - _cosry*z;
+      jac[1]  = (_sinrx*_cosry*_cosrz)*x + (_sinrx*_cosry*_sinrz)*y - _sinry*_sinrx*z;
+      jac[2]  = (_cosrx*_cosry*_cosrz)*x + (_cosrx*_cosry*_sinrz)*y - _cosrx*_sinry*z;
+      break;
+    case RZ:
+      // Ensure that the derivatives are expressed with respect to angles not radians
+      x *= (M_PI/180.0);
+      y *= (M_PI/180.0);
+      z *= (M_PI/180.0);
+      jac[0]  = -_sinrz*_cosry*x + _cosry*_cosrz*y;
+      jac[1]  = (-_sinrx*_sinry*_sinrz-_cosrx*_cosrz)*x + (_sinrx*_sinry*_cosrz-_cosrx*_sinrz)*y;
+      jac[2]  = (-_cosrx*_sinry*_sinrz+_sinrx*_cosrz)*x + (_cosrx*_sinry*_cosrz+_sinrx*_sinrz)*y;
+      break;
+    default:
+      cerr << this->NameOfClass() << "::JacobianDOFs(): No such dof = " << dof << endl;
+      exit(1);
+      break;
+  }
 }
 
 void irtkRigidTransformation::Print()

@@ -54,6 +54,15 @@ protected:
   /// Skew angle in the x direction based on z component (in degrees)
   double _sxz;
 
+  /// Tan of shear angle sxy
+  double _tansxy;
+
+  /// Tan of shear angle sxz
+  double _tansxz;
+
+  /// Tan of shear angle syz
+  double _tansyz;
+
   /// Construct a matrix based on parameters passed in the array.
   virtual irtkMatrix Parameters2Matrix(double *) const;
 
@@ -69,9 +78,6 @@ public:
   /// Constructor (default)
   irtkAffineTransformation();
 
-  /// Reset Transformation
-  virtual void Reset();
-
   /// Constructor (copy)
   irtkAffineTransformation(const irtkRigidTransformation &);
 
@@ -80,6 +86,9 @@ public:
 
   /// Destructor
   virtual ~irtkAffineTransformation();
+
+  /// Reset transformation
+  virtual void Reset();
 
   /// Puts scaling factor along the x-axis
   virtual void   PutScaleX(double);
@@ -126,6 +135,9 @@ public:
   /// Gets a transformation parameter
   virtual double Get(int) const;
 
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
+
   /// Checks whether transformation is an identity mapping
   virtual Bool IsIdentity();
 
@@ -160,60 +172,6 @@ public:
   virtual void UpdateParameter();
 
 };
-
-inline void irtkAffineTransformation::Reset()
-{
-  // Initialize rotations and translations
-  _tx = _ty = _tz = 0;
-  _rx = _ry = _rz = 0;
-
-  // Initialize scale and shears
-  _sx  = _sy  = _sz  = 100;
-  _sxy = _syz = _sxz = 0;
-
-  //define transformation's orientation
-  /*irtkMatrix m(3,3); double params[3];
-  int RX = 0; int RY = 1; int RZ = 2;
-  double *x,*y,*z;
-  x = new double[3];
-  y = new double[3];
-  z = new double[3];
-  input.GetOrientation(x,y,z); 
-  m(0,0) = x[0]; m(0,1) = x[1]; m(0,2) = x[2];
-  m(1,0) = y[0]; m(1,1) = y[1]; m(1,2) = y[2];
-  m(2,0) = z[0]; m(2,1) = z[1]; m(2,2) = z[2];  
-  delete x,y,z;
-  double tmp = asin(-1 * m(0,2));
-  //double tmp1 = m(0,2);
-  //double cost = cos(tmp);
-
-  // asin returns values for tmp in range -pi/2 to +pi/2, i.e. cos(tmp) >=
-  // 0 so the division by cos(tmp) in the first part of the if clause was
-  // not needed.
-  if (fabs(cos(tmp)) > 0.0000001) {
-    params[RX] = atan2(m(1,2), m(2,2));
-    params[RY] = tmp;
-    params[RZ] = atan2(m(0,1), m(0,0));
-  } else {
-    //m(0,2) is close to +1 or -1
-    params[RX] = atan2(-1.0*m(0,2)*m(1,0), -1.0*m(0,2)*m(2,0));
-    params[RY] = tmp;
-    params[RZ] = 0;
-  }
-
-  // Convert to degrees.
-  params[RX] *= 180.0/M_PI;
-  params[RY] *= 180.0/M_PI;
-  params[RZ] *= 180.0/M_PI;
-
-  //set rotation for transformation
-  _rx = params[RX];
-  _ry = params[RY];
-  _rz = params[RZ];*/
-  // Update transformation matrix
-  this->UpdateMatrix();
-}
-
 
 inline int irtkAffineTransformation::NumberOfDOFs() const
 {
@@ -323,7 +281,19 @@ inline irtkAffineTransformation::irtkAffineTransformation(const irtkAffineTransf
 
 inline irtkAffineTransformation::~irtkAffineTransformation()
 {
+}
 
+inline void irtkAffineTransformation::Reset()
+{
+  // Reset rigid part
+  this->irtkRigidTransformation::Reset();
+
+  // Initialize scale and shears
+  _sx  = _sy  = _sz  = 100;
+  _sxy = _syz = _sxz = 0;
+
+  // Update transformation matrix
+  this->UpdateMatrix();
 }
 
 inline void irtkAffineTransformation::PutScaleX(double sx)

@@ -156,7 +156,7 @@ void irtkMultiLevelFreeFormTransformation::Transform(int n, double &x, double &y
 
   if (n > _NumberOfLevels) {
     cerr << "irtkMultiLevelFreeFormTransformation::Transform: No such "
-         << "transformation" << endl;
+    << "transformation" << endl;
     exit(1);
   }
 
@@ -253,7 +253,7 @@ void irtkMultiLevelFreeFormTransformation::LocalTransform(int n, double &x, doub
 
   if (n > _NumberOfLevels) {
     cerr << "irtkMultiLevelFreeFormTransformation::LocalTransform: No such "
-         << "transformation" << endl;
+    << "transformation" << endl;
     exit(1);
   }
 
@@ -292,7 +292,7 @@ void irtkMultiLevelFreeFormTransformation::LocalDisplacement(int n, double &x, d
 
   if (n > _NumberOfLevels) {
     cerr << "irtkMultiLevelFreeFormTransformation::LocalDisplacement: No such "
-         << "transformation" << endl;
+    << "transformation" << endl;
     exit(1);
   }
 
@@ -457,7 +457,7 @@ int irtkMultiLevelFreeFormTransformation::CheckHeader(char *name)
 
   if (!from) {
     cerr << "irtkMultiLevelFreeFormTransformation::CheckHeader: Can't open file "
-         << name << "\n";
+    << name << "\n";
     exit(1);
   }
 
@@ -526,7 +526,7 @@ istream& irtkMultiLevelFreeFormTransformation::Import(istream &from)
             ((irtkEigenFreeFormTransformation *)_localTransformation[i])->Import(from);
           } else {
             cerr << "irtkMultiLevelFreeFormTransformation::Import: Unknown file format "
-                 << buffer << endl;
+            << buffer << endl;
             exit(1);
           }
         }
@@ -612,31 +612,31 @@ irtkCifstream& irtkMultiLevelFreeFormTransformation::Read(irtkCifstream& from)
     // Read transformation type
     from.ReadAsUInt(&trans_type, 1);
     switch (trans_type) {
-    case IRTKTRANSFORMATION_BSPLINE_FFD:
-    case IRTKTRANSFORMATION_BSPLINE_FFD_EXT1:
-      from.Seek(offset);
-      _localTransformation[i] = new irtkBSplineFreeFormTransformation;
-      ((irtkBSplineFreeFormTransformation *)_localTransformation[i])->Read(from);
-      break;
-    case IRTKTRANSFORMATION_BSPLINE_FFD_4D:
-      from.Seek(offset);
-      _localTransformation[i] = new irtkBSplineFreeFormTransformation4D;
-      ((irtkBSplineFreeFormTransformation4D *)_localTransformation[i])->Read(from);
-      break;
-    case IRTKTRANSFORMATION_EIGEN_FFD:
-      from.Seek(offset);
-      _localTransformation[i] = new irtkEigenFreeFormTransformation;
-      ((irtkEigenFreeFormTransformation *)_localTransformation[i])->Read(from);
-      break;
-    case IRTKTRANSFORMATION_LINEAR_FFD:
-    case IRTKTRANSFORMATION_LINEAR_FFD_EXT1:
-      from.Seek(offset);
-      _localTransformation[i] = new irtkLinearFreeFormTransformation;
-      ((irtkLinearFreeFormTransformation *)_localTransformation[i])->Read(from);
-      break;
-    default:
-      cerr << "irtkMultiLevelFreeFormTransformation::Read: No a valid transformation type at = " << offset << endl;
-      exit(1);
+      case IRTKTRANSFORMATION_BSPLINE_FFD:
+      case IRTKTRANSFORMATION_BSPLINE_FFD_EXT1:
+        from.Seek(offset);
+        _localTransformation[i] = new irtkBSplineFreeFormTransformation;
+        ((irtkBSplineFreeFormTransformation *)_localTransformation[i])->Read(from);
+        break;
+      case IRTKTRANSFORMATION_BSPLINE_FFD_4D:
+        from.Seek(offset);
+        _localTransformation[i] = new irtkBSplineFreeFormTransformation4D;
+        ((irtkBSplineFreeFormTransformation4D *)_localTransformation[i])->Read(from);
+        break;
+      case IRTKTRANSFORMATION_EIGEN_FFD:
+        from.Seek(offset);
+        _localTransformation[i] = new irtkEigenFreeFormTransformation;
+        ((irtkEigenFreeFormTransformation *)_localTransformation[i])->Read(from);
+        break;
+      case IRTKTRANSFORMATION_LINEAR_FFD:
+      case IRTKTRANSFORMATION_LINEAR_FFD_EXT1:
+        from.Seek(offset);
+        _localTransformation[i] = new irtkLinearFreeFormTransformation;
+        ((irtkLinearFreeFormTransformation *)_localTransformation[i])->Read(from);
+        break;
+      default:
+        cerr << "irtkMultiLevelFreeFormTransformation::Read: No a valid transformation type at = " << offset << endl;
+        exit(1);
 
     }
   }
@@ -782,23 +782,26 @@ void irtkMultiLevelFreeFormTransformation::Print()
 
 void irtkMultiLevelFreeFormTransformation::CombineLocalTransformation()
 {
-  irtkFreeFormTransformation *first,*second;
   int i;
-  first = NULL;
-  second = NULL;
-  while(_NumberOfLevels>1){
-	  first = this->PopLocalTransformation();
-	  second = this->PopLocalTransformation();
-	  if(first->NumberOfDOFs() == second->NumberOfDOFs()){
-		  for(i=0;i<first->NumberOfDOFs();i++){
-			  second->Put(i,first->Get(i)+second->Get(i));
-		  }
-	  }else{
-		cerr << "Combine Local Transformation failed, unequal DOF" <<endl;
-	  }
-	  this->PushLocalTransformation(second);
-	  delete first;
+  irtkFreeFormTransformation *first, *second;
 
+  // Loop over local transformatuons
+  first  = NULL;
+  second = NULL;
+  while(_NumberOfLevels>1) {
+    first  = this->PopLocalTransformation();
+    second = this->PopLocalTransformation();
+    if(first->NumberOfDOFs() == second->NumberOfDOFs()) {
+      for(i = 0; i < first->NumberOfDOFs(); i++) {
+        second->Put(i, first->Get(i) + second->Get(i));
+      }
+    } else {
+      cerr << "irtkMultiLevelFreeFormTransformation::CombineLocalTransformation: Only implemented for transformations with equal no. of DOFs" <<endl;
+      exit(1);
+    }
+    this->PushLocalTransformation(second);
+    // Delete transformation
+    delete first;
   }
 }
 

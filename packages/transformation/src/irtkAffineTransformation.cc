@@ -20,9 +20,12 @@ void irtkAffineTransformation::UpdateMatrix()
   // Update affine transformation: Add shearing
   irtkMatrix skew(4, 4);
   skew.Ident();
-  skew(0, 1) = tan(_sxy*(M_PI/180.0));
-  skew(0, 2) = tan(_sxz*(M_PI/180.0));
-  skew(1, 2) = tan(_syz*(M_PI/180.0));
+  _tansxy = tan(_sxy*(M_PI/180.0));
+  _tansxz = tan(_sxz*(M_PI/180.0));
+  _tansyz = tan(_syz*(M_PI/180.0));
+  skew(0, 1) = _tansxy;
+  skew(0, 2) = _tansxz;
+  skew(1, 2) = _tansyz;
   _matrix *= skew;
 
   // Update affine transformation: Add scaling
@@ -32,7 +35,6 @@ void irtkAffineTransformation::UpdateMatrix()
   scale(1, 1) = _sy / 100.0;
   scale(2, 2) = _sz / 100.0;
   _matrix *= scale;
-
 }
 
 /// Construct a matrix based on parameters passed in the array.
@@ -70,9 +72,12 @@ irtkMatrix irtkAffineTransformation::Parameters2Matrix(double *params) const
   return matrix;
 }
 
-/// Construct a matrix based on old style parameters.
 irtkMatrix irtkAffineTransformation::Parameters2Matrix_15DOFs(double *params) const
 {
+
+  // /// Construct a matrix based on old style parameters and print warning
+  cerr << "irtkAffineTransformation::Parameters2Matrix_15DOFs: Warning, obsolete function, do not use !!!" << endl;
+
   // Get the rigid components.
   irtkMatrix matrix;
   matrix = this->irtkRigidTransformation::Parameters2Matrix(params);
@@ -235,6 +240,19 @@ void irtkAffineTransformation::UpdateParameter()
   _rx = rigidParams[RX];
   _ry = rigidParams[RY];
   _rz = rigidParams[RZ];
+
+  // Update sines and cosines
+  _cosrx = cos(_rx*(M_PI/180.0));
+  _cosry = cos(_ry*(M_PI/180.0));
+  _cosrz = cos(_rz*(M_PI/180.0));
+  _sinrx = sin(_rx*(M_PI/180.0));
+  _sinry = sin(_ry*(M_PI/180.0));
+  _sinrz = sin(_rz*(M_PI/180.0));
+
+  // Update tans
+  _tansxy = tan(_sxy*(M_PI/180.0));
+  _tansxz = tan(_sxz*(M_PI/180.0));
+  _tansyz = tan(_syz*(M_PI/180.0));
 }
 
 double irtkAffineTransformation::Get(int i) const
@@ -244,45 +262,45 @@ double irtkAffineTransformation::Get(int i) const
     return 0;
   }
   switch (i) {
-  case TX:
-    return _tx;
-    break;
-  case TY:
-    return _ty;
-    break;
-  case TZ:
-    return _tz;
-    break;
-  case RX:
-    return _rx;
-    break;
-  case RY:
-    return _ry;
-    break;
-  case RZ:
-    return _rz;
-    break;
-  case SX:
-    return _sx;
-    break;
-  case SY:
-    return _sy;
-    break;
-  case SZ:
-    return _sz;
-    break;
-  case SXY:
-    return _sxy;
-    break;
-  case SYZ:
-    return _syz;
-    break;
-  case SXZ:
-    return _sxz;
-    break;
-  default:
-    cerr << "irtkAffineTransformation::Get: No such dof" << endl;
-    return 0;
+    case TX:
+      return _tx;
+      break;
+    case TY:
+      return _ty;
+      break;
+    case TZ:
+      return _tz;
+      break;
+    case RX:
+      return _rx;
+      break;
+    case RY:
+      return _ry;
+      break;
+    case RZ:
+      return _rz;
+      break;
+    case SX:
+      return _sx;
+      break;
+    case SY:
+      return _sy;
+      break;
+    case SZ:
+      return _sz;
+      break;
+    case SXY:
+      return _sxy;
+      break;
+    case SYZ:
+      return _syz;
+      break;
+    case SXZ:
+      return _sxz;
+      break;
+    default:
+      cerr << "irtkAffineTransformation::Get: No such dof" << endl;
+      return 0;
   }
 }
 
@@ -293,48 +311,108 @@ void irtkAffineTransformation::Put(int i, double x)
     return;
   }
   switch (i) {
-  case TX:
-    _tx = x;
-    break;
-  case TY:
-    _ty = x;
-    break;
-  case TZ:
-    _tz = x;
-    break;
-  case RX:
-    _rx = x;
-    break;
-  case RY:
-    _ry = x;
-    break;
-  case RZ:
-    _rz = x;
-    break;
-  case SX:
-    _sx = x;
-    break;
-  case SY:
-    _sy = x;
-    break;
-  case SZ:
-    _sz = x;
-    break;
-  case SXY:
-    _sxy = x;
-    break;
-  case SYZ:
-    _syz = x;
-    break;
-  case SXZ:
-    _sxz = x;
-    break;
-  default:
-    cerr << "irtkAffineTransformation::Put(): No such dof" << endl;
-    exit(1);
+    case TX:
+      _tx = x;
+      break;
+    case TY:
+      _ty = x;
+      break;
+    case TZ:
+      _tz = x;
+      break;
+    case RX:
+      _rx = x;
+      break;
+    case RY:
+      _ry = x;
+      break;
+    case RZ:
+      _rz = x;
+      break;
+    case SX:
+      _sx = x;
+      break;
+    case SY:
+      _sy = x;
+      break;
+    case SZ:
+      _sz = x;
+      break;
+    case SXY:
+      _sxy = x;
+      break;
+    case SYZ:
+      _syz = x;
+      break;
+    case SXZ:
+      _sxz = x;
+      break;
+    default:
+      cerr << "irtkAffineTransformation::Put(): No such dof" << endl;
+      exit(1);
   }
   // Update transformation matrix
   this->UpdateMatrix();
+}
+
+void irtkAffineTransformation::JacobianDOFs(double jac[3], int dof, double x, double y, double z, double)
+{
+  double tmp;
+
+  // Rotation matrix
+  irtkMatrix r(3, 3);
+  r(0, 0) = _cosry*_cosrz;
+  r(0, 1) = _cosry*_sinrz;
+  r(0, 2) = -_sinry;
+  r(1, 0) = (_sinrx*_sinry*_cosrz-_cosrx*_sinrz);
+  r(1, 1) = (_sinrx*_sinry*_sinrz+_cosrx*_cosrz);
+  r(1, 2) = _sinrx*_cosry;
+  r(2, 0) = (_cosrx*_sinry*_cosrz+_sinrx*_sinrz);
+  r(2, 1) = (_cosrx*_sinry*_sinrz-_sinrx*_cosrz);
+  r(2, 2) = _cosrx*_cosry;
+  r(2, 3) = _tz;
+
+  switch (dof) {
+    case SX:
+      jac[0] = r(0, 0) * x / 100.0;
+      jac[1] = r(1, 0) * x / 100.0;
+      jac[2] = r(2, 0) * x / 100.0;
+      break;
+    case SY:
+      jac[0] = r(0, 0) * _tansxy * y / 100.0 + r(0, 1) * y / 100.0;
+      jac[1] = r(1, 0) * _tansxy * y / 100.0 + r(1, 1) * y / 100.0;
+      jac[2] = r(2, 0) * _tansxy * y / 100.0 + r(2, 1) * y / 100.0;
+      break;
+    case SZ:
+      jac[0] = r(0, 0) * _tansxz * z / 100.0 + r(0, 1) * _tansyz * z / 100.0 + r(0, 2) * z / 100.0;
+      jac[1] = r(1, 0) * _tansxz * z / 100.0 + r(1, 1) * _tansyz * z / 100.0 + r(1, 2) * z / 100.0;
+      jac[2] = r(2, 0) * _tansxz * z / 100.0 + r(2, 1) * _tansyz * z / 100.0 + r(2, 2) * z / 100.0;
+      break;
+    case SXY:
+      tmp = (1.0 / pow(cos(_sxy*(M_PI/180.0)), 2.0))*(M_PI/180.0) * _sy * y / 100.0;
+      jac[0] = r(0, 0) * tmp;
+      jac[1] = r(1, 0) * tmp;
+      jac[2] = r(2, 0) * tmp;
+      break;
+    case SYZ:
+      tmp = (1.0 / pow(cos(_syz*(M_PI/180.0)), 2.0))*(M_PI/180.0) * _sz * z / 100.0;
+      jac[0] = r(0, 1) * tmp;
+      jac[1] = r(1, 1) * tmp;
+      jac[2] = r(2, 1) * tmp;
+      break;
+    case SXZ:
+      tmp = (1.0 / pow(cos(_sxz*(M_PI/180.0)), 2.0))*(M_PI/180.0) * _sz * z / 100.0;
+      jac[0] = r(0, 0) * tmp;
+      jac[1] = r(1, 0) * tmp;
+      jac[2] = r(2, 0) * tmp;
+      break;
+    default:
+      x = _sx / 100.0 * x + _tansxy * y * _sy / 100.0 + _tansxz * z * _sz / 100.0;
+      y = _sy / 100.0 * y + _tansyz * z * _sz / 100.0;
+      z = _sz / 100.0 * z;
+      this->irtkRigidTransformation::JacobianDOFs(jac, dof, x, y, z);
+      break;
+  }
 }
 
 int irtkAffineTransformation::CheckHeader(char *name)
@@ -346,7 +424,7 @@ int irtkAffineTransformation::CheckHeader(char *name)
 
   if (!from) {
     cerr << "irtkAffineTransformation::CheckHeader: Can't open file "
-         << name << "\n";
+    << name << "\n";
     exit(1);
   }
 
@@ -414,7 +492,7 @@ istream& irtkAffineTransformation::Import(istream& is)
   is >> buffer;
   if (strcmp(buffer, "DOF:") != 0) {
     cerr << "irtkAffineTransformation::operator>>: Not a valid transformation"
-         << endl;
+    << endl;
     exit(1);
   }
 
@@ -422,7 +500,7 @@ istream& irtkAffineTransformation::Import(istream& is)
   is >> n;
   if ((n != 6)  && (n != 9) && (n != 12) && (n != 15)) {
     cerr << "irtkAffineTransformation::operator>>: Not an affine or rigid "
-         << "transformation" << endl;
+    << "transformation" << endl;
     exit(1);
   }
 
