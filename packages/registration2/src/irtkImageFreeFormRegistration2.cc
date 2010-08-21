@@ -12,6 +12,12 @@
 
 #include <irtkRegistration2.h>
 
+#ifdef WIN32
+#include <time.h>
+#else
+#include <sys/resouce.h>
+#endif
+
 irtkImageFreeFormRegistration2::irtkImageFreeFormRegistration2()
 {
   // Print debugging information

@@ -18,6 +18,12 @@
 
 #include <irtkGradientImageFilter.h>
 
+#ifdef WIN32
+#include <time.h>
+#else
+#include <sys/resouce.h>
+#endif
+
 extern irtkGreyImage *tmp_target, *tmp_source;
 
 irtkImageRegistration2::irtkImageRegistration2()

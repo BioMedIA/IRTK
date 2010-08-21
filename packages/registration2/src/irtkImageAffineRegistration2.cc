@@ -16,7 +16,11 @@
 
 #include <irtkHomogeneousTransformationIterator.h>
 
-#include <sys/resource.h>
+#ifdef WIN32
+#include <time.h>
+#else
+#include <sys/resouce.h>
+#endif
 
 double irtkImageAffineRegistration2::EvaluateGradient(double *gradient)
 {
