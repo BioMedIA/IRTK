@@ -262,7 +262,7 @@ void irtkImageRegistration2::Initialize(int level)
       // Rescale images by an integer factor if necessary
       target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins, target_min, target_max);
       source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins, source_min, source_max);
-      _histogram = new irtkHistogram_2D<int>(target_nbins, target_nbins);
+      _histogram = new irtkHistogram_2D<int>(target_nbins, source_nbins);
       break;
     default:
       cerr << this->NameOfClass() << "::Initialize(int): No such metric implemented" << endl;
