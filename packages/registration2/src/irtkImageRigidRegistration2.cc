@@ -19,7 +19,7 @@
 #ifdef WIN32
 #include <time.h>
 #else
-#include <sys/resouce.h>
+#include <sys/resource.h>
 #endif
 
 void irtkImageRigidRegistration2::GuessParameter()

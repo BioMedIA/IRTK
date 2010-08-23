@@ -21,7 +21,7 @@
 #ifdef WIN32
 #include <time.h>
 #else
-#include <sys/resouce.h>
+#include <sys/resource.h>
 #endif
 
 extern irtkGreyImage *tmp_target, *tmp_source;
