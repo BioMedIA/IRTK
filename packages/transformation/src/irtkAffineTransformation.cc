@@ -370,7 +370,6 @@ void irtkAffineTransformation::JacobianDOFs(double jac[3], int dof, double x, do
   r(2, 0) = (_cosrx*_sinry*_cosrz+_sinrx*_sinrz);
   r(2, 1) = (_cosrx*_sinry*_sinrz-_sinrx*_cosrz);
   r(2, 2) = _cosrx*_cosry;
-  r(2, 3) = _tz;
 
   switch (dof) {
     case SX:
