@@ -75,11 +75,11 @@ int main(int argc, char **argv)
     cout << "Distance is " << distance[i] << endl;
 
     if (i > 1) {
-      if ((x1 != x2) || (y1 != y2)) {
+      if ((x1 != x2) || (y1 != y2) || (t1 != t2)) {
         cerr << "Image dimensions are different" << endl;
         exit(1);
       }
-      if ((xsize1 != xsize2) || (ysize1 != ysize2)) {
+      if ((xsize1 != xsize2) || (ysize1 != ysize2) || (tsize1 != tsize2)) {
         cerr << "Voxel sizes are different" << endl;
         exit(1);
       }
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
   }
 #endif
 
-  if ((z > 1) && (fabs(distance[index[1]-1] - distance[index[2]-1]) > 0)) {
+  if ((z > 2) && (fabs(distance[index[1]-1] - distance[index[2]-1]) > 0)) {
     // True slice thickness is distance no. 2
     zsize = fabs(distance[index[1]-1] - distance[index[2]-1]);
   } else {
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     for (l = 0; l < t1; l++) {
       for (j = 0; j < y1; j++) {
         for (i = 0; i < x1; i++) {
-          output(i, j, k, l) = input[index[k]-1].Get(i, j, l);
+          output(i, j, k, l) = input[index[k]-1].Get(i, j, 0, l);
         }
       }
     }
