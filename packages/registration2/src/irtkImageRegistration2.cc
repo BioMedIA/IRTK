@@ -316,7 +316,10 @@ void irtkImageRegistration2::Finalize(int level)
   delete tmp_target;
   delete tmp_source;
   delete _interpolator;
-  if (_histogram != NULL) delete _histogram;
+  if (_histogram != NULL) {
+    delete _histogram;
+    _histogram = NULL;
+  }
 }
 
 void irtkImageRegistration2::Update()
@@ -574,7 +577,7 @@ double irtkImageRegistration2::Evaluate()
       metric = this->EvaluateNMI();
       break;
     default:
-    	metric = 0;
+      metric = 0;
       cerr << this->NameOfClass() << "::Evaluate: No such metric implemented" << endl;
       exit(1);
   }
@@ -624,7 +627,7 @@ void irtkImageRegistration2::EvaluateGradientNMI()
 
   // Allocate new histograms
   irtkHistogram_1D<double> logMarginalXHistogram(_histogram->NumberOfBinsX());
-  irtkHistogram_1D<double> logMarginalYHistogram(_histogram->NumberOfBinsX());
+  irtkHistogram_1D<double> logMarginalYHistogram(_histogram->NumberOfBinsY());
   irtkHistogram_2D<double> logJointHistogram(_histogram->NumberOfBinsX(), _histogram->NumberOfBinsY());
 
   // Recompute joint histogram
@@ -639,10 +642,15 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   je  = logJointHistogram.JointEntropy();
   nmi = logJointHistogram.NormalizedMutualInformation();
 
-  // Recompute marginal histograms
+  // Recompute marginal histogram for X
+  for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
+    for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
+      logMarginalXHistogram.Add(i, _histogram->irtkHistogram_2D<int>::operator()(i, j));
+    }
+  }
+  // Recompute marginal histogram for Y
   for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
     for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
-      logMarginalXHistogram.Add(i, _histogram->irtkHistogram_2D<int>::operator()(i, j));
       logMarginalYHistogram.Add(j, _histogram->irtkHistogram_2D<int>::operator()(i, j));
     }
   }
@@ -661,12 +669,12 @@ void irtkImageRegistration2::EvaluateGradientNMI()
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
 
-      	// This code is based on an idea from Marc Modat for computing the NMI derivative as suggested in his niftyreg package
+        // This code is based on an idea from Marc Modat for computing the NMI derivative as suggested in his niftyreg package
         if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
           irtkGreyPixel targetValue = *ptr2target;
           irtkRealPixel sourceValue = *ptr2source;
 
-          if ((targetValue > 0.0f) && (sourceValue > 0.0f) && (targetValue < _histogram->NumberOfBinsX()) && (sourceValue < _histogram->NumberOfBinsY())) {
+          if ((targetValue >= 0) && (sourceValue >= 0.0f) && (targetValue < _histogram->NumberOfBinsX()) && (sourceValue < _histogram->NumberOfBinsY())) {
             // The two is added because the image is resample between 2 and bin +2
             // if 64 bins are used the histogram will have 68 bins et the image will be between 2 and 65
 
@@ -679,9 +687,9 @@ void irtkImageRegistration2::EvaluateGradientNMI()
             }
 
             for (t = targetValue-1; t < targetValue+2; t++) {
-              if (-1 < t && t < _histogram->NumberOfBinsX()) {
+              if ((t >= 0) && (t < _histogram->NumberOfBinsX())) {
                 for (r = (int)(sourceValue-1.0); r < (int)(sourceValue+2.0); r++) {
-                  if ((-1 < r) && (r < _histogram->NumberOfBinsY())) {
+                  if ((r >= 0) && (r < _histogram->NumberOfBinsY())) {
                     w = GetBasisSplineValue((double)t-(double)targetValue) * GetBasisSplineDerivativeValue((double)r-(double)sourceValue);
 
                     double jointLog  = logJointHistogram(t, r);
