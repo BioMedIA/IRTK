@@ -24,14 +24,31 @@ char *output_name = NULL, *prefix_name = NULL, *suffix_name = NULL, *textfile = 
 
 void usage()
 {
-  cerr << "Usage: atlas [output] <input1..inputN> <options>\n" << endl;
-  cerr << "where <options> is one or more of the following:\n";
-  cerr << "<-imagenames file>      Name of file containing image names for <input1..inputN>\n";
-  cerr << "<-prefix directory>     Directory in which to find the images\n";
+  cerr << "Usage: atlas [output] <input1..inputN> <options>" << endl;
+  cerr << "" << endl;
+  cerr << "Make an atlas from a given set of input images. All input images must have the" << endl;
+  cerr << "same voxel lattice. Names of input images can be given on the command line or" << endl;
+  cerr << "in a file (see below)." << endl;
+  cerr << "" << endl;
+  cerr << "If they are named on the command line, images are given equal weighting." << endl;
+  cerr << "Different weights can be given if a file with names is provided." << endl;
+  cerr << "" << endl;
+  cerr << "where <options> is one or more of the following:" << endl;
+  cerr << "<-imagenames file>      File containing image names and values to use for weighting." << endl;
+  cerr << "                        The format should be one line for each image with" << endl;
+  cerr << "                          \"image_name value\"" << endl;
+  cerr << "                        on each line. If a mean and sigma value are specified" << endl;
+  cerr << "                        with the \'-gaussian\' flag (see below), then the values" << endl;
+  cerr << "                        are converted to weights using the corresponding Gaussian" << endl;
+  cerr << "                        function. Otherwise, the values in the file are used" << endl;
+  cerr << "                        directly as weights." << endl;
+  cerr << "<-prefix directory>     Directory in which to find the images." << endl;
   cerr << "<-gaussian mean sigma>  Use Gaussian with mean and sigma for kernel-based smoothing\n";
-  cerr << "<-epsilon value>        Epsilon value for ignoring image in kernel-based smoothing (default = " << EPSILON << ")\n";
+  cerr << "<-epsilon value>        Epsilon value for ignoring image in kernel-based smoothing " << endl;
+  cerr << "                          (default = " << EPSILON << ")" << endl;
   cerr << "<-scaling value>        Scaling value for final atlas (default = 1)\n";
-  cerr << "<-norm>                 Normalise intensities before atlas construction (default = off)\n";
+  cerr << "<-norm>                 Normalise intensities before atlas construction " << endl;
+  cerr << "                          (default = off)\n";
   exit(1);
 }
 
@@ -74,6 +91,7 @@ int main(int argc, char **argv)
 {
   double scale, mean, sigma, epsilon;
   int i, j, n, padding, norm, no, ok;
+  int useGaussianWeights;
   irtkGreyPixel *ptr1;
   irtkGreyImage input;
   irtkRealPixel *ptr2;
@@ -92,7 +110,10 @@ int main(int argc, char **argv)
   // Default: scaling factor
   scale = 1;
 
-  // Default: No kernel smoothing
+  // Default: Use weights directly. Alternatively, convert using Gaussian formula.
+  useGaussianWeights = False;
+  
+  // Default values for kernel smoothing
   mean  = 0;
   sigma = 1;
 
@@ -136,6 +157,7 @@ int main(int argc, char **argv)
     if ((ok == False) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
+      useGaussianWeights = True;
       mean = atof(argv[1]);
       argc--;
       argv++;
@@ -203,7 +225,15 @@ int main(int argc, char **argv)
         input_name[no] = new char[256];
         in >> input_name[no] >> input_value[no];
         if (strlen(input_name[no]) > 0) {
-          input_weight[no] = 1.0 / sqrt(2.0) / sigma * exp(-pow((mean - input_value[no])/sigma, 2.0)/2);
+          
+          if (useGaussianWeights == True){
+            // Convert input value to weight based on Gaussian centred at above specified mean.
+            input_weight[no] = 1.0 / sqrt(2.0) / sigma * exp(-pow((mean - input_value[no])/sigma, 2.0)/2);
+          } else {
+            // Use input value directly as a weight.
+            input_weight[no] = input_value[no];
+          }
+          
           if (input_weight[no] > epsilon) {
             total_weight   += input_weight[no];
             cout << input_value[no] << " " << input_weight[no] << " " << total_weight << endl;
