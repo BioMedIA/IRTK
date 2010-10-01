@@ -171,7 +171,7 @@ void irtkMultipleImageFreeFormRegistration::Initialize()
 void irtkMultipleImageFreeFormRegistration::Initialize(int level)
 {
   int i, j, k, l, n;
-  double u, x, y, z;
+  double x, y, z;
   float *ptr;
 
   // Print debugging information
