@@ -215,7 +215,7 @@ public:
    *  default is 1 which equals 100% of the bounding box.
    */
   virtual void MultiBoundingBox(irtkGreyImage *, int, int &, int &, int &,
-                           int &, int &, int &, double = 1) const;
+                                int &, int &, int &, double = 1) const;
 
   /// Prints the parameters of the transformation
   virtual void Print();
@@ -242,207 +242,184 @@ public:
 
 inline double irtkBSplineFreeFormTransformation3D::B(double x)
 {
-  x=fabs(x);
+  x = fabs(x);
   double value=0.0;
-  if(x<2.0)
-    if(x<1.0)
+  if (x < 2.0) {
+    if (x < 1.0) {
       value = (double)(2.0f/3.0f + (0.5f*x-1.0)*x*x);
-    else {
-      x-=2.0f;
+    } else {
+      x -=2.0f;
       value = -x*x*x/6.0f;
     }
-  return value;
-}
+    return value;
+  }
 
-inline double irtkBSplineFreeFormTransformation3D::B(int i, double t)
-{
-  switch (i) {
-  case 0:
+  inline double irtkBSplineFreeFormTransformation3D::B(int i, double t) {
+    switch (i) {
+      case 0:
+        return (1-t)*(1-t)*(1-t)/6.0;
+      case 1:
+        return (3*t*t*t - 6*t*t + 4)/6.0;
+      case 2:
+        return (-3*t*t*t + 3*t*t + 3*t + 1)/6.0;
+      case 3:
+        return (t*t*t)/6.0;
+    }
+    return 0;
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B_I(int i, double t) {
+    switch (i) {
+      case 0:
+        return -(1-t)*(1-t)/2.0;
+      case 1:
+        return (9*t*t - 12*t)/6.0;
+      case 2:
+        return (-9*t*t + 6*t + 3)/6.0;
+      case 3:
+        return (t*t)/2.0;
+    }
+    return 0;
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B_II(int i, double t) {
+    switch (i) {
+      case 0:
+        return 1 - t;
+      case 1:
+        return 3*t - 2;
+      case 2:
+        return -3*t + 1;
+      case 3:
+        return t;
+    }
+    return 0;
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B0(double t) {
     return (1-t)*(1-t)*(1-t)/6.0;
-  case 1:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B1(double t) {
     return (3*t*t*t - 6*t*t + 4)/6.0;
-  case 2:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B2(double t) {
     return (-3*t*t*t + 3*t*t + 3*t + 1)/6.0;
-  case 3:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B3(double t) {
     return (t*t*t)/6.0;
   }
-  return 0;
-}
 
-inline double irtkBSplineFreeFormTransformation3D::B_I(int i, double t)
-{
-  switch (i) {
-  case 0:
+  inline double irtkBSplineFreeFormTransformation3D::B0_I(double t) {
     return -(1-t)*(1-t)/2.0;
-  case 1:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B1_I(double t) {
     return (9*t*t - 12*t)/6.0;
-  case 2:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B2_I(double t) {
     return (-9*t*t + 6*t + 3)/6.0;
-  case 3:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B3_I(double t) {
     return (t*t)/2.0;
   }
-  return 0;
-}
 
-inline double irtkBSplineFreeFormTransformation3D::B_II(int i, double t)
-{
-  switch (i) {
-  case 0:
+  inline double irtkBSplineFreeFormTransformation3D::B0_II(double t) {
     return 1 - t;
-  case 1:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B1_II(double t) {
     return 3*t - 2;
-  case 2:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B2_II(double t) {
     return -3*t + 1;
-  case 3:
+  }
+
+  inline double irtkBSplineFreeFormTransformation3D::B3_II(double t) {
     return t;
   }
-  return 0;
-}
 
-inline double irtkBSplineFreeFormTransformation3D::B0(double t)
-{
-  return (1-t)*(1-t)*(1-t)/6.0;
-}
+  inline void irtkBSplineFreeFormTransformation3D::Transform(double &x, double &y, double &z, double) {
+    double u, v, w;
 
-inline double irtkBSplineFreeFormTransformation3D::B1(double t)
-{
-  return (3*t*t*t - 6*t*t + 4)/6.0;
-}
+    u = x;
+    v = y;
+    w = z;
 
-inline double irtkBSplineFreeFormTransformation3D::B2(double t)
-{
-  return (-3*t*t*t + 3*t*t + 3*t + 1)/6.0;
-}
+    // Convert world coordinates in to FFD coordinates
+    this->WorldToLattice(u, v, w);
 
-inline double irtkBSplineFreeFormTransformation3D::B3(double t)
-{
-  return (t*t*t)/6.0;
-}
+    // Calculate FFD
+    this->FFD1(u, v, w);
 
-inline double irtkBSplineFreeFormTransformation3D::B0_I(double t)
-{
-  return -(1-t)*(1-t)/2.0;
-}
+    // Add FFD to world coordinates
+    x += u;
+    y += v;
+    z += w;
+  }
 
-inline double irtkBSplineFreeFormTransformation3D::B1_I(double t)
-{
-  return (9*t*t - 12*t)/6.0;
-}
+  inline void irtkBSplineFreeFormTransformation3D::Transform2(double &x, double &y, double &z, double) {
+    double u, v, w;
 
-inline double irtkBSplineFreeFormTransformation3D::B2_I(double t)
-{
-  return (-9*t*t + 6*t + 3)/6.0;
-}
+    u = x;
+    v = y;
+    w = z;
 
-inline double irtkBSplineFreeFormTransformation3D::B3_I(double t)
-{
-  return (t*t)/2.0;
-}
+    // Convert world coordinates in to FFD coordinates
+    this->WorldToLattice(u, v, w);
 
-inline double irtkBSplineFreeFormTransformation3D::B0_II(double t)
-{
-  return 1 - t;
-}
+    // Calculate FFD
+    this->FFD2(u, v, w);
 
-inline double irtkBSplineFreeFormTransformation3D::B1_II(double t)
-{
-  return 3*t - 2;
-}
+    // Add FFD to world coordinates
+    x += u;
+    y += v;
+    z += w;
+  }
 
-inline double irtkBSplineFreeFormTransformation3D::B2_II(double t)
-{
-  return -3*t + 1;
-}
+  inline void irtkBSplineFreeFormTransformation3D::GlobalTransform(double &x, double &y, double &z, double) {}
 
-inline double irtkBSplineFreeFormTransformation3D::B3_II(double t)
-{
-  return t;
-}
+  inline void irtkBSplineFreeFormTransformation3D::LocalTransform(double &x, double &y, double &z, double) {
+    double u, v, w;
 
-inline void irtkBSplineFreeFormTransformation3D::Transform(double &x, double &y, double &z, double)
-{
-  double u, v, w;
+    u = x;
+    v = y;
+    w = z;
 
-  u = x;
-  v = y;
-  w = z;
+    // calculate displacement
+    this->LocalDisplacement(u, v, w);
 
-  // Convert world coordinates in to FFD coordinates
-  this->WorldToLattice(u, v, w);
+    // Add displacement
+    x += u;
+    y += v;
+    z += w;
+  }
 
-  // Calculate FFD
-  this->FFD1(u, v, w);
+  inline void irtkBSplineFreeFormTransformation3D::GlobalDisplacement(double &x, double &y, double &z, double) {
+    x = 0;
+    y = 0;
+    z = 0;
+  }
 
-  // Add FFD to world coordinates
-  x += u;
-  y += v;
-  z += w;
-}
+  inline void irtkBSplineFreeFormTransformation3D::LocalDisplacement(double &x, double &y, double &z, double) {
+    // Convert world coordinates in to FFD coordinates
+    this->WorldToLattice(x, y, z);
 
-inline void irtkBSplineFreeFormTransformation3D::Transform2(double &x, double &y, double &z, double)
-{
-  double u, v, w;
+    // Calculate FFD
+    this->FFD1(x, y, z);
+  }
 
-  u = x;
-  v = y;
-  w = z;
+  inline void irtkBSplineFreeFormTransformation3D::Displacement(double &x, double &y, double &z, double) {
+    this->LocalDisplacement(x, y, z);
+  }
 
-  // Convert world coordinates in to FFD coordinates
-  this->WorldToLattice(u, v, w);
-
-  // Calculate FFD
-  this->FFD2(u, v, w);
-
-  // Add FFD to world coordinates
-  x += u;
-  y += v;
-  z += w;
-}
-
-inline void irtkBSplineFreeFormTransformation3D::GlobalTransform(double &x, double &y, double &z, double)
-{}
-
-inline void irtkBSplineFreeFormTransformation3D::LocalTransform(double &x, double &y, double &z, double)
-{
-  double u, v, w;
-
-  u = x;
-  v = y;
-  w = z;
-
-  // calculate displacement
-  this->LocalDisplacement(u, v, w);
-
-  // Add displacement
-  x += u;
-  y += v;
-  z += w;
-}
-
-inline void irtkBSplineFreeFormTransformation3D::GlobalDisplacement(double &x, double &y, double &z, double)
-{
-  x = 0;
-  y = 0;
-  z = 0;
-}
-
-inline void irtkBSplineFreeFormTransformation3D::LocalDisplacement(double &x, double &y, double &z, double)
-{
-  // Convert world coordinates in to FFD coordinates
-  this->WorldToLattice(x, y, z);
-
-  // Calculate FFD
-  this->FFD1(x, y, z);
-}
-
-inline void irtkBSplineFreeFormTransformation3D::Displacement(double &x, double &y, double &z, double)
-{
-	this->LocalDisplacement(x, y, z);
-}
-
-inline const char *irtkBSplineFreeFormTransformation3D::NameOfClass()
-{
-  return "irtkBSplineFreeFormTransformation3D";
-}
+  inline const char *irtkBSplineFreeFormTransformation3D::NameOfClass() {
+    return "irtkBSplineFreeFormTransformation3D";
+  }
 
 #endif
