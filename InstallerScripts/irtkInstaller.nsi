@@ -87,8 +87,8 @@ Section "Install IRTK" SecInstall
 
   File "..\icons\IRTK.ico"
 
-  File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
-  File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
+  ;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
+  ;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
  
   ; Write the installation path into the registry.
   WriteRegStr HKLM SOFTWARE\IRTK "InstallationDirectory" "$INSTDIR"
