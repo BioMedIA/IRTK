@@ -752,10 +752,10 @@ int irtkBSplineFreeFormTransformation3D::CheckHeader(char *name)
   // Read keyword
   from >> buffer;
   if ((strcmp(buffer, "AFFD:") != 0) && (strcmp(buffer, "AFFD_BINARY:") != 0)) {
-    return False;
+    return false;
   }
 
-  return True;
+  return true;
 }
 
 double irtkBSplineFreeFormTransformation3D::Approximate(double *x1, double *y1, double *z1, double *x2, double *y2, double *z2, int no)

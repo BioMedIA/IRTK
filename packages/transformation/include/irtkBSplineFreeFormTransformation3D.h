@@ -400,7 +400,7 @@ inline void irtkBSplineFreeFormTransformation3D::Transform2(double &x, double &y
   z += w;
 }
 
-inline void irtkBSplineFreeFormTransformation3D::GlobalTransform(double &x, double &y, double &z, double)
+inline void irtkBSplineFreeFormTransformation3D::GlobalTransform(double &, double &, double &, double)
 {}
 
 inline void irtkBSplineFreeFormTransformation3D::LocalTransform(double &x, double &y, double &z, double)

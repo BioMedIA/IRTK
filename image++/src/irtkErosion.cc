@@ -20,9 +20,9 @@ template <class VoxelType> irtkErosion<VoxelType>::irtkErosion()
 template <class VoxelType> irtkErosion<VoxelType>::~irtkErosion(void)
 {}
 
-template <class VoxelType> Bool irtkErosion<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkErosion<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkErosion<VoxelType>::NameOfClass()

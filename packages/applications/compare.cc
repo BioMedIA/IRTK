@@ -18,7 +18,7 @@
 char *target_name = NULL, *source_name = NULL, *dof1_name = NULL, *dof2_name = NULL;
 
 // Global options
-int ice = False;
+int ice = false;
 
 void usage()
 {
@@ -58,7 +58,7 @@ double calculate_error(double x, double y, double z, irtkTransformation *t1,
   x1 = x2 = x;
   y1 = y2 = y;
   z1 = z2 = z;
-  if (ice == False){
+  if (ice == false){
     t1->Transform(x1, y1, z1);
     t2->Transform(x2, y2, z2);
   } else {
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
   double error, rms, max, mean, x1, y1, z1;
 
   char* imageName = NULL;
-  useImage   = False;
+  useImage   = false;
   // Check command line
   if (argc < 5) {
     usage();
@@ -130,183 +130,183 @@ int main(int argc, char **argv)
   // Initialize remaining stuff
   m = 0;
   n = 0;
-  fast   = False;
+  fast   = false;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       target_x1 = source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       target_x2 = source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       target_y1 = source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       target_y2 = source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       target_z1 = source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       target_z2 = source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx1") == 0)) {
       argc--;
       argv++;
       target_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx2") == 0)) {
       argc--;
       argv++;
       target_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty1") == 0)) {
       argc--;
       argv++;
       target_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty2") == 0)) {
       argc--;
       argv++;
       target_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz1") == 0)) {
       argc--;
       argv++;
       target_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz2") == 0)) {
       argc--;
       argv++;
       target_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx1") == 0)) {
       argc--;
       argv++;
       source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx2") == 0)) {
       argc--;
       argv++;
       source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy1") == 0)) {
       argc--;
       argv++;
       source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy2") == 0)) {
       argc--;
       argv++;
       source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz1") == 0)) {
       argc--;
       argv++;
       source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-target") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
       argc--;
       argv++;
       target_threshold = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-source") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-source") == 0)) {
       argc--;
       argv++;
       source_threshold = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-image") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-image") == 0)) {
       argc--;
       argv++;
-      useImage   = True;
+      useImage   = true;
       imageName  = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-fast") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-fast") == 0)) {
       argc--;
       argv++;
-      fast = True;
-      ok = True;
+      fast = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ice") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ice") == 0)) {
       argc--;
       argv++;
-      ice = True;
-      ok = True;
+      ice = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 
 
   //Initiliaze the output image
-  if (useImage==True) {
+  if (useImage==true) {
     image->Initialize(target->GetImageAttributes());
   }
 
@@ -338,7 +338,7 @@ int main(int argc, char **argv)
   rms  = 0;
   max  = 0;
   mean = 0;
-  if (fast == True) {
+  if (fast == true) {
     for (z = 1; z <= 2; z++) {
       for (y = 1; y <= 2; y++) {
         for (x = 1; x <= 2; x++) {
@@ -383,7 +383,7 @@ int main(int argc, char **argv)
               target->ImageToWorld(x1, y1, z1);
               // Calculate difference
               error = calculate_error(x1, y1, z1, t1, t2);
-              if (useImage==True)
+              if (useImage==true)
                 image->PutAsDouble(x, y, z, sqrt(error));
               rms  += error;
               mean += sqrt(error);
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
             target->ImageToWorld(x1, y1, z1);
             // Calculate difference
             error = calculate_error(x1, y1, z1, t1, t2);
-            if (useImage==True)
+            if (useImage==true)
               image->PutAsDouble(x, y, z, sqrt(error));
             rms  += error;
             mean += sqrt(error);
@@ -421,7 +421,7 @@ int main(int argc, char **argv)
   }
 
   // Write the image
-  if (useImage == True) {
+  if (useImage == true) {
     image->Write(imageName);
   }
   // Calculate final error

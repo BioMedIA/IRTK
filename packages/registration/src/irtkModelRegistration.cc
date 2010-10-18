@@ -56,7 +56,7 @@ irtkModelRegistration::irtkModelRegistration()
   _Epsilon            = 0;
 
   // Default parameters for debugging
-  _DebugFlag = False;
+  _DebugFlag = false;
 
   // Set inputs
   _image = NULL;
@@ -244,11 +244,11 @@ void irtkModelRegistration::Run()
         // Check whether we made any improvement or not
         if (epsilon > _Epsilon && maxChange > delta) {
           sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == True) _transformation->Write(buffer);
+          if (_DebugFlag == true) _transformation->Write(buffer);
           this->Print();
         } else {
           sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == True) _transformation->Write(buffer);
+          if (_DebugFlag == true) _transformation->Write(buffer);
           this->Print();
           break;
         }
@@ -310,15 +310,15 @@ double irtkModelRegistration::EvaluateGradient(float step, float *dx)
   return norm;
 }
 
-Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
+bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
-  int i, n, ok = False;
+  int i, n, ok = false;
   double dx, dy, dz;
 
   // Resolution level
   if (strstr(buffer1, "Resolution level") != NULL) {
     level = atoi(buffer2)-1;
-    ok = True;
+    ok = true;
   }
   // Image blurring
   if (strstr(buffer1, "Image blurring (in mm)") != NULL) {
@@ -329,7 +329,7 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_ImageBlurring[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   // Image resolution
   if (strstr(buffer1, "Image resolution (in mm)") != NULL) {
@@ -358,11 +358,11 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
       if (this->_ImageResolution[level][1] == 0) this->_ImageResolution[level][1] = dy;
       if (this->_ImageResolution[level][2] == 0) this->_ImageResolution[level][2] = dz;
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of resolution levels") != NULL) {
     this->_NumberOfLevels = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of iterations") != NULL) {
     if (level == -1) {
@@ -372,7 +372,7 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_NumberOfIterations[level] = atoi(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of steps") != NULL) {
     if (level == -1) {
@@ -382,7 +382,7 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_NumberOfSteps[level] = atoi(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Length of steps") != NULL) {
     if (level == -1) {
@@ -392,11 +392,11 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_LengthOfSteps[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Epsilon") != NULL) {
     this->_Epsilon = atof(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Delta") != NULL) {
     if (level == -1) {
@@ -406,50 +406,50 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_Delta[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   
   /*
   if (strstr(buffer1, "Similarity measure") != NULL) {
     if (strstr(buffer2, "CC") != NULL) {
       this->_SimilarityMeasure = CC;
-      ok = True;
+      ok = true;
     } else {
       if (strstr(buffer2, "JE") != NULL) {
         this->_SimilarityMeasure = JE;
-        ok = True;
+        ok = true;
       } else {
         if (strstr(buffer2, "NMI") != NULL) {
           this->_SimilarityMeasure = NMI;
-          ok = True;
+          ok = true;
         } else {
           if (strstr(buffer2, "MI") != NULL) {
             this->_SimilarityMeasure = MI;
-            ok = True;
+            ok = true;
           } else {
             if (strstr(buffer2, "SSD") != NULL) {
               this->_SimilarityMeasure = SSD;
-              ok = True;
+              ok = true;
             } else {
               if (strstr(buffer2, "CR_XY") != NULL) {
                 this->_SimilarityMeasure = CR_XY;
-                ok = True;
+                ok = true;
               } else {
                 if (strstr(buffer2, "CR_YX") != NULL) {
                   this->_SimilarityMeasure = CR_YX;
-                  ok = True;
+                  ok = true;
                 } else {
                   if (strstr(buffer2, "LC") != NULL) {
                     this->_SimilarityMeasure = LC;
-                    ok = True;
+                    ok = true;
                   } else {
                     if (strstr(buffer2, "K") != NULL) {
                       this->_SimilarityMeasure = K;
-                      ok = True;
+                      ok = true;
                     } else {
                       if (strstr(buffer2, "ML") != NULL) {
                         this->_SimilarityMeasure = ML;
-                        ok = True;
+                        ok = true;
                       }
                     }
                   }
@@ -466,23 +466,23 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
   if (strstr(buffer1, "Optimization method") != NULL) {
     if (strstr(buffer2, "DownhillDescent") != NULL) {
       this->_OptimizationMethod = DownhillDescent;
-      ok = True;
+      ok = true;
     } else {
       if (strstr(buffer2, "SteepestGradientDescent") != NULL) {
         this->_OptimizationMethod = SteepestGradientDescent;
-        ok = True;
+        ok = true;
       } else {
         if (strstr(buffer2, "ConjugateGradientDescent") != NULL) {
           this->_OptimizationMethod = ConjugateGradientDescent;
-          ok = True;
+          ok = true;
         } else {
           if (strstr(buffer2, "GradientDescentConstrained") != NULL) {
             this->_OptimizationMethod = GradientDescentConstrained;
-            ok = True;
+            ok = true;
           } else {
             if (strstr(buffer2, "GradientDescent") != NULL) {
               this->_OptimizationMethod = GradientDescent;
-              ok = True;
+              ok = true;
             }
           }
         }
@@ -490,7 +490,7 @@ Bool irtkModelRegistration::Read(char *buffer1, char *buffer2, int &level)
     }
   }
 
-  if (ok == False) {
+  if (ok == false) {
     cerr << "irtkModelRegistration::Read: Can't parse line " << buffer1 << endl;
     exit(1);
   }
@@ -588,9 +588,9 @@ void irtkModelRegistration::Read(char *filename)
   }
 
   level = -1;
-  while (from.eof() != True) {
+  while (from.eof() != true) {
     if (read_line(from, buffer1, buffer2) != 0) {
-      if (this->Read(buffer1, buffer2, level) == False) {
+      if (this->Read(buffer1, buffer2, level) == false) {
         cerr << "Couldn't parse line: " << buffer1 << endl;
       }
     }

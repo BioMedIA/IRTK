@@ -15,7 +15,7 @@
 irtkSegment::irtkSegment()
 {
   // Visibility
-  _visible = False;
+  _visible = false;
 
   // Label name
   _label = NULL;

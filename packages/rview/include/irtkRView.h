@@ -290,10 +290,10 @@ protected:
   irtkImageFunction *_selectionInterpolator;
 
   /// Flag whether transformation for reslicing of source image should be applied
-  Bool _sourceTransformApply;
+  bool _sourceTransformApply;
 
   /// Flag whether transformation for reslicing of source image should be inverted
-  Bool _sourceTransformInvert;
+  bool _sourceTransformInvert;
 
   /// Display viewing mix in shutter viewing mode
   double _viewMix;
@@ -856,16 +856,16 @@ public:
   irtkInterpolationMode GetSourceInterpolationMode();
 
   /// Set transformation apply flag for source image
-  void   SetSourceTransformApply(Bool);
+  void   SetSourceTransformApply(bool);
 
   /// Get transformation apply flag for source image
-  Bool GetSourceTransformApply();
+  bool GetSourceTransformApply();
 
   /// Set transformation invert flag for source image
-  void   SetSourceTransformInvert(Bool);
+  void   SetSourceTransformInvert(bool);
 
   /// Get transformation invert flag for source image
-  Bool GetSourceTransformInvert();
+  bool GetSourceTransformInvert();
 
   /// Get a pointer to target image
   irtkImage *GetTarget();
@@ -1022,12 +1022,12 @@ public:
 
 inline void irtkRView::SourceUpdateOn()
 {
-  _sourceUpdate = True;
+  _sourceUpdate = true;
 }
 
 inline void irtkRView::SegmentationUpdateOn()
 {
-  _segmentationUpdate = True;
+  _segmentationUpdate = true;
 }
 
 
@@ -1095,12 +1095,12 @@ inline double irtkRView::GetLineThickness()
 
 inline void irtkRView::DisplayTargetContoursOn()
 {
-  _DisplayTargetContour = True;
+  _DisplayTargetContour = true;
 }
 
 inline void irtkRView::DisplayTargetContoursOff()
 {
-  _DisplayTargetContour = False;
+  _DisplayTargetContour = false;
 }
 
 inline int irtkRView::GetDisplayTargetContours()
@@ -1110,12 +1110,12 @@ inline int irtkRView::GetDisplayTargetContours()
 
 inline void irtkRView::DisplaySourceContoursOn()
 {
-  _DisplaySourceContour = True;
+  _DisplaySourceContour = true;
 }
 
 inline void irtkRView::DisplaySourceContoursOff()
 {
-  _DisplaySourceContour = False;
+  _DisplaySourceContour = false;
 }
 
 inline int irtkRView::GetDisplaySourceContours()
@@ -1125,7 +1125,7 @@ inline int irtkRView::GetDisplaySourceContours()
 
 inline void irtkRView::SnapToGridOn()
 {
-  _SnapToGrid = True;
+  _SnapToGrid = true;
 
   // Round origin to nearest voxel
   _targetImage->WorldToImage(_origin_x, _origin_y, _origin_z);
@@ -1143,16 +1143,16 @@ inline void irtkRView::SnapToGridOn()
   }
 
   // Update everything else
-  _targetUpdate = True;
-  _sourceUpdate = True;
-  _segmentationUpdate = True;
-  _selectionUpdate = True;
+  _targetUpdate = true;
+  _sourceUpdate = true;
+  _segmentationUpdate = true;
+  _selectionUpdate = true;
 
 }
 
 inline void irtkRView::SnapToGridOff()
 {
-  _SnapToGrid = False;
+  _SnapToGrid = false;
 }
 
 inline int irtkRView::GetSnapToGrid()
@@ -1162,12 +1162,12 @@ inline int irtkRView::GetSnapToGrid()
 
 inline void irtkRView::DisplayCursorOn()
 {
-  _DisplayCursor = True;
+  _DisplayCursor = true;
 }
 
 inline void irtkRView::DisplayCursorOff()
 {
-  _DisplayCursor = False;
+  _DisplayCursor = false;
 }
 
 inline irtkCursorMode irtkRView::GetCursorMode()
@@ -1187,12 +1187,12 @@ inline int irtkRView::GetDisplayCursor()
 
 inline void irtkRView::DisplayAxisLabelsOn()
 {
-  _DisplayAxisLabels = True;
+  _DisplayAxisLabels = true;
 }
 
 inline void irtkRView::DisplayAxisLabelsOff()
 {
-  _DisplayAxisLabels = False;
+  _DisplayAxisLabels = false;
 }
 
 inline irtkDisplayMode irtkRView::GetDisplayMode()
@@ -1207,12 +1207,12 @@ inline void irtkRView::SetDisplayMode(irtkDisplayMode mode)
 
 inline void irtkRView::DisplayDeformationGridOn()
 {
-  _DisplayDeformationGrid = True;
+  _DisplayDeformationGrid = true;
 }
 
 inline void irtkRView::DisplayDeformationGridOff()
 {
-  _DisplayDeformationGrid = False;
+  _DisplayDeformationGrid = false;
 }
 
 inline int irtkRView::GetDisplayDeformationGrid()
@@ -1232,12 +1232,12 @@ inline void irtkRView::SetDisplayDeformationGridResolution(int res)
 
 inline void irtkRView::DisplayDeformationPointsOn()
 {
-  _DisplayDeformationPoints = True;
+  _DisplayDeformationPoints = true;
 }
 
 inline void irtkRView::DisplayDeformationPointsOff()
 {
-  _DisplayDeformationPoints = False;
+  _DisplayDeformationPoints = false;
 }
 
 inline int irtkRView::GetDisplayDeformationPoints()
@@ -1247,12 +1247,12 @@ inline int irtkRView::GetDisplayDeformationPoints()
 
 inline void irtkRView::DisplayDeformationArrowsOn()
 {
-  _DisplayDeformationArrows = True;
+  _DisplayDeformationArrows = true;
 }
 
 inline void irtkRView::DisplayDeformationArrowsOff()
 {
-  _DisplayDeformationArrows = False;
+  _DisplayDeformationArrows = false;
 }
 
 inline int irtkRView::GetDisplayDeformationArrows()
@@ -1262,12 +1262,12 @@ inline int irtkRView::GetDisplayDeformationArrows()
 
 inline void irtkRView::DisplayLandmarksOn()
 {
-  _DisplayLandmarks = True;
+  _DisplayLandmarks = true;
 }
 
 inline void irtkRView::DisplayLandmarksOff()
 {
-  _DisplayLandmarks = False;
+  _DisplayLandmarks = false;
 }
 
 inline int irtkRView::GetDisplayLandmarks()
@@ -1307,12 +1307,12 @@ inline int irtkRView::GetRegionGrowingThresholdMaximum()
 
 inline void irtkRView::DisplayROIOn()
 {
-  _DisplayROI = True;
+  _DisplayROI = true;
 }
 
 inline void irtkRView::DisplayROIOff()
 {
-  _DisplayROI = False;
+  _DisplayROI = false;
 }
 
 inline int irtkRView::GetDisplayROI()
@@ -1322,12 +1322,12 @@ inline int irtkRView::GetDisplayROI()
 
 inline void irtkRView::TrackTAGOn()
 {
-  _TrackTAG = True;
+  _TrackTAG = true;
 }
 
 inline void irtkRView::TrackTAGOff()
 {
-  _TrackTAG = False;
+  _TrackTAG = false;
 }
 
 inline int irtkRView::GetTrackTAG()
@@ -1337,12 +1337,12 @@ inline int irtkRView::GetTrackTAG()
 
 inline void irtkRView::ViewTAGOn()
 {
-  _ViewTAG = True;
+  _ViewTAG = true;
 }
 
 inline void irtkRView::ViewTAGOff()
 {
-  _ViewTAG = False;
+  _ViewTAG = false;
 }
 
 inline int irtkRView::GetViewTAG()
@@ -1363,12 +1363,12 @@ inline vtkPointSet *irtkRView::GetObject(int i)
 
 inline void irtkRView::DisplayObjectOn()
 {
-  _DisplayObject = True;
+  _DisplayObject = true;
 }
 
 inline void irtkRView::DisplayObjectOff()
 {
-  _DisplayObject = False;
+  _DisplayObject = false;
 }
 
 inline int irtkRView::GetDisplayObject()
@@ -1378,12 +1378,12 @@ inline int irtkRView::GetDisplayObject()
 
 inline void irtkRView::DisplayObjectWarpOn()
 {
-  _DisplayObjectWarp = True;
+  _DisplayObjectWarp = true;
 }
 
 inline void irtkRView::DisplayObjectWarpOff()
 {
-  _DisplayObjectWarp = False;
+  _DisplayObjectWarp = false;
 }
 
 inline int irtkRView::GetDisplayObjectWarp()
@@ -1393,12 +1393,12 @@ inline int irtkRView::GetDisplayObjectWarp()
 
 inline void irtkRView::DisplayObjectGridOn()
 {
-  _DisplayObjectGrid = True;
+  _DisplayObjectGrid = true;
 }
 
 inline void irtkRView::DisplayObjectGridOff()
 {
-  _DisplayObjectGrid = False;
+  _DisplayObjectGrid = false;
 }
 
 inline int irtkRView::GetDisplayObjectGrid()
@@ -1420,8 +1420,8 @@ inline void irtkRView::SetRegionGrowingMode(irtkRegionGrowingMode mode)
 
 inline void irtkRView::FlipXOff()
 {
-  if (_FlipX == True) {
-    _FlipX = False;
+  if (_FlipX == true) {
+    _FlipX = false;
     _xaxis[0] *= -1;
     _xaxis[1] *= -1;
     _xaxis[2] *= -1;
@@ -1431,8 +1431,8 @@ inline void irtkRView::FlipXOff()
 
 inline void irtkRView::FlipXOn()
 {
-  if (_FlipX == False) {
-    _FlipX = True;
+  if (_FlipX == false) {
+    _FlipX = true;
     _xaxis[0] *= -1;
     _xaxis[1] *= -1;
     _xaxis[2] *= -1;
@@ -1442,8 +1442,8 @@ inline void irtkRView::FlipXOn()
 
 inline void irtkRView::FlipYOff()
 {
-  if (_FlipY == True) {
-    _FlipY = False;
+  if (_FlipY == true) {
+    _FlipY = false;
     _yaxis[0] *= -1;
     _yaxis[1] *= -1;
     _yaxis[2] *= -1;
@@ -1453,8 +1453,8 @@ inline void irtkRView::FlipYOff()
 
 inline void irtkRView::FlipYOn()
 {
-  if (_FlipY == False) {
-    _FlipY = True;
+  if (_FlipY == false) {
+    _FlipY = true;
     _yaxis[0] *= -1;
     _yaxis[1] *= -1;
     _yaxis[2] *= -1;
@@ -1464,8 +1464,8 @@ inline void irtkRView::FlipYOn()
 
 inline void irtkRView::FlipZOff()
 {
-  if (_FlipZ == True) {
-    _FlipZ = False;
+  if (_FlipZ == true) {
+    _FlipZ = false;
     _zaxis[0] *= -1;
     _zaxis[1] *= -1;
     _zaxis[2] *= -1;
@@ -1475,8 +1475,8 @@ inline void irtkRView::FlipZOff()
 
 inline void irtkRView::FlipZOn()
 {
-  if (_FlipZ == False) {
-    _FlipZ = True;
+  if (_FlipZ == false) {
+    _FlipZ = true;
     _zaxis[0] *= -1;
     _zaxis[1] *= -1;
     _zaxis[2] *= -1;
@@ -1497,10 +1497,10 @@ inline void irtkRView::SetOrigin(double x, double y, double z)
     _segmentationImageOutput[i]->PutOrigin(_origin_x, _origin_y, _origin_z);
     _selectionImageOutput[i]->PutOrigin(_origin_x, _origin_y, _origin_z);
   }
-  _targetUpdate = True;
-  _sourceUpdate = True;
-  _segmentationUpdate = True;
-  _selectionUpdate = True;
+  _targetUpdate = true;
+  _sourceUpdate = true;
+  _segmentationUpdate = true;
+  _selectionUpdate = true;
 }
 
 inline void irtkRView::GetOrigin(double &x, double &y, double &z)
@@ -1721,22 +1721,22 @@ inline int irtkRView::GetNumberOfSourceLandmarks()
 
 inline void irtkRView::SegmentationLabelsOn()
 {
-  _DisplaySegmentationLabels = True;
+  _DisplaySegmentationLabels = true;
 }
 
 inline void irtkRView::SegmentationLabelsOff()
 {
-  _DisplaySegmentationLabels = False;
+  _DisplaySegmentationLabels = false;
 }
 
 inline void irtkRView::SegmentationContoursOn()
 {
-  _DisplaySegmentationContours = True;
+  _DisplaySegmentationContours = true;
 }
 
 inline void irtkRView::SegmentationContoursOff()
 {
-  _DisplaySegmentationContours = False;
+  _DisplaySegmentationContours = false;
 }
 
 inline double irtkRView::GetTargetMin()

@@ -10,7 +10,7 @@ template <class VoxelType> class irtkVessel : public irtkObject
 private:
 
   /// Debugging flag
-  Bool _DebugFlag;
+  bool _DebugFlag;
   double _alpha;
   double _beta;
   double _c;
@@ -132,10 +132,10 @@ public:
   char *NameOfClass();
 
   /// Set debugging flag
-  SetMacro(DebugFlag, Bool);
+  SetMacro(DebugFlag, bool);
 
   /// Get debugging flag
-  GetMacro(DebugFlag, Bool);
+  GetMacro(DebugFlag, bool);
 
   /// Print debugging messages if debugging is enabled
   void Debug(char *);

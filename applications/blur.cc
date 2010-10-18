@@ -49,23 +49,23 @@ int main(int argc, char **argv)
   argv++;
 
   // Default
-  blur4D = False;
+  blur4D = false;
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-3D") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-3D") == 0)) {
       argc--;
       argv++;
-      blur4D = False;
-      ok = True;
+      blur4D = false;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-4D") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-4D") == 0)) {
       argc--;
       argv++;
-      blur4D = True;
-      ok = True;
+      blur4D = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Unknown option: " << argv[1] << endl;
       usage();
     }
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
   input.Read(input_name);
 
   // Blur image
-  if (blur4D == True) {
+  if (blur4D == true) {
     irtkGaussianBlurring4D<irtkGreyPixel> gaussianBlurring4D(sigma);
     gaussianBlurring4D.SetInput (&input);
     gaussianBlurring4D.SetOutput(&input);

@@ -15,9 +15,9 @@
 irtkCofstream::irtkCofstream()
 {
 #ifndef WORDS_BIGENDIAN
-  _swapped = True;
+  _swapped = true;
 #else
-  _swapped = False;
+  _swapped = false;
 #endif
 
 #ifdef HAS_ZLIB
@@ -33,7 +33,7 @@ irtkCofstream::~irtkCofstream()
 
 void irtkCofstream::Write(char *data, int offset, int length)
 {
-  if (_compressed == False) {
+  if (_compressed == false) {
     if (offset != -1) fseek(_uncompressedFile, offset, SEEK_SET);
     fwrite(data, length, 1, _uncompressedFile);
   } else {
@@ -73,7 +73,7 @@ void irtkCofstream::WriteAsUChar(unsigned char *data, int length, int offset)
 void irtkCofstream::WriteAsShort(short data, int offset)
 {
   // Swap data
-  if (_swapped == True) swap16((char *)&data, (char *)&data, 1);
+  if (_swapped == true) swap16((char *)&data, (char *)&data, 1);
 
   this->Write((char *)&data, offset, sizeof(short));
 }
@@ -81,18 +81,18 @@ void irtkCofstream::WriteAsShort(short data, int offset)
 void irtkCofstream::WriteAsShort(short *data, int length, int offset)
 {
   // Swap data
-  if (_swapped == True) swap16((char *)data, (char *)data, length);
+  if (_swapped == true) swap16((char *)data, (char *)data, length);
 
   this->Write((char *)data, offset, length*sizeof(short));
 
   // Swap data (BACK)
-  if (_swapped == True) swap16((char *)data, (char *)data, length);
+  if (_swapped == true) swap16((char *)data, (char *)data, length);
 }
 
 void irtkCofstream::WriteAsUShort(unsigned short data, int offset)
 {
   // Swap data
-  if (_swapped == True) swap16((char *)&data, (char *)&data, 1);
+  if (_swapped == true) swap16((char *)&data, (char *)&data, 1);
 
   this->Write((char *)&data, offset, sizeof(unsigned short));
 }
@@ -100,18 +100,18 @@ void irtkCofstream::WriteAsUShort(unsigned short data, int offset)
 void irtkCofstream::WriteAsUShort(unsigned short *data, int length, int offset)
 {
   // Swap data
-  if (_swapped == True) swap16((char *)data, (char *)data, length);
+  if (_swapped == true) swap16((char *)data, (char *)data, length);
 
   this->Write((char *)data, offset, length*sizeof(unsigned short));
 
   // Swap data (BACK)
-  if (_swapped == True) swap16((char *)data, (char *)data, length);
+  if (_swapped == true) swap16((char *)data, (char *)data, length);
 }
 
 void irtkCofstream::WriteAsInt(int data, int offset)
 {
   // Swap data
-  if (_swapped == True) swap32((char *)&data, (char *)&data, 1);
+  if (_swapped == true) swap32((char *)&data, (char *)&data, 1);
 
   this->Write((char *)&data, offset, sizeof(int));
 }
@@ -119,18 +119,18 @@ void irtkCofstream::WriteAsInt(int data, int offset)
 void irtkCofstream::WriteAsInt(int *data, int length, int offset)
 {
   // Swap data
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 
   this->Write((char *)data, offset, length*sizeof(int));
 
   // Swap data (BACK)
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
 void irtkCofstream::WriteAsUInt(unsigned int data, int offset)
 {
   // Swap data
-  if (_swapped == True) swap32((char *)&data, (char *)&data, 1);
+  if (_swapped == true) swap32((char *)&data, (char *)&data, 1);
 
   this->Write((char *)&data, offset, sizeof(unsigned int));
 }
@@ -138,18 +138,18 @@ void irtkCofstream::WriteAsUInt(unsigned int data, int offset)
 void irtkCofstream::WriteAsUInt(unsigned int *data, int length, int offset)
 {
   // Swap data
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 
   this->Write((char *)data, offset, length*sizeof(unsigned int));
 
   // Swap data (BACK)
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
 void irtkCofstream::WriteAsFloat(float data, int offset)
 {
   // Swap data
-  if (_swapped == True) swap32((char *)&data, (char *)&data, 1);
+  if (_swapped == true) swap32((char *)&data, (char *)&data, 1);
 
   this->Write((char *)&data, offset, sizeof(float));
 }
@@ -157,36 +157,36 @@ void irtkCofstream::WriteAsFloat(float data, int offset)
 void irtkCofstream::WriteAsFloat(float *data, int length, int offset)
 {
   // Swap data
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 
   this->Write((char *)data, offset, length*sizeof(float));
 
   // Swap data (BACK)
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
 void irtkCofstream::WriteAsDouble(double *data, int length, int offset)
 {
   // Swap data
-  if (_swapped == True) swap64((char *)data, (char *)data, length);
+  if (_swapped == true) swap64((char *)data, (char *)data, length);
 
   this->Write((char *)data, offset, length*sizeof(double));
 
   // Swap data (BACK)
-  if (_swapped == True) swap64((char *)data, (char *)data, length);
+  if (_swapped == true) swap64((char *)data, (char *)data, length);
 }
 
 void irtkCofstream::WriteAsDouble(double data, int offset)
 {
   // Swap data
-  if (_swapped == True) swap64((char *)&data, (char *)&data, 1);
+  if (_swapped == true) swap64((char *)&data, (char *)&data, 1);
 
   this->Write((char *)&data, offset, sizeof(double));
 }
 
 void irtkCofstream::WriteAsString(char *data, int offset)
 {
-  if (_compressed == False) {
+  if (_compressed == false) {
     if (offset!= -1) fseek(_uncompressedFile, offset, SEEK_SET);
     fputs(data, _uncompressedFile);
   } else {

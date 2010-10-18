@@ -141,7 +141,7 @@ public:
   virtual void Read (char *);
 
   /// Parse parameter line
-  virtual Bool Read(char *, char *, int &);
+  virtual bool Read(char *, char *, int &);
 
   /// Write registration parameters to file
   virtual void Write(char *);
@@ -165,7 +165,7 @@ inline void irtkModelRegistration::SetInput(vtkPolyData *model, irtkGreyImage *i
 
 inline void irtkModelRegistration::Debug(string message)
 {
-  if (_DebugFlag == True) cout << message << endl;
+  if (_DebugFlag == true) cout << message << endl;
 }
 
 #include <irtkModelRigidRegistration.h>

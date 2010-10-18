@@ -74,7 +74,7 @@ public:
   /** Check if the location is inside the image domain for which this image
    *  interpolation function can be used without handling any form of boundary
    *  conditions. */
-  virtual Bool IsInside(double, double, double);
+  virtual bool IsInside(double, double, double);
 
   /** Returns the image domain for which this image interpolation function
       can be used without handling any form of boundary conditions. */
@@ -83,7 +83,7 @@ public:
 
 };
 
-inline Bool irtkInterpolateImageFunction::IsInside(double x, double y, double z)
+inline bool irtkInterpolateImageFunction::IsInside(double x, double y, double z)
 {
   return ((x > _x1) && (x < _x2) && (y > _y1) && (y < _y2) &&
           (z > _z1) && (z < _z2));

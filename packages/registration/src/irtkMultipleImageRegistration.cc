@@ -69,7 +69,7 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
   _Epsilon            = 0;
 
   // Default parameters for debugging
-  _DebugFlag = False;
+  _DebugFlag = false;
 
   // Set parameters
   _TargetPadding   = MIN_GREY;
@@ -543,11 +543,11 @@ void irtkMultipleImageRegistration::Run()
         // Check whether we made any improvement or not
         if (epsilon > _Epsilon && maxChange > delta) {
           sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == True) _transformation->Write(buffer);
+          if (_DebugFlag == true) _transformation->Write(buffer);
           this->Print();
         } else {
           sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == True) _transformation->Write(buffer);
+          if (_DebugFlag == true) _transformation->Write(buffer);
           this->Print();
           break;
         }
@@ -617,15 +617,15 @@ double irtkMultipleImageRegistration::EvaluateGradient(float step, float *dx)
   return norm;
 }
 
-Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &level)
+bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
-  int i, n, ok = False;
+  int i, n, ok = false;
   double dx, dy, dz;
 
   // Resolution level
   if (strstr(buffer1, "Resolution level") != NULL) {
     level = atoi(buffer2)-1;
-    ok = True;
+    ok = true;
   }
   // Target blurring
   if (strstr(buffer1, "Target blurring (in mm)") != NULL) {
@@ -636,7 +636,7 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     } else {
       this->_TargetBlurring[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   // Target resolution
   if (strstr(buffer1, "Target resolution (in mm)") != NULL) {
@@ -665,7 +665,7 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
       if (this->_TargetResolution[level][1] == 0) this->_TargetResolution[level][1] = dy;
       if (this->_TargetResolution[level][2] == 0) this->_TargetResolution[level][2] = dz;
     }
-    ok = True;
+    ok = true;
   }
   // Source blurring
   if (strstr(buffer1, "Source blurring (in mm)") != NULL) {
@@ -676,7 +676,7 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     } else {
       this->_SourceBlurring[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   // Source resolution
   if (strstr(buffer1, "Source resolution (in mm)") != NULL) {
@@ -705,15 +705,15 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
       if (this->_SourceResolution[level][1] == 0) this->_SourceResolution[level][1] = dy;
       if (this->_SourceResolution[level][2] == 0) this->_SourceResolution[level][2] = dz;
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of resolution levels") != NULL) {
     this->_NumberOfLevels = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of bins") != NULL) {
     this->_NumberOfBins = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of iterations") != NULL) {
     if (level == -1) {
@@ -723,7 +723,7 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     } else {
       this->_NumberOfIterations[level] = atoi(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of steps") != NULL) {
     if (level == -1) {
@@ -733,7 +733,7 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     } else {
       this->_NumberOfSteps[level] = atoi(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Length of steps") != NULL) {
     if (level == -1) {
@@ -743,11 +743,11 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     } else {
       this->_LengthOfSteps[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Epsilon") != NULL) {
     this->_Epsilon = atof(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Delta") != NULL) {
     if (level == -1) {
@@ -757,52 +757,52 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     } else {
       this->_Delta[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Padding value") != NULL) {
     this->_TargetPadding = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Similarity measure") != NULL) {
     if (strstr(buffer2, "CC") != NULL) {
       this->_SimilarityMeasure = CC;
-      ok = True;
+      ok = true;
     } else {
       if (strstr(buffer2, "JE") != NULL) {
         this->_SimilarityMeasure = JE;
-        ok = True;
+        ok = true;
       } else {
         if (strstr(buffer2, "NMI") != NULL) {
           this->_SimilarityMeasure = NMI;
-          ok = True;
+          ok = true;
         } else {
           if (strstr(buffer2, "MI") != NULL) {
             this->_SimilarityMeasure = MI;
-            ok = True;
+            ok = true;
           } else {
             if (strstr(buffer2, "SSD") != NULL) {
               this->_SimilarityMeasure = SSD;
-              ok = True;
+              ok = true;
             } else {
               if (strstr(buffer2, "CR_XY") != NULL) {
                 this->_SimilarityMeasure = CR_XY;
-                ok = True;
+                ok = true;
               } else {
                 if (strstr(buffer2, "CR_YX") != NULL) {
                   this->_SimilarityMeasure = CR_YX;
-                  ok = True;
+                  ok = true;
                 } else {
                   if (strstr(buffer2, "LC") != NULL) {
                     this->_SimilarityMeasure = LC;
-                    ok = True;
+                    ok = true;
                   } else {
                     if (strstr(buffer2, "K") != NULL) {
                       this->_SimilarityMeasure = K;
-                      ok = True;
+                      ok = true;
                     } else {
                       if (strstr(buffer2, "ML") != NULL) {
                         this->_SimilarityMeasure = ML;
-                        ok = True;
+                        ok = true;
                       }
                     }
                   }
@@ -819,27 +819,27 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     if (strstr(buffer2, "NN") != NULL) {
       this->_InterpolationMode = Interpolation_NN;
       cout << "Interpolation Mode is ... NN" << endl;
-      ok = True;
+      ok = true;
     } else {
       if (strstr(buffer2, "Linear") != NULL) {
         this->_InterpolationMode = Interpolation_Linear;
         cout << "Interpolation Mode is ... Linear" << endl;
-        ok = True;
+        ok = true;
       } else {
         if (strstr(buffer2, "CSpline") != NULL) {
           this->_InterpolationMode = Interpolation_CSpline;
           cout << "Interpolation Mode is ... CSpline" << endl;
-          ok = True;
+          ok = true;
         } else {
           if (strstr(buffer2, "BSpline") != NULL) {
             this->_InterpolationMode = Interpolation_BSpline;
             cout << "Interpolation Mode is ... BSpline" << endl;
-            ok = True;
+            ok = true;
           } else {
             if (strstr(buffer2, "Sinc") != NULL) {
               this->_InterpolationMode = Interpolation_Sinc;
               cout << "Interpolation Mode is ... Sinc" << endl;
-              ok = True;
+              ok = true;
             }
           }
         }
@@ -850,23 +850,23 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
   if (strstr(buffer1, "Optimization method") != NULL) {
     if (strstr(buffer2, "DownhillDescent") != NULL) {
       this->_OptimizationMethod = DownhillDescent;
-      ok = True;
+      ok = true;
     } else {
       if (strstr(buffer2, "SteepestGradientDescent") != NULL) {
         this->_OptimizationMethod = SteepestGradientDescent;
-        ok = True;
+        ok = true;
       } else {
         if (strstr(buffer2, "ConjugateGradientDescent") != NULL) {
           this->_OptimizationMethod = ConjugateGradientDescent;
-          ok = True;
+          ok = true;
         } else {
           if (strstr(buffer2, "GradientDescentConstrained") != NULL) {
             this->_OptimizationMethod = GradientDescentConstrained;
-            ok = True;
+            ok = true;
           } else {
             if (strstr(buffer2, "GradientDescent") != NULL) {
               this->_OptimizationMethod = GradientDescent;
-              ok = True;
+              ok = true;
             }
           }
         }
@@ -874,7 +874,7 @@ Bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     }
   }
 
-  if (ok == False) {
+  if (ok == false) {
     cerr << "irtkMultipleImageRegistration::Read: Can't parse line " << buffer1 << endl;
     exit(1);
   }
@@ -995,9 +995,9 @@ void irtkMultipleImageRegistration::Read(char *filename)
   }
 
   level = -1;
-  while (from.eof() != True) {
+  while (from.eof() != true) {
     if (read_line(from, buffer1, buffer2) != 0) {
-      if (this->Read(buffer1, buffer2, level) == False) {
+      if (this->Read(buffer1, buffer2, level) == false) {
         cerr << "Couldn't parse line: " << buffer1 << endl;
       }
     }

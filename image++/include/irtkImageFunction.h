@@ -28,7 +28,7 @@ class irtkImageFunction : public irtkObject
 private:
 
   /// Debugging flag
-  Bool _DebugFlag;
+  bool _DebugFlag;
 
 protected:
 
@@ -60,10 +60,10 @@ public:
   virtual const char *NameOfClass() = 0;
 
   /// Set debugging flag
-  SetMacro(DebugFlag, Bool);
+  SetMacro(DebugFlag, bool);
 
   /// Get debugging flag
-  GetMacro(DebugFlag, Bool);
+  GetMacro(DebugFlag, bool);
 
   /// Print debugging messages if debugging is enabled
   virtual void Debug(const char *);

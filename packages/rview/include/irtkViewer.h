@@ -65,7 +65,7 @@ public:
   virtual void DrawTagGrid();
 
   /// Draw landmarks
-  void DrawLandmarks(irtkPointSet &, irtkGreyImage *, int = True);
+  void DrawLandmarks(irtkPointSet &, irtkGreyImage *, int = true);
 
   /// Draw ROI
   void DrawROI(irtkGreyImage *image, double, double, double, double,
@@ -73,26 +73,26 @@ public:
 
 #ifdef HAS_VTK
   /// Draw multiple objects
-  void DrawObject(vtkPointSet **, irtkGreyImage *, int = False, int = False);
+  void DrawObject(vtkPointSet **, irtkGreyImage *, int = false, int = false);
 
   /// Draw object
-  void DrawObject(vtkPointSet *, irtkGreyImage *, int = False, int = False);
+  void DrawObject(vtkPointSet *, irtkGreyImage *, int = false, int = false);
 #endif
 
   /// Draw information about L/R, A/P, S/I on the viewer
   void DrawInfo(irtkDisplayMode);
 
   /// Update using control points
-  Bool Update1(irtkGreyImage *, irtkTransformation *);
+  bool Update1(irtkGreyImage *, irtkTransformation *);
 
   /// Update using display resolution
-  Bool Update2(irtkGreyImage *, irtkTransformation *);
+  bool Update2(irtkGreyImage *, irtkTransformation *);
 
   /// Update
-  Bool Update(irtkGreyImage *, irtkTransformation *);
+  bool Update(irtkGreyImage *, irtkTransformation *);
 
   /// Update Grid Pattern
-  Bool UpdateTagGrid(irtkGreyImage *, irtkTransformation *, irtkPointSet);
+  bool UpdateTagGrid(irtkGreyImage *, irtkTransformation *, irtkPointSet);
 
   /// Get width of viewer
   int GetWidth();

@@ -81,16 +81,16 @@ int main(int argc, char **argv)
 
   // Parse remaining arguments
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-level") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-level") == 0)) {
       argc--;
       argv++;
       level = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-status") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-status") == 0)) {
       argc--;
       argv++;
       if (strcmp(argv[1], "active") == 0) {
@@ -104,9 +104,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can't parse argument " << argv[1] << endl;
       usage();
     }
@@ -134,17 +134,17 @@ int main(int argc, char **argv)
         // Calculate bounding box of control point in voxels
         ffd->BoundingBox(&image, index, x1, y1, z1, x2, y2, z2);
 
-        ok = False;
+        ok = false;
         for (z = z1; z <= z2; z++) {
           for (y = y1; y <= y2; y++) {
             for (x = x1; x <= x2; x++) {
               if (image(x, y, z) > padding) {
-                ok = True;
+                ok = true;
               }
             }
           }
         }
-        if (ok == False) {
+        if (ok == false) {
           ffd->PutStatus(i, j, k, status);
         }
       }

@@ -14,9 +14,9 @@
 
 #include <irtkGradientImage.h>
 
-template <class VoxelType> Bool irtkGradientImageX<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkGradientImageX<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkGradientImageX<VoxelType>::NameOfClass()

@@ -43,32 +43,32 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1){
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-x") == 0)){
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-x") == 0)){
       argc--;
       argv++;
       ex = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-y") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-y") == 0)){
       argc--;
       argv++;
       ey = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-z") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-z") == 0)){
       argc--;
       argv++;
       ez = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-     if (ok == False){
+     if (ok == false){
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

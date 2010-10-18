@@ -63,50 +63,50 @@ irtkTransformation *irtkTransformation::New(char *name)
     cerr << "This conversion will not work for DOF files produced by surface registration algorithms (srreg, ";
     cerr << "sarg, snreg, etc). To convert these DOF files, please use the dofimport tool. \n\n";
 
-    if (irtkRigidTransformation::CheckHeader(name) == True) {
+    if (irtkRigidTransformation::CheckHeader(name) == true) {
       transformation = new irtkRigidTransformation;
       transformation->Import(name);
       return transformation;
     }
 
-    if (irtkAffineTransformation::CheckHeader(name) == True) {
+    if (irtkAffineTransformation::CheckHeader(name) == true) {
       transformation = new irtkAffineTransformation;
       transformation->Import(name);
       return transformation;
     }
 
-    if (irtkBSplineFreeFormTransformation::CheckHeader(name) == True) {
+    if (irtkBSplineFreeFormTransformation::CheckHeader(name) == true) {
       transformation = new irtkBSplineFreeFormTransformation;
       transformation->Import(name);
       return transformation;
     }
 
-    if (irtkLinearFreeFormTransformation::CheckHeader(name) == True) {
+    if (irtkLinearFreeFormTransformation::CheckHeader(name) == true) {
       transformation = new irtkLinearFreeFormTransformation;
       transformation->Import(name);
       return transformation;
     }
 
-    if (irtkEigenFreeFormTransformation::CheckHeader(name) == True) {
+    if (irtkEigenFreeFormTransformation::CheckHeader(name) == true) {
       transformation = new irtkEigenFreeFormTransformation;
       transformation->Import(name);
       return transformation;
     }
 
-    if (irtkMultiLevelFreeFormTransformation::CheckHeader(name) == True) {
+    if (irtkMultiLevelFreeFormTransformation::CheckHeader(name) == true) {
       transformation = new irtkMultiLevelFreeFormTransformation;
       transformation->Import(name);
       return transformation;
     }
 
 #ifdef HAS_SUBDIVISION
-    if (irtkLatticeFreeFormTransformation::CheckHeader(name) == True) {
+    if (irtkLatticeFreeFormTransformation::CheckHeader(name) == true) {
       transformation = new irtkLatticeFreeFormTransformation;
       transformation->Import(name);
       return transformation;
     }
 
-    if (irtkMultiFrameLatticeFreeFormTransformation::CheckHeader(name) == True) {
+    if (irtkMultiFrameLatticeFreeFormTransformation::CheckHeader(name) == true) {
       transformation = new irtkMultiFrameLatticeFreeFormTransformation;
       transformation->Import(name);
       return transformation;

@@ -24,7 +24,7 @@
 #include <vtkStructuredGrid.h>
 #include <vtkStructuredGridWriter.h>
 
-int main(int argc, char **argv)
+int main(int, char **argv)
 {
   irtkMatrix jac;
   int i, j, k, nx, ny, nz;

@@ -47,7 +47,7 @@ class irtkHistory
   int _failed;
 
   /// Are two transformations the same
-  int IsEqual(const irtkHistoryEntry *, const irtkTransformation *);
+  bool IsEqual(const irtkHistoryEntry *, const irtkTransformation *);
 
 public:
 
@@ -63,7 +63,7 @@ public:
   /** Check whether a transformation is in history. If not, return false
       otherwise return true and its corresponding similarity value.
   */
-  int Find(const irtkTransformation *, double &);
+  bool Find(const irtkTransformation *, double &);
 
   /// Print some debugging information and statistics
   void Print();
@@ -121,27 +121,27 @@ inline void irtkHistory::Add(const irtkTransformation *transformation,
   _no++;
 }
 
-inline int  irtkHistory::IsEqual(const irtkHistoryEntry *entry,
+inline bool  irtkHistory::IsEqual(const irtkHistoryEntry *entry,
                                  const irtkTransformation *transformation)
 {
   for (int i = 0; i < transformation->NumberOfDOFs(); i++) {
-    if (entry->_parameter[i] != transformation->Get(i)) return False;
+    if (entry->_parameter[i] != transformation->Get(i)) return false;
   }
-  return True;
+  return true;
 }
 
-inline int  irtkHistory::Find(const irtkTransformation *transformation,
+inline bool  irtkHistory::Find(const irtkTransformation *transformation,
                               double &similarity)
 {
   for (irtkHistoryEntry *entry = _entries; entry != NULL; entry = entry->_succ) {
-    if (IsEqual(entry, transformation) == True) {
+    if (IsEqual(entry, transformation) == true) {
       similarity = entry->_similarity;
       _success++;
-      return True;
+      return true;
     }
   }
   _failed++;
-  return False;
+  return false;
 }
 
 inline void irtkHistory::Print()

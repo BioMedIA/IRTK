@@ -23,8 +23,8 @@ template <class VoxelType> irtkLargestConnectedComponentIterative<VoxelType>::ir
 {
   _largestClusterSize  = 0;
   _largestClusterLabel = 0;
-  _AllClustersMode     = False;
-  _Mode2D              = False;
+  _AllClustersMode     = false;
+  _Mode2D              = false;
   _TargetLabel         = TargetLabel;
   _NumberOfClusters    = 0;
   _ClusterSizes        = NULL;
@@ -35,9 +35,9 @@ template <class VoxelType> irtkLargestConnectedComponentIterative<VoxelType>::~i
   delete [] _ClusterSizes;
 }
 
-template <class VoxelType> Bool irtkLargestConnectedComponentIterative<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkLargestConnectedComponentIterative<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkLargestConnectedComponentIterative<VoxelType>::NameOfClass()
@@ -47,7 +47,7 @@ template <class VoxelType> const char *irtkLargestConnectedComponentIterative<Vo
 
 template <class VoxelType> int irtkLargestConnectedComponentIterative<VoxelType>::CheckAdjacency2D(VoxelType& markA, VoxelType& markB)
 {
-  int foundAdjacency = False;
+  int foundAdjacency = false;
   int i, j, k = 0, l = 0;
   int xdim, ydim;
 
@@ -65,33 +65,33 @@ template <class VoxelType> int irtkLargestConnectedComponentIterative<VoxelType>
 
       // Check the 4 neighbourhood.
       temp = this->_output->Get(i + 1, j, k, l);
-      if (temp > 0 && markA != temp && foundAdjacency == False) {
-        foundAdjacency = True;
+      if (temp > 0 && markA != temp && foundAdjacency == false) {
+        foundAdjacency = true;
         markB = temp;
       }
 
       temp = this->_output->Get(i - 1, j, k, l);
-      if (temp > 0 && markA != temp && foundAdjacency == False) {
-        foundAdjacency = True;
+      if (temp > 0 && markA != temp && foundAdjacency == false) {
+        foundAdjacency = true;
         markB = temp;
       }
 
       temp = this->_output->Get(i, j + 1, k, l);
-      if (temp > 0 && markA != temp && foundAdjacency == False) {
-        foundAdjacency = True;
+      if (temp > 0 && markA != temp && foundAdjacency == false) {
+        foundAdjacency = true;
         markB = temp;
       }
 
       temp = this->_output->Get(i, j - 1, k, l);
-      if (temp > 0 && markA != temp && foundAdjacency == False) {
-        foundAdjacency = True;
+      if (temp > 0 && markA != temp && foundAdjacency == false) {
+        foundAdjacency = true;
         markB = temp;
       }
 
-      if (foundAdjacency == True)
+      if (foundAdjacency == true)
         break;
     }
-    if (foundAdjacency == True)
+    if (foundAdjacency == true)
       break;
   }
 
@@ -100,7 +100,7 @@ template <class VoxelType> int irtkLargestConnectedComponentIterative<VoxelType>
 
 template <class VoxelType> int irtkLargestConnectedComponentIterative<VoxelType>::CheckAdjacency3D(VoxelType& markA, VoxelType& markB)
 {
-  int foundAdjacency = False;
+  int foundAdjacency = false;
   int i, j, k, l = 0;
 
   int xdim, ydim, zdim;
@@ -119,48 +119,48 @@ template <class VoxelType> int irtkLargestConnectedComponentIterative<VoxelType>
 
         // Check the 6 neighbourhood.
         temp = this->_output->Get(i + 1, j, k, l);
-        if (temp > 0 && markA != temp && foundAdjacency == False) {
-          foundAdjacency = True;
+        if (temp > 0 && markA != temp && foundAdjacency == false) {
+          foundAdjacency = true;
           markB = temp;
         }
 
         temp = this->_output->Get(i - 1, j, k, l);
-        if (temp > 0 && markA != temp && foundAdjacency == False) {
-          foundAdjacency = True;
+        if (temp > 0 && markA != temp && foundAdjacency == false) {
+          foundAdjacency = true;
           markB = temp;
         }
 
         temp = this->_output->Get(i, j + 1, k, l);
-        if (temp > 0 && markA != temp && foundAdjacency == False) {
-          foundAdjacency = True;
+        if (temp > 0 && markA != temp && foundAdjacency == false) {
+          foundAdjacency = true;
           markB = temp;
         }
 
         temp = this->_output->Get(i, j - 1, k, l);
-        if (temp > 0 && markA != temp && foundAdjacency == False) {
-          foundAdjacency = True;
+        if (temp > 0 && markA != temp && foundAdjacency == false) {
+          foundAdjacency = true;
           markB = temp;
         }
 
         temp = this->_output->Get(i, j, k + 1, l);
-        if (temp > 0 && markA != temp && foundAdjacency == False) {
-          foundAdjacency = True;
+        if (temp > 0 && markA != temp && foundAdjacency == false) {
+          foundAdjacency = true;
           markB = temp;
         }
 
         temp = this->_output->Get(i, j, k - 1, l);
-        if (temp > 0 && markA != temp && foundAdjacency == False) {
-          foundAdjacency = True;
+        if (temp > 0 && markA != temp && foundAdjacency == false) {
+          foundAdjacency = true;
           markB = temp;
         }
 
-        if (foundAdjacency == True)
+        if (foundAdjacency == true)
           break;
       }
-      if (foundAdjacency == True)
+      if (foundAdjacency == true)
         break;
     }
-    if (foundAdjacency == True)
+    if (foundAdjacency == true)
       break;
   }
 
@@ -257,10 +257,10 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
 {
   int i, j, k = 0, l = 0;
   int xdim, ydim;
-  int voxelsMarked = True;
+  int voxelsMarked = true;
   VoxelType currentMark = 0;
   VoxelType markA, markB;
-  int foundAdjacency = True;
+  int foundAdjacency = true;
   VoxelType in, out;
 
   xdim = this->_input->GetX();
@@ -271,8 +271,8 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
   // previously visited, voxel has the same mark.
   int marksAssigned;
 
-  while (voxelsMarked == True) {
-    voxelsMarked = False;
+  while (voxelsMarked == true) {
+    voxelsMarked = false;
     currentMark++;
 
     marksAssigned = 0;
@@ -286,10 +286,10 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
         // Have we found an unmarked target label?
         if (in == _TargetLabel && out == 0) {
 
-          if (voxelsMarked == False) {
+          if (voxelsMarked == false) {
             // This is the first one found.
             this->_output->Put(i, j, k, l, currentMark);
-            voxelsMarked = True;
+            voxelsMarked = true;
             ++marksAssigned;
           } else if ( (i > 0 && this->_output->Get(i - 1, j, k, l) == currentMark) ||
                       (j > 0 && this->_output->Get(i, j - 1, k, l) == currentMark) ) {
@@ -302,10 +302,10 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
   }
 
   // Now relabel adjacent marks to a common mark.
-  while (foundAdjacency == True) {
+  while (foundAdjacency == true) {
     foundAdjacency = CheckAdjacency2D(markA, markB);
 
-    if (foundAdjacency == True) {
+    if (foundAdjacency == true) {
       // Update both marks to the next available mark.
       currentMark++;
 
@@ -322,7 +322,7 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
 
   this->ResetMarks();
 
-  if (this->_AllClustersMode == False) {
+  if (this->_AllClustersMode == false) {
     // We want only the largest cluster.
     this->SelectLargestCluster();
   }
@@ -333,10 +333,10 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
 {
   int i, j, k, l = 0;
   int xdim, ydim, zdim;
-  int voxelsMarked = True;
+  int voxelsMarked = true;
   VoxelType currentMark = 0;
   VoxelType markA, markB;
-  int foundAdjacency = True;
+  int foundAdjacency = true;
   VoxelType in, out;
 
   xdim = this->_input->GetX();
@@ -348,8 +348,8 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
   // previously visited, voxel has the same mark.
   int marksAssigned;
 
-  while (voxelsMarked == True) {
-    voxelsMarked = False;
+  while (voxelsMarked == true) {
+    voxelsMarked = false;
     currentMark++;
 
     marksAssigned = 0;
@@ -364,10 +364,10 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
           // Have we found an unmarked target label?
           if (in == _TargetLabel && out == 0) {
 
-            if (voxelsMarked == False) {
+            if (voxelsMarked == false) {
               // This is the first one found.
               this->_output->Put(i, j, k, l, currentMark);
-              voxelsMarked = True;
+              voxelsMarked = true;
               ++marksAssigned;
             } else if ( (i > 0 && this->_output->Get(i - 1, j, k, l) == currentMark) ||
                         (j > 0 && this->_output->Get(i, j - 1, k, l) == currentMark) ||
@@ -382,10 +382,10 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
   }
 
   // Now relabel adjacent marks to a common mark.
-  while (foundAdjacency == True) {
+  while (foundAdjacency == true) {
     foundAdjacency = CheckAdjacency3D(markA, markB);
 
-    if (foundAdjacency == True) {
+    if (foundAdjacency == true) {
       // Update both marks to the next available mark.
       currentMark++;
 
@@ -404,7 +404,7 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
 
   this->ResetMarks();
 
-  if (this->_AllClustersMode == False) {
+  if (this->_AllClustersMode == false) {
     // We want only the largest cluster.
     this->SelectLargestCluster();
   }
@@ -433,7 +433,7 @@ template <class VoxelType> void irtkLargestConnectedComponentIterative<VoxelType
   }
 
   // Main calls.
-  if (this->_Mode2D == True) {
+  if (this->_Mode2D == true) {
     if (this->_input->GetZ() != 1) {
       cerr << "irtkLargestConnectedComponentIterative::Run : ";
       cerr << "2D mode selected but image has more than one slice in the z direction." << endl;

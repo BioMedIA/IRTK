@@ -159,7 +159,7 @@ irtkViewer::irtkViewer(irtkRView *rview, irtkViewerMode viewerMode)
 irtkViewer::~irtkViewer()
 {}
 
-Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformation)
+bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformation)
 {
   irtkFreeFormTransformation *affd = NULL;
   irtkMultiLevelFreeFormTransformation *mffd = NULL;
@@ -177,7 +177,7 @@ Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
       // Not a single-level FFD either, so let's give up
       _NumberOfX = 0;
       _NumberOfY = 0;
-      return False;
+      return false;
     }
   } else {
     affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
@@ -298,10 +298,10 @@ Bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
       }
     }
   }
-  return True;
+  return true;
 }
 
-Bool irtkViewer::UpdateTagGrid(irtkGreyImage *image, irtkTransformation *transformation, irtkPointSet landmark)
+bool irtkViewer::UpdateTagGrid(irtkGreyImage *image, irtkTransformation *transformation, irtkPointSet landmark)
 {  
 	if(landmark.Size() == 4){	
 		irtkFreeFormTransformation *affd = NULL;
@@ -397,12 +397,12 @@ Bool irtkViewer::UpdateTagGrid(irtkGreyImage *image, irtkTransformation *transfo
 				}
 			}
 		}
-		return True;
+		return true;
 	}else
-		return False;
+		return false;
 }
 
-Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformation)
+bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformation)
 {
   double dx, dy, t;
   int i, j, imax, jmax;
@@ -420,7 +420,7 @@ Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
       // Not a single-level FFD either, so let's give up
       _NumberOfX = 0;
       _NumberOfY = 0;
-      return False;
+      return false;
     }
   } else {
     affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
@@ -448,7 +448,7 @@ Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
       _AfterZ[i][j]  = 0;
       image->ImageToWorld(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
       if (mffd != NULL) {
-        if (_rview->_sourceTransformInvert == True) {
+        if (_rview->_sourceTransformInvert == true) {
           mffd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
           mffd->irtkAffineTransformation::Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
         } else {
@@ -456,7 +456,7 @@ Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
           mffd->irtkAffineTransformation::Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
         }
       } else {
-        if (_rview->_sourceTransformInvert == True) {
+        if (_rview->_sourceTransformInvert == true) {
           affd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
         } else {
           affd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
@@ -466,10 +466,10 @@ Bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
       _CPStatus[i][j] = _Unknown;
     }
   }
-  return True;
+  return true;
 }
 
-Bool irtkViewer::Update(irtkGreyImage *image, irtkTransformation *transformation)
+bool irtkViewer::Update(irtkGreyImage *image, irtkTransformation *transformation)
 {
   if (_rview->_DisplayDeformationGridResolution == 0) {
     return this->Update1(image, transformation);
@@ -567,7 +567,7 @@ void irtkViewer::DrawSegmentationContour(irtkGreyImage *image)
 
   for (j = 1; j < this->GetHeight()-1; j++) {
     for (i = 1; i < this->GetWidth()-1; i++) {
-      if ((image->Get(i, j, 0) > 0) && (_rview->_segmentTable->_entry[image->Get(i, j, 0)]._visible == True)) {
+      if ((image->Get(i, j, 0) > 0) && (_rview->_segmentTable->_entry[image->Get(i, j, 0)]._visible == true)) {
         r = _rview->_segmentTable->_entry[image->Get(i, j, 0)]._color.r;
         g = _rview->_segmentTable->_entry[image->Get(i, j, 0)]._color.g;
         b = _rview->_segmentTable->_entry[image->Get(i, j, 0)]._color.b;
@@ -701,7 +701,7 @@ void irtkViewer::DrawLandmarks(irtkPointSet &landmarks, irtkGreyImage *image,
   irtkPoint p;
 
   // Adjust pointsize and colour
-  if (bTarget == True) {
+  if (bTarget == true) {
     COLOR_TARGET_LANDMARKS;
   } else {
     COLOR_SOURCE_LANDMARKS;
@@ -713,13 +713,13 @@ void irtkViewer::DrawLandmarks(irtkPointSet &landmarks, irtkGreyImage *image,
     // Get point
     p = landmarks(i);
 
-    if (bTarget == False) {
+    if (bTarget == false) {
       // Transform point
       _rview->_sourceTransform->Inverse(p._x, p._y, p._z);
     }
 
     // Draw point
-    if (image->IsInFOV(p._x, p._y, p._z) == True) {
+    if (image->IsInFOV(p._x, p._y, p._z) == true) {
       image->WorldToImage(p);
       glBegin(GL_LINES);
       glVertex2f(_screenX1+p._x-8, _screenY1+p._y);
@@ -890,9 +890,9 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _Disp
 void irtkViewer::DrawInfo(irtkDisplayMode m)
 {
   int x, y;
-  static int first = True;
+  static int first = true;
 
-  if (first == True) {
+  if (first == true) {
     GLuint i, j;
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -905,7 +905,7 @@ void irtkViewer::DrawInfo(irtkDisplayMode m)
     glNewList(fontOffset + ' ', GL_COMPILE);
     glBitmap(8, 13, 0.0, 2.0, 10.0, 0.0, space);
     glEndList();
-    first = False;
+    first = false;
   }
 
   if (m == Native) return;

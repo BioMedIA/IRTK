@@ -93,7 +93,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
+  convolutionY.SetNormalization(true);
   convolutionY.irtkImageToImage<VoxelType>::Run();
   // Flip x and z axis of image
   this->_output->FlipXZ();
@@ -116,7 +116,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
+    convolutionZ.SetNormalization(true);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 
@@ -200,7 +200,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
+    convolutionZ.SetNormalization(true);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 
@@ -261,7 +261,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
+  convolutionY.SetNormalization(true);
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
@@ -322,7 +322,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
+  convolutionX.SetNormalization(true);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -368,7 +368,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
+    convolutionZ.SetNormalization(true);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 
@@ -407,7 +407,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
+  convolutionX.SetNormalization(true);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -491,7 +491,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
+  convolutionX.SetNormalization(true);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -514,7 +514,7 @@ template <class VoxelType> void irtkConvolutionWithGaussianDerivative2<VoxelType
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
+  convolutionY.SetNormalization(true);
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image

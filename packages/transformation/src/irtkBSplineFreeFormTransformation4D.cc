@@ -625,7 +625,7 @@ void irtkBSplineFreeFormTransformation4D::Jacobian(irtkMatrix &jac, double x, do
   this->LocalJacobian(jac, x, y, z, t);
 }
 
-void irtkBSplineFreeFormTransformation4D::GlobalJacobian(irtkMatrix &jac, double x, double y, double z, double t)
+void irtkBSplineFreeFormTransformation4D::GlobalJacobian(irtkMatrix &jac, double, double, double, double)
 {
   // Jacobian matrix is 3 x 3
   jac.Initialize(3, 3);
@@ -636,21 +636,21 @@ void irtkBSplineFreeFormTransformation4D::GlobalJacobian(irtkMatrix &jac, double
   jac(2, 2) = 1;
 }
 
-void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double x, double y, double z, double t)
+void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &, double, double, double, double)
 {
   cerr << "irtkBSplineFreeFormTransformation4D::LocalJacobian: Not implemented yet" << endl;
   exit(1);
 }
 
-double irtkBSplineFreeFormTransformation4D::Bending(double x, double y, double z, double t)
+double irtkBSplineFreeFormTransformation4D::Bending(double, double, double, double)
 {
   cerr << "irtkBSplineFreeFormTransformation4D::Bending: Not implemented yet" << endl;
   exit(1);
 }
 
-int irtkBSplineFreeFormTransformation4D::CheckHeader(char *name)
+int irtkBSplineFreeFormTransformation4D::CheckHeader(char *)
 {
-  return False;
+  return false;
 }
 
 void irtkBSplineFreeFormTransformation4D::Interpolate(double *, double *, double *)

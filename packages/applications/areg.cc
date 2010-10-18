@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
   double tox, toy, toz, sox, soy, soz;
   tox = toy = toz = sox = soy = soz = 0.0;
-  int centerImages = False;
+  int centerImages = false;
   irtkMatrix tmat(4, 4);
   irtkMatrix smat(4, 4);
   irtkMatrix tempMat, transfMat;
@@ -142,176 +142,176 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       target_x1 = source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       target_x2 = source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       target_y1 = source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       target_y2 = source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       target_z1 = source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       target_z2 = source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx1") == 0)) {
       argc--;
       argv++;
       target_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx2") == 0)) {
       argc--;
       argv++;
       target_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty1") == 0)) {
       argc--;
       argv++;
       target_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty2") == 0)) {
       argc--;
       argv++;
       target_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz1") == 0)) {
       argc--;
       argv++;
       target_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz2") == 0)) {
       argc--;
       argv++;
       target_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx1") == 0)) {
       argc--;
       argv++;
       source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx2") == 0)) {
       argc--;
       argv++;
       source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy1") == 0)) {
       argc--;
       argv++;
       source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy2") == 0)) {
       argc--;
       argv++;
       source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz1") == 0)) {
       argc--;
       argv++;
       source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz2") == 0)) {
       argc--;
       argv++;
       source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-x_only") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-x_only") == 0)) {
       argc--;
       argv++;
       transformation->PutStatus(TY,  _Passive);
@@ -324,9 +324,9 @@ int main(int argc, char **argv)
       transformation->PutStatus(SXY, _Passive);
       transformation->PutStatus(SYZ, _Passive);
       transformation->PutStatus(SXZ, _Passive);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xy_only") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy_only") == 0)) {
       argc--;
       argv++;
       transformation->PutStatus(TZ,  _Passive);
@@ -335,50 +335,50 @@ int main(int argc, char **argv)
       transformation->PutStatus(SZ,  _Passive);
       transformation->PutStatus(SYZ, _Passive);
       transformation->PutStatus(SXZ, _Passive);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-p9") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-p9") == 0)) {
       argc--;
       argv++;
       transformation->PutStatus(SXY, _Passive);
       transformation->PutStatus(SYZ, _Passive);
       transformation->PutStatus(SXZ, _Passive);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-p12") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-p12") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
       argc--;
       argv++;
-      ok = True;
-      registration->SetDebugFlag(True);
+      ok = true;
+      registration->SetDebugFlag(true);
     }
-    if ((ok == False) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
+    if ((ok == false) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parin_name = argv[1];
       argc--;
       argv++;
     }
-    if ((ok == False) && (strcmp(argv[1], "-parout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-parout") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parout_name = argv[1];
       argc--;
       argv++;
     }
-    if ((ok == False) && (strcmp(argv[1], "-center") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-center") == 0)) {
       argc--;
       argv++;
-      centerImages = True;
-      ok = True;
+      centerImages = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -405,7 +405,7 @@ int main(int argc, char **argv)
     transformation->Read(dofin_name);
   }
 
-  if (centerImages == True) {
+  if (centerImages == true) {
     cout << "Centering ... ";
     // Place the voxel centre at the world origin.
     target.GetOrigin(tox, toy, toz);
@@ -457,7 +457,7 @@ int main(int argc, char **argv)
 
   // Write the final transformation estimate
   if (dofout_name != NULL) {
-    if (centerImages == False) {
+    if (centerImages == false) {
       transformation->Write(dofout_name);
     } else {
       // Undo the effect of centering the images.

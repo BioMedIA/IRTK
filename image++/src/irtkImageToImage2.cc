@@ -21,7 +21,7 @@ irtkImageToImage2::irtkImageToImage2()
   _output = NULL;
 
   // Default parameters
-  _DebugFlag = False;
+  _DebugFlag = false;
 }
 
 irtkImageToImage2::~irtkImageToImage2()
@@ -53,7 +53,7 @@ void irtkImageToImage2::SetOutput(irtkBaseImage *image)
 
 void irtkImageToImage2::Debug(const char *message)
 {
-  if (_DebugFlag == True) cout << message << endl;
+  if (_DebugFlag == true) cout << message << endl;
 }
 
 void irtkImageToImage2::Initialize()
@@ -72,7 +72,7 @@ void irtkImageToImage2::Initialize()
     exit(1);
   }
 
-  if (_input->IsEmpty() == True) {
+  if (_input->IsEmpty() == true) {
     cerr << this->NameOfClass() << "::Run: Input is empty" << endl;
     exit(1);
   }

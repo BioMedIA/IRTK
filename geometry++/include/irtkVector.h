@@ -136,15 +136,15 @@ public:
   irtkVector  operator/ (const irtkVector&);
 
   /// Comparison operator ==
-  Bool operator==(const irtkVector &);
+  bool operator==(const irtkVector &);
 
 #ifndef USE_STL
   /// Comparison operator != (if USE_STL is defined, negate == operator)
-  Bool operator!=(const irtkVector &);
+  bool operator!=(const irtkVector &);
 #endif
 
   /// Comparison operator <
-  Bool operator<(const irtkVector &);
+  bool operator<(const irtkVector &);
 
   /// Scalar/dot product
   double ScalarProduct(const irtkVector&);
@@ -460,40 +460,40 @@ inline irtkVector irtkVector::operator/ (const irtkVector& v)
 // Comparison
 //
 
-inline Bool  irtkVector::operator==(const irtkVector &v)
+inline bool  irtkVector::operator==(const irtkVector &v)
 {
   if (_rows != v._rows) {
-    return False;
+    return false;
   }
   for (int i = 0; i < _rows; i++) {
-    if (_vector[i] != v._vector[i]) return False;
+    if (_vector[i] != v._vector[i]) return false;
   }
-  return True;
+  return true;
 
 }
 
 #ifndef USE_STL
-inline Bool  irtkVector::operator!=(const irtkVector &v)
+inline bool  irtkVector::operator!=(const irtkVector &v)
 {
   if (_rows != v._rows) {
-    return True;
+    return true;
   }
   for (int i = 0; i < _rows; i++) {
-    if (_vector[i] != v._vector[i]) return True;
+    if (_vector[i] != v._vector[i]) return true;
   }
-  return False;
+  return false;
 }
 #endif
 
-inline Bool  irtkVector::operator<(const irtkVector &v)
+inline bool  irtkVector::operator<(const irtkVector &v)
 {
   if (_rows > v._rows) {
-    return False;
+    return false;
   }
   for (int i = 0; i < _rows; i++) {
-    if (_vector[i] >= v._vector[i]) return False;
+    if (_vector[i] >= v._vector[i]) return false;
   }
-  return True;
+  return true;
 
 }
 

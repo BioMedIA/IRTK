@@ -15,14 +15,14 @@
 #include <irtkScalarFunctionToImage.h>
 
 template <class VoxelType>
-irtkScalarFunctionToImage<VoxelType>::irtkScalarFunctionToImage(Bool UseWorldCorrdinates)
+irtkScalarFunctionToImage<VoxelType>::irtkScalarFunctionToImage(bool UseWorldCorrdinates)
 {
   // Set in- and outputs
   _input  = NULL;
   _output = NULL;
 
   // Default parameters
-  _DebugFlag = False;
+  _DebugFlag = false;
   _UseWorldCoordinates = UseWorldCorrdinates;
 }
 
@@ -59,7 +59,7 @@ void irtkScalarFunctionToImage<VoxelType>::SetOutput(irtkGenericImage<VoxelType>
 template <class VoxelType>
 void irtkScalarFunctionToImage<VoxelType>::Debug(char *message)
 {
-  if (_DebugFlag == True)
+  if (_DebugFlag == true)
     cout << message << endl;
 }
 
@@ -75,7 +75,7 @@ void irtkScalarFunctionToImage<VoxelType>::Run()
   int i, j, k, l;
   double x, y, z;
 
-  if (_UseWorldCoordinates == True) {
+  if (_UseWorldCoordinates == true) {
     // Calculate scalar function using world coordinates
     for (l = 0; l < _output->GetT(); l++) {
       for (k = 0; k < _output->GetZ(); k++) {

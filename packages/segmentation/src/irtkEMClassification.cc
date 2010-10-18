@@ -751,7 +751,7 @@ void irtkEMClassification::PrintGMM()
 
 }
 
-double irtkEMClassification::Iterate(int iteration)
+double irtkEMClassification::Iterate(int)
 {
   this->EStep();
   this->MStep();
@@ -1116,13 +1116,13 @@ double irtkEMClassification::PointLogLikelihoodGMM(double x)
   return -log(temp);
 }
 
-double irtkEMClassification::PointLogLikelihoodGMM(double x, double y)
+double irtkEMClassification::PointLogLikelihoodGMM(double x, double)
 {
   cerr<<"May be we do not want this one ;-)"<<endl;
   return PointLogLikelihoodGMM(x);
 }
 
-double irtkEMClassification::PointLogLikelihoodGMMnomatch(double x, double y)
+double irtkEMClassification::PointLogLikelihoodGMMnomatch(double x, double)
 {
   cerr<<"May be we do not want this one ;-)"<<endl;
   exit(1);
@@ -1141,7 +1141,7 @@ void irtkEMClassification::GInit()
   }
 }
 
-bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, double lcc_treshold, bool first, irtkGreyImage * eyes)
+bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, double lcc_treshold, bool first, irtkGreyImage *)
 {
   int i,j,k,l,n;
   int labelId[5], labelCount[4];
@@ -1464,11 +1464,11 @@ void irtkEMClassification::ConstructPVSegmentation()
           }
         }
       }
-  if (_debug) _pv_output.Write(0,"csfPV.nii.gz");
-  if (_debug) _pv_output.Write(1,"gmPV.nii.gz");
-  if (_debug) _pv_output.Write(2,"wm1PV.nii.gz");
-  if (_debug) _pv_output.Write(3,"wm2PV.nii.gz");
-  if (_debug) _pv_output.Write(4,"bgPV.nii.gz");
+  if (_debug) _pv_output.Write(0, "csfPV.nii.gz");
+  if (_debug) _pv_output.Write(1, "gmPV.nii.gz");
+  if (_debug) _pv_output.Write(2, "wm1PV.nii.gz");
+  if (_debug) _pv_output.Write(3, "wm2PV.nii.gz");
+  if (_debug) _pv_output.Write(4, "bgPV.nii.gz");
 
 }
 

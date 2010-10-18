@@ -48,61 +48,61 @@ int main(int argc, char **argv)
   argv++;
 
   // Parse remaining options
-  flip_x = False;
-  flip_y = False;
-  flip_z = False;
-  minmax = False;
+  flip_x = false;
+  flip_y = false;
+  flip_z = false;
+  minmax = false;
   min    = 0;
   max    = 0;
   image_type = IRTK_VOXEL_SHORT;
 
   while (argc > 1) {
-    ok = False;
+    ok = false;
     if (strcmp(argv[1], "-char") == 0) {
       image_type = IRTK_VOXEL_CHAR;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-uchar") == 0) {
       image_type = IRTK_VOXEL_UNSIGNED_CHAR;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-short") == 0) {
       image_type = IRTK_VOXEL_SHORT;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-ushort") == 0) {
       image_type = IRTK_VOXEL_UNSIGNED_SHORT;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-float") == 0) {
       image_type = IRTK_VOXEL_FLOAT;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-double") == 0) {
       image_type = IRTK_VOXEL_DOUBLE;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-x") == 0) {
-      flip_x = True;
+      flip_x = true;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-y") == 0) {
-      flip_y = True;
+      flip_y = true;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-z") == 0) {
-      flip_y = True;
+      flip_y = true;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     } else if (strcmp(argv[1], "-minmax") == 0) {
       argc--;
       argv++;
@@ -112,8 +112,8 @@ int main(int argc, char **argv)
       max = atof(argv[1]);
       argc--;
       argv++;
-      minmax = True;
-      ok = True;
+      minmax = true;
+      ok = true;
     } else if (!ok) {
       cerr << "Invalid option : " << argv[1] << endl;
       exit(1);
@@ -133,9 +133,9 @@ int main(int argc, char **argv)
   }
   
   // Reflect image
-  if (flip_x == True) image.ReflectX();
-  if (flip_y == True) image.ReflectY();
-  if (flip_z == True) image.ReflectZ();
+  if (flip_x == true) image.ReflectX();
+  if (flip_y == true) image.ReflectY();
+  if (flip_z == true) image.ReflectZ();
 
   // Convert image
   switch (image_type) {

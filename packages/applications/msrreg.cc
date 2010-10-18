@@ -55,9 +55,9 @@ int main(int argc, char **argv)
   locatorType = 1;
   epsilon = 0.01;
   ok = 0;
-  clean = False;
-  invert = False;
-  symmetricDistance = False;
+  clean = false;
+  invert = false;
+  symmetricDistance = false;
 
   // Parse number of surfaces
   no_surfaces = atoi(argv[1]);
@@ -66,66 +66,66 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-locator") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-locator") == 0)) {
       argc--;
       argv++;
       locatorType = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-clean") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-clean") == 0)) {
       argc--;
       argv++;
-      clean = True;
-      ok = True;
+      clean = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-invert") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
-      invert = True;
-      ok = True;
+      invert = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-symmetric") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-symmetric") == 0)) {
       argc--;
       argv++;
-      symmetricDistance = True;
-      ok = True;
+      symmetricDistance = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-epsilon") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-epsilon") == 0)) {
       argc--;
       argv++;
       epsilon = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--;
       argv++;
       iterations = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     cout << "Reading target ... " << _target_name << endl;
     target_reader->SetFileName(_target_name);
     target_reader->Modified();
-    if (clean == True) {
+    if (clean == true) {
       target_cleaner->SetInput(target_reader->GetOutput());
       target_cleaner->Modified();
       target_cleaner->Update();
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     cout << "Reading source ... " << _source_name << endl;
     source_reader->SetFileName(_source_name);
     source_reader->Modified();
-    if (clean == True) {
+    if (clean == true) {
       source_cleaner->SetInput(source_reader->GetOutput());
       source_cleaner->Modified();
       source_cleaner->Update();
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
   registration->SetEpsilon(epsilon);
 
   // Check if to do symmetric registration
-  if (symmetricDistance == True) {
+  if (symmetricDistance == true) {
     // Create target and source locators
     irtkLocator **target_locator = new irtkLocator *[no_surfaces];
     irtkLocator **source_locator = new irtkLocator *[no_surfaces];
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
   registration->Run();
 
   // Invert transformation
-  if (invert == True) {
+  if (invert == true) {
     transformation->Invert();
     transformation->UpdateParameter();
   }

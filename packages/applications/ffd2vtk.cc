@@ -60,18 +60,18 @@ int main(int argc, char **argv)
   }
 
   // Default parameters
-  displacement = False;
+  displacement = false;
 
   // Parse remaining arguments
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-displacement") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-displacement") == 0)) {
       argc--;
       argv++;
-      displacement = True;
-      ok = True;
+      displacement = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can't parse argument " << argv[1] << endl;
       usage();
     }
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
   vectors->SetNumberOfComponents(3);
 
   // Remind user what we are doing
-  if (displacement == True) {
+  if (displacement == true) {
     cerr << "Converting displacements to VTK" << endl;
   } else {
     cerr << "Converting control points to VTK" << endl;
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
         p[2] = z;
         ffd->LatticeToWorld(p[0], p[1], p[2]);
         points->InsertNextPoint(p);
-        if (displacement == True) {
+        if (displacement == true) {
           ffd->LocalDisplacement(p[0], p[1], p[2]);
         } else {
           ffd->Get(x, y, z, p[0], p[1], p[2]);

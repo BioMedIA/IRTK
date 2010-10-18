@@ -54,7 +54,7 @@ void usage(){
 
 int main(int argc, char **argv){
   LargeDefGradLagrange LargeDef;
-  Bool ok;
+  bool ok;
   
   // Check command line
   if (argc < 3) {
@@ -71,39 +71,39 @@ int main(int argc, char **argv){
   // Parse remaining parameters
   while (argc > 1) {
     //1 - Primary options
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--; argv++;
       LargeDef.iteration_nb = atoi(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-subdivisions") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-subdivisions") == 0)) {
       argc--; argv++;
       LargeDef.NbTimeSubdiv = atoi(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-MaxVeloUpdt") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-MaxVeloUpdt") == 0)) {
       argc--; argv++;
       LargeDef.MaxVelocityUpdate = atof(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
     //2 - Inputs and Outputs
-    if ((ok == False) && (strcmp(argv[1], "-PrefixInputs") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-PrefixInputs") == 0)) {
       argc--; argv++;
       strcpy(LargeDef.PrefixInputs,argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-PrefixOutputs") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-PrefixOutputs") == 0)) {
       argc--; argv++;
       strcpy(LargeDef.PrefixOutputs,argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-AddChannel") == 0) && (LargeDef.NbChannels<10)) {
+    if ((ok == false) && (strcmp(argv[1], "-AddChannel") == 0) && (LargeDef.NbChannels<10)) {
       argc--; argv++;
       LargeDef.weightChannel[LargeDef.NbChannels] = atof(argv[1]);
       argc--; argv++;
@@ -112,17 +112,17 @@ int main(int argc, char **argv){
       strcpy(LargeDef.TargetFiles[LargeDef.NbChannels],argv[1]);
       argc--; argv++;
       LargeDef.NbChannels++;
-      ok = True;
+      ok = true;
       if (LargeDef.NbChannels==10) cout << "\n \n MAXIMUM NUMBER OF 10 CHANNELS IS REACHED !!!\n \n ";
     }
-    if ((ok == False) && (strcmp(argv[1], "-Mask") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Mask") == 0)) {
       argc--; argv++;
       strcpy(LargeDef.MaskFile,argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
     //3 - Kernels
-    if ((ok == False) && (strcmp(argv[1], "-sigma") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sigma") == 0)) {
       argc--; argv++;
       LargeDef.weight1 = 100.;
       LargeDef.sigmaX1 = atof(argv[1]);
@@ -130,9 +130,9 @@ int main(int argc, char **argv){
       LargeDef.sigmaZ1 = atof(argv[1]);
       argc--; argv++;
       LargeDef.NbKernels=1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-AnisoGauss") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-AnisoGauss") == 0)) {
       argc--; argv++;
       LargeDef.weight1 = atof(argv[1]);
       argc--; argv++;
@@ -143,9 +143,9 @@ int main(int argc, char **argv){
       LargeDef.sigmaZ1 = atof(argv[1]);
       argc--; argv++;
       LargeDef.NbKernels=1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-MultiGauss2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-MultiGauss2") == 0)) {
       argc--; argv++;
       LargeDef.weight1 = atof(argv[1]);
       argc--; argv++;
@@ -164,9 +164,9 @@ int main(int argc, char **argv){
       LargeDef.sigmaZ2 = atof(argv[1]);
       argc--; argv++;
       LargeDef.NbKernels=2;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-MultiGauss3") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-MultiGauss3") == 0)) {
       argc--; argv++;
       LargeDef.weight1 = atof(argv[1]);
       argc--; argv++;
@@ -193,9 +193,9 @@ int main(int argc, char **argv){
       LargeDef.sigmaZ3 = atof(argv[1]);
       argc--; argv++;
       LargeDef.NbKernels=3;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-MultiGauss4") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-MultiGauss4") == 0)) {
       argc--; argv++;
       LargeDef.weight1 = atof(argv[1]);
       argc--; argv++;
@@ -230,61 +230,61 @@ int main(int argc, char **argv){
       LargeDef.sigmaZ4 = atof(argv[1]);
       argc--; argv++;
       LargeDef.NbKernels=4;
-      ok = True;
+      ok = true;
     }
 
     //4 - Secondary options
-    if ((ok == False) && (strcmp(argv[1], "-GreyLevAlign") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-GreyLevAlign") == 0)) {
       argc--; argv++;
       LargeDef.GreyLevAlign = 1;
       LargeDef.GLA_Padding_Src = atof(argv[1]);
       argc--; argv++;
       LargeDef.GLA_Padding_Trg = atof(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-SplitKernels") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-SplitKernels") == 0)) {
       argc--; argv++;
       LargeDef.SplitKernels = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-margins") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-margins") == 0)) {
       argc--; argv++;
       LargeDef.Margin = atoi(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-WghtVeloField") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-WghtVeloField") == 0)) {
       argc--; argv++;
       LargeDef.WghtVelField = atof(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-RefMaxGrad") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-RefMaxGrad") == 0)) {
       argc--; argv++;
       LargeDef.RefMaxGrad = atof(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-epsilon") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-epsilon") == 0)) {
       argc--; argv++;
       LargeDef.epsilon = atof(argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-MapSrcImag") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-MapSrcImag") == 0)) {
       argc--; argv++;
       strcpy(LargeDef.MappingSrc,argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-MapTrgImag") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-MapTrgImag") == 0)) {
       argc--; argv++;
       strcpy(LargeDef.MappingTrg,argv[1]);
       argc--; argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-TypicInvAmp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-TypicInvAmp") == 0)) {
       argc--; argv++;
       LargeDef.sigmaX1 = atof(argv[1]);
       argc--; argv++;
@@ -294,50 +294,50 @@ int main(int argc, char **argv){
       argc--; argv++;
       LargeDef.NbKernels=1;
       LargeDef.MeasureTypicAmp=1;
-      ok = True;
+      ok = true;
     }
     //5) Special outputs
-    if ((ok == False) && (strcmp(argv[1], "-FlowLength") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-FlowLength") == 0)) {
       argc--; argv++;
       LargeDef.FlowLength = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-DetJacobian") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-DetJacobian") == 0)) {
       argc--; argv++;
       LargeDef.DetJacobian = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-FinalDefVec") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-FinalDefVec") == 0)) {
       argc--; argv++;
       LargeDef.FinalDefVec = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-InitMomentum") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-InitMomentum") == 0)) {
       argc--; argv++;
       LargeDef.CptInitMomentum = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-FinalDefInvVec") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-FinalDefInvVec") == 0)) {
       argc--; argv++;
       LargeDef.FinalDefInvVec = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-FinalForwardMap") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-FinalForwardMap") == 0)) {
       argc--; argv++;
       LargeDef.FinalForwardMap = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-FinalBackwardMap") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-FinalBackwardMap") == 0)) {
       argc--; argv++;
       LargeDef.FinalBackwardMap = 1;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ShowSSD") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ShowSSD") == 0)) {
       argc--; argv++;
       LargeDef.ShowSSD = 1;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) usage();
+    if (ok == false) usage();
   }
   
   //run process

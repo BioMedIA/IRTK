@@ -51,8 +51,8 @@ int main(int argc, char **argv)
   irtkBaseImage *image = reader->GetOutput();
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-target") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
       argc--;
       argv++;
       irtkGreyImage target(argv[1]);
@@ -64,9 +64,9 @@ int main(int argc, char **argv)
       image->PutOrientation(xaxis, yaxis, zaxis);
       target.GetOrigin(origin[0], origin[1], origin[2]);
       image->PutOrigin(origin[0], origin[1], origin[2]);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-size") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
       argc--;
       argv++;
       xsize = atof(argv[1]);
@@ -78,24 +78,24 @@ int main(int argc, char **argv)
       zsize = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
 
       // Set voxel size
       image->PutPixelSize(xsize, ysize, zsize);
     }
-    if ((ok == False) && (strcmp(argv[1], "-tsize") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-tsize") == 0)) {
       argc--;
       argv++;
       tsize = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
 
       // Set voxel size
       image->GetPixelSize(&xsize, &ysize, &zsize);
       image->PutPixelSize(xsize, ysize, zsize, tsize);
     }
-    if ((ok == False) && (strcmp(argv[1], "-orientation") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-orientation") == 0)) {
       argc--;
       argv++;
       xaxis[0] = atof(argv[1]);
@@ -125,12 +125,12 @@ int main(int argc, char **argv)
       zaxis[2] = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
 
       // Set orientation (third argument now required)
       image->PutOrientation(xaxis, yaxis, zaxis);
     }
-    if ((ok == False) && (strcmp(argv[1], "-origin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-origin") == 0)) {
       argc--;
       argv++;
       origin[0] = atof(argv[1]);
@@ -142,25 +142,25 @@ int main(int argc, char **argv)
       origin[2] = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
 
       // Set origin
       image->PutOrigin(origin[0], origin[1], origin[2]);
     }
-    if ((ok == False) && (strcmp(argv[1], "-torigin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-torigin") == 0)) {
       argc--;
       argv++;
-      origin[4] = atof(argv[1]);
+      origin[3] = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
 
       // Set origin
       image->GetOrigin(origin[0], origin[1], origin[2]);
-      image->PutOrigin(origin[0], origin[1], origin[2], origin[4]);
+      image->PutOrigin(origin[0], origin[1], origin[2], origin[3]);
     }
 
-    if (ok == False) {
+    if (ok == false) {
       cout << "Can't parse argument: " << argv[1] << endl;
       usage();
     }

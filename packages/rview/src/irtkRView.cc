@@ -53,9 +53,9 @@ irtkRView::irtkRView(int x, int y) {
 	_zaxis[2] = 1;
 
 	// Default: No axis flipping
-	_FlipX = False;
-	_FlipY = False;
-	_FlipZ = False;
+	_FlipX = false;
+	_FlipY = false;
+	_FlipZ = false;
 
 	// View mode
 	_viewMode = View_A;
@@ -74,29 +74,29 @@ irtkRView::irtkRView(int x, int y) {
 	_sourceFrame = 0;
 
 	// Default: Segmentation
-	_DisplaySegmentationLabels = False;
-	_DisplaySegmentationContours = False;
-	_SegmentationMode = False;
+	_DisplaySegmentationLabels = false;
+	_DisplaySegmentationContours = false;
+	_SegmentationMode = false;
 	_PaintBrushWidth = 1;
 
 	// Default: No isolines
-	_DisplayTargetContour = False;
-	_DisplaySourceContour = False;
+	_DisplayTargetContour = false;
+	_DisplaySourceContour = false;
 
 	// Default: Line Thickness
 	_LineThickness = 2;
 
 	// Default: No ROI
-	_DisplayROI = False;
+	_DisplayROI = false;
 
 	// Default: No TAG
-	_TrackTAG = False;
+	_TrackTAG = false;
 
 	// Default: Cursor
-	_DisplayCursor = True;
+	_DisplayCursor = true;
 
 	// Default: Snap to grid
-	_SnapToGrid = True;
+	_SnapToGrid = true;
 
 	// Default: Display mode
 	_DisplayMode = Neurological;
@@ -106,20 +106,20 @@ irtkRView::irtkRView(int x, int y) {
 	_DeformationBlending = 0.5;
 
 	// Default: Axis labels
-	_DisplayAxisLabels = True;
+	_DisplayAxisLabels = true;
 
 	// Default: CrossHair
 	_CursorMode = CrossHair;
 
 	// Default: No deformation grid
-	_DisplayDeformationGrid = False;
+	_DisplayDeformationGrid = false;
 	_DisplayDeformationGridResolution = 0;
 
 	// Default: No deformation points
-	_DisplayDeformationPoints = False;
+	_DisplayDeformationPoints = false;
 
 	// Default: No deformation arrows
-	_DisplayDeformationArrows = False;
+	_DisplayDeformationArrows = false;
 
 	// Default: Contour is displayed in first viewer
 	_contourViewer = -1;
@@ -129,16 +129,16 @@ irtkRView::irtkRView(int x, int y) {
 	_NoOfViewers = 0;
 
 	// Default: No update needed
-	_targetUpdate = False;
-	_sourceUpdate = False;
+	_targetUpdate = false;
+	_sourceUpdate = false;
 
 #ifdef HAS_SEGMENTATION_PANEL
-	_segmentationUpdate = False;
-	_selectionUpdate = False;
+	_segmentationUpdate = false;
+	_selectionUpdate = false;
 #endif
 
 	// Initialize landmark display
-	_DisplayLandmarks = False;
+	_DisplayLandmarks = false;
 
 #ifdef HAS_VTK
 	// Initialize object and display
@@ -146,9 +146,9 @@ irtkRView::irtkRView(int x, int y) {
 	for (int i = 0; i < MAX_NUMBER_OF_OBJECTS; i++) {
 		_Object[i] = NULL;
 	}
-	_DisplayObject = False;
-	_DisplayObjectWarp = False;
-	_DisplayObjectGrid = False;
+	_DisplayObject = false;
+	_DisplayObjectWarp = false;
+	_DisplayObjectGrid = false;
 #endif
 
 	// Allocate memory for source and target image
@@ -170,10 +170,10 @@ irtkRView::irtkRView(int x, int y) {
 	_selectionTransform = new irtkAffineTransformation;
 
 	// Flag whether transform shoule be applied
-	_sourceTransformApply = True;
+	_sourceTransformApply = true;
 
 	// Flag whether transform should be inverted
-	_sourceTransformInvert = False;
+	_sourceTransformInvert = false;
 
 	// Initialize min and max values
 	_targetMin = 0;
@@ -220,29 +220,29 @@ void irtkRView::Update() {
 
 	// Check whether target and/or source and/or segmentation need updating
 	for (l = 0; l < _NoOfViewers; l++) {
-		if ((_targetUpdate == True) && (_targetImage->IsEmpty() != True)) {
+		if ((_targetUpdate == true) && (_targetImage->IsEmpty() != true)) {
 			_targetTransformFilter[l]->PutSourcePaddingValue(-1);
 			_targetTransformFilter[l]->Run();
 		}
-		if ((_sourceUpdate == True) && (_sourceImage->IsEmpty() != True)) {
+		if ((_sourceUpdate == true) && (_sourceImage->IsEmpty() != true)) {
 			_sourceTransformFilter[l]->PutSourcePaddingValue(-1);
 			_sourceTransformFilter[l]->Run();
 		}
-		if ((_segmentationUpdate == True)
-				&& (_segmentationImage->IsEmpty() != True)) {
+		if ((_segmentationUpdate == true)
+				&& (_segmentationImage->IsEmpty() != true)) {
 			_segmentationTransformFilter[l]->Run();
 		}
-		if ((_selectionUpdate == True)
-				&& (_voxelContour._raster->IsEmpty() != True)) {
+		if ((_selectionUpdate == true)
+				&& (_voxelContour._raster->IsEmpty() != true)) {
 			_selectionTransformFilter[l]->Run();
 		}
 	}
 
 	// No more updating required
-	_targetUpdate = False;
-	_sourceUpdate = False;
-	_segmentationUpdate = False;
-	_selectionUpdate = False;
+	_targetUpdate = false;
+	_sourceUpdate = false;
+	_segmentationUpdate = false;
+	_selectionUpdate = false;
 
 	// Combine target and source image
 	for (k = 0; k < _NoOfViewers; k++) {
@@ -423,13 +423,13 @@ void irtkRView::Update() {
 			break;
 		}
 
-		if (_DisplaySegmentationLabels == True) {
+		if (_DisplaySegmentationLabels == true) {
 			ptr3 = _drawable[k];
 			// Display segmentation on top of all view modes
 			for (j = 0; j < _viewer[k]->GetHeight(); j++) {
 				for (i = 0; i < _viewer[k]->GetWidth(); i++) {
 					if (*ptr4 >= 0) {
-						if (_segmentTable->_entry[*ptr4]._visible == True) {
+						if (_segmentTable->_entry[*ptr4]._visible == true) {
 							blendA = _segmentTable->_entry[*ptr4]._trans;
 							blendB = 1 - blendA;
 							ptr3->r = int((blendB * ptr3->r) + (blendA
@@ -481,74 +481,74 @@ void irtkRView::Draw() {
 		_viewer[k]->Clip();
 
 		// Draw iso-contours in target image if needed
-		if (_DisplayTargetContour == True) {
+		if (_DisplayTargetContour == true) {
 			_viewer[k]->DrawIsolines(_targetImageOutput[k],
 				_targetLookupTable->GetMinDisplayIntensity());
 		}
 		// Draw iso-contours in source image if needed
-		if (_DisplaySourceContour == True) {
+		if (_DisplaySourceContour == true) {
 			_viewer[k]->DrawIsolines(_sourceImageOutput[k],
 					_sourceLookupTable->GetMinDisplayIntensity());
 		}
 		// Draw segmentation if needed
-		if (_DisplaySegmentationContours == True) {
+		if (_DisplaySegmentationContours == true) {
 			_viewer[k]->DrawSegmentationContour(_segmentationImageOutput[k]);
 		}
 		// Draw tag grid if needed
-		if (_ViewTAG == True) {
+		if (_ViewTAG == true) {
 			// Update grid information based on landmarks
-			if(_viewer[k]->UpdateTagGrid(_sourceImageOutput[k], _sourceTransform,_targetLandmarks) == True)
+			if(_viewer[k]->UpdateTagGrid(_sourceImageOutput[k], _sourceTransform,_targetLandmarks) == true)
 				// If there are 4 landmarks
 				_viewer[k]->DrawTagGrid();
 		}
 
 		// Update image viewer if necessary
-		if ((_DisplayDeformationGrid == True)
-				|| (_DisplayDeformationPoints == True) || (_DisplayDeformationArrows
-				== True)) {
-			if (_viewer[k]->Update(_sourceImageOutput[k], _sourceTransform) == True) {
+		if ((_DisplayDeformationGrid == true)
+				|| (_DisplayDeformationPoints == true) || (_DisplayDeformationArrows
+				== true)) {
+			if (_viewer[k]->Update(_sourceImageOutput[k], _sourceTransform) == true) {
 
 				// Draw deformation grid if needed
-				if (_DisplayDeformationGrid == True) {
+				if (_DisplayDeformationGrid == true) {
 					_viewer[k]->DrawGrid();
 				}
 				// Draw deformation points if needed
-				if (_DisplayDeformationPoints == True) {
+				if (_DisplayDeformationPoints == true) {
 					_viewer[k]->DrawPoints();
 				}
 				// Draw deformation arrows if needed
-				if (_DisplayDeformationArrows == True) {
+				if (_DisplayDeformationArrows == true) {
 					_viewer[k]->DrawArrows();
 				}
 			}
 		}
 
-		// Draw landmarks if needed (True: red, False: green)
-		if (_DisplayLandmarks == True) {
-			_viewer[k]->DrawLandmarks(_targetLandmarks, _targetImageOutput[k], True);
-			_viewer[k]->DrawLandmarks(_sourceLandmarks, _targetImageOutput[k], False);
+		// Draw landmarks if needed (true: red, false: green)
+		if (_DisplayLandmarks == true) {
+			_viewer[k]->DrawLandmarks(_targetLandmarks, _targetImageOutput[k], true);
+			_viewer[k]->DrawLandmarks(_sourceLandmarks, _targetImageOutput[k], false);
 		}
 
 		// Draw ROI if needed
-		if (_DisplayROI == True) {
+		if (_DisplayROI == true) {
 			_viewer[k]->DrawROI(_targetImageOutput[k], _x1, _y1, _z1, _x2, _y2, _z2);
 		}
 
 #ifdef HAS_VTK
 		// Draw  object if needed
-		if (_DisplayObject == True) {
+		if (_DisplayObject == true) {
 			_viewer[k]->DrawObject(_Object, _targetImageOutput[k],
 					_DisplayObjectWarp, _DisplayObjectGrid);
 		}
 #endif
 
 		// Draw cross hairs if needed
-		if (_DisplayCursor == True) {
+		if (_DisplayCursor == true) {
 			_viewer[k]->DrawCursor(_CursorMode);
 		}
 
 		// Draw axis labels if needed
-		if (_DisplayAxisLabels == True) {
+		if (_DisplayAxisLabels == true) {
 			_viewer[k]->DrawInfo(_DisplayMode);
 		}
 
@@ -576,7 +576,7 @@ void irtkRView::SetOrigin(int i, int j) {
 		}
 	}
 
-	if (_SnapToGrid == True) {
+	if (_SnapToGrid == true) {
 		// Round origin to nearest voxel
 		_targetImage->WorldToImage(_origin_x, _origin_y, _origin_z);
 		_origin_x = round(_origin_x);
@@ -593,10 +593,10 @@ void irtkRView::SetOrigin(int i, int j) {
 	}
 
 	// Update of target and source is required
-	_targetUpdate = True;
-	_sourceUpdate = True;
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_targetUpdate = true;
+	_sourceUpdate = true;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 
 }
 
@@ -758,7 +758,7 @@ void irtkRView::AddContour(int i, int j, ContourMode mode) {
 		break;
 	}
 
-	_selectionUpdate = True;
+	_selectionUpdate = true;
 }
 
 void irtkRView::FillArea(int i, int j) {
@@ -797,7 +797,7 @@ void irtkRView::FillArea(int i, int j) {
 	}
 	_voxelContour.FillArea(irtkPoint(x, y, z));
 
-	_selectionUpdate = True;
+	_selectionUpdate = true;
 }
 
 void irtkRView::RegionGrowContour(int i, int j) {
@@ -836,24 +836,24 @@ void irtkRView::RegionGrowContour(int i, int j) {
 	}
 	_voxelContour.RegionGrowing(irtkPoint(x, y, z), _RegionGrowingThresholdMin,
 			_RegionGrowingThresholdMax, _regionGrowingMode);
-	_selectionUpdate = True;
+	_selectionUpdate = true;
 }
 
 void irtkRView::UndoContour() {
 	_voxelContour.Undo();
-	_selectionUpdate = True;
+	_selectionUpdate = true;
 }
 
 void irtkRView::ClearContour() {
 	_voxelContour.Clear();
-	_selectionUpdate = True;
+	_selectionUpdate = true;
 }
 
 void irtkRView::FillContour(int fill, int inside) {
 	int i, j, k;
 	irtkPoint p;
 
-	if (_segmentationImage->IsEmpty() == True) {
+	if (_segmentationImage->IsEmpty() == true) {
 		// Create image
 		_segmentationImage->Initialize(_targetImage->GetImageAttributes());
 
@@ -882,8 +882,8 @@ void irtkRView::FillContour(int fill, int inside) {
 	_voxelContour.Clear();
 
 	// Update images
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 }
 
 void irtkRView::Read(char *name) {
@@ -901,72 +901,72 @@ void irtkRView::Read(char *name) {
 	// Read parameters
 	while (from.peek() != EOF) {
 
-		ok = False;
+		ok = false;
 		read_line(from, buffer1, buffer2);
 
 		// Config mode (defines NoOfViewers automatically)
 		if (strstr(buffer1, "configMode") != NULL) {
 			if (strcmp(buffer2, "View_XY") == 0) {
 				_configMode = _View_XY;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XZ") == 0) {
 				_configMode = _View_XZ;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_YZ") == 0) {
 				_configMode = _View_YZ;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XY_XZ_v") == 0) {
 				_configMode = _View_XY_XZ_v;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XY_YZ_v") == 0) {
 				_configMode = _View_XY_YZ_v;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XZ_YZ_v") == 0) {
 				_configMode = _View_XZ_YZ_v;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XY_XZ_h") == 0) {
 				_configMode = _View_XY_XZ_h;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XY_YZ_h") == 0) {
 				_configMode = _View_XY_YZ_h;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XZ_YZ_h") == 0) {
 				_configMode = _View_XZ_YZ_h;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_XY_XZ_YZ") == 0) {
 				_configMode = _View_XY_XZ_YZ;
-				ok = True;
+				ok = true;
 			}
 		}
 		// Width of viewer (in pixels)
 		if (strstr(buffer1, "screenX") != NULL) {
 			_screenY = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Height of viewer (in pixels)
 		if (strstr(buffer1, "screenY") != NULL) {
 			_screenY = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Display origin (in mm)
 		if (strstr(buffer1, "origin_x") != NULL) {
 			_origin_x = atof(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Display origin (in mm)
 		if (strstr(buffer1, "origin_y") != NULL) {
 			_origin_y = atof(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Display origin (in mm)
 		if (strstr(buffer1, "origin_z") != NULL) {
 			_origin_z = atof(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Display resolution
 		if (strstr(buffer1, "resolution") != NULL) {
 			_resolution = atof(buffer2);
-			ok = True;
+			ok = true;
 		}
 
 		interpolation = Interpolation_NN;
@@ -977,19 +977,19 @@ void irtkRView::Read(char *name) {
 		if (strstr(buffer1, "targetInterpolationMode") != NULL) {
 			if (strcmp(buffer2, "Interpolation_NN") == 0) {
 				interpolation = Interpolation_NN;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_Linear") == 0) {
 				interpolation = Interpolation_Linear;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_C1Spline") == 0) {
 				interpolation = Interpolation_CSpline;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_BSpline") == 0) {
 				interpolation = Interpolation_BSpline;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_Sinc") == 0) {
 				interpolation = Interpolation_Sinc;
-				ok = True;
+				ok = true;
 			} else {
 				cerr << "irtkRView::Read: Unknown interpolation" << endl;
 				exit(1);
@@ -1005,19 +1005,19 @@ void irtkRView::Read(char *name) {
 		if (strstr(buffer1, "sourceInterpolationMode") != NULL) {
 			if (strcmp(buffer2, "Interpolation_NN") == 0) {
 				interpolation = Interpolation_NN;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_Linear") == 0) {
 				interpolation = Interpolation_Linear;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_C1Spline") == 0) {
 				interpolation = Interpolation_CSpline;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_BSpline") == 0) {
 				interpolation = Interpolation_BSpline;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "Interpolation_Sinc") == 0) {
 				interpolation = Interpolation_Sinc;
-				ok = True;
+				ok = true;
 			} else {
 				cerr << "irtkRView::Read: Unknown interpolation" << endl;
 				exit(1);
@@ -1031,98 +1031,98 @@ void irtkRView::Read(char *name) {
 		if (strstr(buffer1, "viewMode") != NULL) {
 			if (strcmp(buffer2, "View_A") == 0) {
 				_viewMode = View_A;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_B") == 0) {
 				_viewMode = View_B;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_Checkerboard") == 0) {
 				_viewMode = View_Checkerboard;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_Subtraction") == 0) {
 				_viewMode = View_Subtraction;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_HShutter") == 0) {
 				_viewMode = View_HShutter;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "View_VShutter") == 0) {
 				_viewMode = View_VShutter;
-				ok = True;
+				ok = true;
 			}
 		}
 
 		// Display viewing mix in shutter viewing mode
 		if (strstr(buffer1, "viewMix") != NULL) {
 			_viewMix = atof(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of isolines from target image
 		if (strstr(buffer1, "DisplayTargetContour") != NULL) {
 			_DisplayTargetContour = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of isolines from source image
 		if (strstr(buffer1, "DisplaySourceContour") != NULL) {
 			_DisplaySourceContour = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of cross hair
 		if (strstr(buffer1, "DisplayCursor") != NULL) {
 			_DisplayCursor = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Cursor mode
 		if (strstr(buffer1, "CursorMode") != NULL) {
 			if (strcmp(buffer2, "CrossHair") == 0) {
 				_CursorMode = CrossHair;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "CursorX") == 0) {
 				_CursorMode = CursorX;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "CursorV") == 0) {
 				_CursorMode = CursorV;
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "CursorBar") == 0) {
 				_CursorMode = CursorBar;
-				ok = True;
+				ok = true;
 			} else {
-				ok = False;
+				ok = false;
 			}
 		}
 		// Flag for display of deformation grid
 		if (strstr(buffer1, "DisplayDeformationGrid") != NULL) {
 			_DisplayDeformationGrid = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of deformation points
 		if (strstr(buffer1, "DisplayDeformationPoints") != NULL) {
 			_DisplayDeformationPoints = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of deformation arrows
 		if (strstr(buffer1, "DisplayDeformationArrows") != NULL) {
 			_DisplayDeformationArrows = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of landmarks
 		if (strstr(buffer1, "DisplayLandmarks") != NULL) {
 			_DisplayLandmarks = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 #ifdef HAS_VTK
 		// Flag for display of object
 		if (strstr(buffer1, "DisplayObject") != NULL) {
 			_DisplayObject = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for warping of object
 		if (strstr(buffer1, "DisplayObjectWarp") != NULL) {
 			_DisplayObjectWarp = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 		// Flag for display of object grid
 		if (strstr(buffer1, "DisplayObjectGrid") != NULL) {
 			_DisplayObjectGrid = atoi(buffer2);
-			ok = True;
+			ok = true;
 		}
 #endif
 
@@ -1130,88 +1130,88 @@ void irtkRView::Read(char *name) {
 		// targetLookupTable
 		if (strstr(buffer1, "targetLookupTable_min") != NULL) {
 			_targetLookupTable->SetMinDisplayIntensity(atoi(buffer2));
-			ok = True;
+			ok = true;
 		}
 		if (strstr(buffer1, "targetLookupTable_max") != NULL) {
 			_targetLookupTable->SetMaxDisplayIntensity(atoi(buffer2));
-			ok = True;
+			ok = true;
 		}
 		if (strstr(buffer1, "targetLookupTable_mode") != NULL) {
 			if (strcmp(buffer2, "ColorMode_Red") == 0) {
 				_targetLookupTable->SetColorModeToRed();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Green") == 0) {
 				_targetLookupTable->SetColorModeToGreen();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Blue") == 0) {
 				_targetLookupTable->SetColorModeToBlue();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Luminance") == 0) {
 				_targetLookupTable->SetColorModeToLuminance();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Rainbow") == 0) {
 				_targetLookupTable->SetColorModeToRainbow();
-				ok = True;
+				ok = true;
 			}
 		}
 		// sourceLookupTable
 		if (strstr(buffer1, "sourceLookupTable_min") != NULL) {
 			_sourceLookupTable->SetMinDisplayIntensity(atoi(buffer2));
-			ok = True;
+			ok = true;
 		}
 		if (strstr(buffer1, "sourceLookupTable_max") != NULL) {
 			_sourceLookupTable->SetMaxDisplayIntensity(atoi(buffer2));
-			ok = True;
+			ok = true;
 		}
 		if (strstr(buffer1, "sourceLookupTable_mode") != NULL) {
 			if (strcmp(buffer2, "ColorMode_Red") == 0) {
 				_sourceLookupTable->SetColorModeToRed();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Green") == 0) {
 				_sourceLookupTable->SetColorModeToGreen();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Blue") == 0) {
 				_sourceLookupTable->SetColorModeToBlue();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Luminance") == 0) {
 				_sourceLookupTable->SetColorModeToLuminance();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Rainbow") == 0) {
 				_sourceLookupTable->SetColorModeToRainbow();
-				ok = True;
+				ok = true;
 			}
 		}
 		// subtractionLookupTable
 		if (strstr(buffer1, "subtractionLookupTable_min") != NULL) {
 			_subtractionLookupTable->SetMinDisplayIntensity(atoi(buffer2));
-			ok = True;
+			ok = true;
 		}
 		if (strstr(buffer1, "subtractionLookupTable_max") != NULL) {
 			_subtractionLookupTable->SetMaxDisplayIntensity(atoi(buffer2));
-			ok = True;
+			ok = true;
 		}
 		if (strstr(buffer1, "subtractionLookupTable_mode") != NULL) {
 			if (strcmp(buffer2, "ColorMode_Red") == 0) {
 				_subtractionLookupTable->SetColorModeToRed();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Green") == 0) {
 				_subtractionLookupTable->SetColorModeToGreen();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Blue") == 0) {
 				_subtractionLookupTable->SetColorModeToBlue();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Luminance") == 0) {
 				_subtractionLookupTable->SetColorModeToLuminance();
-				ok = True;
+				ok = true;
 			} else if (strcmp(buffer2, "ColorMode_Rainbow") == 0) {
 				_subtractionLookupTable->SetColorModeToRainbow();
-				ok = True;
+				ok = true;
 			}
 		}
 
 		// Check if we parse every line
 #ifdef DEBUG
-		if (ok != True) {
+		if (ok != true) {
 			cerr << "irtkRView::Read() : Ignoring line " << buffer1 << endl;
 		}
 #endif
@@ -1660,7 +1660,7 @@ void irtkRView::ReadSource(char *name) {
 	_subtractionLookupTable->Initialize(-10000, 10000);
 
 	// Update of source is required
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 
 	// Initialize
 	this->Initialize();
@@ -1745,7 +1745,7 @@ void irtkRView::ReadSource(int argc, char **argv) {
 	_subtractionLookupTable->Initialize(-10000, 10000);
 
 	// Update of source is required
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 
 	// Initialize
 	this->Initialize();
@@ -1766,7 +1766,7 @@ void irtkRView::ReadSegmentation(char *name) {
 	_segmentationImage->ImageToWorld(_x2, _y2, _z2);
 
 	// Update of target is required
-	_segmentationUpdate = True;
+	_segmentationUpdate = true;
 }
 
 void irtkRView::WriteTarget(char *name) {
@@ -1777,7 +1777,7 @@ void irtkRView::WriteTarget(char *name) {
 void irtkRView::WriteSource(char *name) {
 	// Write transformed source image
 	if (_sourceImage != NULL) {
-		if ((_sourceTransformApply == True) && (_sourceTransform != NULL)) {
+		if ((_sourceTransformApply == true) && (_sourceTransform != NULL)) {
 			// Allocate the new transformed source and transformation filter
 			irtkGreyImage *transformedSource = new irtkGreyImage;
 			transformedSource->Initialize(_targetImage->GetImageAttributes());
@@ -1823,7 +1823,7 @@ void irtkRView::ReadTransformation(char *name) {
 		delete _sourceTransform;
 		_sourceTransform = tmpTransform;
 	}
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 
 	// Set up the filters
 	for (i = 0; i < _NoOfViewers; i++) {
@@ -1836,14 +1836,14 @@ void irtkRView::ReadTransformation(char *name) {
 		// Set inputs and outputs for the transformation filter
 		_sourceTransformFilter[i]->SetInput(_sourceImage);
 		_sourceTransformFilter[i]->SetOutput(_sourceImageOutput[i]);
-		if (_sourceTransformApply == True) {
+		if (_sourceTransformApply == true) {
 			_sourceTransformFilter[i]->SetTransformation(_sourceTransform);
 		} else {
 			_sourceTransformFilter[i]->SetTransformation(_targetTransform);
 		}
 		_sourceTransformFilter[i]->PutInterpolator(_sourceInterpolator);
 		_sourceTransformFilter[i]->PutSourcePaddingValue(_sourceMin - 1);
-		if (_sourceTransformInvert == True) {
+		if (_sourceTransformInvert == true) {
 			_sourceTransformFilter[i]->InvertOn();
 		} else {
 			_sourceTransformFilter[i]->InvertOff();
@@ -2139,21 +2139,21 @@ void irtkRView::Reset() {
 	}
 
 	// Flip X coordinates if desired
-	if (_FlipX == True) {
+	if (_FlipX == true) {
 		_xaxis[0] *= -1;
 		_xaxis[1] *= -1;
 		_xaxis[2] *= -1;
 	}
 
 	// Flip Y coordinates if desired
-	if (_FlipY == True) {
+	if (_FlipY == true) {
 		_yaxis[0] *= -1;
 		_yaxis[1] *= -1;
 		_yaxis[2] *= -1;
 	}
 
 	// Flip Z coordinates if desired
-	if (_FlipZ == True) {
+	if (_FlipZ == true) {
 		_zaxis[0] *= -1;
 		_zaxis[1] *= -1;
 		_zaxis[2] *= -1;
@@ -2171,10 +2171,10 @@ void irtkRView::Reset() {
 	this->Initialize();
 
 	// Update of target and source is required
-	_targetUpdate = True;
-	_sourceUpdate = True;
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_targetUpdate = true;
+	_sourceUpdate = true;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 }
 
 void irtkRView::Resize(int w, int h) {
@@ -2188,10 +2188,10 @@ void irtkRView::Resize(int w, int h) {
 		}
 	}
 
-	_sourceUpdate = True;
-	_targetUpdate = True;
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_sourceUpdate = true;
+	_targetUpdate = true;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 
 	this->Clip();
 	this->Initialize();
@@ -2289,14 +2289,14 @@ void irtkRView::Configure(irtkRViewConfig config[]) {
 		_sourceTransformFilter[i] = irtkImageTransformation::New(_sourceTransform);
 		_sourceTransformFilter[i]->SetInput(_sourceImage);
 		_sourceTransformFilter[i]->SetOutput(_sourceImageOutput[i]);
-		if (_sourceTransformApply == True) {
+		if (_sourceTransformApply == true) {
 			_sourceTransformFilter[i]->SetTransformation(_sourceTransform);
 		} else {
 			_sourceTransformFilter[i]->SetTransformation(_targetTransform);
 		}
 		_sourceTransformFilter[i]->PutInterpolator(_sourceInterpolator);
 		_sourceTransformFilter[i]->PutSourcePaddingValue(_sourceMin - 1);
-		if (_sourceTransformInvert == True) {
+		if (_sourceTransformInvert == true) {
 			_sourceTransformFilter[i]->InvertOn();
 		} else {
 			_sourceTransformFilter[i]->InvertOff();
@@ -2335,10 +2335,10 @@ void irtkRView::Configure(irtkRViewConfig config[]) {
 	}
 
 	// Update of target and source is required
-	_targetUpdate = True;
-	_sourceUpdate = True;
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_targetUpdate = true;
+	_sourceUpdate = true;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 }
 
 void irtkRView::GetInfoText(char *buffer1, char *buffer2, char *buffer3,
@@ -2425,7 +2425,7 @@ void irtkRView::MouseWheel(int i, int j, int wheel) {
 	_origin_y = v;
 	_origin_z = w;
 
-	if (_SnapToGrid == True) {
+	if (_SnapToGrid == true) {
 		// Round origin to nearest voxel
 		_targetImage->WorldToImage(_origin_x, _origin_y, _origin_z);
 		_origin_x = round(_origin_x);
@@ -2442,10 +2442,10 @@ void irtkRView::MouseWheel(int i, int j, int wheel) {
 	}
 
 	// Update of target and source is required
-	_targetUpdate = True;
-	_sourceUpdate = True;
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_targetUpdate = true;
+	_sourceUpdate = true;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 
 }
 
@@ -2644,10 +2644,10 @@ void irtkRView::Initialize() {
 	}
 
 	// Update of target and source is required
-	_targetUpdate = True;
-	_sourceUpdate = True;
-	_segmentationUpdate = True;
-	_selectionUpdate = True;
+	_targetUpdate = true;
+	_sourceUpdate = true;
+	_segmentationUpdate = true;
+	_selectionUpdate = true;
 }
 
 void irtkRView::SetTargetFrame(int t) {
@@ -2665,7 +2665,7 @@ void irtkRView::SetTargetFrame(int t) {
 	}
 
 	// Update of target is required
-	_targetUpdate = True;
+	_targetUpdate = true;
 }
 
 int irtkRView::GetTargetFrame() {
@@ -2687,7 +2687,7 @@ void irtkRView::SetSourceFrame(int t) {
 	}
 
 	// Update of source is required
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 }
 
 int irtkRView::GetSourceFrame() {
@@ -2702,7 +2702,7 @@ void irtkRView::SetTargetInterpolationMode(irtkInterpolationMode value) {
 	for (i = 0; i < _NoOfViewers; i++) {
 		_targetTransformFilter[i]->PutInterpolator(_targetInterpolator);
 	}
-	_targetUpdate = True;
+	_targetUpdate = true;
 }
 
 irtkInterpolationMode irtkRView::GetTargetInterpolationMode() {
@@ -2737,7 +2737,7 @@ void irtkRView::SetSourceInterpolationMode(irtkInterpolationMode value) {
 	for (i = 0; i < _NoOfViewers; i++) {
 		_sourceTransformFilter[i]->PutInterpolator(_sourceInterpolator);
 	}
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 }
 
 irtkInterpolationMode irtkRView::GetSourceInterpolationMode() {
@@ -2764,39 +2764,39 @@ irtkInterpolationMode irtkRView::GetSourceInterpolationMode() {
 	return Interpolation_NN;
 }
 
-void irtkRView::SetSourceTransformInvert(Bool value) {
+void irtkRView::SetSourceTransformInvert(bool value) {
 	int i;
 
 	_sourceTransformInvert = value;
 	for (i = 0; i < _NoOfViewers; i++) {
-		if (_sourceTransformInvert == True) {
+		if (_sourceTransformInvert == true) {
 			_sourceTransformFilter[i]->InvertOn();
 		} else {
 			_sourceTransformFilter[i]->InvertOff();
 		}
 	}
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 }
 
-Bool irtkRView::GetSourceTransformInvert() {
+bool irtkRView::GetSourceTransformInvert() {
 	return _sourceTransformInvert;
 }
 
-void irtkRView::SetSourceTransformApply(Bool value) {
+void irtkRView::SetSourceTransformApply(bool value) {
 	int i;
 
 	_sourceTransformApply = value;
 	for (i = 0; i < _NoOfViewers; i++) {
-		if (_sourceTransformApply == True) {
+		if (_sourceTransformApply == true) {
 			_sourceTransformFilter[i]->SetTransformation(_sourceTransform);
 		} else {
 			_sourceTransformFilter[i]->SetTransformation(_targetTransform);
 		}
 	}
-	_sourceUpdate = True;
+	_sourceUpdate = true;
 }
 
-Bool irtkRView::GetSourceTransformApply() {
+bool irtkRView::GetSourceTransformApply() {
 	return _sourceTransformApply;
 }
 

@@ -29,10 +29,10 @@ template <class VoxelType> class irtkScalarFunctionToImage : public irtkObject
 private:
 
   /// Debugging flag
-  Bool _DebugFlag;
+  bool _DebugFlag;
 
   /// Flag to use world or image coordinates for scalar function evaluation
-  Bool _UseWorldCoordinates;
+  bool _UseWorldCoordinates;
 
 protected:
 
@@ -45,7 +45,7 @@ protected:
 public:
 
   /// Constructor (using world coordinates by default)
-  irtkScalarFunctionToImage(Bool = True);
+  irtkScalarFunctionToImage(bool = true);
 
   /// Deconstuctor
   virtual ~irtkScalarFunctionToImage();
@@ -63,10 +63,10 @@ public:
   virtual const char *NameOfClass();
 
   /// Set debugging flag
-  SetMacro(DebugFlag, Bool);
+  SetMacro(DebugFlag, bool);
 
   /// Get debugging flag
-  GetMacro(DebugFlag, Bool);
+  GetMacro(DebugFlag, bool);
 
   /// Print debugging messages if debugging is enabled
   virtual void Debug(char *);

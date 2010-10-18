@@ -159,7 +159,7 @@ int main(int argc, char **argv)
   irtkGreyImage *input_0;
   irtkByteImage mask;
   irtkBytePixel *pMask;
-  int writeMask = False;
+  int writeMask = false;
   int pad = -1;
 
   // Check command line
@@ -183,22 +183,22 @@ int main(int argc, char **argv)
   }
 
   while (argc > 1){
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-u") == 0)){
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-u") == 0)){
       argc--;      argv++;
       mask_name = argv[1];
-      writeMask = True;
+      writeMask = true;
       argc--;      argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-pad") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-pad") == 0)){
       argc--;      argv++;
       pad = atoi(argv[1]);
       argc--;      argv++;
-      ok = True;
+      ok = true;
     }
 
-    if (ok == False){
+    if (ok == false){
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
   }
 
   // Do we need to write out the `unanimask'?
-  if (writeMask == True && mask_name != NULL){
+  if (writeMask == true && mask_name != NULL){
     mask.Write(mask_name);
   }
 

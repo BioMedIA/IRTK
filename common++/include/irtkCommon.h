@@ -50,11 +50,6 @@
 // Use standard namespace
 using namespace std;
 
-#define False 0
-#define True  1
-
-typedef bool Bool;
-
 #define SetMacro(name,type) \
 void Set##name (type arg) { this->_##name = arg; }
 

@@ -46,24 +46,24 @@ int main(int argc, char **argv)
   target_padding = MIN_GREY;
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       target_padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sp") == 0)) {
       argc--;
       argv++;
       source_padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

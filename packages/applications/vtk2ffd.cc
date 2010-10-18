@@ -52,18 +52,18 @@ int main(int argc, char **argv)
   argv++;
 
   // Default parameters
-  interpolate = False;
+  interpolate = false;
 
   // Parse remaining arguments
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-interpolate") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-interpolate") == 0)) {
       argc--;
       argv++;
-      interpolate = True;
-      ok = True;
+      interpolate = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can't parse argument " << argv[1] << endl;
       usage();
     }
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
   irtkMultiLevelFreeFormTransformation *mffd = new irtkMultiLevelFreeFormTransformation;
 
-  if (interpolate == False) {
+  if (interpolate == false) {
     // vectors contain control point values
     i = 0;
     vtkDataArray* vectors;

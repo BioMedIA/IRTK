@@ -580,8 +580,8 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
 
 template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::Run()
 {
-  int nx, ny, nz, nt, x, y, z, t;
-  double wx, wy, wz, wt;
+  int nx, ny, nz, nt, z, t;
+  double wx, wy, wz;
 
   // Do the initial set up
   this->Initialize();

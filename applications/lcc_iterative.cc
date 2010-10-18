@@ -32,7 +32,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  Bool ok;
+  bool ok;
   int label;
   irtkGreyImage image;
   irtkGreyImage output;
@@ -59,34 +59,34 @@ int main(int argc, char **argv)
   // Parse remaining parameters
   label = 1;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-label") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-label") == 0)) {
       argc--;
       argv++;
       label = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-2D") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-2D") == 0)) {
       argc--;
       argv++;
-      lcc.SetMode2D(True);
-      ok = True;
+      lcc.SetMode2D(true);
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-3D") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-3D") == 0)) {
       argc--;
       argv++;
-      lcc.SetMode2D(False);
-      ok = True;
+      lcc.SetMode2D(false);
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-allClusters") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-allClusters") == 0)) {
       argc--;
       argv++;
-      lcc.SetAllClustersMode(True);
-      ok = True;
+      lcc.SetAllClustersMode(true);
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Unknown option: " << argv[1] << endl;
       usage();
     }
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
   lcc.SetOutput(&output);
   lcc.SetTargetLabel(label);
 
-  if (lcc.GetAllClustersMode() == False) {
+  if (lcc.GetAllClustersMode() == false) {
     cout << "Searching for largest connected component with target label ("<< label <<") ... ";
   } else {
     cout << "Labeling all clusters with the target label (" << label <<") ... ";

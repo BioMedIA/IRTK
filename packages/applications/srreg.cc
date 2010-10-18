@@ -55,10 +55,10 @@ int main(int argc, char **argv)
   locatorType = 1;
   epsilon = 0.01;
   ok = 0;
-  clean = False;
-  invert = False;
-  ignoreEdges = False;
-  symmetricDistance = False;
+  clean = false;
+  invert = false;
+  ignoreEdges = false;
+  symmetricDistance = false;
 
   // Parse filenames
   _target_name = argv[1];
@@ -70,72 +70,72 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-locator") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-locator") == 0)) {
       argc--;
       argv++;
       locatorType = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ignoreedges") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ignoreedges") == 0)) {
       argc--;
       argv++;
       ignoreEdges = true;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-clean") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-clean") == 0)) {
       argc--;
       argv++;
-      clean = True;
-      ok = True;
+      clean = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-symmetric") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-symmetric") == 0)) {
       argc--;
       argv++;
-      symmetricDistance = True;
-      ok = True;
+      symmetricDistance = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-invert") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
-      invert = True;
-      ok = True;
+      invert = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-epsilon") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-epsilon") == 0)) {
       argc--;
       argv++;
       epsilon = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--;
       argv++;
       iterations = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
   target_reader->Update();
   vtkPolyData *target = vtkPolyData::New();
 
-  if (clean == True) {
+  if (clean == true) {
     vtkCleanPolyData *target_cleaner = vtkCleanPolyData::New();
     target_cleaner->SetInput(target_reader->GetOutput());
     target_cleaner->Modified();
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
   source_reader->Update();
   vtkPolyData *source = vtkPolyData::New();
 
-  if (clean == True) {
+  if (clean == true) {
     vtkCleanPolyData *source_cleaner = vtkCleanPolyData::New();
     source_cleaner->SetInput(source_reader->GetOutput());
     source_cleaner->Modified();
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
     source->Update();
   }
 
-  if (ignoreEdges == True) {
+  if (ignoreEdges == true) {
     MarkBoundary(target);
     MarkBoundary(source);
   }
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
   registration->SetEpsilon(epsilon);
 
   // Check if to do symmetric registration
-  if (symmetricDistance == True) {
+  if (symmetricDistance == true) {
     // Create target locator
     irtkLocator *target_locator = new irtkLocator;
     target_locator->SelectLocatorType(locatorType);
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
   }
 
   // Check if to ignore edges
-  if (ignoreEdges == True) {
+  if (ignoreEdges == true) {
     registration->IgnoreEdges();
   }
 
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
   registration->Run();
 
   // Invert transformation
-  if (invert == True) {
+  if (invert == true) {
     transformation->Invert();
     transformation->UpdateParameter();
   }

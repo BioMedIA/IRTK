@@ -111,14 +111,14 @@ int main(int argc, char **argv)
   scale = 1;
 
   // Default: Use weights directly. Alternatively, convert using Gaussian formula.
-  useGaussianWeights = False;
+  useGaussianWeights = false;
   
   // Default values for kernel smoothing
   mean  = 0;
   sigma = 1;
 
   // Default: No intensity  normalisation
-  norm  = False;
+  norm  = false;
 
   // Default: Epsilon
   epsilon = EPSILON;
@@ -145,74 +145,74 @@ int main(int argc, char **argv)
   }
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-scaling") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-scaling") == 0)) {
       argc--;
       argv++;
       scale = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-gaussian") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
-      useGaussianWeights = True;
+      useGaussianWeights = true;
       mean = atof(argv[1]);
       argc--;
       argv++;
       sigma = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-norm") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-norm") == 0)) {
       argc--;
       argv++;
-      norm = True;
-      ok = True;
+      norm = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-imagenames") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-imagenames") == 0)) {
       argc--;
       argv++;
       textfile = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-prefix") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-prefix") == 0)) {
        argc--;
        argv++;
        prefix_name = argv[1];
        argc--;
        argv++;
-       ok = True;
+       ok = true;
      }
-    if ((ok == False) && (strcmp(argv[1], "-suffix") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-suffix") == 0)) {
        argc--;
        argv++;
        suffix_name = argv[1];
        argc--;
        argv++;
-       ok = True;
+       ok = true;
      }
-    if ((ok == False) && (strcmp(argv[1], "-epsilon") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-epsilon") == 0)) {
       argc--;
       argv++;
       epsilon = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Unknown argument: " << argv[1] << endl << endl;
       usage();
     }
@@ -226,7 +226,7 @@ int main(int argc, char **argv)
         in >> input_name[no] >> input_value[no];
         if (strlen(input_name[no]) > 0) {
           
-          if (useGaussianWeights == True){
+          if (useGaussianWeights == true){
             // Convert input value to weight based on Gaussian centred at above specified mean.
             input_weight[no] = 1.0 / sqrt(2.0) / sigma * exp(-pow((mean - input_value[no])/sigma, 2.0)/2);
           } else {
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
     }
 
     tmp = input;
-    if (norm == True) normalise(input, tmp);
+    if (norm == true) normalise(input, tmp);
 
     cerr << "Adding input to atlas..."; cout.flush();
     tmp *= input_weight[i];

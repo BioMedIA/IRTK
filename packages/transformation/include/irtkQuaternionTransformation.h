@@ -205,7 +205,7 @@ public:
   static int CheckHeader(char* pFileName);
 
   /** Returns true if the transformation is an identity transformation. */
-  virtual Bool IsIdentity();
+  virtual bool IsIdentity();
 
   /** Reads the transformation. */
   virtual irtkCifstream& Read(irtkCifstream& is);
@@ -403,22 +403,22 @@ inline int irtkQuaternionTransformation::NumberOfDOFs() const
   return NUMBER_OF_DOFS;
 }
 
-inline void irtkQuaternionTransformation::GlobalDisplacement(double &x, double &y, double &z)
+inline void irtkQuaternionTransformation::GlobalDisplacement(double &, double &, double &)
 {
   cerr << "irtkQuaternionTransformation::GlobalDisplacement: No implemented yet" << endl;
 }
 
-inline void irtkQuaternionTransformation::LocalDisplacement(double &x, double &y, double &z)
+inline void irtkQuaternionTransformation::LocalDisplacement(double &, double &, double &)
 {
   cerr << "irtkQuaternionTransformation::LocalDisplacement: No implemented yet" << endl;
 }
 
-inline void irtkQuaternionTransformation::GlobalTransform(double &x, double &y, double &z)
+inline void irtkQuaternionTransformation::GlobalTransform(double &, double &, double &)
 {
   cerr << "irtkQuaternionTransformation::GlobalTransform: No implemented yet" << endl;
 }
 
-inline void irtkQuaternionTransformation::LocalTransform(double &x, double &y, double &z)
+inline void irtkQuaternionTransformation::LocalTransform(double &, double &, double &)
 {
   cerr << "irtkQuaternionTransformation::LocalTransform: No implemented yet" << endl;
 }

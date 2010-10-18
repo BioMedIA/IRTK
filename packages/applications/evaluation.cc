@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   irtkRealImage source(source_name);
 
   // Default options
-  verbose = False;
+  verbose = false;
 
   // Default padding
   Tp = -1.0 * FLT_MAX;
@@ -94,134 +94,134 @@ int main(int argc, char **argv)
   nbins_y = 0;
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-verbose") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-verbose") == 0)) {
       argc--;
       argv++;
-      verbose = True;
-      ok = True;
+      verbose = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       trans_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-histo") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-histo") == 0)) {
       argc--;
       argv++;
       histo_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-nbins_x") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-nbins_x") == 0)) {
       argc--;
       argv++;
       nbins_x = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-nbins_y") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-nbins_y") == 0)) {
       argc--;
       argv++;
       nbins_y = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       Tp = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       i1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       i2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       j1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       j2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       k1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       k2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkLinearInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkBSplineInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkCSplineInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkSincInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-mask") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
       argc--;
       argv++;
       mask_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -267,7 +267,7 @@ int main(int argc, char **argv)
   // Set min and max of histogram
   target.GetMinMax(&target_min, &target_max);
   source.GetMinMax(&source_min, &source_max);
-  if (verbose == True) {
+  if (verbose == true) {
     cout << "Min and max of X is " << target_min
     << " and " << target_max << endl;
     cout << "Min and max of Y is " << source_min
@@ -358,7 +358,7 @@ int main(int argc, char **argv)
     }
   }
 
-  if (verbose == True) {
+  if (verbose == true) {
     cout << "ROI Min and max of X is " << target_min << " and " << target_max << endl;
     cout << "ROI Min and max of Y is " << source_min << " and " << source_max << endl;
     cout << "Number of bins  X x Y : " << histogram.NumberOfBinsX() << " x " << histogram.NumberOfBinsY() << endl;

@@ -99,7 +99,7 @@ public:
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 
   /// Checks whether transformation is an identity mapping
-  virtual Bool IsIdentity();
+  virtual bool IsIdentity();
 
   /// Prints the parameters of the transformation
   virtual void Print();
@@ -200,7 +200,7 @@ inline void irtkHomogeneousTransformation::GlobalTransform(double &x, double &y,
   this->Transform(x, y, z, t);
 }
 
-inline void irtkHomogeneousTransformation::LocalTransform(double &x, double &y, double &z, double)
+inline void irtkHomogeneousTransformation::LocalTransform(double &, double &, double &, double)
 {
 }
 

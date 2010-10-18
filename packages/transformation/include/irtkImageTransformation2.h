@@ -153,12 +153,12 @@ inline void irtkImageTransformation2::PutInterpolator(irtkImageFunction *interpo
 
 inline void irtkImageTransformation2::InvertOn()
 {
-  _Invert = True;
+  _Invert = true;
 }
 
 inline void irtkImageTransformation2::InvertOff()
 {
-  _Invert = False;
+  _Invert = false;
 }
 
 #endif

@@ -22,18 +22,18 @@ template <class VoxelType> class irtkConvolution : public irtkImageToImage<Voxel
 protected:
 
   /// Flag whether to normalize convolution
-  Bool _Normalization;
+  bool _Normalization;
 
 public:
 
   /// Constructor
-  irtkConvolution(Bool = False);
+  irtkConvolution(bool = false);
 
   /// Set normalization on/off
-  SetMacro(Normalization, Bool);
+  SetMacro(Normalization, bool);
 
   /// Set normalization on/off
-  GetMacro(Normalization, Bool);
+  GetMacro(Normalization, bool);
 
 };
 

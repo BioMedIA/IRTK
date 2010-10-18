@@ -17,7 +17,7 @@
 irtkInterpolateImageFunction::irtkInterpolateImageFunction() : irtkImageFunction()
 {
   // Default parameters
-  _clamped = True;
+  _clamped = true;
 }
 
 irtkInterpolateImageFunction::~irtkInterpolateImageFunction()

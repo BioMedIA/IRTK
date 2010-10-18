@@ -19,10 +19,10 @@ irtkFileToImage::irtkFileToImage()
   _type  = IRTK_VOXEL_UNKNOWN;
   _slope = 1.;
   _intercept = 0.;
-  _reflectX = False;
-  _reflectY = False;
-  _reflectZ = False;
-  _debug = True;
+  _reflectX = false;
+  _reflectY = false;
+  _reflectZ = false;
+  _debug = true;
   _start = 0;
   _imagename = NULL;
 
@@ -33,10 +33,10 @@ irtkFileToImage::~irtkFileToImage()
   _type  = IRTK_VOXEL_UNKNOWN;
   _slope = 1.;
   _intercept = 0.;
-  _reflectX = False;
-  _reflectY = False;
-  _reflectZ = False;
-  _debug = True;
+  _reflectX = false;
+  _reflectY = false;
+  _reflectZ = false;
+  _debug = true;
   _start = 0;
   if (_imagename != NULL) free(_imagename);
 }
@@ -213,9 +213,9 @@ irtkImage *irtkFileToImage::GetOutput()
   }
 
   // Reflect if necessary
-  if (_reflectX == True) output->ReflectX();
-  if (_reflectY == True) output->ReflectY();
-  if (_reflectZ == True) output->ReflectZ();
+  if (_reflectX == true) output->ReflectX();
+  if (_reflectY == true) output->ReflectY();
+  if (_reflectZ == true) output->ReflectZ();
 
   return output;
 }

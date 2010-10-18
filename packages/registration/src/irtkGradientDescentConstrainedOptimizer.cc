@@ -49,15 +49,15 @@ double irtkGradientDescentConstrainedOptimizer::Run()
     for (i = 0; i < _Transformation->NumberOfDOFs(); i++) {
       _Transformation->Put(i, _Transformation->Get(i) + _StepSize * dx[i]);
     }
-    ok = True;
+    ok = true;
     for (i = 0; i < _Transformation->NumberOfDOFs(); i++) {
       if ((_Transformation->Get(i) > _limits) || (_Transformation->Get(i) < -_limits)) {
         cout << "irtkGradientDescentConstrainedOptimizer::Run: Limits reached: " << _Transformation->Get(i) << " " << _limits << endl;
-        ok = False;
+        ok = false;
         break;
       }
     }
-    if (ok == False) break;
+    if (ok == false) break;
     similarity = _Registration->Evaluate();
     if (similarity > new_similarity + _Epsilon) cout << similarity << endl;
   } while (similarity > new_similarity + _Epsilon);

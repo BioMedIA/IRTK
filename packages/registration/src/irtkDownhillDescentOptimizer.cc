@@ -27,7 +27,7 @@ double irtkDownhillDescentOptimizer::Run()
 
   // Assume that the transformation is the optimal transformation
 #ifdef HISTORY
-  if (history->Find(_Transformation, similarity) == True) {
+  if (history->Find(_Transformation, similarity) == true) {
     old_similarity = new_similarity = similarity;
   } else {
     old_similarity = new_similarity = similarity = _Registration->Evaluate();
@@ -43,7 +43,7 @@ double irtkDownhillDescentOptimizer::Run()
     if (_Transformation->GetStatus(i) == _Active) {
       _Transformation->Put(i, _Transformation->Get(i) + _StepSize);
 #ifdef HISTORY
-      if (history->Find(_Transformation, similarity) == False) {
+      if (history->Find(_Transformation, similarity) == false) {
         similarity = _Registration->Evaluate();
         history->Add(_Transformation, similarity);
       }
@@ -58,7 +58,7 @@ double irtkDownhillDescentOptimizer::Run()
       _Transformation->Put(i, _Transformation->Get(i) - _StepSize);
       _Transformation->Put(i, _Transformation->Get(i) - _StepSize);
 #ifdef HISTORY
-      if (history->Find(_Transformation, similarity) == False) {
+      if (history->Find(_Transformation, similarity) == false) {
         similarity = _Registration->Evaluate();
         history->Add(_Transformation, similarity);
       }

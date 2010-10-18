@@ -56,7 +56,7 @@ template <class VoxelType> irtkImageToImage<VoxelType>::irtkImageToImage()
   _output = NULL;
 
   // Default parameters
-  _DebugFlag = False;
+  _DebugFlag = false;
 }
 
 template <class VoxelType> irtkImageToImage<VoxelType>::~irtkImageToImage()
@@ -88,7 +88,7 @@ template <class VoxelType> void irtkImageToImage<VoxelType>::SetOutput(irtkGener
 
 template <class VoxelType> void irtkImageToImage<VoxelType>::Debug(const char *message)
 {
-  if (_DebugFlag == True) cout << message << endl;
+  if (_DebugFlag == true) cout << message << endl;
 }
 
 template <class VoxelType> void irtkImageToImage<VoxelType>::Initialize()
@@ -107,7 +107,7 @@ template <class VoxelType> void irtkImageToImage<VoxelType>::Initialize()
     exit(1);
   }
 
-  if (_input->IsEmpty() == True) {
+  if (_input->IsEmpty() == true) {
     cerr << this->NameOfClass() << "::Run: Input is empty" << endl;
     exit(1);
   }

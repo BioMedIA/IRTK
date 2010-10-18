@@ -56,7 +56,7 @@ void irtkGaussianInterpolateImageFunction::Initialize()
   this->_z2 = this->_input->GetZ() - _ExtentZ;
 }
 
-double irtkGaussianInterpolateImageFunction::EvaluateInside(double x, double y, double z, double time)
+double irtkGaussianInterpolateImageFunction::EvaluateInside(double, double, double, double)
 {
   cerr << "irtkGaussianInterpolateImageFunction::EvaluateInside: Not implemented" << endl;
   return 0;

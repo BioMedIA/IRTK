@@ -38,7 +38,7 @@ protected:
   /** Returns whether the filter requires buffering. This filter requires
    *  buffering and returns 0.
    */
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();

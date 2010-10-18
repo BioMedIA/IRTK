@@ -80,19 +80,19 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding, irtkFreeFormTransf
         // Calculate bounding box of control point in voxels
         ffd->BoundingBox(&image, index, x1, y1, z1, x2, y2, z2);
 
-        ok = False;
+        ok = false;
         for (t = 0; t < image.GetT(); t++) {
           for (z = z1; z <= z2; z++) {
             for (y = y1; y <= y2; y++) {
               for (x = x1; x <= x2; x++) {
                 if (image(x, y, z, t) > padding) {
-                  ok = True;
+                  ok = true;
                 }
               }
             }
           }
         }
-        if (ok == False) {
+        if (ok == false) {
           ffd->PutStatus(i, j, k, _Passive);
         }
       }
@@ -112,7 +112,7 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTrans
         // Convert control points to index
         index = ffd->LatticeToIndex(i, j, k);
 
-		ok = False;
+		ok = false;
 
 		for (n = 0; n < numberOfImages; n++){
 			// Calculate bounding box of control point in voxels
@@ -122,14 +122,14 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTrans
 					for (y = y1; y <= y2; y++) {
 						for (x = x1; x <= x2; x++) {
 							if (image[n]->GetAsDouble(x, y, z, t) > padding) {
-								ok = True;
+								ok = true;
 							}
 						}
 					}
 				}
 			}
 		}
-        if (ok == False) {
+        if (ok == false) {
           ffd->PutStatus(i, j, k, _Passive);
         }
       }
@@ -152,17 +152,17 @@ double GuessResolution(double xsize, double ysize)
 
 int GuessPadding(irtkGreyImage &image)
 {
-  Bool padding = True;
+  bool padding = true;
 
-  if (image(0, 0, 0) != image(image.GetX() - 1, 0, 0)) padding = False;
-  if (image(0, 0, 0) != image(0, image.GetY() - 1, 0)) padding = False;
-  if (image(0, 0, 0) != image(0, 0, image.GetZ() - 1)) padding = False;
-  if (image(0, 0, 0) != image(image.GetX() - 1, image.GetY() - 1, 0)) padding = False;
-  if (image(0, 0, 0) != image(0, image.GetY() - 1, image.GetZ() - 1)) padding = False;
-  if (image(0, 0, 0) != image(image.GetX() - 1, 0, image.GetZ() - 1)) padding = False;
-  if (image(0, 0, 0) != image(image.GetX() - 1, image.GetY() - 1, image.GetZ() - 1)) padding = False;
+  if (image(0, 0, 0) != image(image.GetX() - 1, 0, 0)) padding = false;
+  if (image(0, 0, 0) != image(0, image.GetY() - 1, 0)) padding = false;
+  if (image(0, 0, 0) != image(0, 0, image.GetZ() - 1)) padding = false;
+  if (image(0, 0, 0) != image(image.GetX() - 1, image.GetY() - 1, 0)) padding = false;
+  if (image(0, 0, 0) != image(0, image.GetY() - 1, image.GetZ() - 1)) padding = false;
+  if (image(0, 0, 0) != image(image.GetX() - 1, 0, image.GetZ() - 1)) padding = false;
+  if (image(0, 0, 0) != image(image.GetX() - 1, image.GetY() - 1, image.GetZ() - 1)) padding = false;
 
-  if (padding == False) {
+  if (padding == false) {
     return MIN_GREY;
   } else {
     return image(0, 0, 0);
@@ -252,7 +252,7 @@ int read_line(istream &in, char *buffer1, char *&buffer2)
   char c;
 
   do {
-    if (in.eof() == True) return 0;
+    if (in.eof() == true) return 0;
     in.getline(buffer1, 255);
     c = buffer1[0];
   } while ((strlen(buffer1) == 0) || (c == '#') || (c == 13));

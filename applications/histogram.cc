@@ -68,57 +68,57 @@ int main(int argc, char **argv)
   z2 = input.GetZ();
 
   while (argc > 1) {
-    ok = False;
+    ok = false;
 
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

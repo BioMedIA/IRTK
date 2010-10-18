@@ -47,7 +47,7 @@ void Fl_RViewUI::cb_saveScreen(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_ViewMode(Fl_Button *o, void *v)
+void Fl_RViewUI::cb_ViewMode(Fl_Button *, void *v)
 {
   rview->Configure((irtkRViewConfig *)v);
   rview->Update();
@@ -142,7 +142,7 @@ void Fl_RViewUI::cb_viewCursor(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewCursorMode(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewCursorMode(Fl_Button *, void* v)
 {
   if (strcmp((char *)v, "CrossHair") == 0) {
     rview->SetCursorMode(CrossHair);

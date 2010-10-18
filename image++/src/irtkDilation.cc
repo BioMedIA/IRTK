@@ -22,9 +22,9 @@ template <class VoxelType> irtkDilation<VoxelType>::~irtkDilation(void)
 {
 }
 
-template <class VoxelType> Bool irtkDilation<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkDilation<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkDilation<VoxelType>::NameOfClass()

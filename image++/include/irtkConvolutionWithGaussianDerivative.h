@@ -33,7 +33,7 @@ protected:
   const char *NameOfClass();
 
   /// Returns whether the class requires buffer (true)
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
 public:
 

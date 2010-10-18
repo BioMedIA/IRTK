@@ -19,7 +19,7 @@
 irtkImageToFileANALYZE::irtkImageToFileANALYZE() : irtkImageToFile()
 {
   this->_headername = NULL;
-  this->_reflectY = True;
+  this->_reflectY = true;
 }
 
 irtkImageToFileANALYZE::~irtkImageToFileANALYZE()

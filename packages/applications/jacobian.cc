@@ -58,49 +58,49 @@ int main(int argc, char **argv)
 
   // Initialize jacobian mode
   jac_mode = TotalJacobian;
-  fluid = False;
+  fluid = false;
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-total") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-total") == 0)) {
       argc--;
       argv++;
       jac_mode = TotalJacobian;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-local") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-local") == 0)) {
       argc--;
       argv++;
       jac_mode = LocalJacobian;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-global") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-global") == 0)) {
       argc--;
       argv++;
       jac_mode = GlobalJacobian;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-relative") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-relative") == 0)) {
       argc--;
       argv++;
       jac_mode = RelativeJacobian;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-fluid") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-fluid") == 0)) {
       argc--;
       argv++;
-      fluid = True;
-      ok = True;
+      fluid = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
   // Read transformation
   irtkMultiLevelFreeFormTransformation *mffd;
-  if (fluid == True) {
+  if (fluid == true) {
     mffd = new irtkFluidFreeFormTransformation;
   } else {
     mffd = new irtkMultiLevelFreeFormTransformation;

@@ -14,7 +14,7 @@
 
 #include <irtkConvolution.h>
 
-template <class VoxelType> irtkConvolution<VoxelType>::irtkConvolution(Bool Normalization)
+template <class VoxelType> irtkConvolution<VoxelType>::irtkConvolution(bool Normalization)
 {
   _Normalization = Normalization;
 }

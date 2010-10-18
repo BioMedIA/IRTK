@@ -18,6 +18,10 @@ int main(int argc, char **argv)
 {
   unsigned int magic_number;
 
+  if (argc != 2){
+	cerr << "Usage: giplmagic [image]" << endl;
+	exit(1);
+  }
   // Open file
   ifstream from(argv[1]);
 

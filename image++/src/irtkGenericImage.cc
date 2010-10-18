@@ -624,22 +624,22 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   irtkGenericImage<VoxelType> tmp(*this); tmp /= image; return tmp;
 }
 
-template <class VoxelType> Bool irtkGenericImage<VoxelType>::operator==(const irtkGenericImage<VoxelType> &image)
+template <class VoxelType> bool irtkGenericImage<VoxelType>::operator==(const irtkGenericImage<VoxelType> &image)
 {
   int i, n;
   VoxelType *ptr1, *ptr2;
 
   if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
-    return False;
+    return false;
   }
 
   n    = this->GetNumberOfVoxels();
   ptr1 = this->GetPointerToVoxels();
   ptr2 = image.GetPointerToVoxels();
   for (i = 0; i < n; i++) {
-    if (ptr1[i] != ptr2[i]) return False;
+    if (ptr1[i] != ptr2[i]) return false;
   }
-  return True;
+  return true;
 }
 
 template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelType>::operator+=(VoxelType pixel)
@@ -1131,7 +1131,7 @@ template <class Type> void irtkGenericImage<Type>::ImageToVTK(vtkStructuredPoint
   }
 }
 
-template <class Type> void irtkGenericImage<Type>::VTKToImage(vtkStructuredPoints *vtk)
+template <class Type> void irtkGenericImage<Type>::VTKToImage(vtkStructuredPoints *)
 {}
 
 #endif

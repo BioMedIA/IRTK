@@ -97,219 +97,219 @@ int main(int argc, char **argv)
   source_z2 = -1;
 
   // Other options
-  invert = False;
+  invert = false;
   source_padding = 0;
   target_padding = MIN_GREY;
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dof_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-target") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
       argc--;
       argv++;
       target = irtkImage::New(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       target_x1 = source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       target_x2 = source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       target_y1 = source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       target_y2 = source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       target_z1 = source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       target_z2 = source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx1") == 0)) {
       argc--;
       argv++;
       target_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx2") == 0)) {
       argc--;
       argv++;
       target_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty1") == 0)) {
       argc--;
       argv++;
       target_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty2") == 0)) {
       argc--;
       argv++;
       target_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz1") == 0)) {
       argc--;
       argv++;
       target_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz2") == 0)) {
       argc--;
       argv++;
       target_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx1") == 0)) {
       argc--;
       argv++;
       source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx2") == 0)) {
       argc--;
       argv++;
       source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy1") == 0)) {
       argc--;
       argv++;
       source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy2") == 0)) {
       argc--;
       argv++;
       source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz1") == 0)) {
       argc--;
       argv++;
       source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz2") == 0)) {
       argc--;
       argv++;
       source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       target_padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sp") == 0)) {
       argc--;
       argv++;
       source_padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-invert") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
-      invert = True;
-      ok = True;
+      invert = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkLinearInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkBSplineInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkCSplineInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkSincInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -383,7 +383,7 @@ int main(int argc, char **argv)
   imagetransformation->PutInterpolator(interpolator);
 
   // Do inverse transformation if necessary
-  if (invert == True) {
+  if (invert == true) {
     imagetransformation->InvertOn();
   } else {
     imagetransformation->InvertOff();

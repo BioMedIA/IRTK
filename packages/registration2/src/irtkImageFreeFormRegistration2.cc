@@ -33,9 +33,9 @@ irtkImageFreeFormRegistration2::irtkImageFreeFormRegistration2()
   _DX          = 20;
   _DY          = 20;
   _DZ          = 20;
-  _Subdivision = True;
+  _Subdivision = true;
   _Mode        = RegisterXYZ;
-  _MFFDMode    = True;
+  _MFFDMode    = true;
 }
 
 void irtkImageFreeFormRegistration2::GuessParameter()
@@ -99,7 +99,7 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   _DX                 =_target->GetX() * spacing / 10.0;
   _DY                 =_target->GetX() * spacing / 10.0;
   _DZ                 =_target->GetX() * spacing / 10.0;
-  _Subdivision        = True;
+  _Subdivision        = true;
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
@@ -134,7 +134,7 @@ void irtkImageFreeFormRegistration2::Initialize()
   _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
 
   // Create FFD
-  if (_MFFDMode == False) {
+  if (_MFFDMode == false) {
     if (_mffd->NumberOfLevels() == 0) {
       _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
     } else {
@@ -218,7 +218,7 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
 
   // Check if we are not at the lowest level of resolution
   if (level != 0) {
-    if (this->_Subdivision == True) {
+    if (this->_Subdivision == true) {
       _affd->Subdivide();
     } else {
       // Push local transformation back on transformation stack
@@ -380,18 +380,18 @@ void irtkImageFreeFormRegistration2::Run()
 
     // Save pre-processed images if we are debugging
     sprintf(buffer, "source_%d.nii.gz", level);
-    if (_DebugFlag == True) _source->Write(buffer);
+    if (_DebugFlag == true) _source->Write(buffer);
     sprintf(buffer, "target_%d.nii.gz", level);
-    if (_DebugFlag == True) _target->Write(buffer);
+    if (_DebugFlag == true) _target->Write(buffer);
 
     // Allocate memory for gradient vector
     gradient = new double[_affd->NumberOfDOFs()];
 
     // Update image
-    update = True;
+    update = true;
 
     // Update gradient
-    updateGradient = True;
+    updateGradient = true;
 
     // Run the registration filter at this resolution
     for (i = 0; i < _NumberOfSteps[level]; i++) {
@@ -401,9 +401,9 @@ void irtkImageFreeFormRegistration2::Run()
         cout << "), step size = " << step << endl;
 
         // Update source image
-        if (update == True) {
+        if (update == true) {
           this->Update();
-          update = False;
+          update = false;
         }
 
         // Compute current metric value
@@ -411,9 +411,9 @@ void irtkImageFreeFormRegistration2::Run()
         cout << "Current metric value is " << similarity << endl;
 
         // Compute gradient of similarity metric
-        if (updateGradient == True) {
+        if (updateGradient == true) {
           this->EvaluateGradient(gradient);
-          updateGradient = False;
+          updateGradient = false;
         }
 
         // Step along gradient direction until no further improvement is necessary
@@ -425,30 +425,30 @@ void irtkImageFreeFormRegistration2::Run()
 
           // We have just changed the transformation parameters, so definitely need to update
           this->Update();
-          update = False;
+          update = false;
 
           // Compute new similarity
           similarity = this->Evaluate();
 
           if (similarity > new_similarity + _Epsilon) {
             cout << "New metric value is " << similarity << endl;
-            updateGradient = True;
+            updateGradient = true;
           } else {
             // Last step was no improvement, so back track
             for (k = 0; k < _affd->NumberOfDOFs(); k++) {
               _affd->Put(k, _affd->Get(k) - step * gradient[k]);
             }
-            update = True;
+            update = true;
           }
         } while (similarity > new_similarity + _Epsilon);
 
         // Check whether we made any improvement or not
         if (new_similarity - old_similarity > _Epsilon) {
           sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == True) _affd->irtkTransformation::Write(buffer);
+          if (_DebugFlag == true) _affd->irtkTransformation::Write(buffer);
         } else {
           sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == True) _affd->irtkTransformation::Write(buffer);
+          if (_DebugFlag == true) _affd->irtkTransformation::Write(buffer);
           break;
         }
       }
@@ -467,58 +467,58 @@ void irtkImageFreeFormRegistration2::Run()
   this->Finalize();
 }
 
-Bool irtkImageFreeFormRegistration2::Read(char *buffer1, char *buffer2, int &level)
+bool irtkImageFreeFormRegistration2::Read(char *buffer1, char *buffer2, int &level)
 {
-  int ok = False;
+  int ok = false;
 
   if ((strstr(buffer1, "Lambda ") != NULL) ||
       (strstr(buffer1, "Lambda1") != NULL)) {
     this->_Lambda1 = atof(buffer2);
     cout << "Lambda 1 is ... " << this->_Lambda1 << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Lambda2") != NULL) {
     this->_Lambda2 = atof(buffer2);
     cout << "Lambda 2 is ... " << this->_Lambda2 << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Lambda3") != NULL) {
     this->_Lambda3 = atof(buffer2);
     cout << "Lambda 3 is ... " << this->_Lambda3 << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in X") != NULL) {
     this->_DX = atof(buffer2);
     cout << "Control point spacing in X is ... " << this->_DX << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in Y") != NULL) {
     this->_DY = atof(buffer2);
     cout << "Control point spacing in Y is ... " << this->_DY << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in Z") != NULL) {
     this->_DZ = atof(buffer2);
     cout << "Control point spacing in Z is ... " << this->_DZ << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Subdivision") != NULL) {
-    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
-      this->_Subdivision = False;
+    if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+      this->_Subdivision = false;
       cout << "Subdivision is ... false" << endl;
     } else {
-      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
-        this->_Subdivision = True;
+      if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+        this->_Subdivision = true;
         cout << "Subdivision is ... true" << endl;
       } else {
         cerr << "Can't read boolean value = " << buffer2 << endl;
         exit(1);
       }
     }
-    ok = True;
+    ok = true;
   }
 
-  if (ok == False) {
+  if (ok == false) {
     return this->irtkImageRegistration2::Read(buffer1, buffer2, level);
   } else {
     return ok;
@@ -534,10 +534,10 @@ void irtkImageFreeFormRegistration2::Write(ostream &to)
   to << "Control point spacing in X        = " << this->_DX << endl;
   to << "Control point spacing in Y        = " << this->_DY << endl;
   to << "Control point spacing in Z        = " << this->_DZ << endl;
-  if (_Subdivision == True) {
-    to << "Subdivision                       = True" << endl;
+  if (_Subdivision == true) {
+    to << "Subdivision                       = true" << endl;
   } else {
-    to << "Subdivision                       = False" << endl;
+    to << "Subdivision                       = false" << endl;
   }
 
   this->irtkImageRegistration2::Write(to);

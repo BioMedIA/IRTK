@@ -52,7 +52,7 @@ public:
   irtkSegment();
 
   // Constructor (existing)
-  irtkSegment(char*, unsigned char, unsigned char, unsigned char, double, int = True);
+  irtkSegment(char*, unsigned char, unsigned char, unsigned char, double, int = true);
 
   // Destructor
   virtual ~irtkSegment(void);

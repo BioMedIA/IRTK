@@ -430,16 +430,16 @@ int irtkAffineTransformation::CheckHeader(char *name)
   // Read keyword
   from >> buffer;
   if (strcmp(buffer, "DOF:") != 0) {
-    return False;
+    return false;
   }
 
   // Read no. of DOFs
   from >> n;
   if ((n != 6) && (n != 9) && (n != 12) && (n != 15)) {
-    return False;
+    return false;
   }
 
-  return True;
+  return true;
 }
 
 void irtkAffineTransformation::Print()
@@ -467,15 +467,15 @@ void irtkAffineTransformation::Print()
   cout.unsetf(ios::fixed);
 }
 
-Bool irtkAffineTransformation::IsIdentity()
+bool irtkAffineTransformation::IsIdentity()
 {
   if ((_tx == 0)  && (_ty == 0)  && (_tz == 0)  &&
       (_rx == 0)  && (_ry == 0)  && (_rz == 0)  &&
       (_sx == 100.0)  && (_sy == 100.0)  && (_sz == 100.0)  &&
       (_sxy == 0) && (_syz == 0) && (_sxz == 0)) {
-    return True;
+    return true;
   } else {
-    return False;
+    return false;
   }
 }
 

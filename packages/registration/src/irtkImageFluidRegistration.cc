@@ -414,9 +414,9 @@ void irtkImageFluidRegistration::Run()
 
     // Save pre-processed images if we are debugging
     sprintf(buffer, "source_%d.gipl", level);
-    if (_DebugFlag == True) _source->Write(buffer);
+    if (_DebugFlag == true) _source->Write(buffer);
     sprintf(buffer, "target_%d.gipl", level);
-    if (_DebugFlag == True) _target->Write(buffer);
+    if (_DebugFlag == true) _target->Write(buffer);
 
     // Run the registration filter
     for (k = 0; k < this->_NumberOfTimeSteps; k++) {
@@ -464,11 +464,11 @@ void irtkImageFluidRegistration::Run()
           // Check whether we made any improvement or not
           if (epsilon > _Epsilon) {
             sprintf(buffer, "log_%d_%d_%d.dof", level, i+1, j+1);
-            if (_DebugFlag == True) _transformation->Write(buffer);
+            if (_DebugFlag == true) _transformation->Write(buffer);
             this->Print();
           } else {
             sprintf(buffer, "log_%d_%d_%d.dof", level, i+1, j+1);
-            if (_DebugFlag == True) _transformation->Write(buffer);
+            if (_DebugFlag == true) _transformation->Write(buffer);
             this->Print();
             break;
           }
@@ -490,32 +490,32 @@ void irtkImageFluidRegistration::Run()
   this->Finalize();
 }
 
-Bool irtkImageFluidRegistration::Read(char *buffer1, char *buffer2, int &level)
+bool irtkImageFluidRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
-  int ok = False;
+  int ok = false;
 
   if (strstr(buffer1, "No. of time steps") != NULL) {
     this->_NumberOfTimeSteps = atoi(buffer2);
     cout << "No. of time steps are ... " << this->_NumberOfTimeSteps << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in X") != NULL) {
     this->_DX = atof(buffer2);
     cout << "Control point spacing in X is ... " << this->_DX << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in Y") != NULL) {
     this->_DY = atof(buffer2);
     cout << "Control point spacing in Y is ... " << this->_DY << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in Z") != NULL) {
     this->_DZ = atof(buffer2);
     cout << "Control point spacing in Z is ... " << this->_DZ << endl;
-    ok = True;
+    ok = true;
   }
 
-  if (ok == False) {
+  if (ok == false) {
     return this->irtkImageRegistration::Read(buffer1, buffer2, level);
   } else {
     return ok;

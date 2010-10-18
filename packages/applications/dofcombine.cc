@@ -43,24 +43,24 @@ int main(int argc, char **argv)
   argv++;
 
   // Default
-  invert1 = False;
-  invert2 = False;
+  invert1 = false;
+  invert2 = false;
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-invert1") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-invert1") == 0)) {
       argc--;
       argv++;
-      invert1 = True;
-      ok = True;
+      invert1 = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-invert2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-invert2") == 0)) {
       argc--;
       argv++;
-      invert2 = True;
-      ok = True;
+      invert2 = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -73,8 +73,8 @@ int main(int argc, char **argv)
   m2 = transformation2.GetMatrix();
 
   // Invert if necessary
-  if (invert1 == True) m1.Invert();
-  if (invert2 == True) m2.Invert();
+  if (invert1 == true) m1.Invert();
+  if (invert2 == true) m2.Invert();
 
   // Combine
   m3 = m1 * m2;

@@ -78,42 +78,42 @@ int main(int argc, char **argv)
 
   dof_name = new char*[MAX_DOFS];
   
-  regressAffine = False;
+  regressAffine = false;
 
   while (argc > 1){
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)){
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)){
       argc--;
       argv++;
       dof_name[noOfDofs] = argv[1];
       noOfDofs++;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)){
       argc--;
       argv++;
       Tp = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-removeGlobal") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-removeGlobal") == 0)){
       argc--;
       argv++;
-      regressAffine = True;
-      ok = True;
+      regressAffine = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-mask") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-mask") == 0)){
       argc--;
       argv++;
       mask_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False){
+    if (ok == false){
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
   irtkAffineTransformation *trAffine = new irtkAffineTransformation;
   
   
-  if (regressAffine == True){
+  if (regressAffine == true){
     // Estimate the global affine transformation.
     
     irtkPointSet targetPts;

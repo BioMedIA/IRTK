@@ -19,7 +19,7 @@
 
 #define DELTA 0.001
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
   int i, j, k;
   long seed;

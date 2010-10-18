@@ -50,7 +50,7 @@ protected:
 public:
 
   /// Constructor
-  irtkConvolutionWithPadding_2D(VoxelType, Bool = False);
+  irtkConvolutionWithPadding_2D(VoxelType, bool = false);
 
   /// Put the padding value
   void      PutPaddingValue(VoxelType);

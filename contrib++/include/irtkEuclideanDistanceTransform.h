@@ -56,7 +56,7 @@ protected:
   virtual const char *NameOfClass();
 
   /// Requires buffering
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
 public:
 
@@ -81,9 +81,9 @@ template <class VoxelType> inline const char *irtkEuclideanDistanceTransform<Vox
   return "irtkEuclideanDistanceTransform";
 }
 
-template <class VoxelType> inline Bool irtkEuclideanDistanceTransform<VoxelType>::RequiresBuffering()
+template <class VoxelType> inline bool irtkEuclideanDistanceTransform<VoxelType>::RequiresBuffering()
 {
-  return False;
+  return false;
 }
 
 #endif

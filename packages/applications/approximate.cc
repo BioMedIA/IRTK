@@ -114,16 +114,16 @@ int main(int argc, char **argv)
   argc--;
 
   // Parse remaining parameters
-  invert = False;
+  invert = false;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-invert") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
-      invert = True;
-      ok = True;
+      invert = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
   double *z2 = new double[points->GetNumberOfPoints()];
 
   // Say what we are doing
-  if (invert == True) {
+  if (invert == true) {
     cout << "Approximating inverse transformation" << endl;
   } else {
     cout << "Approximating transformation" << endl;
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     v[2] = v[2] - p[2];
     points->GetPoint(i, p);
 
-    if (invert == True) {
+    if (invert == true) {
       x1[i] = p[0] + v[0];
       y1[i] = p[1] + v[1];
       z1[i] = p[2] + v[2];

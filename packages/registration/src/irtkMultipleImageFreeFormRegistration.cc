@@ -40,8 +40,8 @@ irtkMultipleImageFreeFormRegistration::irtkMultipleImageFreeFormRegistration()
   _DX          = 20;
   _DY          = 20;
   _DZ          = 20;
-  _Subdivision = True;
-  _MFFDMode    = True;
+  _Subdivision = true;
+  _MFFDMode    = true;
 }
 
 void irtkMultipleImageFreeFormRegistration::GuessParameter()
@@ -105,7 +105,7 @@ void irtkMultipleImageFreeFormRegistration::GuessParameter()
   _DX                 =_target[0]->GetX() * spacing / 10.0;
   _DY                 =_target[0]->GetX() * spacing / 10.0;
   _DZ                 =_target[0]->GetX() * spacing / 10.0;
-  _Subdivision        = True;
+  _Subdivision        = true;
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
@@ -143,7 +143,7 @@ void irtkMultipleImageFreeFormRegistration::Initialize()
   _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
 
   // Create FFD
-  if (_MFFDMode == False) {
+  if (_MFFDMode == false) {
     if (_mffd->NumberOfLevels() == 0) {
       _affd = new irtkBSplineFreeFormTransformation(*_target[0], this->_DX, this->_DY, this->_DZ);
     } else {
@@ -256,7 +256,7 @@ void irtkMultipleImageFreeFormRegistration::Finalize(int level)
 
   // Check if we are not at the lowest level of resolution
   if (level != 0) {
-    if (this->_Subdivision == True) {
+    if (this->_Subdivision == true) {
       _affd->Subdivide();
     } else {
       // Push local transformation back on transformation stack
@@ -727,78 +727,78 @@ double irtkMultipleImageFreeFormRegistration::EvaluateGradient(float step, float
   return norm;
 }
 
-Bool irtkMultipleImageFreeFormRegistration::Read(char *buffer1, char *buffer2, int &level)
+bool irtkMultipleImageFreeFormRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
-  int ok = False;
+  int ok = false;
 
   if (strstr(buffer1, "Speedup factor ") != NULL) {
     this->_SpeedupFactor = atof(buffer2);
     cout << "Speedup factor is ... " << this->_SpeedupFactor << endl;
-    ok = True;
+    ok = true;
   }
   if ((strstr(buffer1, "Lambda ") != NULL) ||
       (strstr(buffer1, "Lambda1") != NULL)) {
     this->_Lambda1 = atof(buffer2);
     cout << "Lambda 1 is ... " << this->_Lambda1 << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Lambda2") != NULL) {
     this->_Lambda2 = atof(buffer2);
     cout << "Lambda 2 is ... " << this->_Lambda2 << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Lambda3") != NULL) {
     this->_Lambda3 = atof(buffer2);
     cout << "Lambda 3 is ... " << this->_Lambda3 << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in X") != NULL) {
     this->_DX = atof(buffer2);
     cout << "Control point spacing in X is ... " << this->_DX << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in Y") != NULL) {
     this->_DY = atof(buffer2);
     cout << "Control point spacing in Y is ... " << this->_DY << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in Z") != NULL) {
     this->_DZ = atof(buffer2);
     cout << "Control point spacing in Z is ... " << this->_DZ << endl;
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Subdivision") != NULL) {
-    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
-      this->_Subdivision = False;
+    if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+      this->_Subdivision = false;
       cout << "Subdivision is ... false" << endl;
     } else {
-      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
-        this->_Subdivision = True;
+      if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+        this->_Subdivision = true;
         cout << "Subdivision is ... true" << endl;
       } else {
         cerr << "Can't read boolean value = " << buffer2 << endl;
         exit(1);
       }
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "MFFDMode") != NULL) {
-    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
-      this->_MFFDMode = False;
+    if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+      this->_MFFDMode = false;
       cout << "MFFDMode is ... false" << endl;
     } else {
-      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
-        this->_MFFDMode = True;
+      if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+        this->_MFFDMode = true;
         cout << "MFFDMode is ... true" << endl;
       } else {
         cerr << "Can't read boolean value = " << buffer2 << endl;
         exit(1);
       }
     }
-    ok = True;
+    ok = true;
   }
 
-  if (ok == False) {
+  if (ok == false) {
     return this->irtkMultipleImageRegistration::Read(buffer1, buffer2, level);
   } else {
     return ok;
@@ -814,16 +814,16 @@ void irtkMultipleImageFreeFormRegistration::Write(ostream &to)
   to << "Control point spacing in X        = " << this->_DX << endl;
   to << "Control point spacing in Y        = " << this->_DY << endl;
   to << "Control point spacing in Z        = " << this->_DZ << endl;
-  if (_Subdivision == True) {
-    to << "Subdivision                       = True" << endl;
+  if (_Subdivision == true) {
+    to << "Subdivision                       = true" << endl;
   } else {
-    to << "Subdivision                       = False" << endl;
+    to << "Subdivision                       = false" << endl;
   }
   to << "Speedup factor                    = " << this->_SpeedupFactor << endl;
-  if (_MFFDMode == True) {
-    to << "MFFDMode                       = True" << endl;
+  if (_MFFDMode == true) {
+    to << "MFFDMode                       = true" << endl;
   } else {
-    to << "MFFDMode                       = False" << endl;
+    to << "MFFDMode                       = false" << endl;
   }
 
   this->irtkMultipleImageRegistration::Write(to);

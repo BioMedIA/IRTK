@@ -53,13 +53,13 @@ protected:
   double _DZ;
 
   /// Subdivide FFD between resolution levels
-  Bool _Subdivision;
+  bool _Subdivision;
 
   /// Registration mode
   irtkImageFreeFormRegistrationMode _Mode;
 
   /// Multilevel mode
-  Bool _MFFDMode;
+  bool _MFFDMode;
 
   /// Initial set up for the registration
   virtual void Initialize();
@@ -97,7 +97,7 @@ public:
   virtual void GuessParameter();
 
   /// Read single line of registration parameters
-  virtual Bool Read(char *, char *, int &);
+  virtual bool Read(char *, char *, int &);
 
   /// Write registration parameters to file
   virtual void Write(ostream &);
@@ -114,8 +114,8 @@ public:
   virtual SetMacro(Mode, irtkImageFreeFormRegistrationMode);
   virtual GetMacro(Mode, irtkImageFreeFormRegistrationMode);
 
-  virtual SetMacro(MFFDMode, Bool);
-  virtual GetMacro(MFFDMode, Bool);
+  virtual SetMacro(MFFDMode, bool);
+  virtual GetMacro(MFFDMode, bool);
 };
 
 inline void irtkImageFreeFormRegistration2::SetOutput(irtkTransformation *transformation)

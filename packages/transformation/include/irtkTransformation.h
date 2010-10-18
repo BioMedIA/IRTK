@@ -138,7 +138,7 @@ public:
   virtual void Displacement(irtkGenericImage<double> &);
 
   /// Checks whether transformation is an identity mapping (abstract)
-  virtual Bool IsIdentity() = 0;
+  virtual bool IsIdentity() = 0;
 
   /// Reads a transformation from a file
   virtual void Read (char *);

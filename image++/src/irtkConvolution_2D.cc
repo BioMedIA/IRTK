@@ -15,13 +15,13 @@
 #include <irtkConvolution.h>
 
 
-template <class VoxelType> irtkConvolution_2D<VoxelType>::irtkConvolution_2D(Bool Normalization) :
+template <class VoxelType> irtkConvolution_2D<VoxelType>::irtkConvolution_2D(bool Normalization) :
     irtkConvolution<VoxelType>(Normalization)
 {}
 
-template <class VoxelType> Bool irtkConvolution_2D<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkConvolution_2D<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkConvolution_2D<VoxelType>::NameOfClass()
@@ -55,7 +55,7 @@ template <class VoxelType> double irtkConvolution_2D<VoxelType>::Run(int x, int 
   y2 = y + this->_input2->GetY()/2;
 
   // Check if we use normalization
-  if (this->_Normalization == True) {
+  if (this->_Normalization == true) {
     // Check whether boundary checking is necessary
     if ((x1 > 0) && (x2 < this->_input->GetX()) &&
         (y1 > 0) && (y2 < this->_input->GetY())) {

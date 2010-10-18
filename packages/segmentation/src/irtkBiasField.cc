@@ -126,7 +126,7 @@ double ***irtkBiasField::Allocate(double ***data, int x, int y, int z)
   return data;
 }
 
-double ***irtkBiasField::Deallocate(double ***data, int x, int y, int z)
+double ***irtkBiasField::Deallocate(double ***data, int, int, int)
 {
   if (data != NULL) {
     delete [](data[-4][-4]-4);

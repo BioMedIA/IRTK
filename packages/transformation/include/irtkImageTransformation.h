@@ -169,12 +169,12 @@ inline void irtkImageTransformation::PutScaleFactorAndOffset(double ScaleFactor,
 
 inline void irtkImageTransformation::InvertOn()
 {
-  _Invert = True;
+  _Invert = true;
 }
 
 inline void irtkImageTransformation::InvertOff()
 {
-  _Invert = False;
+  _Invert = false;
 }
 
 #endif

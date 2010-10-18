@@ -14,9 +14,9 @@
 
 #ifdef HAS_VTK
 
-extern Bool interactiveVTK;
-extern Bool displayVTK;
-extern Bool firstVTK;
+extern bool interactiveVTK;
+extern bool displayVTK;
+extern bool firstVTK;
 
 extern void update   (irtkPointSet& pset, int nx, int ny, int nz);
 extern void visualize(irtkPointSet& pset, int nx, int ny, int nz);
@@ -221,16 +221,16 @@ int irtkRigidTransformation::CheckHeader(char *name)
   // Read keyword
   from >> buffer;
   if (strcmp(buffer, "DOF:") != 0) {
-    return False;
+    return false;
   }
 
   // Read no. of DOFs
   from >> n;
   if (n != 6) {
-    return False;
+    return false;
   }
 
-  return True;
+  return true;
 }
 
 void irtkRigidTransformation::Rotate(double& x, double& y, double& z)
@@ -316,13 +316,13 @@ void irtkRigidTransformation::Print()
   cout.unsetf(ios::fixed);
 }
 
-Bool irtkRigidTransformation::IsIdentity()
+bool irtkRigidTransformation::IsIdentity()
 {
   if ((_tx == 0) && (_ty == 0) && (_tz == 0) &&
       (_rx == 0) && (_ry == 0) && (_rz == 0)) {
-    return True;
+    return true;
   } else {
-    return False;
+    return false;
   }
 }
 

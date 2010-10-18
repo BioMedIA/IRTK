@@ -143,7 +143,7 @@ public:
   virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
 
   /// Checks whether transformation is an identity mapping
-  virtual Bool IsIdentity();
+  virtual bool IsIdentity();
 
   /// Prints the parameters of the transformation
   virtual void Print();
@@ -203,7 +203,7 @@ inline irtkRigidTransformation::irtkRigidTransformation()
   this->UpdateMatrix();
 }
 
-inline irtkRigidTransformation::irtkRigidTransformation(const irtkRigidTransformation &t)
+inline irtkRigidTransformation::irtkRigidTransformation(const irtkRigidTransformation &t) : irtkHomogeneousTransformation(t)
 {
   int i;
 

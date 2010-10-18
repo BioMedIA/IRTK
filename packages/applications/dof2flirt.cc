@@ -60,7 +60,7 @@ irtkMatrix get_matrix(irtkGreyImage &image, int bReflect)
   // C
   C = D * M * D_inv;
 
-  if (bReflect == True) {
+  if (bReflect == true) {
     cerr << "Reflecting...\n";
     irtkMatrix Fy(4, 4);
     Fy(0, 0) = 1;
@@ -109,14 +109,14 @@ int main(int argc, char **argv)
 
   // Check for Analyze images
   if (strcmp(target_reader->NameOfClass(), "irtkFileANALYZEToImage") == 0) {
-    bTargetY = True;
+    bTargetY = true;
   } else {
-    bTargetY = False;
+    bTargetY = false;
   }
   if (strcmp(source_reader->NameOfClass(), "irtkFileANALYZEToImage") == 0) {
-    bSourceY = True;
+    bSourceY = true;
   } else {
-    bSourceY = False;
+    bSourceY = false;
   }
 
   // Get affine matrix
@@ -130,18 +130,18 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-info") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-info") == 0)) {
       transformation.Print();
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-print") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-print") == 0)) {
       matrix.Print();
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
     if (!ok) {
       cerr << "Cannot parse argument " << argv[1] << endl;

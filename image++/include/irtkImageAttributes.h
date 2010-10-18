@@ -66,9 +66,10 @@ public:
   irtkImageAttributes& operator= (const irtkImageAttributes &);
 
   /// Comparison operator
-  Bool operator==(const irtkImageAttributes &attr) const;
- /// Print attributes
- void Print();
+  bool operator==(const irtkImageAttributes &attr) const;
+
+  /// Print attributes
+  void Print();
 
 };
 
@@ -180,7 +181,7 @@ inline irtkImageAttributes& irtkImageAttributes::operator=(const irtkImageAttrib
   return *this;
 }
 
-inline Bool irtkImageAttributes::operator==(const irtkImageAttributes &attr) const
+inline bool irtkImageAttributes::operator==(const irtkImageAttributes &attr) const
 {
   return ((_x  == attr._x)  && (_y  == attr._y)  && (_z  == attr._z) && (_t  == attr._t) &&
           (_dx == attr._dx) && (_dy == attr._dy) && (_dz == attr._dz) && (_dt == attr._dt) &&

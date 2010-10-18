@@ -130,7 +130,7 @@ protected:
   int _Regridding;
 
   /// Symmetric demons?
-  Bool _Symmetric;
+  bool _Symmetric;
 
   /// Debugging flag
   int    _DebugFlag;
@@ -186,7 +186,7 @@ public:
   virtual void Read (char *);
 
   /// Parse parameter line
-  virtual Bool Read(char *, char *, int &);
+  virtual bool Read(char *, char *, int &);
 
   /// Write registration parameters to file
   virtual void Write(char *);

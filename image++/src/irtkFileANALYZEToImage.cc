@@ -24,7 +24,7 @@ irtkFileANALYZEToImage::irtkFileANALYZEToImage()
   _headername = NULL;
 
   // Analyze-specific
-  this->_reflectY = True;
+  this->_reflectY = true;
 }
 
 irtkFileANALYZEToImage::~irtkFileANALYZEToImage()
@@ -40,9 +40,9 @@ const char *irtkFileANALYZEToImage::NameOfClass()
 int irtkFileANALYZEToImage::CheckHeader(const char *filename)
 {
   if ((strstr(basename2(filename), ".hdr") == NULL) && (strstr(basename2(filename), ".HDR") == NULL)) {
-    return False;
+    return false;
   } else {
-    return True;
+    return true;
   }
 }
 

@@ -40,7 +40,7 @@ irtkMultipleSurfaceRegistration::irtkMultipleSurfaceRegistration ()
   // Default parameters for registration
   _NumberOfIterations   = 100;
   _NumberOfSurfaces     = 0;
-  _UseSymmetricDistance = False;
+  _UseSymmetricDistance = false;
   _Epsilon              = 0.01;
 
 #ifdef HISTORY
@@ -105,12 +105,12 @@ void irtkMultipleSurfaceRegistration::Initialize ()
   // Setup locator
   for (i = 0; i < _NumberOfSurfaces; i++) _source_locator[i]->SetDataSet(_source[i]);
 
-  if ((_UseSymmetricDistance == True) && (_target_locator == NULL)) {
+  if ((_UseSymmetricDistance == true) && (_target_locator == NULL)) {
     cerr << this->NameOfClass ()
          << "::Initialize(): Filter has no target locator" << endl;
     exit (1);
   } else {
-    if (_UseSymmetricDistance == True) {
+    if (_UseSymmetricDistance == true) {
       // Setup locator
       for (i = 0; i < _NumberOfSurfaces; i++) _target_locator[i]->SetDataSet(_target[i]);
     }
@@ -149,7 +149,7 @@ void irtkMultipleSurfaceRegistration::Optimize ()
         source_pset.Add(source_point);
         n++;
       }
-      if (_UseSymmetricDistance == True) {
+      if (_UseSymmetricDistance == true) {
         for (i = 0; i < _source[k]->GetNumberOfPoints(); i++) {
           _source[k]->GetPoints()->GetPoint (i, source_point);
           tmp_point[0] = source_point[0];

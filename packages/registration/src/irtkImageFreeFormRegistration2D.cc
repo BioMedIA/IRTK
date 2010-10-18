@@ -93,7 +93,7 @@ void irtkImageFreeFormRegistration2D::GuessParameter()
   _DX                 =_target->GetX() * spacing / 10.0;
   _DY                 =_target->GetX() * spacing / 10.0;
   _DZ                 = 1;
-  _Subdivision        = True;
+  _Subdivision        = true;
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {

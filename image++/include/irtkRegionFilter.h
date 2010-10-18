@@ -30,7 +30,7 @@ protected:
 	int _i1, _j1, _k1, _l1, _i2, _j2, _k2, _l2; 
 	
   /// Returns whether the filter requires buffering
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();

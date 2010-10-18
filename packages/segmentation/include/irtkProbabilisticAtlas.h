@@ -118,7 +118,7 @@ inline void irtkProbabilisticAtlas::Next()
 
 inline irtkRealPixel irtkProbabilisticAtlas::GetValue(unsigned int channel)
 {
-  if ((channel >= 0) && (channel < _images.size())) return *_pointers[channel];
+  if (channel < _images.size()) return *_pointers[channel];
   else {
     cerr << "Channel identificator " << channel <<" out of range." <<endl;
     exit(1);
@@ -127,7 +127,7 @@ inline irtkRealPixel irtkProbabilisticAtlas::GetValue(unsigned int channel)
 
 inline irtkRealPixel irtkProbabilisticAtlas::GetValue(int x, int y, int z, unsigned int channel)
 {
-  if ((channel >= 0) && (channel < _images.size())) return _images[channel].Get(x,y,z);
+  if (channel < _images.size()) return _images[channel].Get(x,y,z);
   else {
     cerr << "Channel identificator " << channel <<" out of range." <<endl;
     exit(1);
@@ -136,7 +136,7 @@ inline irtkRealPixel irtkProbabilisticAtlas::GetValue(int x, int y, int z, unsig
 
 inline void irtkProbabilisticAtlas::SetValue(unsigned int channel, irtkRealPixel value)
 {
-  if ((channel >= 0) && (channel < _images.size())) *_pointers[channel] = value;
+  if (channel < _images.size()) *_pointers[channel] = value;
   else {
     cerr << "Channel identificator " << channel << " out of range." <<endl;
     exit(1);
@@ -145,7 +145,7 @@ inline void irtkProbabilisticAtlas::SetValue(unsigned int channel, irtkRealPixel
 
 inline void irtkProbabilisticAtlas::SetValue(int x, int y, int z, unsigned int channel, irtkRealPixel value)
 {
-  if ((channel >= 0) && (channel < _images.size()))  _images[channel].Put( x, y, z, value);
+  if (channel < _images.size()) _images[channel].Put( x, y, z, value);
   else {
     cerr << "Channel identificator " << channel <<" out of range." <<endl;
     exit(1);

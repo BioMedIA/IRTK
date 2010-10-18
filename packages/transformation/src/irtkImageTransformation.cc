@@ -50,7 +50,7 @@ public:
             // Transform point into world coordinates
             _imagetransformation->_output->ImageToWorld(x, y, z);
             // Transform point
-            if (_imagetransformation->_Invert == False) {
+            if (_imagetransformation->_Invert == false) {
               _imagetransformation->_transformation->Transform(x, y, z, time);
             } else {
               _imagetransformation->_transformation->Inverse(x, y, z, time);
@@ -103,7 +103,7 @@ irtkImageTransformation::irtkImageTransformation()
   _Offset = 0;
   
   // Set invert mode
-  _Invert = False;
+  _Invert = false;
 }
 
 irtkImageTransformation::~irtkImageTransformation()
@@ -125,7 +125,7 @@ irtkImageTransformation::~irtkImageTransformation()
   _SourcePaddingValue = 0;
 
   // Set invert mode
-  _Invert = False;
+  _Invert = false;
 }
 
 irtkImageTransformation *irtkImageTransformation::New(irtkTransformation *transformation)
@@ -224,7 +224,7 @@ void irtkImageTransformation::Run()
     exit(1);
   }
 
-  if (_input->IsEmpty() == True) {
+  if (_input->IsEmpty() == true) {
     cerr << "irtkImageTransformation::Run: Input is empty" << endl;
     exit(1);
   }
@@ -266,7 +266,7 @@ void irtkImageTransformation::Run()
               // Transform point into world coordinates
               _output->ImageToWorld(x, y, z);
               // Transform point
-              if (_Invert == False) {
+              if (_Invert == false) {
                 _transformation->Transform(x, y, z, time);
               } else {
                 _transformation->Inverse(x, y, z, time);

@@ -35,15 +35,15 @@ protected:
   irtkGenericImage<VoxelType> *_output;
 
   /// Debugging flag
-  Bool _DebugFlag;
+  bool _DebugFlag;
 
   /// Flag to use world or image coordinates for point locations
-  Bool _UseWorldCoordinates;
+  bool _UseWorldCoordinates;
 
 public:
 
   /// Constructor (using world coordinates by default)
-  irtkPointToImage(Bool = True);
+  irtkPointToImage(bool = true);
 
   // Deconstuctor
   virtual ~irtkPointToImage();
@@ -58,10 +58,10 @@ public:
   virtual void Run();
 
   /// Set debugging flag
-  SetMacro(DebugFlag, Bool);
+  SetMacro(DebugFlag, bool);
 
   /// Get debugging flag
-  GetMacro(DebugFlag, Bool);
+  GetMacro(DebugFlag, bool);
 
   /// Print debugging messages if debugging is enabled
   virtual void Debug(char *);

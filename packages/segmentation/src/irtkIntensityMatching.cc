@@ -58,7 +58,7 @@ void irtkIntensityMatching::Print()
 
 
 
-void irtkIntensityMatching::PCA(double *x1, double *y1, double *weights, int no)
+void irtkIntensityMatching::PCA(double *x1, double *y1, double *, int no)
 {
   //Calculates the largest 2D component by PCA - as the mean + eigenvector belonging to bigger eigenvalue of the covariance matrix
   cerr<<"Start principal component regression"<<endl;

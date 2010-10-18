@@ -81,106 +81,106 @@ int main(int argc, char **argv)
   // Initialize parameters
   scale   = 1;
   padding = MIN_GREY;
-  invert  = False;
+  invert  = false;
 
   // Parse arguments
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-total") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-total") == 0)) {
       argc--;
       argv++;
       total_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-scale") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-scale") == 0)) {
       argc--;
       argv++;
       scale = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-invert") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
-      invert = True;
-      ok = True;
+      invert = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rt1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rt1") == 0)) {
       argc--;
       argv++;
       t1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rt2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rt2") == 0)) {
       argc--;
       argv++;
       t2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
             p2[0] = p1[0];
             p2[1] = p1[1];
             p2[2] = p1[2];
-            if (invert == True) {
+            if (invert == true) {
               transform->Inverse(p2[0], p2[1], p2[2], time);
             } else {
               transform->Transform(p2[0], p2[1], p2[2], time);

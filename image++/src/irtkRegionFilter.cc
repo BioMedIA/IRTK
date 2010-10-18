@@ -23,9 +23,9 @@ irtkRegionFilter::~irtkRegionFilter(void)
 {
 }
 
-Bool irtkRegionFilter::RequiresBuffering(void)
+bool irtkRegionFilter::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 const char *irtkRegionFilter::NameOfClass()

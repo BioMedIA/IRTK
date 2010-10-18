@@ -20,7 +20,7 @@ irtkImageFunction::irtkImageFunction()
   _input  = NULL;
 
   // Default parameters
-  _DebugFlag    = False;
+  _DebugFlag    = false;
   _DefaultValue = 0;
 }
 
@@ -42,7 +42,7 @@ void irtkImageFunction::SetInput(irtkImage *image)
 
 void irtkImageFunction::Debug(const char *message)
 {
-  if (_DebugFlag == True) cout << message << endl;
+  if (_DebugFlag == true) cout << message << endl;
 }
 
 void irtkImageFunction::Initialize()

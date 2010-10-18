@@ -32,7 +32,7 @@ protected:
   /** Returns whether the filter requires buffering. This filter requires
    *  buffering and returns 0.
    */
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();
@@ -45,7 +45,7 @@ protected:
 public:
 
   /// Constructor
-  irtkConvolution_3D(Bool = False);
+  irtkConvolution_3D(bool = false);
 
   /// Set second input, i.e. the filter kernel
   virtual void SetInput2(irtkGenericImage<irtkRealPixel> *);

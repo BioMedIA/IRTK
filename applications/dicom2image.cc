@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   argv++;
 
   // Default
-  negate = False;
+  negate = false;
   pos[0] = 0;
   pos[1] = 0;
   pos[2] = 0;
@@ -45,8 +45,8 @@ int main(int argc, char **argv)
   origin[2] = 0;
   
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dimensions") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dimensions") == 0)) {
       argc--;
       argv++;
       attr._x = atoi(argv[1]);
@@ -58,9 +58,9 @@ int main(int argc, char **argv)
       attr._z = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-size") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
       argc--;
       argv++;
       attr._dx = atof(argv[1]);
@@ -72,9 +72,9 @@ int main(int argc, char **argv)
       attr._dz = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-orientation") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-orientation") == 0)) {
       argc--;
       argv++;
       attr._xaxis[0] = atof(argv[1]);
@@ -95,9 +95,9 @@ int main(int argc, char **argv)
       attr._yaxis[2] = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-position") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-position") == 0)) {
       argc--;
       argv++;
       pos[0] = atof(argv[1]);
@@ -109,22 +109,22 @@ int main(int argc, char **argv)
       pos[2] = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-negate") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-negate") == 0)) {
       argc--;
       argv++;
-      negate = True;
-      ok = True;
+      negate = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cout << "Can't parse argument: " << argv[1] << endl;
       usage();
     }
   }
 
   // Negate coordinate axis
-  if (negate == True) {
+  if (negate == true) {
   	attr._xaxis[0] *= -1;
   	attr._xaxis[1] *= -1;
   	attr._xaxis[2] *= -1;

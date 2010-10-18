@@ -118,9 +118,9 @@ inline int irtkSegmentTable::GetVisibility(int id)
 inline int irtkSegmentTable::IsValid(int id)
 {
   if (_entry[id].getLabel() != NULL) {
-    return True;
+    return true;
   } else {
-    return False;
+    return false;
   }
 }
 

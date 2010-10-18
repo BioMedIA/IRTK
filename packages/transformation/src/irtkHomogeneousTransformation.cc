@@ -127,20 +127,20 @@ double irtkHomogeneousTransformation::Inverse(double &x, double &y, double &z, d
   return 0;
 }
 
-Bool irtkHomogeneousTransformation::IsIdentity()
+bool irtkHomogeneousTransformation::IsIdentity()
 {
   int i, j;
 
   for (i = 0; i < _matrix.Rows(); i++) {
     for (j = 0; j < _matrix.Cols(); j++) {
       if (i == j) {
-        if (_matrix(i, j) != 1) return False;
+        if (_matrix(i, j) != 1) return false;
       } else {
-        if (_matrix(i, j) != 0) return False;
+        if (_matrix(i, j) != 0) return false;
       }
     }
   }
-  return True;
+  return true;
 }
 
 void irtkHomogeneousTransformation::Invert()

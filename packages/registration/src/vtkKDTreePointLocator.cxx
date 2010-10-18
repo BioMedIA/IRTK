@@ -354,7 +354,7 @@ vtkKDTreeNode *vtkKDTreePointLocator::BuildTree(int numPoints, PointData *pts)
 }
 
 void vtkKDTreePointLocator::GenerateRepresentation(
-    int vtkNotUsed(level), vtkPolyData *pd)
+    int vtkNotUsed(level), vtkPolyData *)
 {
     vtkErrorMacro(<<"I don't understand what this method is "
         "supposed to do, so it's not implemented.");

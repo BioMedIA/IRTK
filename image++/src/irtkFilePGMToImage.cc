@@ -40,9 +40,9 @@ int irtkFilePGMToImage::CheckHeader(const char *filename)
 
   // Check header
   if (strcmp(buffer, PGM_MAGIC) != 0) {
-    return False;
+    return false;
   } else {
-    return True;
+    return true;
   }
 }
 

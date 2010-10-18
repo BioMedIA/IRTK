@@ -48,8 +48,8 @@ int main(int argc, char **argv)
   // Default parameters
   locatorType = 1;
   ok = 0;
-  ignoreEdges = False;
-  symmetricDistance = False;
+  ignoreEdges = false;
+  symmetricDistance = false;
 
   // Parse filenames
   _target_name = argv[1];
@@ -61,44 +61,44 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-locator") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-locator") == 0)) {
       argc--;
       argv++;
       locatorType = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ignoreedges") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ignoreedges") == 0)) {
       argc--;
       argv++;
       ignoreEdges = true;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-symmetric") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-symmetric") == 0)) {
       argc--;
       argv++;
-      symmetricDistance = True;
-      ok = True;
+      symmetricDistance = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -124,13 +124,13 @@ int main(int argc, char **argv)
   source = source_reader->GetOutput();
   source->Update();
 
-  if (ignoreEdges == True) {
+  if (ignoreEdges == true) {
     MarkBoundary(target);
     MarkBoundary(source);
   }
 
   // Check if to do symmetric registration
-  if (symmetricDistance == True) {
+  if (symmetricDistance == true) {
     // Create target locator
     target_locator = new irtkLocator;
     target_locator->SelectLocatorType(locatorType);
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
       n++;
     }
   }
-  if (symmetricDistance == True) {
+  if (symmetricDistance == true) {
     for (i = 0; i < source->GetNumberOfPoints(); i++) {
       source->GetPoints()->GetPoint (i, source_point);
       target_point[0] = source_point[0];

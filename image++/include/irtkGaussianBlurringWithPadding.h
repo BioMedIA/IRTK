@@ -33,7 +33,7 @@ protected:
   VoxelType _PaddingValue;
 
   /// Returns whether the filter requires buffering
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();

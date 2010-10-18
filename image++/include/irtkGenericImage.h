@@ -176,9 +176,10 @@ public:
   irtkGenericImage& operator<=(VoxelType);
 
   /// Comparison operators == (explicit negation yields != operator)
-  Bool operator==(const irtkGenericImage &);
+  bool operator==(const irtkGenericImage &);
+
   /// Comparison operator != (if _HAS_STL is defined, negate == operator)
-  ///  Bool operator!=(const irtkGenericImage &);
+  ///  bool operator!=(const irtkGenericImage &);
 
   //
   // Reflections and axis flipping

@@ -128,8 +128,7 @@ double ***irtkFreeFormTransformation3D::Allocate(double ***data, int x, int y, i
   return data;
 }
 
-double ***irtkFreeFormTransformation3D::Deallocate(double ***data, int x, int y,
-    int z)
+double ***irtkFreeFormTransformation3D::Deallocate(double ***data, int, int, int)
 {
   if (data != NULL) {
     delete [](data[-4][-4]-4);
@@ -139,20 +138,20 @@ double ***irtkFreeFormTransformation3D::Deallocate(double ***data, int x, int y,
   return NULL;
 }
 
-Bool irtkFreeFormTransformation3D::IsIdentity()
+bool irtkFreeFormTransformation3D::IsIdentity()
 {
   int i, j, k;
 
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        if (_xdata[k][j][i] != 0) return False;
-        if (_ydata[k][j][i] != 0) return False;
-        if (_zdata[k][j][i] != 0) return False;
+        if (_xdata[k][j][i] != 0) return false;
+        if (_ydata[k][j][i] != 0) return false;
+        if (_zdata[k][j][i] != 0) return false;
       }
     }
   }
-  return True;
+  return true;
 }
 
 void irtkFreeFormTransformation3D::PutStatus(int i, int j, int k, _Status s)
@@ -277,7 +276,7 @@ void irtkFreeFormTransformation3D::BoundingBox(double &x1, double &y1, double &z
   this->LatticeToWorld(x2, y2, z2);
 }
 
-double irtkFreeFormTransformation3D::Inverse(double &x, double &y, double &z, double t, double tolerance)
+double irtkFreeFormTransformation3D::Inverse(double &x, double &y, double &z, double, double tolerance)
 {
   int check;
   double error;

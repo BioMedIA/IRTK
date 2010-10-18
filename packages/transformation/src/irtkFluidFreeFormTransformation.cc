@@ -112,37 +112,37 @@ void irtkFluidFreeFormTransformation::Transform(int n, double &x, double &y, dou
   this->irtkAffineTransformation::Transform(x, y, z, t);
 }
 
-void irtkFluidFreeFormTransformation::GlobalTransform(double &x, double &y, double &z, double)
+void irtkFluidFreeFormTransformation::GlobalTransform(double &, double &, double &, double)
 {
   cerr << "irtkFluidFreeFormTransformation::GlobalTransform: Does not make sense" << endl;
   exit(1);
 }
 
-void irtkFluidFreeFormTransformation::GlobalDisplacement(double &x, double &y, double &z, double)
+void irtkFluidFreeFormTransformation::GlobalDisplacement(double &, double &, double &, double)
 {
   cerr << "irtkFluidFreeFormTransformation::GlobalDisplacement: Does not make sense" << endl;
   exit(1);
 }
 
-void irtkFluidFreeFormTransformation::LocalTransform(double &x, double &y, double &z, double)
+void irtkFluidFreeFormTransformation::LocalTransform(double &, double &, double &, double)
 {
   cerr << "irtkFluidFreeFormTransformation::LocalTransform: Does not make sense" << endl;
   exit(1);
 }
 
-void irtkFluidFreeFormTransformation::LocalTransform(int n, double &x, double &y, double &z, double)
+void irtkFluidFreeFormTransformation::LocalTransform(int, double &, double &, double &, double)
 {
   cerr << "irtkFluidFreeFormTransformation::LocalTransform: Does not make sense" << endl;
   exit(1);
 }
 
-void irtkFluidFreeFormTransformation::LocalDisplacement(int n, double &x, double &y, double &z, double)
+void irtkFluidFreeFormTransformation::LocalDisplacement(int, double &, double &, double &, double)
 {
   cerr << "irtkFluidFreeFormTransformation::LocalDisplacement: Does not make sense" << endl;
   exit(1);
 }
 
-void irtkFluidFreeFormTransformation::LocalDisplacement(double &x, double &y, double &z, double)
+void irtkFluidFreeFormTransformation::LocalDisplacement(double &, double &, double &, double)
 {
   cerr << "irtkFluidFreeFormTransformation::LocalDisplacement: Does not make sense" << endl;
   exit(1);

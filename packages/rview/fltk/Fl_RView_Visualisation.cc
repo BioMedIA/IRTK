@@ -513,7 +513,7 @@ void Fl_RViewUI::cb_viewSubtraction(Fl_Button*, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewCheckerboard(Fl_Button*b, void* v)
+void Fl_RViewUI::cb_viewCheckerboard(Fl_Button *, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -528,7 +528,7 @@ void Fl_RViewUI::cb_viewCheckerboard(Fl_Button*b, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewAoverB(Fl_Button*b, void* v)
+void Fl_RViewUI::cb_viewAoverB(Fl_Button *, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -543,7 +543,7 @@ void Fl_RViewUI::cb_viewAoverB(Fl_Button*b, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewBoverA(Fl_Button*b, void* v)
+void Fl_RViewUI::cb_viewBoverA(Fl_Button *, void* v)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());

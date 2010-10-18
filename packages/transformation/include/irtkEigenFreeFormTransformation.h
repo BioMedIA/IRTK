@@ -214,7 +214,7 @@ inline int *irtkEigenFreeFormTransformation::GetElement(int index)
   return element;
 }
 
-inline _Status irtkEigenFreeFormTransformation::GetStatus(int index) const
+inline _Status irtkEigenFreeFormTransformation::GetStatus(int) const
 {
   return _Active;
 }
@@ -260,9 +260,9 @@ inline double irtkEigenFreeFormTransformation::Get(int index) const
 inline int irtkEigenFreeFormTransformation::CheckKeyword(char *header)
 {
   if (strcmp(header, "EFFD:") == 0) {
-    return True;
+    return true;
   } else {
-    return False;
+    return false;
   }
 }
 

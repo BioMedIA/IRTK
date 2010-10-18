@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 #endif
 
   if ((z > 2) && (fabs(distance[index[1]-1] - distance[index[2]-1]) > 0)) {
-    // True slice thickness is distance no. 2
+    // true slice thickness is distance no. 2
     zsize = fabs(distance[index[1]-1] - distance[index[2]-1]);
   } else {
     zsize = zsize1;

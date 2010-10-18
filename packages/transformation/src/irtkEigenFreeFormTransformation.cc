@@ -244,9 +244,9 @@ int irtkEigenFreeFormTransformation::CheckHeader(char *name)
   // Read and check keyword
   from >> buffer;
   if (strcmp(buffer, "EFFD:") == 0) {
-    return True;
+    return true;
   } else {
-    return False;
+    return false;
   }
 }
 

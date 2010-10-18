@@ -180,56 +180,56 @@ int main(int argc, char **argv)
   max_sigma = +1;
   mode      =  0;
   no        = 20;
-  mean      = True;
+  mean      = true;
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-with-mean") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-with-mean") == 0)) {
       argc--;
       argv++;
-      mean = True;
-      ok = True;
+      mean = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-without-mean") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-without-mean") == 0)) {
       argc--;
       argv++;
-      mean = False;
-      ok = True;
+      mean = false;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-min_sigma") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-min_sigma") == 0)) {
       argc--;
       argv++;
       min_sigma = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-max_sigma") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-max_sigma") == 0)) {
       argc--;
       argv++;
       max_sigma = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-mode") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
       argc--;
       argv++;
       mode = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-no") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-no") == 0)) {
       argc--;
       argv++;
       no = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
     // Calculate sigma
     sigma = i * (max_sigma - min_sigma) / double(no) + min_sigma;
 
-    if (mean == True) {
+    if (mean == true) {
       // Say what we are calculating
       cerr << "Plotting mode = " << mode << " (sigma = " << sigma << ") "
            << "with mean" << endl;

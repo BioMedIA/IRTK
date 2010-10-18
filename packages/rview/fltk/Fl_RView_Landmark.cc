@@ -137,7 +137,7 @@ void Fl_RViewUI::cb_saveSourceLandmarks(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_addLandmark(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_addLandmark(Fl_Button *, void* v)
 {
   char buffer[256], *label = NULL;
   irtkPoint point;
@@ -174,7 +174,7 @@ void Fl_RViewUI::cb_addLandmark(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_deleteLandmark(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_deleteLandmark(Fl_Button *, void* v)
 {
   int i, id;
 
@@ -225,7 +225,7 @@ void Fl_RViewUI::cb_deleteLandmark(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_toggleLandmark(Fl_Input* o, void* v)
+void Fl_RViewUI::cb_toggleLandmark(Fl_Input *, void* v)
 {
   if (((Fl_Browser *)v)->size() == 0) {
     return;
@@ -256,7 +256,7 @@ void Fl_RViewUI::cb_toggleLandmark(Fl_Input* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_insertLandmark(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_insertLandmark(Fl_Button *, void* v)
 {
   int id, i;
   char buffer[256], *label = NULL;
@@ -324,7 +324,7 @@ void Fl_RViewUI::cb_insertLandmark(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_replaceLandmark(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_replaceLandmark(Fl_Button *, void* v)
 {
   int id;
   char buffer[256], *label = NULL;
@@ -361,7 +361,7 @@ void Fl_RViewUI::cb_replaceLandmark(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editLandmark(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_editLandmark(Fl_Button *, void* v)
 {
   // Alert user
   fl_alert("Edit landmark not yet implemented");
@@ -454,7 +454,7 @@ void Fl_RViewUI::cb_viewLandmarks(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_fitLandmarks(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_fitLandmarks(Fl_Button *, void* v)
 {
   if (rview->GetNumberOfTargetLandmarks() !=
       rview->GetNumberOfSourceLandmarks()) {

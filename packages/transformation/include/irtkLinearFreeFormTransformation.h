@@ -200,7 +200,7 @@ inline void irtkLinearFreeFormTransformation::Transform2(double &x, double &y, d
   z += w;
 }
 
-inline void irtkLinearFreeFormTransformation::GlobalTransform(double &x, double &y, double &z, double)
+inline void irtkLinearFreeFormTransformation::GlobalTransform(double &, double &, double &, double)
 {}
 
 inline void irtkLinearFreeFormTransformation::LocalTransform(double &x, double &y, double &z, double t)

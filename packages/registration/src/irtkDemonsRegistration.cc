@@ -20,7 +20,7 @@
 
 #define EPSILON 0.001
 
-int regrid = False;
+int regrid = false;
 
 irtkRealImage *tmp_target_dem, *tmp_source_dem;
 
@@ -52,7 +52,7 @@ irtkDemonsRegistration::irtkDemonsRegistration()
   _StepSize           = 0.005;
   _Epsilon            = 0.001;
   _Regridding         = 10;
-  _Symmetric          = False;
+  _Symmetric          = false;
 
   _TargetPadding = MIN_GREY;
   _SourcePadding = MIN_GREY;
@@ -70,7 +70,7 @@ irtkDemonsRegistration::irtkDemonsRegistration()
   _ffd2 = NULL;
 
   // Debug flag
-  _DebugFlag = False;
+  _DebugFlag = false;
 
   // Allocate interpolation object
   _interpolator1 = new irtkLinearInterpolateImageFunction;
@@ -337,7 +337,7 @@ void irtkDemonsRegistration::Run()
   this->Initialize();
 
   // Save pre-processed images if we are debugging
-  if (_DebugFlag == True) {
+  if (_DebugFlag == true) {
     char buffer[255];
     sprintf(buffer, "source_%d.nii.gz", 1);
     _source->Write(buffer);
@@ -380,7 +380,7 @@ void irtkDemonsRegistration::Run()
       }
 */
 
-      if (_DebugFlag == True) {
+      if (_DebugFlag == true) {
         char buffer[255];
 
         sprintf(buffer, "local_%.3d.nii.gz", iter);
@@ -393,12 +393,12 @@ void irtkDemonsRegistration::Run()
 
       // Regrid
       if ((iter+1) % _Regridding == 0) {
-        regrid = True;
+        regrid = true;
         cout << "regridding at iteration = " << iter+1 << endl;
       } else {
-        regrid = False;
+        regrid = false;
       }
-      regrid = False;
+      regrid = false;
 
       // Update images and displacement fields
       Update();
@@ -569,15 +569,15 @@ double irtkDemonsRegistration::Force2()
   return sqrt(rms) / _target->GetNumberOfVoxels();
 }
 
-Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
+bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
-  int i, n, ok = False;
+  int i, n, ok = false;
   double dx, dy, dz;
 
   // Resolution level
   if (strstr(buffer1, "Resolution level") != NULL) {
     level = atoi(buffer2)-1;
-    ok = True;
+    ok = true;
   }
   // Target blurring
   if (strstr(buffer1, "Target blurring (in mm)") != NULL) {
@@ -588,7 +588,7 @@ Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_TargetBlurring[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   // Target resolution
   if (strstr(buffer1, "Target resolution (in mm)") != NULL) {
@@ -617,7 +617,7 @@ Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
       if (this->_TargetResolution[level][1] == 0) this->_TargetResolution[level][1] = dy;
       if (this->_TargetResolution[level][2] == 0) this->_TargetResolution[level][2] = dz;
     }
-    ok = True;
+    ok = true;
   }
   // Source blurring
   if (strstr(buffer1, "Source blurring (in mm)") != NULL) {
@@ -628,7 +628,7 @@ Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_SourceBlurring[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   // Source resolution
   if (strstr(buffer1, "Source resolution (in mm)") != NULL) {
@@ -657,19 +657,19 @@ Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
       if (this->_SourceResolution[level][1] == 0) this->_SourceResolution[level][1] = dy;
       if (this->_SourceResolution[level][2] == 0) this->_SourceResolution[level][2] = dz;
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of resolution levels") != NULL) {
     this->_NumberOfLevels = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "No. of iterations") != NULL) {
     this->_NumberOfIterations = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Regridding") != NULL) {
     this->_Regridding = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   // Source blurring
   if (strstr(buffer1, "Smoothing") != NULL) {
@@ -680,22 +680,22 @@ Bool irtkDemonsRegistration::Read(char *buffer1, char *buffer2, int &level)
     } else {
       this->_Smoothing[level] = atof(buffer2);
     }
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Step size") != NULL) {
     this->_StepSize = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Epsilon") != NULL) {
     this->_Epsilon = atof(buffer2);
-    ok = True;
+    ok = true;
   }
   if (strstr(buffer1, "Padding value") != NULL) {
     this->_TargetPadding = atoi(buffer2);
-    ok = True;
+    ok = true;
   }
 
-  if (ok == False) {
+  if (ok == false) {
     cerr << "irtkDemonsRegistration::Read: Can't parse line " << buffer1 << endl;
     exit(1);
   }
@@ -740,9 +740,9 @@ void irtkDemonsRegistration::Read(char *filename)
   }
 
   level = -1;
-  while (from.eof() != True) {
+  while (from.eof() != true) {
     if (read_line(from, buffer1, buffer2) != 0) {
-      if (this->Read(buffer1, buffer2, level) == False) {
+      if (this->Read(buffer1, buffer2, level) == false) {
         cerr << "Couldn't parse line: " << buffer1 << endl;
       }
     }

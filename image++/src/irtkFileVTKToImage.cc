@@ -41,9 +41,9 @@ int irtkFileVTKToImage::CheckHeader(const char *filename)
   if ((strcmp(buffer, VTK_MAGIC1) != 0) &&
       (strcmp(buffer, VTK_MAGIC2) != 0) &&
       (strcmp(buffer, VTK_MAGIC3) != 0)) {
-    return False;
+    return false;
   } else {
-    return True;
+    return true;
   }
 }
 

@@ -52,7 +52,7 @@ void irtkHistogramWindow::CalculateHistograms()
 
   // Calculate histogram for each structure
   for (i = 0; i < _v->GetSegmentTable()->Size(); i++) {
-    if ( _v->GetSegmentTable()->IsValid(i) == True) CalculateHistogram(i);
+    if ( _v->GetSegmentTable()->IsValid(i) == true) CalculateHistogram(i);
   }
 }
 
@@ -85,7 +85,7 @@ void irtkHistogramWindow::CalculateHistogram(int label_id)
       }
     }
   } else {
-    if (_v->GetSegmentTable()->IsValid(label_id) == True) {
+    if (_v->GetSegmentTable()->IsValid(label_id) == true) {
       _localHistogram[label_id].PutMin(min);
       _localHistogram[label_id].PutMax(max);
       _localHistogram[label_id].PutNumberOfBins(HISTOGRAM_BINS);

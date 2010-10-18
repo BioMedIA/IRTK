@@ -68,9 +68,9 @@ int irtkFileNIFTIToImage::CheckHeader(const char *filename)
 
   // Check magic no
   if ((strcmp(magic_number, "n+1") == 0) || (strcmp(magic_number, "ni1") == 0)) {
-    return True;
+    return true;
   } else {
-    return False;
+    return false;
   }
 }
 

@@ -44,43 +44,43 @@ int main(int argc, char **argv)
   argv++;
 
   // Default
-  invert = False;
-  affine = False;
-  import = False;
+  invert = false;
+  affine = false;
+  import = false;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-invert") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
-      invert = True;
-      ok = True;
+      invert = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-import") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-import") == 0)) {
       argc--;
       argv++;
-      import = True;
-      ok = True;
+      import = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-rigid") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-rigid") == 0)) {
       argc--;
       argv++;
-      affine = False;
-      ok = True;
+      affine = false;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-affine") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-affine") == 0)) {
       argc--;
       argv++;
-      affine = True;
-      ok = True;
+      affine = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
   }
 
   // Read matrix
-  if (import == True) {
+  if (import == true) {
     matrix.Import(mat_name, 4, 4);
     matrix.Print();
   } else {
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
   }
 
   // Invert matrix if necessary
-  if (invert == True) {
+  if (invert == true) {
     matrix.Invert();
   }
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   // Transform point set
   mattrans.irtkTransformation::Transform(pset1);
 
-  if (affine != True) {
+  if (affine != true) {
     // Create transformation;
     transformation = new irtkRigidTransformation;
     // Create registration

@@ -51,34 +51,34 @@ int main(int argc, char **argv)
   // Default mode
   irtkEuclideanDistanceTransform<irtkRealPixel> *edt = NULL;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-2D") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-2D") == 0)) {
       argc--;
       argv++;
       edt = new irtkEuclideanDistanceTransform<irtkRealPixel>
       (irtkEuclideanDistanceTransform<irtkRealPixel>::irtkDistanceTransform2D);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-3D") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-3D") == 0)) {
       argc--;
       argv++;
       edt = new irtkEuclideanDistanceTransform<irtkRealPixel>
       (irtkEuclideanDistanceTransform<irtkRealPixel>::irtkDistanceTransform3D);
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-radial") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-radial") == 0)) {
       argc--;
       argv++;
       radialon = 1;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-tradial") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-tradial") == 0)) {
       argc--;
       argv++;
       radialon = 2;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-isotropic") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-isotropic") == 0)) {
       argc--;
       argv++;
 	  if (argc > 1 && argv[1][0] != '-') {
@@ -87,9 +87,9 @@ int main(int argc, char **argv)
 		  argv++;
 	  }else
 		  isotropic = 1;
-	  ok = True;
+	  ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can't parse argument " << argv[1] << endl;
       usage();
     }
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 	  resampling.SetOutput((irtkRealImage*)(&outputA));
 	  resampling.SetInterpolator(&interpolator);
 	  resampling.Run();
-	  ok = True;
+	  ok = true;
 	  cerr << "done.."<<endl;
   }
 

@@ -263,8 +263,8 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-measure") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-measure") == 0)) {
       argc--;
       argv++;
       if (strcmp(argv[1], "entropy") == 0) {
@@ -279,9 +279,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-mode") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
       argc--;
       argv++;
       if (strcmp(argv[1], "PercentOfDOFs") == 0) {
@@ -296,25 +296,25 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-percent") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-percent") == 0)) {
       argc--;
       argv++;
       percentage = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-level") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-level") == 0)) {
       argc--;
       argv++;
       level = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can't parse argument " << argv[1] << endl;
       usage();
     }

@@ -96,7 +96,7 @@ inline void irtkMLSimilarityMetric::Delete(int x, int y)
   _n--;
 }
 
-inline void irtkMLSimilarityMetric::Combine(irtkSimilarityMetric *metric)
+inline void irtkMLSimilarityMetric::Combine(irtkSimilarityMetric *)
 {
   cerr << "irtkMLSimilarityMetric::Combine: Not implemented" << endl;
   exit(1);

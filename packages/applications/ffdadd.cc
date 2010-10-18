@@ -88,114 +88,114 @@ int main(int argc, char **argv)
   dt = 20;
 
   // Don't dilate bounding box
-  dilate = False;
+  dilate = false;
 
   // Don't dilate bounding box
-  ffd4D = False;
+  ffd4D = false;
 
   // No fluid
-  fluid = False;
+  fluid = false;
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-Tx1") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-Tx1") == 0)) {
       argc--;
       argv++;
       i1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx2") == 0)) {
       argc--;
       argv++;
       i2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty1") == 0)) {
       argc--;
       argv++;
       j1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty2") == 0)) {
       argc--;
       argv++;
       j2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz1") == 0)) {
       argc--;
       argv++;
       k1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz2") == 0)) {
       argc--;
       argv++;
       k2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tt1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tt1") == 0)) {
       argc--;
       argv++;
       l1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tt2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tt2") == 0)) {
       argc--;
       argv++;
       l2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dx") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dx") == 0)) {
       argc--;
       argv++;
       dx = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dy") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dy") == 0)) {
       argc--;
       argv++;
       dy = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dz") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dz") == 0)) {
       argc--;
       argv++;
       dz = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dt") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dt") == 0)) {
       argc--;
       argv++;
       dt = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ds") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
       argc--;
       argv++;
       dx = atof(argv[1]);
@@ -204,34 +204,34 @@ int main(int argc, char **argv)
       dt = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-fluid") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-fluid") == 0)) {
       argc--;
       argv++;
-      fluid = True;
-      ok = True;
+      fluid = true;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-3D") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-3D") == 0)) {
       argc--;
       argv++;
-      ffd4D = False;
-      ok = True;
+      ffd4D = false;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-4D") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-4D") == 0)) {
       argc--;
       argv++;
-      ffd4D = True;
-      ok = True;
+      ffd4D = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
   }
 
   // Read transformation
-  if (fluid == True) {
+  if (fluid == true) {
     mffd = new irtkFluidFreeFormTransformation;
   } else {
     mffd = new irtkMultiLevelFreeFormTransformation;
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
     *target = target->GetRegion(i1, j1, k1, l1, i2, j2, k2, l2);
   }
 
-  if (ffd4D == False) {
+  if (ffd4D == false) {
     // Create free-form transformation
     irtkBSplineFreeFormTransformation *affd = new irtkBSplineFreeFormTransformation(*target, dx, dy, dz);
 

@@ -29,7 +29,7 @@ template <class VoxelType> class irtkDilation : public irtkImageToImage<VoxelTyp
 protected:
 
   /// Returns whether the filter requires buffering
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();

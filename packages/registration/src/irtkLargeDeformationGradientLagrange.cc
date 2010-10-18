@@ -1127,7 +1127,7 @@ void LargeDefGradLagrange::SaveFinalBackwardMap(char Prefix[256]){
 }
 
 ///save the total length of the flow of deformation from each voxel of the image
-void LargeDefGradLagrange::SaveGlobalFlowLength(char Prefix[256]){
+void LargeDefGradLagrange::SaveGlobalFlowLength(char [256]){
   char VeloLength[256];
   
   strcpy(VeloLength,"_LengthOfFlow.nii");
@@ -1136,7 +1136,7 @@ void LargeDefGradLagrange::SaveGlobalFlowLength(char Prefix[256]){
 }
 
 ///save the splitted length of the flow of deformation from each voxel of the image
-void LargeDefGradLagrange::SaveSplittedFlowLength(char Prefix[256]){
+void LargeDefGradLagrange::SaveSplittedFlowLength(char [256]){
   char VeloLengthK1[256];
   char VeloLengthK2[256];
   char VeloLengthK3[256];

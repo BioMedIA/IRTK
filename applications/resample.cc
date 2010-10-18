@@ -34,7 +34,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  Bool ok, padding;
+  bool ok, padding;
   double xsize, ysize, zsize;
   irtkGreyImage image;
   irtkImageFunction *interpolator = NULL;
@@ -60,10 +60,10 @@ int main(int argc, char **argv)
   xsize = 1;
   ysize = 1;
   zsize = 1;
-  padding = False;
+  padding = false;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-size") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
       argc--;
       argv++;
       xsize = atof(argv[1]);
@@ -75,50 +75,50 @@ int main(int argc, char **argv)
       zsize = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkLinearInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkBSplineInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkCSplineInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkSincInterpolateImageFunction;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-gaussian") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
       interpolator = new irtkGaussianInterpolateImageFunction(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding_value = atoi(argv[1]);
       argc--;
       argv++;
-      padding = True;
-      ok = True;
+      padding = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Unknown option: " << argv[1] << endl;
       usage();
     }
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
   }
 
   // Resample
-  if (padding == False) {
+  if (padding == false) {
     cout << "Resampling ... "; cout.flush();
     irtkResampling<irtkGreyPixel> resampling(xsize, ysize, zsize);
     resampling.SetInput(&image);

@@ -118,7 +118,7 @@ public:
   virtual double Inverse(int, double &, double &, double &, double = 0, double = 0.01);
 
   /// Checks whether transformation is an identity mapping
-  virtual Bool IsIdentity();
+  virtual bool IsIdentity();
 
   /// Prints the parameters of the transformation
   virtual void Print();

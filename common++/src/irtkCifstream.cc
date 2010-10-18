@@ -16,9 +16,9 @@ irtkCifstream::irtkCifstream()
 {
   _file = NULL;
 #ifndef WORDS_BIGENDIAN
-  _swapped = True;
+  _swapped = true;
 #else
-  _swapped = False;
+  _swapped = false;
 #endif
 #ifdef ENABLE_UNIX_COMPRESS
   _pos = 0;
@@ -70,7 +70,7 @@ void irtkCifstream::ReadAsShort(short *data, int length, int offset)
   this->Read((char *)data, offset, length * sizeof(short));
 
   // Swap data
-  if (_swapped == True) swap16((char *)data, (char *)data, length);
+  if (_swapped == true) swap16((char *)data, (char *)data, length);
 }
 
 void irtkCifstream::ReadAsUShort(unsigned short *data, int length, int offset)
@@ -80,7 +80,7 @@ void irtkCifstream::ReadAsUShort(unsigned short *data, int length, int offset)
              length * sizeof(unsigned short));
 
   // Swap data
-  if (_swapped == True) swap16((char *)data, (char *)data, length);
+  if (_swapped == true) swap16((char *)data, (char *)data, length);
 }
 
 void irtkCifstream::ReadAsInt(int *data, int length, int offset)
@@ -89,7 +89,7 @@ void irtkCifstream::ReadAsInt(int *data, int length, int offset)
   this->Read((char *)data, offset, length * sizeof(int));
 
   // Swap data
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
 void irtkCifstream::ReadAsUInt(unsigned int *data, int length, int offset)
@@ -99,7 +99,7 @@ void irtkCifstream::ReadAsUInt(unsigned int *data, int length, int offset)
              length * sizeof(unsigned int));
 
   // Swap data
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
 void irtkCifstream::ReadAsFloat(float *data, int length, int offset)
@@ -108,7 +108,7 @@ void irtkCifstream::ReadAsFloat(float *data, int length, int offset)
   this->Read((char *)data, offset, length * sizeof(float));
 
   // Swap data
-  if (_swapped == True) swap32((char *)data, (char *)data, length);
+  if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
 void irtkCifstream::ReadAsDouble(double *data, int length, int offset)
@@ -117,7 +117,7 @@ void irtkCifstream::ReadAsDouble(double *data, int length, int offset)
   this->Read((char *)data, offset, length * sizeof(double));
 
   // Swap data
-  if (_swapped == True) swap64((char *)data, (char *)data, length);
+  if (_swapped == true) swap64((char *)data, (char *)data, length);
 }
 
 void irtkCifstream::ReadAsString(char *data, int length, int offset)

@@ -45,9 +45,9 @@ template <class VoxelType> class irtkLargestConnectedComponentIterative : public
   int _NumberOfClusters;
 
   /// Modes
-  Bool _Mode2D;
+  bool _Mode2D;
 
-  Bool _AllClustersMode;
+  bool _AllClustersMode;
 
 protected:
 
@@ -64,7 +64,7 @@ protected:
   int CheckAdjacency3D(VoxelType& markA, VoxelType& markB);
 
   /// Returns whether the filter requires buffering
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();
@@ -84,16 +84,16 @@ public:
   GetMacro(TargetLabel, VoxelType);
 
   /// Set mode
-  SetMacro(Mode2D, Bool);
+  SetMacro(Mode2D, bool);
 
   /// Get mode
-  GetMacro(Mode2D, Bool);
+  GetMacro(Mode2D, bool);
 
   /// Set mode
-  SetMacro(AllClustersMode, Bool);
+  SetMacro(AllClustersMode, bool);
 
   /// Get mode
-  GetMacro(AllClustersMode, Bool);
+  GetMacro(AllClustersMode, bool);
 
   /// Run filter
   virtual void Run();

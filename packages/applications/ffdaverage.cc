@@ -90,8 +90,8 @@ int main(int argc, char **argv)
 {
   int ok, i, j, k, n, xdim, ydim, zdim, noOfCPs, dofCount, index, identity;
   double x, y, z, mean, sigma, identity_weight, epsilon, xAv, yAv, zAv, xFinal, yFinal, zFinal;
-  int combineaffine = True;
-  int resetRigid = True;
+  int combineaffine = true;
+  int resetRigid = true;
 
   irtkMatrix *globMats;
   irtkMatrix globMatAv(4, 4);
@@ -138,28 +138,28 @@ int main(int argc, char **argv)
   epsilon = EPSILON;
 
   // Default: Assume identity transform should not be added
-  identity = False;
+  identity = false;
   identity_weight = 0;
 
   // Parse options.
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-noaffine") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-noaffine") == 0)) {
       argc--;
       argv++;
-      combineaffine = False;
-      ok = True;
+      combineaffine = false;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-identity") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-identity") == 0)) {
       argc--;
       argv++;
-      identity = True;
+      identity = true;
       argc--;
       argv++;
       identity_weight = atof(argv[1]);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-gaussian") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
       mean = atof(argv[1]);
@@ -168,39 +168,39 @@ int main(int argc, char **argv)
       sigma = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofnames") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofnames") == 0)) {
       argc--;
       argv++;
       textfile = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-prefix") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-prefix") == 0)) {
       argc--;
       argv++;
       prefix_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-noreset") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-noreset") == 0)) {
       argc--;
       argv++;
-      resetRigid = False;
-      ok = True;
+      resetRigid = false;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-epsilon") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-epsilon") == 0)) {
       argc--;
       argv++;
       epsilon = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 
   // Get space for input transformations and one extra for the identity
   // assumed from the target to itself.
-  if (identity == True) {
+  if (identity == true) {
     globMats = new irtkMatrix[dofCount + 1];
   } else {
     globMats = new irtkMatrix[dofCount];
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
   globMatAv.Ident();
 
   // Is affine portion to be averaged?
-  if (combineaffine == True) {
+  if (combineaffine == true) {
 
     // Average the affine parts separately from the displacement
     // fields.  By default, only the scales and skew are actually
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
       transform = irtkTransformation::New(dofin_name[i]);
       mffdIn = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transform);
 
-      if (resetRigid == True) {
+      if (resetRigid == true) {
         resetRigidComponents(mffdIn);
       }
 
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
 
     // If required, setting the divisor appropriately can ensure
     // the last identity matrix is ignored.
-    if (identity == True) {
+    if (identity == true) {
       // Put the identity matrix at the end.
       globMats[dofCount].Initialize(4, 4);
       globMats[dofCount].Ident();
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
         zAv = zdata[index] / total_weight;
         ++index;
 
-        if (combineaffine == True) {
+        if (combineaffine == true) {
           // Now introduce the affine component.
           xFinal = globAvJac(0, 0) * xAv + globAvJac(0, 1) * yAv + globAvJac(0, 2) * zAv;
           yFinal = globAvJac(1, 0) * xAv + globAvJac(1, 1) * yAv + globAvJac(1, 2) * zAv;
@@ -433,13 +433,13 @@ int main(int argc, char **argv)
   }
 
   // Some reporting.
-  if (combineaffine == True) {
+  if (combineaffine == true) {
     cout << "Affine component combined with ffd." << endl;
   } else {
     cout << "ffd has identity affine component." << endl;
   }
 
-  if (resetRigid == True) {
+  if (resetRigid == true) {
     cout << "Rigid components reset to identity." << endl;
 
   } else {

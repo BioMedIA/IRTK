@@ -19,9 +19,9 @@ irtkImageToFile::irtkImageToFile()
   _input  = NULL;
   _output = NULL;
   _start   = 0;
-  _reflectX = False;
-  _reflectY = False;
-  _reflectZ = False;
+  _reflectX = false;
+  _reflectY = false;
+  _reflectZ = false;
 }
 
 irtkImageToFile::~irtkImageToFile()
@@ -128,9 +128,9 @@ void irtkImageToFile::Initialize()
   this->Open(_output);
 
   // Reflect if necessary
-  if (_reflectX == True) _input->ReflectX();
-  if (_reflectY == True) _input->ReflectY();
-  if (_reflectZ == True) _input->ReflectZ();
+  if (_reflectX == true) _input->ReflectX();
+  if (_reflectY == true) _input->ReflectY();
+  if (_reflectZ == true) _input->ReflectZ();
 }
 
 void irtkImageToFile::Finalize()
@@ -139,9 +139,9 @@ void irtkImageToFile::Finalize()
   this->Close();
 
   // Reflect back if necessary
-  if (_reflectX == True) _input->ReflectX();
-  if (_reflectY == True) _input->ReflectY();
-  if (_reflectZ == True) _input->ReflectZ();
+  if (_reflectX == true) _input->ReflectX();
+  if (_reflectY == true) _input->ReflectY();
+  if (_reflectZ == true) _input->ReflectZ();
 }
 
 void irtkImageToFile::Run()

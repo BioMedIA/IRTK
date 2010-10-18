@@ -48,55 +48,55 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1){
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)){
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)){
       argc--;
       argv++;
       iterations = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)){
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-nomatch") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-nomatch") == 0)){
       argc--;
       argv++;
       nomatch = true;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-voxelsize") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-voxelsize") == 0)){
       argc--;
       argv++;
       voxelsize = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-   if ((ok == False) && (strcmp(argv[1], "-spacing") == 0)){
+   if ((ok == false) && (strcmp(argv[1], "-spacing") == 0)){
       argc--;
       argv++;
       spacing = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-bias") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-bias") == 0)){
       argc--;
       argv++;
       bias_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False){
+    if (ok == false){
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

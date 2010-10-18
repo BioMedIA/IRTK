@@ -69,25 +69,25 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--;
       argv++;
       iterations = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       cerr << "padding  = " << padding <<endl;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-background") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-background") == 0)) {
       argc--;
       argv++;
       background = new irtkRealImage;
@@ -95,16 +95,16 @@ int main(int argc, char **argv)
       cerr << "background  = " << argv[1] <<endl;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-nobg") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-nobg") == 0)) {
       argc--;
       argv++;
       nobg=true;
       cerr << "Not adding background tissue."<<endl;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

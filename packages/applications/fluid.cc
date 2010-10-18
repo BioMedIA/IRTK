@@ -32,9 +32,9 @@ char *dofin_name  = NULL, *dofout_name = NULL;
 char *parameter_name = NULL;
 
 #ifdef HAS_VTK
-extern Bool interactiveVTK;
-extern Bool displayVTK;
-extern Bool firstVTK;
+extern bool interactiveVTK;
+extern bool displayVTK;
+extern bool firstVTK;
 #endif
 
 #ifdef HAS_MPI
@@ -133,190 +133,190 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       target_x1 = source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       target_x2 = source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       target_y1 = source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       target_y2 = source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       target_z1 = source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       target_z2 = source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx1") == 0)) {
       argc--;
       argv++;
       target_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tx2") == 0)) {
       argc--;
       argv++;
       target_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty1") == 0)) {
       argc--;
       argv++;
       target_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ty2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ty2") == 0)) {
       argc--;
       argv++;
       target_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz1") == 0)) {
       argc--;
       argv++;
       target_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tz2") == 0)) {
       argc--;
       argv++;
       target_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx1") == 0)) {
       argc--;
       argv++;
       source_x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sx2") == 0)) {
       argc--;
       argv++;
       source_x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy1") == 0)) {
       argc--;
       argv++;
       source_y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sy2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sy2") == 0)) {
       argc--;
       argv++;
       source_y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz1") == 0)) {
       argc--;
       argv++;
       source_z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sz2") == 0)) {
       argc--;
       argv++;
       source_z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       registration->SetTargetPadding(atoi(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
       argc--;
       argv++;
-      ok = True;
-      registration->SetDebugFlag(True);
+      ok = true;
+      registration->SetDebugFlag(true);
     }
-    if ((ok == False) && (strcmp(argv[1], "-parameter") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-parameter") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parameter_name = argv[1];
       argc--;
       argv++;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

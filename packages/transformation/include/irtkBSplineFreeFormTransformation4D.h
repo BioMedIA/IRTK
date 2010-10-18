@@ -350,7 +350,7 @@ inline void irtkBSplineFreeFormTransformation4D::Transform2(double &x, double &y
   z += w;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::GlobalTransform(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformation4D::GlobalTransform(double &, double &, double &, double)
 {}
 
 inline void irtkBSplineFreeFormTransformation4D::LocalTransform(double &x, double &y, double &z, double t)
@@ -370,7 +370,7 @@ inline void irtkBSplineFreeFormTransformation4D::LocalTransform(double &x, doubl
   z += w;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::GlobalDisplacement(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformation4D::GlobalDisplacement(double &x, double &y, double &z, double)
 {
   x = 0;
   y = 0;

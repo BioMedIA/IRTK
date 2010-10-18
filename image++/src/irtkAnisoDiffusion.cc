@@ -21,16 +21,16 @@ template <class VoxelType> anisoDiffusion<VoxelType>::anisoDiffusion(){
   dt=1;
   dTau=1;
   ITERATIONS_NB=5;
-  TimeDependent=False;
-  SemiImplicit=True;
+  TimeDependent=false;
+  SemiImplicit=true;
 }
 
 template <class VoxelType> anisoDiffusion<VoxelType>::~anisoDiffusion(void)
 {}
 
-template <class VoxelType> Bool anisoDiffusion<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool anisoDiffusion<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *anisoDiffusion<VoxelType>::NameOfClass()
@@ -1740,14 +1740,14 @@ template <class VoxelType> void anisoDiffusion<VoxelType>::Run_3D_Explicit(){
 
 template <class VoxelType> void anisoDiffusion<VoxelType>::Run()
 {
-	if ((this->TimeDependent==True) && (this->_input->GetT()>4)){
-		if (this->SemiImplicit==True)
+	if ((this->TimeDependent==true) && (this->_input->GetT()>4)){
+		if (this->SemiImplicit==true)
 			Run_4D_semiImplicit();
 		else
 			Run_4D_Explicit();
 	}
 	else{
-		if (this->SemiImplicit==True)
+		if (this->SemiImplicit==true)
 			Run_3D_semiImplicit();
 		else
 			Run_3D_Explicit();

@@ -67,7 +67,7 @@ void irtkSegmentTable::Clear()
   int i;
 
   for (i = 0; i < this->Size(); i++) {
-    if (IsValid(i) == True) Clear(i);
+    if (IsValid(i) == true) Clear(i);
   }
 }
 
@@ -138,7 +138,7 @@ void irtkSegmentTable::Write(char *name)
   // Count number of valid entries
   n = 0;
   for (id = 0; id < this->Size(); id++) {
-    if (IsValid(id) == True) n++;
+    if (IsValid(id) == true) n++;
   }
 
   // Write header
@@ -146,7 +146,7 @@ void irtkSegmentTable::Write(char *name)
 
   // Write entries
   for (id = 0; id < this->Size(); id++) {
-    if (IsValid(id) == True) {
+    if (IsValid(id) == true) {
       _entry[id].getColor(&r, &g, &b);
       to << id << "\t" << int(r) << "\t" << int(g) << "\t" << int(b) << "\t" << _entry[id].getTrans()<< "\t" << _entry[id].getVisibility() << "\t" << _entry[id].getLabel() << endl;
     }

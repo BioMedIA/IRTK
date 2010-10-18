@@ -53,32 +53,32 @@ int main(int argc, char **argv)
   // Fix padding
   target_padding = MIN_GREY;
   source_padding = MIN_GREY;
-  no_norm = False;
+  no_norm = false;
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       target_padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Sp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sp") == 0)) {
       argc--;
       argv++;
       source_padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-no_norm") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-no_norm") == 0)) {
       argc--;
       argv++;
-      no_norm = True;
-      ok = True;
+      no_norm = true;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can't parse argument " << argv[1] << endl;
       usage();
     }
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  if (no_norm == False) {
+  if (no_norm == false) {
 
     // Normalize and subtract
     n = 0;

@@ -53,7 +53,7 @@ Fl_Menu_Item Fl_RViewUI::menu_RegionGrowing[] = {
   {0}
 };
 
-void Fl_RViewUI::cb_loadSegmentation(Fl_Button *, void *v)
+void Fl_RViewUI::cb_loadSegmentation(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Load segmentation image", "*.{gipl,gipl.gz,hdr,hdr.gz,nii,nii.gz,vtk}", "");
   if (filename != NULL) {
@@ -70,7 +70,7 @@ void Fl_RViewUI::cb_loadSegmentation(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_saveSegmentation(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveSegmentation(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save segmentation image", "*.{gipl,gipl.gz,hdr,hdr.gz,nii,nii.gz,vtk}", "");
   if (filename != NULL) {
@@ -78,11 +78,11 @@ void Fl_RViewUI::cb_saveSegmentation(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_resetSegmentation(Fl_Button *, void *v)
+void Fl_RViewUI::cb_resetSegmentation(Fl_Button *, void *)
 {
 }
 
-void Fl_RViewUI::cb_saveSegmentTableConfig(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_saveSegmentTableConfig(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save object lookup table", "*.seg", "");
 
@@ -91,7 +91,7 @@ void Fl_RViewUI::cb_saveSegmentTableConfig(Fl_Button* o, void* v)
   }
 }
 
-void Fl_RViewUI::cb_loadSegmentTableConfig(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_loadSegmentTableConfig(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Load object lookup table", "*.seg", "");
 
@@ -111,7 +111,7 @@ void Fl_RViewUI::cb_loadSegmentTableConfig(Fl_Button* o, void* v)
   }
 }
 
-void Fl_RViewUI::cb_resetSegmentTableConfig(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_resetSegmentTableConfig(Fl_Button *, void *)
 {
   rview->GetSegmentTable()->Clear();
   rviewUI->_id = -1;
@@ -125,7 +125,7 @@ void Fl_RViewUI::cb_resetSegmentTableConfig(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_browseSegmentObject(Fl_Browser* o, void* v)
+void Fl_RViewUI::cb_browseSegmentObject(Fl_Browser *o, void *)
 {
   int id = o->value();
   //cerr <<id <<endl;
@@ -150,14 +150,14 @@ void Fl_RViewUI::cb_browseSegmentObject(Fl_Browser* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_addSegment(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_addSegment(Fl_Button *, void *)
 {
   int i;
   char buffer[256];
 
   // Compute default id
   for (i = 0; i <= rview->GetSegmentTable()->Size(); i++) {
-    if (rview->GetSegmentTable()->IsValid(i) != True) {
+    if (rview->GetSegmentTable()->IsValid(i) != true) {
       rviewUI->_id = i;
       break;
     }
@@ -174,7 +174,7 @@ void Fl_RViewUI::cb_addSegment(Fl_Button* o, void* v)
 
 void Fl_RViewUI::AddSegment(int label)
 {
-  if (rview->GetSegmentTable()->IsValid(label) == True) {
+  if (rview->GetSegmentTable()->IsValid(label) == true) {
     // Label already exists
     fl_alert("Label ID already exists. Can't create label ID.");
     return;
@@ -188,7 +188,7 @@ void Fl_RViewUI::AddSegment(int label)
   rviewUI->_green = 255;
   rviewUI->_blue  = 255;
   rviewUI->_trans = 1;
-  rviewUI->_vis   = True;
+  rviewUI->_vis   = true;
 
   rviewUI->editSegmentLabel->value(rviewUI->_label);
   rviewUI->editSegmentTransperancy->value(rviewUI->_trans);
@@ -205,7 +205,7 @@ void Fl_RViewUI::AddSegment(int label)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_deleteSegment(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_deleteSegment(Fl_Button *, void *)
 {
   if (rviewUI->_id == -1) {
     cerr << "ID = -1, this should never happen" << endl;
@@ -223,7 +223,7 @@ void Fl_RViewUI::cb_deleteSegment(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_displaySegmentLabels(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_displaySegmentLabels(Fl_Check_Button *o, void *)
 {
   if (o->value() == 1) {
     rview->SegmentationLabelsOn();
@@ -237,7 +237,7 @@ void Fl_RViewUI::cb_displaySegmentLabels(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_displaySegmentContours(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_displaySegmentContours(Fl_Check_Button *o, void *)
 {
   if (o->value() == 1) {
     rview->SegmentationContoursOn();
@@ -251,11 +251,11 @@ void Fl_RViewUI::cb_displaySegmentContours(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_selectAll(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_selectAll(Fl_Check_Button *, void *)
 {
   //if (o->value() == 1){
   for (int j=0; j<100; j++)
-    if ( rview->GetSegmentTable()->IsValid(j) == True) {
+    if ( rview->GetSegmentTable()->IsValid(j) == true) {
       rview->GetSegmentTable()->SetVisibility(j,1);
     }
   //}
@@ -266,10 +266,10 @@ void Fl_RViewUI::cb_selectAll(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_deselectAll(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_deselectAll(Fl_Check_Button *, void *)
 {
   for (int j=0; j<100; j++) {
-    if (rview->GetSegmentTable()->IsValid(j) == True) {
+    if (rview->GetSegmentTable()->IsValid(j) == true) {
       rview->GetSegmentTable()->SetVisibility(j, 0);
     }
   }
@@ -280,7 +280,7 @@ void Fl_RViewUI::cb_deselectAll(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editSegmentLabel(Fl_Input* o, void* v)
+void Fl_RViewUI::cb_editSegmentLabel(Fl_Input* o, void *)
 {
   sprintf(rviewUI->_label, "%s", o->value());
 
@@ -298,7 +298,7 @@ void Fl_RViewUI::cb_editSegmentLabel(Fl_Input* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editSegmentPickColor(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_editSegmentPickColor(Fl_Button *, void *)
 {
   double r = rviewUI->_red / 255.0;
   double g = rviewUI->_green / 255.0;
@@ -326,7 +326,7 @@ void Fl_RViewUI::cb_editSegmentPickColor(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editSegmentTransperancy(Fl_Slider* o, void* v)
+void Fl_RViewUI::cb_editSegmentTransperancy(Fl_Slider* o, void *)
 {
   rviewUI->_trans = o->value();
 
@@ -342,7 +342,7 @@ void Fl_RViewUI::cb_editSegmentTransperancy(Fl_Slider* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editSegmentVisibility(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_editSegmentVisibility(Fl_Check_Button* o, void *)
 {
   rviewUI->_vis = int(o->value());
 
@@ -358,7 +358,7 @@ void Fl_RViewUI::cb_editSegmentVisibility(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_showHistogram(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_showHistogram(Fl_Button *, void *)
 {
   if (rviewUI->_histogramWindow == NULL) {
     rviewUI->_histogramWindow = new Fl_HistogramWindow(100, 100, 500, 300, "Histogram", rview);
@@ -370,21 +370,21 @@ void Fl_RViewUI::cb_showHistogram(Fl_Button* o, void* v)
   rviewUI->_histogramWindow->show();
 }
 
-void Fl_RViewUI::cb_DrawContour(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_DrawContour(Fl_Button *, void *)
 {
   rview->SegmentationMode(1);
   rviewUI->update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_DrawPaintBrush(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_DrawPaintBrush(Fl_Button *, void *)
 {
   rview->SegmentationMode(0);
   rviewUI->update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_SetRegionGrowingMode(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_SetRegionGrowingMode(Fl_Button *, void *v)
 {
   if (strcmp((char *)v, "2D") == 0) {
     rview->SetRegionGrowingMode(RegionGrowing2D);
@@ -395,21 +395,21 @@ void Fl_RViewUI::cb_SetRegionGrowingMode(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_SetPaintBrushWidth(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_SetPaintBrushWidth(Fl_Button *, void *v)
 {
   rview->SetPaintBrushWidth(atoi((char *)v));
   rviewUI->update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_SetRegionGrowingThresholdMinimum(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_SetRegionGrowingThresholdMinimum(Fl_Value_Slider* o, void *)
 {
   rview->SetRegionGrowingThresholdMinimum(round(o->value()));
   rviewUI->update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_SetRegionGrowingThresholdMaximum(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_SetRegionGrowingThresholdMaximum(Fl_Value_Slider* o, void *)
 {
   rview->SetRegionGrowingThresholdMaximum(round(o->value()));
   rviewUI->update();
@@ -429,7 +429,7 @@ void Fl_RViewUI::UpdateSegmentationBrowser()
 
   // Add labels
   for (i = 0; i <= rview->GetSegmentTable()->Size(); i++) {
-    if (rview->GetSegmentTable()->IsValid(i) == True) {
+    if (rview->GetSegmentTable()->IsValid(i) == true) {
       char buffer[256];
       sprintf(buffer, "%d \t %s", i, rview->GetSegmentTable()->GetLabel(i));
       rviewUI->segmentObjectBrowser->add(buffer);

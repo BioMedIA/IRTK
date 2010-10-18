@@ -15,7 +15,7 @@
 #include <irtkConvolution.h>
 
 template <class VoxelType> irtkConvolutionWithPadding_3D<VoxelType>::irtkConvolutionWithPadding_3D(VoxelType padding,
-    Bool Normalization) : irtkConvolution_3D<VoxelType>(Normalization)
+    bool Normalization) : irtkConvolution_3D<VoxelType>(Normalization)
 {
   _padding = padding;
 }
@@ -54,7 +54,7 @@ template <class VoxelType> double irtkConvolutionWithPadding_3D<VoxelType>::Run(
   z2 = z + this->_input2->GetZ()/2;
 
   // Check if we use normalization
-  if (this->_Normalization == True) {
+  if (this->_Normalization == true) {
     // Check whether boundary checking is necessary
     if ((x1 > 0) && (x2 < this->_input->GetX()) &&
         (y1 > 0) && (y2 < this->_input->GetY()) &&

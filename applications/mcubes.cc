@@ -39,7 +39,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int ok, i, bASCII = False;
+  int ok, i, bASCII = false;
   float threshold;
   double xaxis[3], yaxis[3], zaxis[3], point[3];
   irtkPoint origin;
@@ -74,18 +74,18 @@ int main(int argc, char **argv)
 
   // Parse remaining arguments
   while (argc > 1) {
-    ok = False;
+    ok = false;
     if ((!ok) && (strcmp(argv[1], "-decimate") == 0)) {
       argc--;
       argv++;
       decimate = vtkDecimatePro::New();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-smooth") == 0)) {
       argc--;
       argv++;
       smooth = vtkSmoothPolyDataFilter::New();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-gradients") == 0) && (strcmp(argv[2], "on") == 0)) {
       argc--;
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       mcubes->ComputeGradientsOn();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-gradients") == 0) && (strcmp(argv[2], "off") == 0)) {
       argc--;
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       mcubes->ComputeGradientsOff();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-normals") == 0) && (strcmp(argv[2], "on") == 0)) {
       argc--;
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       mcubes->ComputeNormalsOn();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-normals") == 0) && (strcmp(argv[2], "off") == 0)) {
       argc--;
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       mcubes->ComputeNormalsOff();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-blur") == 0)) {
       argc--;
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
       gaussianBlurring.Run();
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-isotropic") == 0)) {
       argc--;
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
       resampling.SetOutput(&image);
       resampling.SetInterpolator(&interpolator);
       resampling.Run();
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-size") == 0)) {
       argc--;
@@ -165,13 +165,13 @@ int main(int argc, char **argv)
       resampling.Run();
       argc -= 3;
       argv += 3;
-      ok = True;
+      ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-ascii") == 0)) {
       argc--;
       argv++;
-      bASCII = True;
-      ok = True;
+      bASCII = true;
+      ok = true;
     }
     if (!ok) {
       cerr << "Cannot parse argument " << argv[1] << endl;

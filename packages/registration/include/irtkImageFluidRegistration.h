@@ -114,7 +114,7 @@ public:
   virtual void GuessParameter();
 
   /// Read single line of registration parameters
-  virtual Bool Read(char *, char *, int &);
+  virtual bool Read(char *, char *, int &);
 
   /// Write registration parameters to file
   virtual void Write(ostream &);

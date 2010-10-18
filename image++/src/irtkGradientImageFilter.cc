@@ -19,9 +19,9 @@ template <class VoxelType> irtkGradientImageFilter<VoxelType>::irtkGradientImage
   _type = type;
 }
 
-template <class VoxelType> Bool irtkGradientImageFilter<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkGradientImageFilter<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkGradientImageFilter<VoxelType>::NameOfClass()
@@ -45,7 +45,7 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Initialize()
     exit(1);
   }
 
-  if (this->_input->IsEmpty() == True) {
+  if (this->_input->IsEmpty() == true) {
     cerr << this->NameOfClass() << "::Run: Input is empty" << endl;
     exit(1);
   }

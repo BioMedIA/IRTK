@@ -18,16 +18,16 @@ template <class VoxelType> irtkLargestConnectedComponent<VoxelType>::irtkLargest
 {
   _currentClusterSize = 0;
   _largestClusterSize = 0;
-  _Mode2D = False;
+  _Mode2D = false;
   _ClusterLabel = ClusterLabel;
 }
 
 template <class VoxelType> irtkLargestConnectedComponent<VoxelType>::~irtkLargestConnectedComponent(void)
 {}
 
-template <class VoxelType> Bool irtkLargestConnectedComponent<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkLargestConnectedComponent<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkLargestConnectedComponent<VoxelType>::NameOfClass()
@@ -89,7 +89,7 @@ template <class VoxelType> void irtkLargestConnectedComponent<VoxelType>::Run()
     }
   }
 
-  if (this->_Mode2D == True) {
+  if (this->_Mode2D == true) {
 
     for (z = 0; z < this->_input->GetZ(); z++) {
       largestClusterSeed_x = 0;

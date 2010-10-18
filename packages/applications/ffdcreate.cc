@@ -41,27 +41,27 @@ int main(int argc, char **argv)
   argv++;
 
   // No fluid transformation
-  fluid = False;
+  fluid = false;
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
   }
 
   // Check if we want to create a fluid transformation
-  if (fluid == True) {
+  if (fluid == true) {
     if (dofin_name != NULL) {
       mffd = NULL;
       cerr << "ffdcreate: Not yet implemented" << endl;

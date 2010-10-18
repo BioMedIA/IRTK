@@ -37,7 +37,7 @@ template <class VoxelType> class irtkLargestConnectedComponent : public irtkImag
   VoxelType _ClusterLabel;
 
   /// Mode
-  Bool _Mode2D;
+  bool _Mode2D;
 
 protected:
 
@@ -48,7 +48,7 @@ protected:
   void Grow3D(int, int, int, int);
 
   /// Returns whether the filter requires buffering
-  virtual Bool RequiresBuffering();
+  virtual bool RequiresBuffering();
 
   /// Returns the name of the class
   virtual const char *NameOfClass();
@@ -68,10 +68,10 @@ public:
   GetMacro(ClusterLabel, VoxelType);
 
   /// Set mode
-  SetMacro(Mode2D, Bool);
+  SetMacro(Mode2D, bool);
 
   /// Get mode
-  GetMacro(Mode2D, Bool);
+  GetMacro(Mode2D, bool);
 
   /// Run filter
   virtual void Run();

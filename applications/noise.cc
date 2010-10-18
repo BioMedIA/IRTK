@@ -37,7 +37,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  Bool ok;
+  bool ok;
   irtkNoise<irtkGreyPixel>                    *noise          = NULL;
   irtkUniformNoiseWithPadding<irtkGreyPixel>  *uniform_noise  = NULL;
   irtkGaussianNoiseWithPadding<irtkGreyPixel> *gaussian_noise = NULL;
@@ -59,8 +59,8 @@ int main(int argc, char **argv)
   input.Read(input_name);
 
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-uniform") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-uniform") == 0)) {
       argc--;
       argv++;
       if (noise == NULL) {
@@ -69,9 +69,9 @@ int main(int argc, char **argv)
         cerr << "More than one type of noise specified" << endl;
         usage();
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-gaussian") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
       if (noise == NULL) {
@@ -80,9 +80,9 @@ int main(int argc, char **argv)
         cerr << "More than one type of noise specified" << endl;
         usage();
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-rician") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-rician") == 0)) {
       argc--;
       argv++;
       if (noise == NULL) {
@@ -96,9 +96,9 @@ int main(int argc, char **argv)
         cerr << "More than one type of noise specified" << endl;
         usage();
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-amplitude") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-amplitude") == 0)) {
       argc--;
       argv++;
       if (noise != NULL) {
@@ -109,9 +109,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-percent") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-percent") == 0)) {
       argc--;
       argv++;
       irtkGreyPixel min, max;
@@ -125,9 +125,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-mean") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-mean") == 0)) {
       argc--;
       argv++;
       if (gaussian_noise != NULL) {
@@ -138,9 +138,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sigma") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sigma") == 0)) {
       argc--;
       argv++;
       if (gaussian_noise != NULL) {
@@ -151,9 +151,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-minval") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-minval") == 0)) {
       argc--;
       argv++;
       if (gaussian_noise != NULL) {
@@ -164,9 +164,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-maxval") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-maxval") == 0)) {
       argc--;
       argv++;
       if (gaussian_noise != NULL) {
@@ -177,9 +177,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       if (noise != NULL) {
@@ -196,9 +196,9 @@ int main(int argc, char **argv)
       }
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Couldn't parse args" << endl;
       usage();
     }

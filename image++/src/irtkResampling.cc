@@ -61,9 +61,9 @@ template <class VoxelType> irtkResampling<VoxelType>::irtkResampling(double new_
   _Interpolator = NULL;
 }
 
-template <class VoxelType> Bool irtkResampling<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkResampling<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType> const char *irtkResampling<VoxelType>::NameOfClass()

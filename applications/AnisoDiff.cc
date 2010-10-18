@@ -27,7 +27,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  Bool ok;
+  bool ok;
   irtkGreyImage image;
 
   // Check command line
@@ -53,72 +53,72 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--;
       argv++;
       anisodiff.ITERATIONS_NB = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-SemiImplicit") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-SemiImplicit") == 0)) {
       argc--;
       argv++;
       anisodiff.SemiImplicit = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-TimeDependent") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-TimeDependent") == 0)) {
       argc--;
       argv++;
       anisodiff.TimeDependent = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ax") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ax") == 0)) {
       argc--;
       argv++;
       anisodiff.ax = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-ay") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ay") == 0)) {
       argc--;
       argv++;
       anisodiff.ay = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-az") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-az") == 0)) {
       argc--;
       argv++;
       anisodiff.az = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-at") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-at") == 0)) {
       argc--;
       argv++;
       anisodiff.at = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dTau") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dTau") == 0)) {
       argc--;
       argv++;
       anisodiff.dTau = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Unknown option: " << argv[1] << endl;
       usage();
     }

@@ -121,7 +121,7 @@ void irtkImageHomogeneousTransformation::Run()
     exit(1);
   }
 
-  if (this->_input->IsEmpty() == True) {
+  if (this->_input->IsEmpty() == true) {
     cerr << "irtkImageHomogeneousTransformation::Run: Input is empty" << endl;
     this->_input->Print();
     exit(1);
@@ -137,7 +137,7 @@ void irtkImageHomogeneousTransformation::Run()
   this->_interpolator->Initialize();
 
   // Invert transformation
-  if (this->_Invert == True) ((irtkHomogeneousTransformation *)this->_transformation)->Invert();
+  if (this->_Invert == true) ((irtkHomogeneousTransformation *)this->_transformation)->Invert();
 
   // Create iterator
   irtkHomogeneousTransformationIterator
@@ -204,5 +204,5 @@ void irtkImageHomogeneousTransformation::Run()
 #endif
 
   // Invert transformation
-  if (this->_Invert == True) ((irtkHomogeneousTransformation *)this->_transformation)->Invert();
+  if (this->_Invert == true) ((irtkHomogeneousTransformation *)this->_transformation)->Invert();
 }

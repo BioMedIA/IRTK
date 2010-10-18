@@ -33,9 +33,9 @@ template <class VoxelType> irtkNoise<VoxelType>::irtkNoise(double Amplitude)
 #endif
 }
 
-template <class VoxelType> Bool irtkNoise<VoxelType>::RequiresBuffering()
+template <class VoxelType> bool irtkNoise<VoxelType>::RequiresBuffering()
 {
-  return False;
+  return false;
 }
 
 template <class VoxelType> const char *irtkNoise<VoxelType>::NameOfClass()

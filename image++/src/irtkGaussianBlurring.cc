@@ -27,9 +27,9 @@ template <class VoxelType> irtkGaussianBlurring<VoxelType>::~irtkGaussianBlurrin
 {
 }
 
-template <class VoxelType> Bool irtkGaussianBlurring<VoxelType>::RequiresBuffering(void)
+template <class VoxelType> bool irtkGaussianBlurring<VoxelType>::RequiresBuffering(void)
 {
-  return False;
+  return false;
 }
 
 template <class VoxelType> const char *irtkGaussianBlurring<VoxelType>::NameOfClass()
@@ -64,7 +64,7 @@ template <class VoxelType> void irtkGaussianBlurring<VoxelType>::Run()
   convolutionX.SetInput ( this->_input);
   convolutionX.SetInput2(&kernelX);
   convolutionX.SetOutput(this->_output);
-  convolutionX.SetNormalization(True);
+  convolutionX.SetNormalization(true);
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
@@ -87,7 +87,7 @@ template <class VoxelType> void irtkGaussianBlurring<VoxelType>::Run()
   convolutionY.SetInput (this->_output);
   convolutionY.SetInput2(&kernelY);
   convolutionY.SetOutput(this->_output);
-  convolutionY.SetNormalization(True);
+  convolutionY.SetNormalization(true);
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
@@ -111,7 +111,7 @@ template <class VoxelType> void irtkGaussianBlurring<VoxelType>::Run()
     convolutionZ.SetInput (this->_output);
     convolutionZ.SetInput2(&kernelZ);
     convolutionZ.SetOutput(this->_output);
-    convolutionZ.SetNormalization(True);
+    convolutionZ.SetNormalization(true);
     convolutionZ.irtkImageToImage<VoxelType>::Run();
   }
 

@@ -102,8 +102,8 @@ int main(int argc, char **argv)
     argv++;
   }
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-target") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
       argc--;
       argv++;
 
@@ -119,9 +119,9 @@ int main(int argc, char **argv)
 
       // Read sequence
       rview->ReadTarget(filename_argc, filename_argv);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-source") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-source") == 0)) {
       argc--;
       argv++;
 
@@ -137,9 +137,9 @@ int main(int argc, char **argv)
 
       // Read sequence
       rview->ReadSource(filename_argc, filename_argv);
-      ok = True;
+      ok = true;
     }
-    if ( (ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    if ( (ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       rview->ReadTransformation(argv[1]);
@@ -151,192 +151,192 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
-    if ( (ok == False) && (strcmp(argv[1], "-config") == 0)) {
+    if ( (ok == false) && (strcmp(argv[1], "-config") == 0)) {
       argc--;
       argv++;
       rview->Read(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ( (ok == False) && (strcmp(argv[1], "-target_landmarks") == 0)) {
+    if ( (ok == false) && (strcmp(argv[1], "-target_landmarks") == 0)) {
       argc--;
       argv++;
       rview->ReadTargetLandmarks(argv[1]);
       rview->DisplayLandmarksOn();
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ( (ok == False) && (strcmp(argv[1], "-source_landmarks") == 0)) {
+    if ( (ok == false) && (strcmp(argv[1], "-source_landmarks") == 0)) {
       argc--;
       argv++;
       rview->ReadSourceLandmarks(argv[1]);
       rview->DisplayLandmarksOn();
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
 #ifdef HAS_VTK
-    if ( (ok == False) && (strcmp(argv[1], "-object") == 0)) {
+    if ( (ok == false) && (strcmp(argv[1], "-object") == 0)) {
       argc--;
       argv++;
       rview->ReadObject(argv[1]);
       rview->DisplayObjectOn();
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-object_warp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-object_warp") == 0)) {
       argc--;
       argv++;
       rview->DisplayObjectWarpOn();
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-object_grid") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-object_grid") == 0)) {
       argc--;
       argv++;
       rview->DisplayObjectGridOn();
-      ok = True;
+      ok = true;
     }
 #endif
-    if ((ok == False) && (strcmp(argv[1], "-xy") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XY);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xz") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xz") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XZ);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-yz") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-yz") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_YZ);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xy_xz_v") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy_xz_v") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XY_XZ_v);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xy_yz_v") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy_yz_v") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XY_YZ_v);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xz_yz_v") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xz_yz_v") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XZ_YZ_v);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xy_xz_h") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy_xz_h") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XY_XZ_h);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xy_yz_h") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy_yz_h") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XY_YZ_h);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xz_yz_h") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xz_yz_h") == 0)) {
       argc--;
       argv++;
       rview->Configure(View_XZ_YZ_h);
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cursor") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-cursor") == 0)) {
       argc--;
       argv++;
       rview->DisplayCursorOff();
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-grid") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-grid") == 0)) {
       argc--;
       argv++;
       rview->DisplayDeformationGridOn();
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-points") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-points") == 0)) {
       argc--;
       argv++;
       rview->DisplayDeformationPointsOn();
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-arrow") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-arrow") == 0)) {
       argc--;
       argv++;
       rview->DisplayDeformationArrowsOn();
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-tmax") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-tmax") == 0)) {
       argc--;
       argv++;
       rview->SetDisplayMaxTarget(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-tmin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-tmin") == 0)) {
       argc--;
       argv++;
       rview->SetDisplayMinTarget(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-smax") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-smax") == 0)) {
       argc--;
       argv++;
       rview->SetDisplayMaxSource(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-smin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-smin") == 0)) {
       argc--;
       argv++;
       rview->SetDisplayMinSource(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sub_max") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sub_max") == 0)) {
       argc--;
       argv++;
       rview->SetDisplayMaxSubtraction(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sub_min") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sub_min") == 0)) {
       argc--;
       argv++;
       rview->SetDisplayMinSubtraction(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-res") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-res") == 0)) {
       argc--;
       argv++;
       rview->SetResolution(atof(argv[1]));
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-origin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-origin") == 0)) {
       argc--;
       argv++;
       rview->SetOrigin(atof(argv[1]), atof(argv[2]), atof(argv[3]));
@@ -346,92 +346,92 @@ int main(int argc, char **argv)
       argv++;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-nn") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-nn") == 0)) {
       rview->SetTargetInterpolationMode(Interpolation_NN);
       rview->SetSourceInterpolationMode(Interpolation_NN);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-linear") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-linear") == 0)) {
       rview->SetTargetInterpolationMode(Interpolation_Linear);
       rview->SetSourceInterpolationMode(Interpolation_Linear);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-cspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-cspline") == 0)) {
       rview->SetTargetInterpolationMode(Interpolation_CSpline);
       rview->SetSourceInterpolationMode(Interpolation_CSpline);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-bspline") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       rview->SetTargetInterpolationMode(Interpolation_BSpline);
       rview->SetSourceInterpolationMode(Interpolation_BSpline);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-sinc") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-sinc") == 0)) {
       rview->SetTargetInterpolationMode(Interpolation_Sinc);
       rview->SetSourceInterpolationMode(Interpolation_Sinc);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-view_target") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-view_target") == 0)) {
       rview->SetViewMode(View_A);
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-view_source") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-view_source") == 0)) {
       rview->SetViewMode(View_B);
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-mix") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-mix") == 0)) {
       rview->SetViewMode(View_Checkerboard);
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-diff") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-diff") == 0)){
       rview->SetViewMode(View_Subtraction);
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-tcontour") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-tcontour") == 0)){
       rview->DisplayTargetContoursOn();
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-scontour") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-scontour") == 0)){
       rview->DisplaySourceContoursOn();
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-seg") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-seg") == 0)){
       argv++;
       argc--;
       rview->ReadSegmentation(argv[1]);
       rviewUI->UpdateSegmentationBrowser();
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-lut") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-lut") == 0)){
       argv++;
       argc--;
       rview->GetSegmentTable()->Read(argv[1]);
@@ -439,92 +439,92 @@ int main(int argc, char **argv)
       rviewUI->UpdateSegmentationBrowser();
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-tcolor") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-tcolor") == 0)) {
       argc--;
       argv++;
       if (strcmp(argv[1], "red") == 0) {
         rview->GetTargetLookupTable()->SetColorModeToRed();
         argv++;
         argc--;
-        ok = True;
+        ok = true;
       } else {
         if (strcmp(argv[1], "green") == 0) {
           rview->GetTargetLookupTable()->SetColorModeToGreen();
           argv++;
           argc--;
-          ok = True;
+          ok = true;
         } else {
           if (strcmp(argv[1], "blue") == 0) {
             rview->GetTargetLookupTable()->SetColorModeToBlue();
             argv++;
             argc--;
-            ok = True;
+            ok = true;
           } else {
             if (strcmp(argv[1], "rainbow") == 0) {
               rview->GetTargetLookupTable()->SetColorModeToRainbow();
               argv++;
               argc--;
-              ok = True;
+              ok = true;
             }
           }
         }
       }
     }
-    if ((ok == False) && (strcmp(argv[1], "-scolor") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-scolor") == 0)) {
       argc--;
       argv++;
       if (strcmp(argv[1], "red") == 0) {
         rview->GetSourceLookupTable()->SetColorModeToRed();
         argv++;
         argc--;
-        ok = True;
+        ok = true;
       } else {
         if (strcmp(argv[1], "green") == 0) {
           rview->GetSourceLookupTable()->SetColorModeToGreen();
           argv++;
           argc--;
-          ok = True;
+          ok = true;
         } else {
           if (strcmp(argv[1], "blue") == 0) {
             rview->GetSourceLookupTable()->SetColorModeToBlue();
             argv++;
             argc--;
-            ok = True;
+            ok = true;
           } else {
             if (strcmp(argv[1], "rainbow") == 0) {
               rview->GetSourceLookupTable()->SetColorModeToRainbow();
               argv++;
               argc--;
-              ok = True;
+              ok = true;
             }
           }
         }
       }
     }
     // Ignore the following display specific options
-    if ((ok == False) && (strcmp(argv[1], "-x") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-x") == 0)) {
       argc--;
       argv++;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-y") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-y") == 0)) {
       argc--;
       argv++;
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-offscreen") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-offscreen") == 0)) {
       argv++;
       argc--;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Unknown argument: " << argv[1] << endl;
       exit(1);
     }

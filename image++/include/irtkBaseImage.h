@@ -164,10 +164,10 @@ public:
   virtual double TimeToImage(double) const;
 
   /// Returns true if point is within the field of view of image
-  virtual int IsInFOV(double, double, double);
+  virtual bool IsInFOV(double, double, double);
 
-  /// Boolean operation for empty
-  virtual Bool IsEmpty() const;
+  /// boolean operation for empty
+  virtual bool IsEmpty() const;
 
   /// Minimum and maximum pixel values get accessor
   virtual void GetMinMaxAsDouble(double *, double *) const;
@@ -494,18 +494,18 @@ inline double irtkBaseImage::TimeToImage(double t) const
   return (t-_attr._torigin)/_attr._dt;
 }
 
-inline int irtkBaseImage::IsInFOV(double x, double y, double z)
+inline bool irtkBaseImage::IsInFOV(double x, double y, double z)
 {
   this->WorldToImage(x, y, z);
   if ((x < -0.5) || (x >= _attr._x-0.5) ||
       (y < -0.5) || (y >= _attr._y-0.5) ||
       (z < -0.5) || (z >= _attr._z-0.5)) {
-    return False;
+    return false;
   }
-  return True;
+  return true;
 }
 
-inline Bool irtkBaseImage::IsEmpty() const
+inline bool irtkBaseImage::IsEmpty() const
 {
   return ((_attr._x < 1) || (_attr._y < 1) || (_attr._z < 1) || (_attr._t < 1));
 }

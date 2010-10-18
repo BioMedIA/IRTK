@@ -587,7 +587,7 @@ void irtkLinearFreeFormTransformation::Jacobian(irtkMatrix &jac, double x, doubl
   this->LocalJacobian(jac, x, y, z, t);
 }
 
-void irtkLinearFreeFormTransformation::GlobalJacobian(irtkMatrix &jac, double x, double y, double z, double)
+void irtkLinearFreeFormTransformation::GlobalJacobian(irtkMatrix &jac, double, double, double, double)
 {
   // Jacobian matrix is 3 x 3
   jac.Initialize(3, 3);
@@ -751,10 +751,10 @@ int irtkLinearFreeFormTransformation::CheckHeader(char *name)
   // Read keyword
   from >> buffer;
   if (strcmp(buffer, "LinearFFD:") != 0) {
-    return False;
+    return false;
   }
 
-  return True;
+  return true;
 }
 
 istream& irtkLinearFreeFormTransformation::Import(istream& is)
@@ -1390,7 +1390,7 @@ irtkCofstream& irtkLinearFreeFormTransformation::Write(irtkCofstream& to)
   return to;
 }
 
-double irtkLinearFreeFormTransformation::Inverse(double &x, double &y, double &z, double, double tolerance)
+double irtkLinearFreeFormTransformation::Inverse(double &x, double &y, double &z, double, double)
 {
   /*
     int check;

@@ -327,7 +327,7 @@ int irtkPointSet::IsInside(double x, double y) const
   int i;
 
   // compute no of points
-  if (_n == 0) return False;
+  if (_n == 0) return false;
 
   // compute centre
   double cx = 0;

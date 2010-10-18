@@ -90,10 +90,10 @@ protected:
   double _DZ;
 
   /// Subdivide FFD between resolution levels
-  Bool _Subdivision;
+  bool _Subdivision;
 
   /// Multilevel mode
-  Bool _MFFDMode;
+  bool _MFFDMode;
 
   /// Speedup factor when calculating derivative
   double _SpeedupFactor;
@@ -176,7 +176,7 @@ public:
   virtual void GuessParameter();
 
   /// Read single line of registration parameters
-  virtual Bool Read(char *, char *, int &);
+  virtual bool Read(char *, char *, int &);
 
   /// Write registration parameters to file
   virtual void Write(ostream &);
@@ -192,8 +192,8 @@ public:
   virtual GetMacro(SpeedupFactor, double);
   virtual SetMacro(Lambda1, double);
   virtual GetMacro(Lambda1, double);
-  virtual SetMacro(MFFDMode, Bool);
-  virtual GetMacro(MFFDMode, Bool);
+  virtual SetMacro(MFFDMode, bool);
+  virtual GetMacro(MFFDMode, bool);
 
 };
 

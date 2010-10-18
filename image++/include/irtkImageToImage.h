@@ -40,7 +40,7 @@ template <class VoxelType> class irtkImageToImage : public irtkObject
 private:
 
   /// Debugging flag
-  Bool _DebugFlag;
+  bool _DebugFlag;
 
 protected:
 
@@ -86,18 +86,18 @@ public:
    *  implement this member function to indicate whether the filter should
    *  buffer the input in case that input and output are equal. For example,
    *  filters which only require the voxel value to calculate their output
-   *  should return False, otherwise True.
+   *  should return false, otherwise true.
    */
-  virtual Bool RequiresBuffering() = 0;
+  virtual bool RequiresBuffering() = 0;
 
   /// Returns the name of the class
   virtual const char *NameOfClass() = 0;
 
   /// Set debugging flag
-  SetMacro(DebugFlag, Bool);
+  SetMacro(DebugFlag, bool);
 
   /// Get debugging flag
-  GetMacro(DebugFlag, Bool);
+  GetMacro(DebugFlag, bool);
 
   /// Print debugging messages if debugging is enabled
   virtual void Debug(const char *);

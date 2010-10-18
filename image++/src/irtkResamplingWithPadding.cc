@@ -188,9 +188,9 @@ irtkResamplingWithPadding<VoxelType>::irtkResamplingWithPadding(double new_xsize
 }
 
 template <class VoxelType>
-Bool irtkResamplingWithPadding<VoxelType>::RequiresBuffering(void)
+bool irtkResamplingWithPadding<VoxelType>::RequiresBuffering(void)
 {
-  return True;
+  return true;
 }
 
 template <class VoxelType>

@@ -159,8 +159,8 @@ void Fl_RViewUI::cb_startRegistration(Fl_Button* o, void* v)
   double x1, y1, z1, x2, y2, z2;
   char buffer[256];
 
-  if ((rview->GetTarget()->IsEmpty() != True) &&
-      (rview->GetSource()->IsEmpty() != True)) {
+  if ((rview->GetTarget()->IsEmpty() != true) &&
+      (rview->GetSource()->IsEmpty() != true)) {
 
     irtkRegistration *registration = rview->GetRegistration();
 

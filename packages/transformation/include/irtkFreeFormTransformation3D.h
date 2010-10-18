@@ -214,7 +214,7 @@ public:
   virtual double Inverse(double &, double &, double &, double, double = 0.01);
 
   /// Checks whether transformation is an identity mapping
-  virtual Bool IsIdentity();
+  virtual bool IsIdentity();
 
   /// Returns a string with the name of the instantiated class
   virtual const char *NameOfClass();

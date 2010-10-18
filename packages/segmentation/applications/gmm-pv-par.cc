@@ -93,8 +93,8 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-mean") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-mean") == 0)) {
       argc--;
       argv++;
 
@@ -103,9 +103,9 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-stdev") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-stdev") == 0)) {
       argc--;
       argv++;
 
@@ -114,10 +114,10 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-stdev_equal") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-stdev_equal") == 0)) {
       argc--;
       argv++;
 
@@ -128,9 +128,9 @@ int main(int argc, char **argv)
       argc--;
       argv++;
 
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-c") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-c") == 0)) {
       argc--;
       argv++;
 
@@ -139,74 +139,74 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-uniform_prior") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-uniform_prior") == 0)) {
       argc--;
       argv++;
       uniform_prior = true;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-uniform_prior_last_iter") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-uniform_prior_last_iter") == 0)) {
       argc--;
       argv++;
       uniform_prior_last_iter = true;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--;
       argv++;
       iterations = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-threshold") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-threshold") == 0)) {
       argc--;
       argv++;
       treshold = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-background") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-background") == 0)) {
       argc--;
       argv++;
       background = new irtkRealImage;
       background->Read(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-pv_neonatal") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-pv_neonatal") == 0)) {
       argc--;
       argv++;
       pv_post=true;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
       argc--;
       argv++;
       debug=true;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-lcc_treshold") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-lcc_treshold") == 0)) {
       argc--;
       argv++;
       lcc_treshold = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-subcortical_mask") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-subcortical_mask") == 0)) {
       argc--;
       argv++;
       cerr<<"Reading subcortical mask: "<<argv[1]<<endl;
@@ -214,20 +214,20 @@ int main(int argc, char **argv)
       smask->Read(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-non_brain") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-non_brain") == 0)) {
       argc--;
       argv++;
       non_brain = new irtkGreyImage;
       non_brain->Read(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
 
 
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

@@ -464,10 +464,10 @@ int irtkMultiLevelFreeFormTransformation::CheckHeader(char *name)
   // Read keyword
   from >> buffer;
   if ((strcmp(buffer, "MFFD:") != 0) && (strcmp(buffer, "TC:") != 0)) {
-    return False;
+    return false;
   }
 
-  return True;
+  return true;
 }
 
 istream& irtkMultiLevelFreeFormTransformation::Import(istream &from)
@@ -671,15 +671,15 @@ irtkCofstream& irtkMultiLevelFreeFormTransformation::Write(irtkCofstream& to)
   return to;
 }
 
-Bool irtkMultiLevelFreeFormTransformation::IsIdentity()
+bool irtkMultiLevelFreeFormTransformation::IsIdentity()
 {
   int i;
 
-  if (this->irtkAffineTransformation::IsIdentity() != True) return False;
+  if (this->irtkAffineTransformation::IsIdentity() != true) return false;
   for (i = 0; i < _NumberOfLevels; i++) {
-    if (_localTransformation[i]->IsIdentity() != True) return False;
+    if (_localTransformation[i]->IsIdentity() != true) return false;
   }
-  return True;
+  return true;
 }
 
 double irtkMultiLevelFreeFormTransformation::Inverse(double &x, double &y, double &z, double t, double tolerance)
@@ -723,7 +723,7 @@ double irtkMultiLevelFreeFormTransformation::Inverse(double &x, double &y, doubl
   return error;
 }
 
-double irtkMultiLevelFreeFormTransformation::Inverse(int i, double &x, double &y, double &z, double t, double tolerance)
+double irtkMultiLevelFreeFormTransformation::Inverse(int i, double &x, double &y, double &z, double, double tolerance)
 {
   int check;
   double error;

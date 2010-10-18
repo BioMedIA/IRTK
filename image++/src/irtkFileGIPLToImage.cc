@@ -39,9 +39,9 @@ int irtkFileGIPLToImage::CheckHeader(const char *filename)
 
   // Check header
   if ((magic_number != GIPL_MAGIC1) && (magic_number != GIPL_MAGIC2)) {
-    return False;
+    return false;
   } else {
-    return True;
+    return true;
   }
 }
 

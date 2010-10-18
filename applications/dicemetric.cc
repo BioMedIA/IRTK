@@ -4,7 +4,7 @@
   Module    : $Id: padding.cc 2 2008-12-23 12:40:14Z dr $
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2008-12-23 12:40:14 +0000 (�? 23 十二�?2008) $
+  Date      : $Date: 2008-12-23 12:40:14 +0000 (�? 23 十二�?2008) $
   Version   : $Revision: 2 $
   Changes   : $Author: dr $
 
@@ -50,64 +50,64 @@ int main(int argc, char **argv)
 	cerr << "Image sizes of A and B do not correspond!" << endl;
   }
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-output") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-output") == 0)) {
       argc--;
       argv++;
       outputname = argv[1];
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-minvalueA") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-minvalueA") == 0)) {
       argc--;
       argv++;
       minA = atoi(argv[1]);
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-minvalueB") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-minvalueB") == 0)) {
       argc--;
       argv++;
       minB = atoi(argv[1]);
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-maxvalueA") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-maxvalueA") == 0)) {
       argc--;
       argv++;
       maxA = atoi(argv[1]);
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-maxvalueB") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-maxvalueB") == 0)) {
       argc--;
       argv++;
       maxB = atoi(argv[1]);
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-minZ") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-minZ") == 0)) {
       argc--;
       argv++;
       minz = atoi(argv[1]);
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-	if ((ok == False) && (strcmp(argv[1], "-maxZ") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-maxZ") == 0)) {
       argc--;
       argv++;
       maxz = atoi(argv[1]);
 	  argc--;
 	  argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

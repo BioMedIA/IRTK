@@ -81,54 +81,54 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-dofin") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
       dofin_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
       argc--;
       argv++;
-      ok = True;
-      registration->SetDebugFlag(True);
+      ok = true;
+      registration->SetDebugFlag(true);
     }
-    if ((ok == False) && (strcmp(argv[1], "-ds") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
       argc--;
       argv++;
       spacing = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
+    if ((ok == false) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parin_name = argv[1];
       argc--;
       argv++;
     }
-    if ((ok == False) && (strcmp(argv[1], "-parout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-parout") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parout_name = argv[1];
       argc--;
       argv++;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

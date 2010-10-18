@@ -118,7 +118,7 @@ public:
 inline void irtkCofstream::Open(const char *filename)
 {
   if (strstr(basename2(filename), ".gz") == NULL) {
-    _compressed = False;
+    _compressed = false;
     _uncompressedFile = fopen(filename, "wb");
 
     // Check whether file was opened successful
@@ -128,7 +128,7 @@ inline void irtkCofstream::Open(const char *filename)
     }
   } else {
 #ifdef HAS_ZLIB
-    _compressed = True;
+    _compressed = true;
     _compressedFile = gzopen(filename, "wb");
 
     // Check whether file was opened successful

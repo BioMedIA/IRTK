@@ -68,8 +68,8 @@ int main(int argc, char **argv)
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-mean") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-mean") == 0)) {
       argc--;
       argv++;
 
@@ -78,9 +78,9 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-variance") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-variance") == 0)) {
       argc--;
       argv++;
 
@@ -89,9 +89,9 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-c") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-c") == 0)) {
       argc--;
       argv++;
 
@@ -100,42 +100,42 @@ int main(int argc, char **argv)
         argc--;
         argv++;
       }
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-iterations") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-iterations") == 0)) {
       argc--;
       argv++;
       iterations = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-padding") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-padding") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-treshold") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-treshold") == 0)) {
       argc--;
       argv++;
       treshold = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-background") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-background") == 0)) {
       argc--;
       argv++;
       background = new irtkRealImage;
       background->Read(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }

@@ -39,8 +39,8 @@ irtkSurfaceRegistration::irtkSurfaceRegistration ()
 
   // Default parameters for registration
   _NumberOfIterations   = 100;
-  _ignore_edges         = False;
-  _UseSymmetricDistance = False;
+  _ignore_edges         = false;
+  _UseSymmetricDistance = false;
   _Epsilon              = 0.01;
 
 #ifdef HISTORY
@@ -97,12 +97,12 @@ void irtkSurfaceRegistration::Initialize ()
   // Setup locator
   _source_locator->SetDataSet(_source);
 
-  if ((_UseSymmetricDistance == True) && (_target_locator == NULL)) {
+  if ((_UseSymmetricDistance == true) && (_target_locator == NULL)) {
     cerr << this->NameOfClass ()
          << "::Initialize(): Filter has no target locator" << endl;
     exit (1);
   } else {
-    if (_UseSymmetricDistance == True) {
+    if (_UseSymmetricDistance == true) {
       // Setup locator
       _target_locator->SetDataSet(_target);
     }
@@ -156,7 +156,7 @@ void irtkSurfaceRegistration::Optimize ()
         n++;
       }
     }
-    if (_UseSymmetricDistance == True) {
+    if (_UseSymmetricDistance == true) {
       for (i = 0; i < _source->GetNumberOfPoints(); i++) {
         _source->GetPoints()->GetPoint (i, source_point);
         tmp_point[0] = source_point[0];

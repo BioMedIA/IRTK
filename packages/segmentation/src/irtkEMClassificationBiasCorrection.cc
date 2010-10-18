@@ -54,7 +54,7 @@ void irtkEMClassificationBiasCorrection::BStep()
   _biascorrection.Apply(_input);
 }
 
-double irtkEMClassificationBiasCorrection::Iterate(int iteration)
+double irtkEMClassificationBiasCorrection::Iterate(int)
 {
   this->MStep();
   this->BStep();

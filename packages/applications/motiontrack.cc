@@ -92,139 +92,139 @@ int main(int argc, char **argv)
   spacing   = 0;
   sigma     = 0;
   mode      = RegisterXYZ;
-  debug     = False;
+  debug     = false;
 
   // Parse remaining parameters
   while (argc > 1) {
-    ok = False;
-    if ((ok == False) && (strcmp(argv[1], "-Rx1") == 0)) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
       argc--;
       argv++;
       x1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rx2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rx2") == 0)) {
       argc--;
       argv++;
       x2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry1") == 0)) {
       argc--;
       argv++;
       y1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Ry2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Ry2") == 0)) {
       argc--;
       argv++;
       y2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz1") == 0)) {
       argc--;
       argv++;
       z1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rz2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rz2") == 0)) {
       argc--;
       argv++;
       z2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rt1") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rt1") == 0)) {
       argc--;
       argv++;
       t1 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-Rt2") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Rt2") == 0)) {
       argc--;
       argv++;
       t2 = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-dofout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
       dofout_name = argv[1];
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-Tp") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
       padding = atoi(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
 
-    if ((ok == False) && (strcmp(argv[1], "-ds") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
       argc--;
       argv++;
       spacing = atof(argv[1]);
       argc--;
       argv++;
-      ok = True;
+      ok = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-parin") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-parin") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parin_name = argv[1];
       argc--;
       argv++;
     }
-    if ((ok == False) && (strcmp(argv[1], "-parout") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-parout") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       parout_name = argv[1];
       argc--;
       argv++;
     }
-    if ((ok == False) && (strcmp(argv[1], "-blur") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-blur") == 0)) {
       argc--;
       argv++;
-      ok = True;
+      ok = true;
       sigma = atof(argv[1]);
       argc--;
       argv++;
     }
-    if ((ok == False) && (strcmp(argv[1], "-debug") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
       argc--;
       argv++;
-      ok = True;
-      debug = True;
+      ok = true;
+      debug = true;
     }
-    if ((ok == False) && (strcmp(argv[1], "-xy_only") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-xy_only") == 0)) {
       argc--;
       argv++;
       mode = RegisterXY;
-      ok = True;
+      ok = true;
     }
 
-    if (ok == False) {
+    if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
