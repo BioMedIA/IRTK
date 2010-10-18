@@ -37,8 +37,8 @@ void usage()
 
 int main(int argc, char **argv)
 {
-	int i, j, k, i1, i2, j1, j2, k1, k2, ok, max;
-	irtkGreyPixel padding;
+  int i, j, k, i1, i2, j1, j2, k1, k2, ok, max;
+  irtkGreyPixel padding;
 
   // Check command line
   if (argc < 3) {
@@ -166,11 +166,11 @@ int main(int argc, char **argv)
     }
   }
 
-  double si = 0;
+  double w, si = 0;
   for (i = 1; i < histogramA.NumberOfBins(); i++) {
-    si += 2 * histogramAB(i) / double(histogramA(i) + histogramB(i));
+    w = histogramA(i) / double(histogramA.NumberOfSamples() - histogramA(0));
+    si += w * 2.0 * histogramAB(i) / double(histogramA(i) + histogramB(i));
   }
-  si /= histogramA.NumberOfBins();
 
   // Print average SI
   cout << "Average SI = " << si << endl;
