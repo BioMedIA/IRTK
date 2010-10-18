@@ -365,7 +365,8 @@ template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::Jo
 
 template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::MarginalProbabilityX(int i)
 {
-  int j, n;
+  int j;
+  HistogramType n;
 
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_x)) {
@@ -382,7 +383,8 @@ template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::Ma
 
 template <class HistogramType> inline double irtkHistogram_2D<HistogramType>::MarginalProbabilityY(int i)
 {
-  int j, n;
+  int j;
+  HistogramType n;
 
 #ifndef NO_BOUNDS
   if ((i < 0) || (i >= _nbins_y)) {
