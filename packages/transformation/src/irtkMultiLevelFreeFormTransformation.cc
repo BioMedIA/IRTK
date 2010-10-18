@@ -723,7 +723,7 @@ double irtkMultiLevelFreeFormTransformation::Inverse(double &x, double &y, doubl
   return error;
 }
 
-double irtkMultiLevelFreeFormTransformation::Inverse(int i, double &x, double &y, double &z, double, double tolerance)
+double irtkMultiLevelFreeFormTransformation::Inverse(int, double &x, double &y, double &z, double, double tolerance)
 {
   int check;
   double error;

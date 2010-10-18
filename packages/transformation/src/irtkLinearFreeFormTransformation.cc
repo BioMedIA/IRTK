@@ -340,7 +340,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(double x1, do
   }
 }
 
-irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkLinearFreeFormTransformation &ffd)
+irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkLinearFreeFormTransformation &ffd) : irtkFreeFormTransformation3D(ffd)
 {
   int i, j, k;
 

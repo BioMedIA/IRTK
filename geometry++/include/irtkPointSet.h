@@ -163,7 +163,7 @@ inline irtkPointSet::irtkPointSet()
   _data = new irtkPoint[POINTSET_SIZE];
 }
 
-inline irtkPointSet::irtkPointSet(const irtkPointSet &pset)
+inline irtkPointSet::irtkPointSet(const irtkPointSet &pset) : irtkObject(pset)
 {
   int i;
 

@@ -166,7 +166,7 @@ inline irtkHomogeneousTransformation::irtkHomogeneousTransformation(const irtkMa
   }
 }
 
-inline irtkHomogeneousTransformation::irtkHomogeneousTransformation(const irtkHomogeneousTransformation &t)
+inline irtkHomogeneousTransformation::irtkHomogeneousTransformation(const irtkHomogeneousTransformation &t) : irtkTransformation(t)
 {
   int i;
 

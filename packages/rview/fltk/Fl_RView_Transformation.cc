@@ -50,7 +50,7 @@ void Fl_RViewUI::AddTransformation(char *filename)
 
 }
 
-void Fl_RViewUI::cb_loadTransformation(Fl_Button *, void *v)
+void Fl_RViewUI::cb_loadTransformation(Fl_Button *, void *)
 {
   int i;
   char *filename = fl_file_chooser("Load transformation", "*.{dof,dof.gz}", "");
@@ -78,7 +78,7 @@ void Fl_RViewUI::cb_loadTransformation(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_saveTransformation(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveTransformation(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save transformation", "*.{dof,dof.gz}", "");
   if (filename != NULL) {
@@ -93,7 +93,7 @@ void Fl_RViewUI::cb_saveTransformation(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_browseTransformation(Fl_Browser* o, void* v)
+void Fl_RViewUI::cb_browseTransformation(Fl_Browser* o, void*)
 {
   if (Fl::event_key() == FL_BackSpace) {
     int n;
@@ -128,7 +128,7 @@ void Fl_RViewUI::cb_browseTransformation(Fl_Browser* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_deleteTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_deleteTransformation(Fl_Button* o, void*)
 {
   int n;
 
@@ -155,7 +155,7 @@ void Fl_RViewUI::cb_deleteTransformation(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_editTransformation(Fl_Button* o, void*)
 {
   rviewUI->editTransformation->show();
   o->clear();
@@ -167,7 +167,7 @@ void Fl_RViewUI::cb_editTransformation(Fl_Button* o, void* v)
 }
 
 
-void Fl_RViewUI::cb_editTransformationApply(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_editTransformationApply(Fl_Button*, void*)
 {
   rviewUI->editTransformation->hide();
 }
@@ -186,7 +186,7 @@ void Fl_RViewUI::cb_editTransformationUpdate(Fl_Valuator* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editTransformationReset(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_editTransformationReset(Fl_Button*, void*)
 {
   if (fl_choice("Do you really want to reset transformation?", NULL, "No", "Yes") == 2) {
     int i;
@@ -208,7 +208,7 @@ void Fl_RViewUI::cb_editTransformationReset(Fl_Button* o, void* v)
   }
 }
 
-void Fl_RViewUI::cb_applyTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_applyTransformation(Fl_Button* o, void*)
 {
   rview->SetSourceTransformApply(o->value());
 
@@ -218,7 +218,7 @@ void Fl_RViewUI::cb_applyTransformation(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_invertTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_invertTransformation(Fl_Button* o, void*)
 {
   rview->SetSourceTransformInvert(o->value());
 
@@ -228,7 +228,7 @@ void Fl_RViewUI::cb_invertTransformation(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_moveupTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_moveupTransformation(Fl_Button* o, void*)
 {
   int n;
 
@@ -251,7 +251,7 @@ void Fl_RViewUI::cb_moveupTransformation(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_movedownTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_movedownTransformation(Fl_Button* o, void*)
 {
   int n;
 
@@ -274,7 +274,7 @@ void Fl_RViewUI::cb_movedownTransformation(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_movieTransformation(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_movieTransformation(Fl_Button* o, void*)
 {
   int i;
   char buffer2[256];
@@ -328,14 +328,14 @@ void Fl_RViewUI::cb_movieTransformation(Fl_Button* o, void* v)
   o->clear();
 }
 
-void Fl_RViewUI::cb_viewDeformationGridResolution(Fl_Slider* o, void* v)
+void Fl_RViewUI::cb_viewDeformationGridResolution(Fl_Slider* o, void*)
 {
   rview->SetDisplayDeformationGridResolution(round(o->value()));
   rview->Update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewDeformationGrid(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewDeformationGrid(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplayDeformationGridOff();
   if (o->value() == 1) rview->DisplayDeformationGridOn();
@@ -343,7 +343,7 @@ void Fl_RViewUI::cb_viewDeformationGrid(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewDeformationArrows(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewDeformationArrows(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplayDeformationArrowsOff();
   if (o->value() == 1) rview->DisplayDeformationArrowsOn();
@@ -351,7 +351,7 @@ void Fl_RViewUI::cb_viewDeformationArrows(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewDeformationPoints(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewDeformationPoints(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplayDeformationPointsOff();
   if (o->value() == 1) rview->DisplayDeformationPointsOn();

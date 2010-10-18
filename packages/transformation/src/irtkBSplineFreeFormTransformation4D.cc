@@ -267,7 +267,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double 
   }
 }
 
-irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const irtkBSplineFreeFormTransformation4D &ffd)
+irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const irtkBSplineFreeFormTransformation4D &ffd) : irtkFreeFormTransformation4D(ffd)
 {
   int i, j, k, l;
 

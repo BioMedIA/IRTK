@@ -29,7 +29,7 @@ extern Fl_RViewUI  *rviewUI;
 extern Fl_RView    *viewer;
 extern irtkRView    *rview;
 
-void Fl_RViewUI::cb_loadTargetLandmarks(Fl_Button *, void *v)
+void Fl_RViewUI::cb_loadTargetLandmarks(Fl_Button *, void *)
 {
   int i;
   char *filename = fl_file_chooser("Load target landmarks", "*.vtk", "");
@@ -68,7 +68,7 @@ void Fl_RViewUI::cb_loadTargetLandmarks(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_loadSourceLandmarks(Fl_Button *, void *v)
+void Fl_RViewUI::cb_loadSourceLandmarks(Fl_Button *, void *)
 {
   int i;
   char *filename = fl_file_chooser("Load source landmarks", "*.vtk", "");
@@ -107,7 +107,7 @@ void Fl_RViewUI::cb_loadSourceLandmarks(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_saveTargetLandmarks(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveTargetLandmarks(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save target landmarks", "*.vtk", "");
   if (filename != NULL) {
@@ -122,7 +122,7 @@ void Fl_RViewUI::cb_saveTargetLandmarks(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_saveSourceLandmarks(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveSourceLandmarks(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save source landmarks", "*.vtk", "");
   if (filename != NULL) {
@@ -446,7 +446,7 @@ void Fl_RViewUI::cb_browseLandmark(Fl_Browser* o, void* v)
   }
 }
 
-void Fl_RViewUI::cb_viewLandmarks(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewLandmarks(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplayLandmarksOff();
   if (o->value() == 1) rview->DisplayLandmarksOn();
@@ -454,7 +454,7 @@ void Fl_RViewUI::cb_viewLandmarks(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_fitLandmarks(Fl_Button *, void* v)
+void Fl_RViewUI::cb_fitLandmarks(Fl_Button *, void*)
 {
   if (rview->GetNumberOfTargetLandmarks() !=
       rview->GetNumberOfSourceLandmarks()) {
@@ -472,7 +472,7 @@ void Fl_RViewUI::cb_fitLandmarks(Fl_Button *, void* v)
   }
 }
 
-void Fl_RViewUI::cb_viewROI(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewROI(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplayROIOff();
   if (o->value() == 1) rview->DisplayROIOn();
@@ -480,7 +480,7 @@ void Fl_RViewUI::cb_viewROI(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_trackTAG(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_trackTAG(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->TrackTAGOff();
   if (o->value() == 1) rview->TrackTAGOn();
@@ -488,7 +488,7 @@ void Fl_RViewUI::cb_trackTAG(Fl_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewTagGrid(Fl_Button* o, void* v)
+void Fl_RViewUI::cb_viewTagGrid(Fl_Button* o, void*)
 {
   if (o->value() == 0) rview->ViewTAGOff();
   if (o->value() == 1) rview->ViewTAGOn();

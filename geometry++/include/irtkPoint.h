@@ -204,7 +204,7 @@ inline irtkPoint::irtkPoint(double x, double y, double z)
   _z = z;
 }
 
-inline irtkPoint::irtkPoint(const irtkPoint& p)
+inline irtkPoint::irtkPoint(const irtkPoint& p) : irtkObject(p)
 {
   _x = p._x;
   _y = p._y;

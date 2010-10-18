@@ -33,24 +33,24 @@ extern irtkRView    *rview;
 char widthStrings[10][10] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
 Fl_Menu_Item Fl_RViewUI::menu_PaintBrushWidth[] = {
-  {"1", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[1]},
-  {"2", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[2]},
-  {"3", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[3]},
-  {"4", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[4]},
-  {"5", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[5]},
-  {"6", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[6]},
-  {"7", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[7]},
-  {"8", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[8]},
-  {"9", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[9]},
-  {0}
+  {"1", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[1], 0, 0, 0, 0, 0},
+  {"2", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[2], 0, 0, 0, 0, 0},
+  {"3", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[3], 0, 0, 0, 0, 0},
+  {"4", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[4], 0, 0, 0, 0, 0},
+  {"5", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[5], 0, 0, 0, 0, 0},
+  {"6", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[6], 0, 0, 0, 0, 0},
+  {"7", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[7], 0, 0, 0, 0, 0},
+  {"8", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[8], 0, 0, 0, 0, 0},
+  {"9", 0, (Fl_Callback*)cb_SetPaintBrushWidth, widthStrings[9], 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
 char growStrings[2][10] = {"2D", "3D"};
 
 Fl_Menu_Item Fl_RViewUI::menu_RegionGrowing[] = {
-  {"2D", 0, (Fl_Callback*)cb_SetRegionGrowingMode, growStrings[0]},
-  {"3D", 0, (Fl_Callback*)cb_SetRegionGrowingMode, growStrings[1]},
-  {0}
+  {"2D", 0, (Fl_Callback*)cb_SetRegionGrowingMode, growStrings[0], 0, 0, 0, 0, 0},
+  {"3D", 0, (Fl_Callback*)cb_SetRegionGrowingMode, growStrings[1], 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
 void Fl_RViewUI::cb_loadSegmentation(Fl_Button *, void *)

@@ -38,53 +38,53 @@ extern irtkRView    *rview;
 char interpStrings[5][255] = {"nn", "linear", "c1spline", "bspline", "sinc"};
 
 Fl_Menu_Item Fl_RViewUI::menu_targetInterpolationMode[] = {
-  {"NN Interpolation",        0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[0]},
-  {"Linear Interpolation",    0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[1]},
-  {"C1-spline Interpolation", 0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[2]},
-  {"B-spline Interpolation",  0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[3]},
-  {"Sinc Interpolation",      0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[4]},
-  {0}
+  {"NN Interpolation",        0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[0], 0, 0, 0, 0, 0},
+  {"Linear Interpolation",    0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[1], 0, 0, 0, 0, 0},
+  {"C1-spline Interpolation", 0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[2], 0, 0, 0, 0, 0},
+  {"B-spline Interpolation",  0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[3], 0, 0, 0, 0, 0},
+  {"Sinc Interpolation",      0, (Fl_Callback*)cb_TargetInterpolation, interpStrings[4], 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
 Fl_Menu_Item Fl_RViewUI::menu_sourceInterpolationMode[] = {
-  {"NN Interpolation",        0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[0]},
-  {"Linear Interpolation",    0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[1]},
-  {"C1-spline Interpolation", 0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[2]},
-  {"B-spline Interpolation",  0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[3]},
-  {"Sinc Interpolation",      0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[4]},
-  {0}
+  {"NN Interpolation",        0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[0], 0, 0, 0, 0, 0},
+  {"Linear Interpolation",    0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[1], 0, 0, 0, 0, 0},
+  {"C1-spline Interpolation", 0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[2], 0, 0, 0, 0, 0},
+  {"B-spline Interpolation",  0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[3], 0, 0, 0, 0, 0},
+  {"Sinc Interpolation",      0, (Fl_Callback*)cb_SourceInterpolation, interpStrings[4], 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
 char colorStrings[11][255] = {"red", "green", "blue", "grey", "inverse", "jacobian", "jacobian expansion", "jacobian contraction", "hotmetal", "rainbow", "custom"};
 
 Fl_Menu_Item Fl_RViewUI::menu_targetColorMode[] = {
-  { "Red",      0, (Fl_Callback *)cb_TargetColor, colorStrings[0]},
-  { "Green",    0, (Fl_Callback *)cb_TargetColor, colorStrings[1]},
-  { "Blue",     0, (Fl_Callback *)cb_TargetColor, colorStrings[2]},
-  { "Grey",     0, (Fl_Callback *)cb_TargetColor, colorStrings[3]},
-  { "Inverse",  0, (Fl_Callback *)cb_TargetColor, colorStrings[4]},
-  { "Jacobian", 0, (Fl_Callback *)cb_TargetColor, colorStrings[5]},
-  { "Jacobian / Expansion", 0, (Fl_Callback *)cb_TargetColor, colorStrings[6]},
-  { "Jacobian / Contracion", 0, (Fl_Callback *)cb_TargetColor, colorStrings[7]},
-  { "Hotmetal", 0, (Fl_Callback *)cb_TargetColor, colorStrings[8]},
-  { "Rainbow",  0, (Fl_Callback *)cb_TargetColor, colorStrings[9]},
-  { "Custom",   0, (Fl_Callback *)cb_TargetColor, colorStrings[10]},
-  {0}
+  { "Red",      0, (Fl_Callback *)cb_TargetColor, colorStrings[0], 0, 0, 0, 0, 0},
+  { "Green",    0, (Fl_Callback *)cb_TargetColor, colorStrings[1], 0, 0, 0, 0, 0},
+  { "Blue",     0, (Fl_Callback *)cb_TargetColor, colorStrings[2], 0, 0, 0, 0, 0},
+  { "Grey",     0, (Fl_Callback *)cb_TargetColor, colorStrings[3], 0, 0, 0, 0, 0},
+  { "Inverse",  0, (Fl_Callback *)cb_TargetColor, colorStrings[4], 0, 0, 0, 0, 0},
+  { "Jacobian", 0, (Fl_Callback *)cb_TargetColor, colorStrings[5], 0, 0, 0, 0, 0},
+  { "Jacobian / Expansion", 0, (Fl_Callback *)cb_TargetColor, colorStrings[6], 0, 0, 0, 0, 0},
+  { "Jacobian / Contracion", 0, (Fl_Callback *)cb_TargetColor, colorStrings[7], 0, 0, 0, 0, 0},
+  { "Hotmetal", 0, (Fl_Callback *)cb_TargetColor, colorStrings[8], 0, 0, 0, 0, 0},
+  { "Rainbow",  0, (Fl_Callback *)cb_TargetColor, colorStrings[9], 0, 0, 0, 0, 0},
+  { "Custom",   0, (Fl_Callback *)cb_TargetColor, colorStrings[10], 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
 Fl_Menu_Item Fl_RViewUI::menu_sourceColorMode[] = {
-  { "Red",      0, (Fl_Callback *)cb_SourceColor, colorStrings[0]},
-  { "Green",    0, (Fl_Callback *)cb_SourceColor, colorStrings[1]},
-  { "Blue",     0, (Fl_Callback *)cb_SourceColor, colorStrings[2]},
-  { "Grey",     0, (Fl_Callback *)cb_SourceColor, colorStrings[3]},
-  { "Inverse",  0, (Fl_Callback *)cb_SourceColor, colorStrings[4]},
-  { "Jacobian", 0, (Fl_Callback *)cb_SourceColor, colorStrings[5]},
-  { "Jacobian / Expansion", 0, (Fl_Callback *)cb_SourceColor, colorStrings[6]},
-  { "Jacobian / Contraction", 0, (Fl_Callback *)cb_SourceColor, colorStrings[7]},
-  { "Hotmetal", 0, (Fl_Callback *)cb_SourceColor, colorStrings[8]},
-  { "Rainbow",  0, (Fl_Callback *)cb_SourceColor, colorStrings[9]},
-  { "Custom",   0, (Fl_Callback *)cb_SourceColor, colorStrings[10]},
-  {0}
+  { "Red",      0, (Fl_Callback *)cb_SourceColor, colorStrings[0], 0, 0, 0, 0, 0},
+  { "Green",    0, (Fl_Callback *)cb_SourceColor, colorStrings[1], 0, 0, 0, 0, 0},
+  { "Blue",     0, (Fl_Callback *)cb_SourceColor, colorStrings[2], 0, 0, 0, 0, 0},
+  { "Grey",     0, (Fl_Callback *)cb_SourceColor, colorStrings[3], 0, 0, 0, 0, 0},
+  { "Inverse",  0, (Fl_Callback *)cb_SourceColor, colorStrings[4], 0, 0, 0, 0, 0},
+  { "Jacobian", 0, (Fl_Callback *)cb_SourceColor, colorStrings[5], 0, 0, 0, 0, 0},
+  { "Jacobian / Expansion", 0, (Fl_Callback *)cb_SourceColor, colorStrings[6], 0, 0, 0, 0, 0},
+  { "Jacobian / Contraction", 0, (Fl_Callback *)cb_SourceColor, colorStrings[7], 0, 0, 0, 0, 0},
+  { "Hotmetal", 0, (Fl_Callback *)cb_SourceColor, colorStrings[8], 0, 0, 0, 0, 0},
+  { "Rainbow",  0, (Fl_Callback *)cb_SourceColor, colorStrings[9], 0, 0, 0, 0, 0},
+  { "Custom",   0, (Fl_Callback *)cb_SourceColor, colorStrings[10], 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
 void Fl_RViewUI::AddTarget(char *filename)
@@ -97,7 +97,7 @@ void Fl_RViewUI::AddSource(char *filename)
   rviewUI->filename_source->value(filename);
 }
 
-void Fl_RViewUI::cb_loadTarget(Fl_Button *, void *v)
+void Fl_RViewUI::cb_loadTarget(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Load target image", "*.{gipl,gipl.Z,hdr,hdr.gz,nii,nii.gz}", "");
   if (filename != NULL) {
@@ -109,7 +109,7 @@ void Fl_RViewUI::cb_loadTarget(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_loadSource(Fl_Button *, void *v)
+void Fl_RViewUI::cb_loadSource(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Load source image", "*.{gipl,gipl.Z,hdr,hdr.gz,nii,nii.gz}", "");
   if (filename != NULL) {
@@ -121,7 +121,7 @@ void Fl_RViewUI::cb_loadSource(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_saveTarget(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveTarget(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save target image", "*.{gipl,hdr,vtk,nii}", "");
   if (filename != NULL) {
@@ -136,7 +136,7 @@ void Fl_RViewUI::cb_saveTarget(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_saveSource(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveSource(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save source image", "*.{gipl,hdr,vtk,nii}", "");
   if (filename != NULL) {
@@ -151,12 +151,12 @@ void Fl_RViewUI::cb_saveSource(Fl_Button *, void *v)
   }
 }
 
-void Fl_RViewUI::cb_movieStart(Fl_Button *, void *v)
+void Fl_RViewUI::cb_movieStart(Fl_Button *, void *)
 {
   if (!Fl::has_idle(cb_playback)) Fl::add_idle(cb_playback);
 }
 
-void Fl_RViewUI::cb_movieStop(Fl_Button *, void *v)
+void Fl_RViewUI::cb_movieStop(Fl_Button *, void *)
 {
   if (Fl::has_idle(cb_playback)) Fl::remove_idle(cb_playback);
 }
@@ -175,7 +175,7 @@ void Fl_RViewUI::cb_playback(void *)
   rviewUI->update();
 }
 
-void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *v)
+void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *)
 {
   int i, t, s;
   char buffer2[256];
@@ -229,7 +229,7 @@ void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *v)
 
 }
 
-void Fl_RViewUI::cb_TargetIsolines(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_TargetIsolines(Fl_Check_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplayTargetContoursOff();;
   if (o->value() == 1) rview->DisplayTargetContoursOn();;
@@ -237,14 +237,14 @@ void Fl_RViewUI::cb_TargetIsolines(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_lineThickness(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_lineThickness(Fl_Value_Slider* o, void*)
 {
   rview->SetLineThickness(o->value());
   rview->Update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_SourceIsolines(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_SourceIsolines(Fl_Check_Button* o, void*)
 {
   if (o->value() == 0) rview->DisplaySourceContoursOff();
   if (o->value() == 1) rview->DisplaySourceContoursOn();
@@ -374,7 +374,7 @@ void Fl_RViewUI::cb_SourceColor(Fl_Menu_ *, void *v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_targetMinMax(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_targetMinMax(Fl_Value_Slider*, void*)
 {
   if (rview->GetViewMode() != View_Subtraction) {
     rview->SetDisplayMinTarget(rviewUI->targetMin->value());
@@ -387,7 +387,7 @@ void Fl_RViewUI::cb_targetMinMax(Fl_Value_Slider* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_sourceMinMax(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_sourceMinMax(Fl_Value_Slider*, void*)
 {
   rview->SetDisplayMinSource(rviewUI->sourceMin->value());
   rview->SetDisplayMaxSource(rviewUI->sourceMax->value());
@@ -395,21 +395,21 @@ void Fl_RViewUI::cb_sourceMinMax(Fl_Value_Slider* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_targetFrame(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_targetFrame(Fl_Value_Slider*, void*)
 {
   rview->SetTargetFrame(round(rviewUI->targetFrame->value()));
   rview->Update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_sourceFrame(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_sourceFrame(Fl_Value_Slider*, void*)
 {
   rview->SetSourceFrame(round(rviewUI->sourceFrame->value()));
   rview->Update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_flipCoordinates(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_flipCoordinates(Fl_Check_Button*, void*)
 {
   if (rviewUI->FlipX->value() == 0) rview->FlipXOff();
   if (rviewUI->FlipX->value() == 1) rview->FlipXOn();
@@ -421,7 +421,7 @@ void Fl_RViewUI::cb_flipCoordinates(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_displayCoordinates(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_displayCoordinates(Fl_Check_Button*, void*)
 {
   if (rviewUI->DisplayNeurological->value() == 1) rview->SetDisplayMode(Neurological);
   if (rviewUI->DisplayRadiological->value() == 1) rview->SetDisplayMode(Radiological);
@@ -431,14 +431,14 @@ void Fl_RViewUI::cb_displayCoordinates(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewMix(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_viewMix(Fl_Value_Slider *o, void *)
 {
   rview->SetViewMix(o->value());
   rview->Update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewTarget(Fl_Button*, void* v)
+void Fl_RViewUI::cb_viewTarget(Fl_Button*, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -453,7 +453,7 @@ void Fl_RViewUI::cb_viewTarget(Fl_Button*, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewSource(Fl_Button*, void* v)
+void Fl_RViewUI::cb_viewSource(Fl_Button*, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -468,7 +468,7 @@ void Fl_RViewUI::cb_viewSource(Fl_Button*, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewHShutter(Fl_Button*, void* v)
+void Fl_RViewUI::cb_viewHShutter(Fl_Button*, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -483,7 +483,7 @@ void Fl_RViewUI::cb_viewHShutter(Fl_Button*, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewVShutter(Fl_Button*, void* v)
+void Fl_RViewUI::cb_viewVShutter(Fl_Button*, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -498,7 +498,7 @@ void Fl_RViewUI::cb_viewVShutter(Fl_Button*, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewSubtraction(Fl_Button*, void* v)
+void Fl_RViewUI::cb_viewSubtraction(Fl_Button*, void*)
 {
   if (rview->GetViewMode() != View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetSubtractionMin());
@@ -513,7 +513,7 @@ void Fl_RViewUI::cb_viewSubtraction(Fl_Button*, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewCheckerboard(Fl_Button *, void* v)
+void Fl_RViewUI::cb_viewCheckerboard(Fl_Button *, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -528,7 +528,7 @@ void Fl_RViewUI::cb_viewCheckerboard(Fl_Button *, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewAoverB(Fl_Button *, void* v)
+void Fl_RViewUI::cb_viewAoverB(Fl_Button *, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());
@@ -543,7 +543,7 @@ void Fl_RViewUI::cb_viewAoverB(Fl_Button *, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewBoverA(Fl_Button *, void* v)
+void Fl_RViewUI::cb_viewBoverA(Fl_Button *, void*)
 {
   if (rview->GetViewMode() == View_Subtraction) {
     rviewUI->targetMin->minimum(rview->GetTargetMin());

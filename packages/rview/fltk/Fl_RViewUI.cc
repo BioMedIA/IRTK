@@ -39,7 +39,7 @@ void quit(Fl_Widget*, void*)
   exit(0);
 }
 
-void Fl_RViewUI::cb_saveScreen(Fl_Button *, void *v)
+void Fl_RViewUI::cb_saveScreen(Fl_Button *, void *)
 {
   char *filename = fl_file_chooser("Save screen", "*.png", "");
   if (filename != NULL) {
@@ -54,7 +54,7 @@ void Fl_RViewUI::cb_ViewMode(Fl_Button *, void *v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_resliceX(Fl_Roller* o, void* v)
+void Fl_RViewUI::cb_resliceX(Fl_Roller *o, void *)
 {
   double x, y, z;
 
@@ -73,7 +73,7 @@ void Fl_RViewUI::cb_resliceX(Fl_Roller* o, void* v)
   rviewUI->update();
 }
 
-void Fl_RViewUI::cb_resliceY(Fl_Roller* o, void* v)
+void Fl_RViewUI::cb_resliceY(Fl_Roller *o, void *)
 {
   double x, y, z;
 
@@ -92,7 +92,7 @@ void Fl_RViewUI::cb_resliceY(Fl_Roller* o, void* v)
   rviewUI->update();
 }
 
-void Fl_RViewUI::cb_resliceZ(Fl_Roller* o, void* v)
+void Fl_RViewUI::cb_resliceZ(Fl_Roller* o, void *)
 {
   double x, y, z;
 
@@ -111,14 +111,14 @@ void Fl_RViewUI::cb_resliceZ(Fl_Roller* o, void* v)
   rviewUI->update();
 }
 
-void Fl_RViewUI::cb_zoom(Fl_Value_Slider* o, void* v)
+void Fl_RViewUI::cb_zoom(Fl_Value_Slider* o, void*)
 {
   rview->SetResolution(o->value());
   rview->Update();
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_snapGrid(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_snapGrid(Fl_Check_Button* o, void*)
 {
   if (o->value() == 1) {
     rview->SnapToGridOn();
@@ -129,7 +129,7 @@ void Fl_RViewUI::cb_snapGrid(Fl_Check_Button* o, void* v)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_viewCursor(Fl_Check_Button* o, void* v)
+void Fl_RViewUI::cb_viewCursor(Fl_Check_Button* o, void*)
 {
   if (o->value() == 1) {
     rview->DisplayCursorOn();

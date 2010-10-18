@@ -324,7 +324,7 @@ irtkBSplineBiasField::irtkBSplineBiasField(const irtkGreyImage &image, int x, in
   }
 }
 
-irtkBSplineBiasField::irtkBSplineBiasField(const irtkBSplineBiasField &bias)
+irtkBSplineBiasField::irtkBSplineBiasField(const irtkBSplineBiasField &bias) : irtkBiasField(bias)
 {
   int i, j, k;
 

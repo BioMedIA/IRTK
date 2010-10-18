@@ -90,7 +90,7 @@ class LargeDefGradLagrange{
   LargeDefGradLagrange();
   
   /// Destructor
-  ~LargeDefGradLagrange();
+  virtual ~LargeDefGradLagrange();
 
   /// Run  Large Deformation registration
   virtual void Run();

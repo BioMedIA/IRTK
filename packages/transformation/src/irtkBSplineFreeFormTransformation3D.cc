@@ -294,7 +294,7 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(double 
   }
 }
 
-irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(const irtkBSplineFreeFormTransformation3D &ffd)
+irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(const irtkBSplineFreeFormTransformation3D &ffd) : irtkFreeFormTransformation3D(ffd)
 {
   int i, j, k;
 
@@ -553,7 +553,7 @@ void irtkBSplineFreeFormTransformation3D::Jacobian(irtkMatrix &jac, double x, do
   this->LocalJacobian(jac, x, y, z, t);
 }
 
-void irtkBSplineFreeFormTransformation3D::GlobalJacobian(irtkMatrix &jac, double x, double y, double z, double)
+void irtkBSplineFreeFormTransformation3D::GlobalJacobian(irtkMatrix &jac, double, double, double, double)
 {
   // Jacobian matrix is 3 x 3
   jac.Initialize(3, 3);

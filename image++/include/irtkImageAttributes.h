@@ -108,7 +108,7 @@ inline irtkImageAttributes::irtkImageAttributes()
   _zaxis[2] = 1;
 }
 
-inline irtkImageAttributes::irtkImageAttributes(const irtkImageAttributes &attr)
+inline irtkImageAttributes::irtkImageAttributes(const irtkImageAttributes &attr) : irtkObject(attr)
 {
   _x  = attr._x;
   _y  = attr._y;

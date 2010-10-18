@@ -49,7 +49,7 @@ irtkMatrix::irtkMatrix(int rows, int cols)
   }
 }
 
-irtkMatrix::irtkMatrix(const irtkMatrix& m)
+irtkMatrix::irtkMatrix(const irtkMatrix& m) : irtkObject(m)
 {
   int i, j;
 

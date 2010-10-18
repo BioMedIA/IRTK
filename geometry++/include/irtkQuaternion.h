@@ -118,7 +118,7 @@ inline irtkQuaternion::irtkQuaternion(double t, double u, double v, double w)
   _w = w;
 }
 
-inline irtkQuaternion::irtkQuaternion(const irtkQuaternion& q)
+inline irtkQuaternion::irtkQuaternion(const irtkQuaternion& q) : irtkObject(q)
 {
   _t = q._t;
   _u = q._u;

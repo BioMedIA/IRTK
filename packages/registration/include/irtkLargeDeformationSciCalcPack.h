@@ -29,7 +29,7 @@ class ScalarField{
   
   /// Constructor and destructor
   ScalarField();
-  ~ScalarField();
+  virtual ~ScalarField();
   
   /// functions associated to the field
   //put a value in the scalar field
@@ -97,7 +97,7 @@ class VectorField{
   VectorField();
   
   /// Destructor
-  ~VectorField();
+  virtual ~VectorField();
   
   //put a value in the scalar field
   virtual void P(float value,int IdDirec,int x,int y,int z=0,int t=0);
@@ -176,7 +176,7 @@ class FFTconvolver3D{
     FFTconvolver3D();
   
     //Destructor
-    ~FFTconvolver3D();
+    virtual ~FFTconvolver3D();
     
     //Initiate the complex fields for the FFT and the smoothing kernels being the sum of up to 
     //4 Gaussians (set some weights to 0 if less Gaussians are required)

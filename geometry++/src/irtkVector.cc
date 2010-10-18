@@ -27,7 +27,7 @@ irtkVector::irtkVector(int rows)
   this->Initialize(rows);
 }
 
-irtkVector::irtkVector(const irtkVector& v)
+irtkVector::irtkVector(const irtkVector& v) : irtkObject(v)
 {
   int i;
 

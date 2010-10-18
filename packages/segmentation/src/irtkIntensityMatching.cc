@@ -30,7 +30,7 @@ irtkIntensityMatching::irtkIntensityMatching(double min, double max, double m=1,
   _b=b;
 }
 
-irtkIntensityMatching::irtkIntensityMatching(const irtkIntensityMatching &f)
+irtkIntensityMatching::irtkIntensityMatching(const irtkIntensityMatching &f) : irtkObject(f)
 {
   _m=f._m;
   _b=f._b;

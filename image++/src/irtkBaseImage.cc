@@ -24,7 +24,7 @@ irtkBaseImage::irtkBaseImage()
   this->UpdateMatrix();
 }
 
-irtkBaseImage::irtkBaseImage(const irtkBaseImage &image)
+irtkBaseImage::irtkBaseImage(const irtkBaseImage &image) : irtkObject(image)
 {
   _attr   = image._attr;
   _matI2W = image._matI2W;

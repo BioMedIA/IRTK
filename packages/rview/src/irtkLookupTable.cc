@@ -393,7 +393,7 @@ void irtkLookupTable::Read(char *filename)
   _mode = ColorMode_Custom;
 }
 
-void irtkLookupTable::Write(char *filename)
+void irtkLookupTable::Write(char *)
 {
   cerr << "irtkLookupTable::Write: Not yet implemented" << endl;
   exit(1);

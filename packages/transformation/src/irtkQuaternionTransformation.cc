@@ -76,7 +76,7 @@ irtkQuaternionTransformation::irtkQuaternionTransformation(double* origin, doubl
   UpdateMatrix();
 }
 
-irtkQuaternionTransformation::irtkQuaternionTransformation(const irtkQuaternionTransformation& trans)
+irtkQuaternionTransformation::irtkQuaternionTransformation(const irtkQuaternionTransformation& trans) : irtkTransformation(trans)
 {
   for (int i = 0; i < 3; i++) {
     _origin[i] = trans._origin[i];

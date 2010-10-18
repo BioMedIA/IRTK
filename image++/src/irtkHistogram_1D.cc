@@ -14,7 +14,7 @@
 
 #include <irtkHistogram.h>
 
-template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D(const irtkHistogram_1D &h)
+template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D(const irtkHistogram_1D &h) : irtkObject(h)
 {
   int i;
 

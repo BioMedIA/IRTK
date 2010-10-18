@@ -74,6 +74,7 @@ Section "Install IRTK" SecInstall
   File "..\Windows\bin\release\blur.exe"
   File "..\Windows\bin\release\dilation.exe"
   File "..\Windows\bin\release\dmap.exe"
+  File "..\Windows\bin\release\mcubes.exe"
   File "..\Windows\bin\release\makesequence.exe"
   File "..\Windows\bin\release\erosion.exe"
   File "..\Windows\bin\release\closing.exe"

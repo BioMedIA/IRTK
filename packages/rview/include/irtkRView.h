@@ -31,7 +31,7 @@ typedef enum { NoneDef,
                Jacobian_Contraction
              } irtkDeformationProperty;
 
-typedef enum { Viewer_XY, Viewer_XZ, Viewer_YZ } irtkViewerMode;
+typedef enum { Viewer_XY, Viewer_XZ, Viewer_YZ, Viewer_None } irtkViewerMode;
 
 typedef enum { CrossHair, CursorX, CursorV, CursorBar } irtkCursorMode;
 
