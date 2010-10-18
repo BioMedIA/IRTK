@@ -104,8 +104,8 @@ void irtkImageToFileANALYZE::Initialize()
   hdr.pixdims[1] = xsize;
   hdr.pixdims[2] = ysize;
   hdr.pixdims[3] = zsize;
-  hdr.glmax      = max;
-  hdr.glmin      = min;
+  hdr.glmax      = round(max);
+  hdr.glmin      = round(min);
 
   // Write header
   hdr.Write(this->_headername);
