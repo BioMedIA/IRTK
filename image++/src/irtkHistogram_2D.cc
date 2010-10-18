@@ -305,13 +305,13 @@ template <class HistogramType> void irtkHistogram_2D<HistogramType>::HistogramY(
   }
 }
 
-template <class HistogramType> void irtkHistogram_2D<HistogramType>::Log()
+template <> void irtkHistogram_2D<double>::Log()
 {
   int i, j;
-  HistogramType *ptr;
+  double *ptr;
 
   if (_nsamp == 0) {
-    cerr << "irtkHistogram_2D<HistogramType>::JointEntropy: No samples in Histogram" << endl;
+    cerr << "irtkHistogram_2D<double>::Log: No samples in Histogram" << endl;
     return;
   }
 
@@ -452,7 +452,7 @@ template <class HistogramType> double irtkHistogram_2D<HistogramType>::EntropyX(
   }
 
   // Do some initial calculations
-  int *tmp = new int[_nbins_x];
+  HistogramType *tmp = new HistogramType[_nbins_x];
   for (i = 0; i < _nbins_x; i++) tmp[i] = 0;
 
   // Calculate entropy
@@ -474,8 +474,8 @@ template <class HistogramType> double irtkHistogram_2D<HistogramType>::EntropyX(
 
 template <class HistogramType> double irtkHistogram_2D<HistogramType>::EntropyY()
 {
-  int i, j, tmp;
-  HistogramType *ptr;
+  int i, j;
+  HistogramType tmp, *ptr;
   double val;
 
   if (_nsamp == 0) {
@@ -661,7 +661,7 @@ template <class HistogramType> double irtkHistogram_2D<HistogramType>::SumsOfSqu
 template <class HistogramType> double irtkHistogram_2D<HistogramType>::LabelConsistency()
 {
   int i;
-  long int n;
+  HistogramType n;
 
   if (_nsamp == 0) {
     cerr << "irtkHistogram_2D<HistogramType>::LabelConsistency: No samples in Histogram" << endl;
@@ -692,8 +692,8 @@ template <class HistogramType> double irtkHistogram_2D<HistogramType>::Kappa()
     return 0;
   }
 
-  long int *col_sum = new long int[_nbins_x] ;
-  long int *row_sum = new long int[_nbins_x] ;
+  HistogramType *col_sum = new HistogramType[_nbins_x] ;
+  HistogramType *row_sum = new HistogramType[_nbins_x] ;
   for (j = 0; j < _nbins_x; j++) {
     col_sum[j] = 0;
     row_sum[j] = 0;
@@ -717,10 +717,10 @@ template <class HistogramType> double irtkHistogram_2D<HistogramType>::Kappa()
   return ((po-pe)/(1-pe));
 }
 
-template <class HistogramType> void irtkHistogram_2D<HistogramType>::Smooth()
+template <> void irtkHistogram_2D<double>::Smooth()
 {
   int i, j, k;
-  HistogramType **tmp, value;
+  double **tmp, value;
 
   if (_nsamp == 0) {
     cerr << "irtkHistogram_2D<HistogramType>::Smooth: No samples in Histogram" << endl;
@@ -844,7 +844,7 @@ template <class HistogramType> void irtkHistogram_2D<HistogramType>::Write(char 
 template <class HistogramType> void irtkHistogram_2D<HistogramType>::WriteAsImage(char *filename)
 {
   int i, j;
-  irtkGenericImage<int> image(_nbins_x, _nbins_y, 1);
+  irtkGenericImage<HistogramType> image(_nbins_x, _nbins_y, 1);
 
   for (j = 0; j < _nbins_y; j++) {
     for (i = 0; i < _nbins_x; i++) {

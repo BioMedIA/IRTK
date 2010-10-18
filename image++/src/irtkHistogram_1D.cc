@@ -181,7 +181,8 @@ template <class HistogramType> void irtkHistogram_1D<HistogramType>::PutNumberOf
 
 template <class HistogramType> double irtkHistogram_1D<HistogramType>::CDFToVal(double p)
 {
-  int i, sum;
+  int i;
+  HistogramType sum;
 
   if ((p < 0) || (p > 1)) {
     cerr << "irtkHistogram_1D<HistogramType>::CDFToVal: Must be between 0 and 1" << endl;
@@ -198,7 +199,7 @@ template <class HistogramType> double irtkHistogram_1D<HistogramType>::CDFToVal(
   return BinToVal(i);
 }
 
-template <class HistogramType> void irtkHistogram_1D<HistogramType>::Log()
+template <> void irtkHistogram_1D<double>::Log()
 {
   int i;
 
@@ -275,10 +276,10 @@ template <class HistogramType> double irtkHistogram_1D<HistogramType>::Entropy()
   return - val;
 }
 
-template <class HistogramType> void irtkHistogram_1D<HistogramType>::Smooth()
+template <> void irtkHistogram_1D<double>::Smooth()
 {
   int i, k;
-  HistogramType *tmp, value;
+  double *tmp, value;
 
   if (_nsamp == 0) {
     cerr << "irtkHistogram_1D<HistogramType>::Smooth: No samples in Histogram" << endl;
@@ -289,7 +290,7 @@ template <class HistogramType> void irtkHistogram_1D<HistogramType>::Smooth()
   double kernel[3] = { 1.0/6.0, 2.0/6.0, 1.0/6.0 };
 
   // Allocate temporary memory
-  tmp  = new HistogramType[_nbins];
+  tmp  = new double[_nbins];
 
   // Smooth
   for (i = 0; i < _nbins; i++) {
