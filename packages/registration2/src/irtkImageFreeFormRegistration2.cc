@@ -236,7 +236,7 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
 double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
 {
   double basis, pos[3], norm;
-  int i, j, k, i1, i2, j1, j2, k1, k2, x, y, z;
+  int i, j, k, i1, i2, j1, j2, k1, k2, x, y, z, index, index2, index3;
 
   // Compute gradient with respect to displacements
   this->irtkImageRegistration2::EvaluateGradient(gradient);
@@ -248,7 +248,7 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
 
   // Initialize gradient to 0
   for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-  	gradient[i] = 0;
+    gradient[i] = 0;
   }
 
   // Loop over control points
@@ -256,39 +256,45 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     for (y = 0; y < _affd->GetY(); y++) {
       for (x = 0; x < _affd->GetX(); x++) {
 
-        // Compute DoF
-      	int index = _affd->LatticeToIndex(x, y, z);
+        // Compute DoFs corresponding to the control point
+        index  = _affd->LatticeToIndex(x, y, z);
+        index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+        index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
 
-        // Calculate bounding box of control point in image coordinates
-        _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
+        // Check if any DoF corresponding to the control point is active
+        if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
-        // Loop over all voxels in the target (reference) volume
-        for (k = k1; k <= k2; k++) {
-          for (j = j1; j <= j2; j++) {
-            for (i = i1; i <= i2; i++) {
+        	// If so, calculate bounding box of control point in image coordinates
+          _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
 
-              // Check whether reference point is valid
-              if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
+          // Loop over all voxels in the target (reference) volume
+          for (k = k1; k <= k2; k++) {
+            for (j = j1; j <= j2; j++) {
+              for (i = i1; i <= i2; i++) {
 
-                // Convert position from voxel coordinates to world coordinates
-                pos[0] = i;
-                pos[1] = j;
-                pos[2] = k;
-                _target->ImageToWorld(pos[0], pos[1], pos[2]);
+                // Check whether reference point is valid
+                if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
 
-                // Convert world coordinates into lattice coordinates
-                _affd->WorldToLattice(pos[0], pos[1], pos[2]);
+                  // Convert position from voxel coordinates to world coordinates
+                  pos[0] = i;
+                  pos[1] = j;
+                  pos[2] = k;
+                  _target->ImageToWorld(pos[0], pos[1], pos[2]);
 
-                // Compute B-spline tensor product at pos
-                basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+                  // Convert world coordinates into lattice coordinates
+                  _affd->WorldToLattice(pos[0], pos[1], pos[2]);
 
-                // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
-                //
-                // NOTE: This currently assumes that the control points displacements are aligned with the voxel displacements
-                //
-                gradient[index]                                             += basis * _similarityGradient(i, j, k, 0);
-                gradient[index+_affd->GetX()*_affd->GetY()*_affd->GetZ()]   += basis * _similarityGradient(i, j, k, 1);
-                gradient[index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ()] += basis * _similarityGradient(i, j, k, 2);
+                  // Compute B-spline tensor product at pos
+                  basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+
+                  // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
+                  //
+                  // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
+                  //
+                  gradient[index]  += basis * _similarityGradient(i, j, k, 0);
+                  gradient[index2] += basis * _similarityGradient(i, j, k, 1);
+                  gradient[index3] += basis * _similarityGradient(i, j, k, 2);
+                }
               }
             }
           }
@@ -307,18 +313,22 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
   norm = sqrt(norm);
   if (norm > 0) {
     for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-    	gradient[i] /= norm;
+      if (_affd->irtkTransformation::GetStatus(i) == _Active) {
+        gradient[i] /= norm;
+      } else {
+        gradient[i] = 0;
+      }
     }
   } else {
     for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-    	gradient[i] = 0;
+      gradient[i] = 0;
     }
   }
 
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkImageFreeFormRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
+  //cout << "CPU time for irtkImageFreeFormRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
   return norm;
 }
@@ -421,10 +431,10 @@ void irtkImageFreeFormRegistration2::Run()
           similarity = this->Evaluate();
 
           if (similarity > new_similarity + _Epsilon) {
-            // Last step was no improvement, so back track
+            cout << "New metric value is " << similarity << endl;
             updateGradient = True;
           } else {
-           // Last step was no improvement, so back track
+            // Last step was no improvement, so back track
             for (k = 0; k < _affd->NumberOfDOFs(); k++) {
               _affd->Put(k, _affd->Get(k) - step * gradient[k]);
             }

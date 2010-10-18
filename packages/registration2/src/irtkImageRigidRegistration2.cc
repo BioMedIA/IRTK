@@ -188,7 +188,7 @@ void irtkImageRigidRegistration2::Update()
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkImageRigidRegistration2::Update() = " << cpu_time_used << endl;
+  //cout << "CPU time for irtkImageRigidRegistration2::Update() = " << cpu_time_used << endl;
 }
 
 double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
@@ -271,7 +271,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkImageRigidRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
+  //cout << "CPU time for irtkImageRigidRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
   return norm;
 }

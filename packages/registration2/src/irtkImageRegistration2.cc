@@ -262,7 +262,7 @@ void irtkImageRegistration2::Initialize(int level)
       // Rescale images by an integer factor if necessary
       target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins, target_min, target_max);
       source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins, source_min, source_max);
-      _histogram = new irtkHistogram_2D<int>(target_nbins, source_nbins);
+      _histogram = new irtkHistogram_2D<double>(target_nbins, source_nbins);
       break;
     default:
       cerr << this->NameOfClass() << "::Initialize(int): No such metric implemented" << endl;
@@ -334,6 +334,8 @@ void irtkImageRegistration2::Update()
 
   // Generate transformed tmp image
   _transformedSource = *_target;
+
+  /*
   _imagetransformation.SetInput (_source, _transformation);
   _imagetransformation.SetOutput(&_transformedSource);
   _imagetransformation.PutInterpolator(_interpolator);
@@ -341,6 +343,30 @@ void irtkImageRegistration2::Update()
 
   // Update source image
   _imagetransformation.Run();
+  */
+
+  int i, j, k;
+  double x, y, z;
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        x = i;
+        y = j;
+        z = k;
+        _target->ImageToWorld(x, y, z);
+        _transformation->Transform(x, y, z);
+        _source->WorldToImage(x, y, z);
+        // Check whether transformed point is inside volume
+        if ((x > _source_x1) && (x < _source_x2) &&
+            (y > _source_y1) && (y < _source_y2) &&
+            (z > _source_z1) && (z < _source_z2)) {
+          _transformedSource(i, j, k) = round(_interpolator->EvaluateInside(x, y, z, 0));
+        } else {
+        	_transformedSource(i, j, k) = -1;
+        }
+      }
+    }
+  }
 
   // Compute gradient of source image
   irtkGradientImageFilter<double> gradient(irtkGradientImageFilter<double>::GRADIENT_VECTOR);
@@ -351,7 +377,7 @@ void irtkImageRegistration2::Update()
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkImageRegistration2::Update() = " << cpu_time_used << endl;
+  //cout << "CPU time for irtkImageRegistration2::Update() = " << cpu_time_used << endl;
 
 }
 
@@ -543,7 +569,7 @@ double irtkImageRegistration2::EvaluateNMI()
   // Compute metric
   for (i = 0; i < _target->GetNumberOfVoxels(); i++) {
     if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
-      _histogram->Add(*ptr2target, *ptr2source);
+      _histogram->Add(*ptr2target, round(*ptr2source));
     }
     ptr2target++;
     ptr2source++;
@@ -585,7 +611,7 @@ double irtkImageRegistration2::Evaluate()
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkImageRegistration2::Evaluate() = " << cpu_time_used << endl;
+  //cout << "CPU time for irtkImageRegistration2::Evaluate() = " << cpu_time_used << endl;
 
   // Evaluate similarity measure
   return metric;
@@ -633,25 +659,25 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   // Recompute joint histogram
   for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
     for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
-      logJointHistogram.Add(i, j, _histogram->irtkHistogram_2D<int>::operator()(i, j));
+      logJointHistogram.Add(i, j, _histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }
 
   // Smooth joint histogram
-  //  logJointHistogram.Smooth();
+  //logJointHistogram.Smooth();
   je  = logJointHistogram.JointEntropy();
   nmi = logJointHistogram.NormalizedMutualInformation();
 
   // Recompute marginal histogram for X
   for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
     for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
-      logMarginalXHistogram.Add(i, _histogram->irtkHistogram_2D<int>::operator()(i, j));
+      logMarginalXHistogram.Add(i, _histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }
   // Recompute marginal histogram for Y
   for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
     for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
-      logMarginalYHistogram.Add(j, _histogram->irtkHistogram_2D<int>::operator()(i, j));
+      logMarginalYHistogram.Add(j, _histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }
 
@@ -779,7 +805,7 @@ double irtkImageRegistration2::EvaluateGradient(double *)
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkImageRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
+  //cout << "CPU time for irtkImageRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
   // This function always returns 0
   return 0;

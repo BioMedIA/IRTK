@@ -16,30 +16,32 @@
 
 inline double GetBasisSplineValue(double x)
 {
-  x=fabs(x);
-  double value=0.0;
-  if(x<2.0)
-    if(x<1.0)
+  x = fabs(x);
+  double value = 0.0;
+  if (x < 2.0) {
+    if (x < 1.0) {
       value = (double)(2.0f/3.0f + (0.5f*x-1.0)*x*x);
-    else {
-      x-=2.0f;
+    } else {
+      x -= 2.0f;
       value = -x*x*x/6.0f;
     }
+  }
   return value;
 }
 
 inline double GetBasisSplineDerivativeValue(double ori)
 {
-  double x=fabs(ori);
-  double value=0.0;
-  if(x<2.0)
-    if(x<1.0)
+  double x = fabs(ori);
+  double value = 0.0;
+  if(x < 2.0) {
+    if(x < 1.0) {
       value = (double)((1.5f*x-2.0)*ori);
-    else {
-      x-=2.0f;
+    }  else {
+      x -=2.0f;
       value = -0.5f * x * x;
-      if(ori<0.0f)value =-value;
+      if(ori<0.0f) value =-value;
     }
+  }
   return value;
 }
 
@@ -92,8 +94,8 @@ protected:
   /// Gradient of the similarity metric
   irtkGenericImage<double> _similarityGradient;
 
-  /// 2D histogram (this is not used for all similarity metrics
-  irtkHistogram_2D<int> *_histogram;
+  /// 2D histogram (this is not used for all similarity metrics)
+  irtkHistogram_2D<double> *_histogram;
 
   /// Interpolator
   irtkInterpolateImageFunction *_interpolator;
