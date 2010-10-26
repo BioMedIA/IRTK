@@ -786,11 +786,11 @@ bool irtkImageFreeFormRegistration::Read(char *buffer1, char *buffer2, int &leve
     ok = true;
   }
   if (strstr(buffer1, "Subdivision") != NULL) {
-    if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
       this->_Subdivision = false;
       cout << "Subdivision is ... false" << endl;
     } else {
-      if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
         this->_Subdivision = true;
         cout << "Subdivision is ... true" << endl;
       } else {
@@ -818,9 +818,9 @@ void irtkImageFreeFormRegistration::Write(ostream &to)
   to << "Control point spacing in Y        = " << this->_DY << endl;
   to << "Control point spacing in Z        = " << this->_DZ << endl;
   if (_Subdivision == true) {
-    to << "Subdivision                       = true" << endl;
+    to << "Subdivision                       = True" << endl;
   } else {
-    to << "Subdivision                       = false" << endl;
+    to << "Subdivision                       = False" << endl;
   }
   to << "Speedup factor                    = " << this->_SpeedupFactor << endl;
 
