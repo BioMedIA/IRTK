@@ -40,6 +40,7 @@ void usage()
   cerr << "                  subset of voxel locations and their transformed coordinates." << endl;
   cerr << "                  Remove the effect of this global transformation before " << endl;
   cerr << "                  estimating the distances." << endl;
+  cerr << " -square          Provide map of squared distances." << endl;
   cerr << " " << endl;
   exit(1);
 }
@@ -47,7 +48,8 @@ void usage()
 int main(int argc, char **argv)
 {
   irtkTransformation **transformation = NULL;
-  int ok, x, y, z, regressAffine; 
+  int  x, y, z;
+  bool regressAffine, ok, squaredDistance;
   double Tp, val;
   int i, noOfDofs;
   int noOfPoints, ptID;
@@ -64,7 +66,7 @@ int main(int argc, char **argv)
   output_name = argv[1];
   argc--;
   argv++;
-  
+
   // Read target image
   cout << "Reading target ... ";
   cout.flush();
@@ -72,13 +74,14 @@ int main(int argc, char **argv)
   cout << "done" << endl;
 
   Tp = -1.0 * FLT_MAX;
-  
+
   // Fix number of dofs
   noOfDofs = 0;
 
   dof_name = new char*[MAX_DOFS];
-  
+
   regressAffine = false;
+  squaredDistance = false;
 
   while (argc > 1){
     ok = false;
@@ -105,6 +108,12 @@ int main(int argc, char **argv)
       regressAffine = true;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-square") == 0)){
+      argc--;
+      argv++;
+      squaredDistance = true;
+      ok = true;
+    }
     if ((ok == false) && (strcmp(argv[1], "-mask") == 0)){
       argc--;
       argv++;
@@ -117,7 +126,7 @@ int main(int argc, char **argv)
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
-  } 
+  }
 
   if (noOfDofs == 0){
     cout << "No transformations specified: Using a single identity transformation!" << endl;
@@ -133,28 +142,28 @@ int main(int argc, char **argv)
     }
     cout << "done." << endl;
   }
-  
+
   cout << "Setting up mask ... ";
   cout.flush();
-  
+
   irtkGreyImage mask;
-  
+
   if (mask_name == NULL){
     mask.Read(target_name);
     irtkGreyPixel *ptr2mask = mask.GetPointerToVoxels();
     irtkRealPixel *ptr2tgt  = target.GetPointerToVoxels();
     noOfPoints = target.GetNumberOfVoxels();
-    
+
     for (i = 0; i < noOfPoints; i++){
       if (*ptr2tgt > Tp)
         *ptr2mask = 1;
       else
         *ptr2mask = 0;
-      
+
       ++ptr2tgt;
       ++ptr2mask;
     }
-    
+
   } else {
     mask.Read(mask_name);
   }
@@ -162,14 +171,14 @@ int main(int argc, char **argv)
 
   // Make an identity global transformation.
   irtkAffineTransformation *trAffine = new irtkAffineTransformation;
-  
-  
+
+
   if (regressAffine == true){
     // Estimate the global affine transformation.
-    
+
     irtkPointSet targetPts;
     irtkPointSet sourcePts;
-    
+
     // Collect point data.
     cout << "Collecting point data." << endl;
 
@@ -181,10 +190,10 @@ int main(int argc, char **argv)
     while ((noOfPoints / incr) > MAX_PTS_PAREG){
       incr++;
     }
-    
+
     cout << "Subsampling uniformly by increments of " << incr << " ... ";
     cout.flush();
-    
+
     noOfPoints = 0;
     ptID = -1;
 
@@ -222,10 +231,10 @@ int main(int argc, char **argv)
 
     cout << "done." << endl;
     cout << "Sampled point count : " << noOfPoints << endl;
-    
+
     cout << "Estimating global affine component ... (Error = ";
     cout.flush();
-    
+
     irtkPointAffineRegistration *pareg = new irtkPointAffineRegistration;
     // Set input and output for the registration filter
     irtkPointSet tmp1 = targetPts;
@@ -240,14 +249,14 @@ int main(int argc, char **argv)
     cout << "Estimated global affine transformation: " << endl;
     trAffine->Print();
     cout << endl;
-    
+
     cout << "Calculating displacements after removing affine component ... ";
   } else {
     // No affine regression
     cout << "Calculating full displacements of transformations ... ";
   }
   cout.flush();
-  
+
   for (z = 0; z < target.GetZ(); z++){
     for (y = 0; y < target.GetY(); y++){
       for (x = 0; x < target.GetX(); x++){
@@ -260,18 +269,21 @@ int main(int argc, char **argv)
           // Transform points into target world coordinates
           target.ImageToWorld(p);
           target.ImageToWorld(q);
-          
-          // Apply global Affine to one copy of the target 
+
+          // Apply global Affine to one copy of the target
           // points (this is the identity if no regression was done).
           trAffine->irtkTransformation::Transform(p);
-          
+
           // Transform the other copy by the input dofs.
           for (i = 0; i < noOfDofs; i++){
             transformation[i]->Transform(q);
           }
-          
+
           // Calculate distance.
           val = p.Distance(q);
+          if (squaredDistance == true){
+            val = val * val;
+          }
         } else {
           val = 0;
         }
