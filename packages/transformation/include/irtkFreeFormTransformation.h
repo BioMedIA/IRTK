@@ -67,6 +67,8 @@ public:
   /// Returns a string with the name of the instantiated class
   virtual const char *NameOfClass();
 
+  /// Calculate the bending of the transformation.
+  virtual double Bending(double, double, double, double = 0.0) = 0;
 };
 
 inline const char *irtkFreeFormTransformation::NameOfClass()

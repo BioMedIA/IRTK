@@ -673,7 +673,8 @@ void irtkLinearFreeFormTransformation::LocalJacobian(irtkMatrix &jac, double x, 
 
 }
 
-double irtkLinearFreeFormTransformation::Bending(double, double, double)
+double irtkLinearFreeFormTransformation::Bending(double, double, double, double
+)
 {
   cerr << "irtkLinearFreeFormTransformation::Bending :Not yet implemented" << endl;
   exit(1);

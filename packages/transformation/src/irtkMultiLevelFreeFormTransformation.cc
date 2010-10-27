@@ -395,6 +395,7 @@ void irtkMultiLevelFreeFormTransformation::LocalJacobian(irtkMatrix &jac, double
     // Calculate jacobian
     _localTransformation[i]->Jacobian(tmp_jac, x, y, z, t);
 
+
     // Subtract identity matrix
     tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
     tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
@@ -404,6 +405,18 @@ void irtkMultiLevelFreeFormTransformation::LocalJacobian(irtkMatrix &jac, double
     jac += tmp_jac;
   }
 }
+
+double irtkMultiLevelFreeFormTransformation::Bending(double x, double y, double z)
+{
+  int i;
+  double val = 0.0;
+  
+  for (i = 0; i < _NumberOfLevels; i++){
+    val += _localTransformation[i]->Bending(x, y, z);
+  }
+  return val;
+}
+
 
 double irtkMultiLevelFreeFormTransformation::Approximate(double *x1, double *y1, double *z1, double *x2, double *y2, double *z2, int no)
 {

@@ -189,6 +189,7 @@ public:
 
   /// Calculate the bending energy of the transformation
   virtual double Bending(double x, double y, double z);
+  virtual double Bending(double x, double y, double z, double t);
 
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The
@@ -444,6 +445,11 @@ inline void irtkBSplineFreeFormTransformation3D::Displacement(double &x, double 
 inline const char *irtkBSplineFreeFormTransformation3D::NameOfClass()
 {
   return "irtkBSplineFreeFormTransformation3D";
+}
+
+inline double irtkBSplineFreeFormTransformation3D::Bending(double x, double y, double z, double t)
+{
+  return this->Bending(x, y, z);
 }
 
 #endif

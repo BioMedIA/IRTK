@@ -104,6 +104,9 @@ public:
   /// Calculate the Jacobian of the local transformation
   virtual void LocalJacobian(irtkMatrix &, double, double, double, double = 0);
 
+  /// Calculate the bending of the local transformation.
+  virtual double Bending(double, double, double);
+
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FreeFD which approximates these
       displacements. After approximatation the displacements replaced by

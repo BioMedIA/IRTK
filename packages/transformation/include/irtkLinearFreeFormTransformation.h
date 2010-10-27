@@ -106,7 +106,7 @@ public:
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 
   /// Calculate the bending energy of the transformation
-  virtual double Bending(double x, double y, double z);
+  virtual double Bending(double x, double y, double z, double t);
 
   /// Inverts the transformation
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.0001);

@@ -135,7 +135,7 @@ public:
   virtual _Status GetStatus(int);
 
   /// Calculate the bending energy of the transformation
-  virtual double Bending(double x, double y, double z) = 0;
+  virtual double Bending(double x, double y, double z, double t) = 0;
 
   /// Transforms world coordinates (in mm) to FFD coordinates
   virtual void WorldToLattice(double &, double &, double &) const;
