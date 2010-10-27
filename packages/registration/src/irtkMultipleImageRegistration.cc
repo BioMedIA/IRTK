@@ -32,7 +32,7 @@ concurrent_queue<irtkSimilarityMetric *> queue;
 
 #endif
 
-irtkGreyImage **tmp_target, **tmp_source;
+irtkGreyImage **tmp_mtarget, **tmp_msource;
 
 irtkMultipleImageRegistration::irtkMultipleImageRegistration()
 {
@@ -97,8 +97,6 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
 
 irtkMultipleImageRegistration::~irtkMultipleImageRegistration()
 {
-	delete []_target;
-	delete []_source;
 #ifdef HISTORY
   delete history;
 #endif
@@ -135,8 +133,8 @@ void irtkMultipleImageRegistration::Initialize(int level)
   irtkGreyPixel source_min, source_max, source_nbins;
 
   // Allocate memory for temporary images
-  tmp_target = new irtkGreyImage*[_numberOfImages];
-  tmp_source = new irtkGreyImage*[_numberOfImages];
+  tmp_mtarget = new irtkGreyImage*[_numberOfImages];
+  tmp_msource = new irtkGreyImage*[_numberOfImages];
 
   target_max = MIN_GREY;
   target_min = MAX_GREY;
@@ -146,8 +144,8 @@ void irtkMultipleImageRegistration::Initialize(int level)
   for (n = 0; n < _numberOfImages; n++) {
 
     // Copy source and target to temp space
-    tmp_target[n] = new irtkGreyImage(*_target[n]);
-    tmp_source[n] = new irtkGreyImage(*_source[n]);
+    tmp_mtarget[n] = new irtkGreyImage(*_target[n]);
+    tmp_msource[n] = new irtkGreyImage(*_source[n]);
 	
 	/*char buffer[255];
 	sprintf(buffer, "target%d.nii", n);
@@ -156,8 +154,8 @@ void irtkMultipleImageRegistration::Initialize(int level)
 	_source[n]->Write(buffer);*/
 
     // Swap source and target with temp space copies
-    swap(tmp_target[n], _target[n]);
-    swap(tmp_source[n], _source[n]);
+    swap(tmp_mtarget[n], _target[n]);
+    swap(tmp_msource[n], _source[n]);
 
     // Blur images if necessary
     if (_TargetBlurring[level] > 0) {
@@ -438,11 +436,6 @@ void irtkMultipleImageRegistration::Finalize()
   delete []_source_x2;
   delete []_source_y2;
   delete []_source_z2;
-
-  for (n = 0; n < _numberOfImages; n++) {
-    delete _interpolator[n];
-  }
-
   delete []_interpolator;
 }
 
@@ -454,8 +447,8 @@ void irtkMultipleImageRegistration::Finalize(int level)
   _transformation->Print();
 
   // Swap source and target back with temp space copies (see Initialize)
-  swap(tmp_target, _target);
-  swap(tmp_source, _source);
+  swap(tmp_mtarget, _target);
+  swap(tmp_msource, _source);
 
 #ifdef HAS_TBB
   irtkSimilarityMetric *metric;
@@ -465,11 +458,14 @@ void irtkMultipleImageRegistration::Finalize(int level)
   }
 #endif
   for (n = 0; n < _numberOfImages; n++) {
-	  delete tmp_target[n];
-	  delete tmp_source[n];
+	  delete tmp_mtarget[n];
+	  delete tmp_msource[n];
+	  delete _interpolator[n];
   }
-  delete []tmp_target;
-  delete []tmp_source;
+  delete []tmp_mtarget;
+  delete []tmp_msource;
+  delete _optimizer;
+  delete _metric;
 }
 
 void irtkMultipleImageRegistration::Run()

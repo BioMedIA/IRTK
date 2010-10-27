@@ -15,10 +15,10 @@
 #undef HAS_TBB
 
 // Used as temporary memory for transformed intensities
-irtkGreyImage **_tmpImage;
+irtkGreyImage **_mtmpImage;
 
 // The original target and source images
-extern irtkGreyImage **tmp_target, **tmp_source;
+extern irtkGreyImage **tmp_mtarget, **tmp_msource;
 
 #include <irtkMultiThreadedImageFreeFormRegistration.h>
 
@@ -154,7 +154,7 @@ void irtkMultipleImageFreeFormRegistration::Initialize()
   }
 
   // Initialize pointers
-  _tmpImage         = NULL;
+  _mtmpImage         = NULL;
   _affdLookupTable  = NULL;
   _mffdLookupTable  = NULL;
   _localLookupTable = new float [FFDLOOKUPTABLESIZE];
@@ -188,14 +188,14 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
   _tmpMetricB = irtkSimilarityMetric::New(_metric);
 
   // Allocate memory for temp image
-  _tmpImage = new irtkGreyImage*[_numberOfImages];
+  _mtmpImage = new irtkGreyImage*[_numberOfImages];
 
   // Allocate memory for lookup tables
   _affdLookupTable = new float*[_numberOfImages];
   _mffdLookupTable = new float*[_numberOfImages];
 
   for (l = 0; l < _numberOfImages; l++) {
-    _tmpImage[l] = new irtkGreyImage(_target[l]->GetX(),
+    _mtmpImage[l] = new irtkGreyImage(_target[l]->GetX(),
                                      _target[l]->GetY(),
                                      _target[l]->GetZ(),
                                      _target[l]->GetT());
@@ -228,8 +228,7 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
   }
 
   // Padding of FFD
-  //cout << "Fix irtkPadding(*tmp_target, this->_TargetPadding, _affd);" << endl;
-  irtkPadding(tmp_target, this->_TargetPadding, _affd, _numberOfImages);
+  irtkPadding(tmp_mtarget, this->_TargetPadding, _affd, _numberOfImages);
 }
 
 void irtkMultipleImageFreeFormRegistration::Finalize()
@@ -269,8 +268,12 @@ void irtkMultipleImageFreeFormRegistration::Finalize(int level)
           this->_DZ / pow(2.0, this->_NumberOfLevels-level));
     }
   }
-
-  delete _tmpImage;
+  for (int n = 0; n < _numberOfImages; n++) {
+	delete _mtmpImage[n];
+	delete _affdLookupTable[n];
+	delete _mffdLookupTable[n];
+  }
+  delete []_mtmpImage;
   delete _tmpMetricA;
   delete _tmpMetricB;
   delete []_affdLookupTable;
@@ -453,7 +456,7 @@ double irtkMultipleImageFreeFormRegistration::Evaluate()
   for (n = 0; n < _numberOfImages; n++) {
     // Loop over all voxels in the target (reference) volume
     ptr2target = _target[n]->GetPointerToVoxels();
-    ptr2tmp    = _tmpImage[n]->GetPointerToVoxels();
+    ptr2tmp    = _mtmpImage[n]->GetPointerToVoxels();
     for (t = 0; t < _target[n]->GetT(); t++) {
       ptr        = _mffdLookupTable[n];
       for (k = 0; k < _target[n]->GetZ(); k++) {
@@ -569,7 +572,7 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 			for (j = j1; j <= j2; j++) {
 				ptr2target = _target[n]->GetPointerToVoxels(i1, j, k, t);
 				ptr        = &(_affdLookupTable[n][3*_target[n]->VoxelToIndex(i1, j, k)]);
-				ptr2tmp  = _tmpImage[n]->GetPointerToVoxels(i1, j, k, t);
+				ptr2tmp  = _mtmpImage[n]->GetPointerToVoxels(i1, j, k, t);
 				for (i = i1; i <= i2; i++) {
 					x = i; y = j; z = k;
 					_target[n]->ImageToWorld(x,y,z);
@@ -768,11 +771,11 @@ bool irtkMultipleImageFreeFormRegistration::Read(char *buffer1, char *buffer2, i
     ok = true;
   }
   if (strstr(buffer1, "Subdivision") != NULL) {
-    if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
       this->_Subdivision = false;
       cout << "Subdivision is ... false" << endl;
     } else {
-      if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
         this->_Subdivision = true;
         cout << "Subdivision is ... true" << endl;
       } else {
@@ -783,11 +786,11 @@ bool irtkMultipleImageFreeFormRegistration::Read(char *buffer1, char *buffer2, i
     ok = true;
   }
   if (strstr(buffer1, "MFFDMode") != NULL) {
-    if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
       this->_MFFDMode = false;
       cout << "MFFDMode is ... false" << endl;
     } else {
-      if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
         this->_MFFDMode = true;
         cout << "MFFDMode is ... true" << endl;
       } else {
@@ -815,15 +818,15 @@ void irtkMultipleImageFreeFormRegistration::Write(ostream &to)
   to << "Control point spacing in Y        = " << this->_DY << endl;
   to << "Control point spacing in Z        = " << this->_DZ << endl;
   if (_Subdivision == true) {
-    to << "Subdivision                       = true" << endl;
+    to << "Subdivision                       = True" << endl;
   } else {
-    to << "Subdivision                       = false" << endl;
+    to << "Subdivision                       = False" << endl;
   }
   to << "Speedup factor                    = " << this->_SpeedupFactor << endl;
   if (_MFFDMode == true) {
-    to << "MFFDMode                       = true" << endl;
+    to << "MFFDMode                       = True" << endl;
   } else {
-    to << "MFFDMode                       = false" << endl;
+    to << "MFFDMode                       = False" << endl;
   }
 
   this->irtkMultipleImageRegistration::Write(to);
