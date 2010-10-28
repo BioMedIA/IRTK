@@ -68,6 +68,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkRicianNoise.h
 ../include/irtkRicianNoiseWithPadding.h
 ../include/irtkScalarFunctionToImage.h
+../include/irtkShapeBasedInterpolateImageFunction.h
 ../include/irtkSincInterpolateImageFunction2D.h
 ../include/irtkSincInterpolateImageFunction.h
 ../include/irtkTemplate.h
@@ -140,6 +141,7 @@ irtkResamplingWithPadding.cc
 irtkRicianNoise.cc
 irtkRicianNoiseWithPadding.cc
 irtkScalarFunctionToImage.cc
+irtkShapeBasedInterpolateImageFunction.cc
 irtkSincInterpolateImageFunction.cc
 irtkSincInterpolateImageFunction2D.cc
 irtkUniformNoise.cc

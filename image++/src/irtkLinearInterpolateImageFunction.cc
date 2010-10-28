@@ -150,5 +150,16 @@ double irtkLinearInterpolateImageFunction::Evaluate(double x, double y, double z
       }
     }
   }
+  switch (this->_input->GetScalarType()) {
+	  case IRTK_VOXEL_UNSIGNED_SHORT: {
+		  val = round(val);
+		  break;
+									  }
+	  case IRTK_VOXEL_SHORT: {
+		  val = round(val);
+		  break;
+							 }
+	  default: break;
+  }
   return val;
 }
