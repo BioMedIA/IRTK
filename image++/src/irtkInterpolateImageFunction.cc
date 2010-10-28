@@ -48,6 +48,10 @@ irtkInterpolateImageFunction *irtkInterpolateImageFunction::New(irtkInterpolatio
     case Interpolation_Gaussian:
       return new irtkGaussianInterpolateImageFunction2D;
       break;
+    default:
+    	cerr << "irtkInterpolateImageFunction::New: Interpolation mode not supported" << endl;
+    	exit(1);
+
     }
   } else {
     switch (interpolationMode) {

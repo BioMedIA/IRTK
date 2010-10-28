@@ -927,6 +927,10 @@ void irtkSymmetricImageRegistration::Write(ostream &to)
     case Interpolation_Gaussian:
       to << "Interpolation mode                = Gaussian" << endl;
       break;
+    default:
+    	cerr << "irtkSymmetricImageRegistration::Write: Interpolation mode not supported" << endl;
+    	exit(1);
+
   }
 
   switch (this->_OptimizationMethod) {

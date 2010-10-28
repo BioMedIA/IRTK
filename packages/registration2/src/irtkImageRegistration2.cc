@@ -1110,6 +1110,9 @@ void irtkImageRegistration2::Write(ostream &to)
     case Interpolation_Gaussian:
       to << "Interpolation mode                = Gaussian" << endl;
       break;
+    default:
+    	cerr << "irtkImageRegistration2::Write: Interpolation mode not supported" << endl;
+    	exit(1);
   }
 
   for (i = 0; i < this->_NumberOfLevels; i++) {

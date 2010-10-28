@@ -428,8 +428,6 @@ void irtkMultipleImageRegistration::Initialize(int level)
 
 void irtkMultipleImageRegistration::Finalize()
 {
-  int n;
-
   delete []_source_x1;
   delete []_source_y1;
   delete []_source_z1;
@@ -940,6 +938,9 @@ void irtkMultipleImageRegistration::Write(ostream &to)
   case Interpolation_Gaussian:
     to << "Interpolation mode                = Gaussian" << endl;
     break;
+  default:
+  	cerr << "irtkMultipleImageRegistration::Write: Interpolation mode not supported" << endl;
+  	exit(1);
   }
 
   switch (this->_OptimizationMethod) {

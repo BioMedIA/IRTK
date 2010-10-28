@@ -47,7 +47,7 @@ void irtkShapeBasedInterpolateImageFunction::Initialize()
   double xaxis[3], yaxis[3], zaxis[3];
   double new_xsize, new_ysize, new_zsize;
   double old_xsize, old_ysize, old_zsize;
-  double dmin,dmax,min,max,current,sum,sumcount;
+  double min,max,current,sum,sumcount;
 
   _dmap = irtkRealImage(_input->GetImageAttributes());
   _tinput = irtkRealImage(_input->GetImageAttributes());
@@ -318,12 +318,15 @@ void irtkShapeBasedInterpolateImageFunction::Refine()
 {
 
   int x, y, z, t;
-  double dmin,dmax,min,max,current,sum,sumcount,dcurrent;
+  double min,max,current,sum,sumcount,dcurrent;
+
+  // Initialization
+  sum = 0;
 
   // For every intensity value
   _input->GetMinMaxAsDouble(&min,&max);
 
-  // Initlaize _rcdmap
+  // Initialize _rcdmap
   for (t = 0 ; t < _rcdmap.GetT(); t++){
 	  for (z = 0; z < _rcdmap.GetZ(); z++) {
 		  for (y = 0; y < _rcdmap.GetY(); y++) {
@@ -535,8 +538,7 @@ double irtkShapeBasedInterpolateImageFunction::EvaluateInside(double x, double y
 
 double irtkShapeBasedInterpolateImageFunction::Evaluate(double x, double y, double z, double t)
 {
-  int i, j, k, l, m, n;
-  double val;
+  int i, j, k, l;
 
   _input->ImageToWorld(x,y,z);
   _rinput.WorldToImage(x,y,z);
