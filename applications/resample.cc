@@ -26,6 +26,7 @@ void usage()
   cerr << "\t<-bspline>         B-spline interpolation\n";
   cerr << "\t<-cspline>         Cubic spline interpolation\n";
   cerr << "\t<-sinc>            Truncated sinc interpolation\n";
+  cerr << "\t<-sbased>          Shape based interpolation\n";
   cerr << "\t<-gaussian sigma>  Gaussian interpolation\n";
   cerr << "\t<-padding value>   Background padding (default: MIN_SHRT)\n";
   cerr << "\t                   Only linear interpolation for padding!\n\n";
@@ -35,8 +36,9 @@ void usage()
 int main(int argc, char **argv)
 {
   bool ok, padding;
+  int isotropic;
   double xsize, ysize, zsize;
-  irtkGreyImage image;
+  irtkImage *image;
   irtkImageFunction *interpolator = NULL;
   irtkGreyPixel padding_value = MIN_GREY;
 
@@ -54,13 +56,15 @@ int main(int argc, char **argv)
   argv++;
 
   // Read input
-  image.Read(input_name);
+  image = irtkImage::New(input_name);
 
   // Parse remaining parameters
   xsize = 1;
   ysize = 1;
   zsize = 1;
   padding = false;
+  isotropic = false;
+
   while (argc > 1) {
     ok = false;
     if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
@@ -83,6 +87,17 @@ int main(int argc, char **argv)
       interpolator = new irtkLinearInterpolateImageFunction;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-isotropic") == 0)) {
+		argc--;
+		argv++;
+		if (argc > 1 && argv[1][0] != '-') {
+			isotropic = atoi(argv[1]);
+			argc--;
+			argv++;
+		}else
+			isotropic = 1;
+		ok = true;
+	}
     if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
@@ -101,6 +116,12 @@ int main(int argc, char **argv)
       interpolator = new irtkSincInterpolateImageFunction;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-sbased") == 0)) {
+		argc--;
+		argv++;
+		interpolator = new irtkShapeBasedInterpolateImageFunction;
+		ok = true;
+	}
     if ((ok == false) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
@@ -129,12 +150,79 @@ int main(int argc, char **argv)
     interpolator = new irtkNearestNeighborInterpolateImageFunction;
   }
 
-  // Resample
-  if (padding == false) {
+  // Isotropic?
+  if(isotropic){
+	  // Resample image to isotropic voxels (smalles voxel dimension)
+	  double xsize, ysize, zsize, size;
+	  image->GetPixelSize(&xsize, &ysize, &zsize);
+	  size = xsize;
+	  size = (size < ysize) ? size : ysize;
+	  size = (size < zsize) ? size : zsize;
+	  cerr << "Resampling image to isotropic voxel size (in mm): "
+		  << size << "z axis times " << isotropic << endl;
+	  switch (image->GetScalarType()) {
+			  case IRTK_VOXEL_UNSIGNED_SHORT: {
+				  if (padding == false){
+					irtkResampling<irtkGreyPixel> resampling(size, size, size*isotropic);
+					resampling.SetInput ((irtkGreyImage*)(image));
+					resampling.SetOutput((irtkGreyImage*)(image));
+					resampling.SetInterpolator(interpolator);
+					resampling.Run();
+				  }
+				  else{
+					irtkResamplingWithPadding<irtkGreyPixel> resampling(size, size, size*isotropic,padding_value);
+					resampling.SetInput ((irtkGreyImage*)(image));
+					resampling.SetOutput((irtkGreyImage*)(image));
+					resampling.SetInterpolator(interpolator);
+					resampling.Run();
+				  }
+				  break;
+											  }
+			  case IRTK_VOXEL_SHORT: {
+				  if (padding == false){
+					irtkResampling<irtkGreyPixel> resampling(size, size, size*isotropic);
+					resampling.SetInput ((irtkGreyImage*)(image));
+					resampling.SetOutput((irtkGreyImage*)(image));
+					resampling.SetInterpolator(interpolator);
+					resampling.Run();
+				  }
+				  else{
+					irtkResamplingWithPadding<irtkGreyPixel> resampling(size, size, size*isotropic,padding_value);
+					resampling.SetInput ((irtkGreyImage*)(image));
+					resampling.SetOutput((irtkGreyImage*)(image));
+					resampling.SetInterpolator(interpolator);
+					resampling.Run();
+				  }
+				  break;
+									 }
+			  case IRTK_VOXEL_FLOAT: {
+				  if (padding == false){
+					irtkResampling<irtkRealPixel> resampling(size, size, size*isotropic);
+					resampling.SetInput ((irtkRealImage*)(image));
+					resampling.SetOutput((irtkRealImage*)(image));
+					resampling.SetInterpolator(interpolator);
+					resampling.Run();
+				  }
+				  else{
+					irtkResamplingWithPadding<irtkRealPixel> resampling(size, size, size*isotropic,padding_value);
+					resampling.SetInput ((irtkRealImage*)(image));
+					resampling.SetOutput((irtkRealImage*)(image));
+					resampling.SetInterpolator(interpolator);
+					resampling.Run();
+				  }
+				  break;
+									 }
+			  default:
+				  cerr << "transformation: Unknown scalar type" << endl;
+				  exit(1);
+	  }
+	  ok = true;
+	  cerr << "done.."<<endl;
+  }else if (padding == false) {
     cout << "Resampling ... "; cout.flush();
     irtkResampling<irtkGreyPixel> resampling(xsize, ysize, zsize);
-    resampling.SetInput(&image);
-    resampling.SetOutput(&image);
+    resampling.SetInput((irtkGreyImage*)image);
+    resampling.SetOutput((irtkGreyImage*)image);
     resampling.SetInterpolator(interpolator);
     resampling.Run();
     cout << "done" << endl;
@@ -142,15 +230,17 @@ int main(int argc, char **argv)
     cout << "Resampling with padding ... "; cout.flush();
     irtkResamplingWithPadding<irtkGreyPixel> resampling(xsize, ysize, zsize,
         padding_value);
-    resampling.SetInput(&image);
-    resampling.SetOutput(&image);
+    resampling.SetInput((irtkGreyImage*)image);
+    resampling.SetOutput((irtkGreyImage*)image);
     resampling.SetInterpolator(interpolator);
     resampling.Run();
     cout << "done" << endl;
   }
 
   // Save result
-  image.Write(output_name);
+  image->Write(output_name);
+
+  delete image;
 
   return 0;
 }
