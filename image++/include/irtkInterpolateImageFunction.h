@@ -19,6 +19,7 @@ typedef enum { Interpolation_NN,
                Interpolation_Linear,
                Interpolation_BSpline,
                Interpolation_CSpline,
+			   Interpolation_SBased,
                Interpolation_Sinc,
                Interpolation_Gaussian
              } irtkInterpolationMode;
@@ -103,6 +104,7 @@ inline void irtkInterpolateImageFunction::Inside(double &x1, double &y1, double 
 #include <irtkLinearInterpolateImageFunction.h>
 #include <irtkBSplineInterpolateImageFunction.h>
 #include <irtkCSplineInterpolateImageFunction.h>
+#include <irtkShapeBasedInterpolateImageFunction.h>
 #include <irtkSincInterpolateImageFunction.h>
 #include <irtkGaussianInterpolateImageFunction.h>
 
