@@ -447,7 +447,7 @@ inline const char *irtkBSplineFreeFormTransformation3D::NameOfClass()
   return "irtkBSplineFreeFormTransformation3D";
 }
 
-inline double irtkBSplineFreeFormTransformation3D::Bending(double x, double y, double z, double t)
+inline double irtkBSplineFreeFormTransformation3D::Bending(double x, double y, double z, double)
 {
   return this->Bending(x, y, z);
 }
