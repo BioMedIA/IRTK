@@ -1,6 +1,6 @@
 #!/bin/csh
 
-set targetExe = "rreg areg nreg pareg pnreg prreg sareg snreg srreg motiontrack transformation stransformation ptransformation jacobian atlas dmap dof2flirt dof2image dof2mat dofinvert evaluation flirt2dof info convert threshold binarize mcubes padding blur dilation dmap erosion closing makesequence opening reflect region resample rescale rview"
+set targetExe = "rreg areg nreg pareg pnreg prreg sareg snreg srreg motiontrack transformation stransformation ptransformation jacobian atlas dmap dof2flirt dof2image dof2mat dofinvert evaluation flirt2dof info image2dof convert threshold binarize mcubes padding blur dilation dmap erosion closing makesequence opening reflect region resample rescale rview"
 
 set targetDir = "irtk"
 
