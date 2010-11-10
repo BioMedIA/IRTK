@@ -12,6 +12,7 @@
 
 #include <irtkImage.h>
 #include <irtkImageFunction.h>
+#include <irtkUtil.h>
 
 #ifdef HAS_VTK
 
@@ -20,18 +21,30 @@
 #include <vtkPolyDataReader.h>
 #include <vtkPolyDataWriter.h>
 #include <vtkDoubleArray.h>
+#include <vtkPointLocator.h>
+#include <vtkIdList.h>
 
-char *input_name = NULL, *output_name = NULL, *image_name = NULL;
+char *input_name = NULL, *output_name = NULL, *image_name = NULL, *count_name = NULL;
+
+void usage(){
+	cerr << "Usage: msample [input] [image] [output] " << endl;
+	cerr << "-n [number of steps (default 10)]" << endl;
+	cerr << "-ds [step size (default 1)]" << endl;
+	cerr << "-scalar use one scalar instead of array on the norm"<<endl;
+	cerr << "-abs take the abs value of the scalar"<<endl;
+	cerr << "-count [another mesh] sample along between two mesh, evaluate percentage > 0"<<endl;
+	cerr << "-blur blur the result or not"<<endl;
+	exit(1);
+}
 
 int main(int argc, char **argv)
 {
-  int i, j, n;
-  double *profile;
+  int i, j, n, son, abson, blur, ok;
+  double *profile, count;
   double x, y, z, ds, point[3], normal[3];
 
-  if (argc != 4) {
-    cerr << "Usage: msample [input] [image] [output] -n [number of steps (default 10)] -ds [step size (default 1)]" << endl;
-    exit(1);
+  if (argc < 4) {
+    usage();
   }
 
   // Parse filenames
@@ -47,8 +60,65 @@ int main(int argc, char **argv)
 
   n  = 10;
   ds = 1;
+  son = 0;
+  abson = 0;
+  count = 0;
+  blur = 0;
+
+  while (argc > 1) {
+    ok = false;
+	if ((ok == false) && (strcmp(argv[1], "-n") == 0)) {
+      argc--;
+      argv++;
+      n = atoi(argv[1]);
+	  argc--;
+      argv++;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-count") == 0)) {
+      argc--;
+      argv++;
+	  count_name = argv[1];
+	  argc--;
+      argv++;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
+      argc--;
+      argv++;
+      ds = atof(argv[1]);
+	  argc--;
+      argv++;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-scalar") == 0)) {
+      argc--;
+      argv++;
+      son = 1;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-abs") == 0)) {
+      argc--;
+      argv++;
+      abson = 1;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-blur") == 0)) {
+      argc--;
+      argv++;
+      blur = 1;
+      ok = true;
+    }
+    if (ok == false) {
+      cerr << "Can't parse argument " << argv[1] << endl;
+      usage();
+    }
+  }
   
   // Allocate memory for intensity profile
+  if(son)
+  profile = new double[1];
+  else
   profile = new double[2*n+1];
 
   // Read model
@@ -74,29 +144,135 @@ int main(int argc, char **argv)
   interpolator.Initialize();
   
   // Allocate memory
-  vtkDoubleArray *array = vtkDoubleArray::New();
-  array->SetNumberOfTuples(model->GetNumberOfPoints());
-  array->SetNumberOfComponents(2*n+1);
-  array->SetName("IntensityProfile");
-  
-  for (i = 0; i < model->GetNumberOfPoints(); i++) {
-    model->GetPoints()->GetPoint (i, point);
-    model->GetPointData()->GetNormals()->GetTuple(i, normal);
-    image.WorldToImage(point[0], point[1], point[2]);
-    for (j = 0; j < 2*n+1; j++) {
-      x = point[0] + (j - n) * ds * normal[0];
-      y = point[1] + (j - n) * ds * normal[1];
-      z = point[2] + (j - n) * ds * normal[2];
-      profile[j] = interpolator.Evaluate(x, y, z);
-    }
-    array->InsertTupleValue(i, profile);
+  if(!son){
+	  if(count_name){
+		  vtkPolyDataReader *reader_count = vtkPolyDataReader::New();
+		  reader_count->SetFileName(count_name);
+		  reader_count->Modified();
+		  reader_count->Update();
+		  vtkPolyData *model_count = vtkPolyData::New();
+		  model_count = reader_count->GetOutput();
+		  model_count->Update();
+		  vtkDoubleArray *array = vtkDoubleArray::New();
+		  array->SetNumberOfTuples(model->GetNumberOfPoints());
+		  array->SetNumberOfComponents(1);
+		  array->SetName("IntensityCountProfile");
+		  vtkDoubleArray *narray = vtkDoubleArray::New();
+		  narray->SetNumberOfTuples(model->GetNumberOfPoints());
+		  narray->SetNumberOfComponents(1);
+		  narray->SetName("IntensityCountProfile");
+		  int count2;
+
+		  // Build a locator 
+		  vtkPointLocator *pointLocator = vtkPointLocator::New();
+		  pointLocator->SetDataSet(reader_count->GetOutput());
+		  pointLocator->BuildLocator();
+
+		  for (i = 0; i < model->GetNumberOfPoints(); i++) {
+			  double distance,point2[3];
+			  model->GetPoints()->GetPoint (i, point);
+			  vtkIdType ptId;
+			  ptId = pointLocator->FindClosestPoint(point);
+			  model_count->GetPoints()->GetPoint(ptId,point2);
+			  normal[0] = point2[0] - point[0];
+			  normal[1] = point2[1] - point[1];
+			  normal[2] = point2[2] - point[2];
+			  distance = sqrt(pow(normal[0],2)+pow(normal[1],2)+pow(normal[2],2));
+			  if(distance > 0){
+				  for(j = 0; j < 3; j++){
+					  normal[j] = normal[j] / distance;
+				  }
+				  ds = distance / n;
+				  count = 0; count2 = 0;
+				  for (j = 0; j < n; j++) {
+					  x = point[0] + (j + 1) * ds * normal[0];
+					  y = point[1] + (j + 1) * ds * normal[1];
+					  z = point[2] + (j + 1) * ds * normal[2];
+					  image.WorldToImage(x,y,z);
+					  if(interpolator.Evaluate(x, y, z) >= 0){
+						  count += interpolator.Evaluate(x, y, z);
+						  count2 ++;
+					  }
+				  }
+			  }
+			  if(count2 > 0){
+				  count = count / count2;
+			  }
+			  array->InsertTupleValue(i, &count);
+		  }
+		  // blur
+		  if(blur == 1){
+			  for (i = 0; i < model->GetNumberOfPoints(); i++) {
+				  vtkIdList *list = vtkIdList::New();
+				  //Find neighbor
+				  GetConnectedVertices(model,i,list);
+				  //Get number of neighbor
+				  n = list->GetNumberOfIds();
+				  double value = 0, *tmp;
+				  for (j = 0; j < n; j++){
+					  tmp = array->GetTuple(list->GetId(j));
+					  value += *tmp;
+				  }
+				  //stretch measure relative change of the vertices spacing
+				  count = value / n;
+				  narray->InsertTupleValue(i, &count);
+				  list->Delete();
+			  }
+		  }
+		  model->GetPointData()->SetScalars(array);
+		  array->Delete();
+		  narray->Delete();
+		  reader_count->Delete();
+	  }else{
+		  vtkDoubleArray *array = vtkDoubleArray::New();
+		  array->SetNumberOfTuples(model->GetNumberOfPoints());
+		  array->SetNumberOfComponents(2*n+1);
+		  array->SetName("IntensityProfile");
+
+		  for (i = 0; i < model->GetNumberOfPoints(); i++) {
+			  model->GetPoints()->GetPoint (i, point);
+			  model->GetPointData()->GetNormals()->GetTuple(i, normal);
+			  for (j = 0; j < 2*n+1; j++) {
+				  x = point[0] + (j - n) * ds * normal[0];
+				  y = point[1] + (j - n) * ds * normal[1];
+				  z = point[2] + (j - n) * ds * normal[2];
+				  image.WorldToImage(x,y,z);
+				  if(abson)
+					  profile[j] = abs(interpolator.Evaluate(x, y, z));
+				  else
+					  profile[j] = interpolator.Evaluate(x, y, z);
+			  }
+			  array->InsertTupleValue(i, profile);
+		  }
+		  model->GetPointData()->SetScalars(array);
+		  array->Delete();
+	  }
+  }else{
+	  vtkDoubleArray *array = vtkDoubleArray::New();
+	  array->SetNumberOfTuples(model->GetNumberOfPoints());
+	  array->SetNumberOfComponents(1);
+	  array->SetName("IntensityValue");
+
+	  for (i = 0; i < model->GetNumberOfPoints(); i++) {
+		  model->GetPoints()->GetPoint (i, point);
+		  image.WorldToImage(point[0], point[1], point[2]);
+		  if(abson)
+			*profile = abs(interpolator.Evaluate(point[0], point[1], point[2]));
+		  else
+			*profile = interpolator.Evaluate(point[0], point[1], point[2]);
+		  array->InsertTupleValue(i, profile);
+	  }
+	  model->GetPointData()->SetScalars(array);
+	  array->Delete();
   }
-  model->GetPointData()->SetScalars(array);
   
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(model);
   writer->SetFileName(output_name);
   writer->Write();
+  reader->Delete();
+
+  delete []profile;
 }
 
 #else
