@@ -12,7 +12,7 @@
 
 #include <irtkImage.h>
 #include <irtkImageFunction.h>
-#include <irtkUtil.h>
+#include <irtkRegistration.h>
 
 #ifdef HAS_VTK
 
