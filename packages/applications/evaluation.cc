@@ -192,25 +192,41 @@ int main(int argc, char **argv)
     if ((ok == false) && (strcmp(argv[1], "-linear") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkLinearInterpolateImageFunction;
+      if (source.GetZ() == 1){
+        interpolator = new irtkLinearInterpolateImageFunction2D;
+      } else {
+        interpolator = new irtkLinearInterpolateImageFunction;
+      }
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkBSplineInterpolateImageFunction;
+      if (source.GetZ() == 1){
+      	interpolator = new irtkBSplineInterpolateImageFunction2D;
+      } else {
+      	interpolator = new irtkBSplineInterpolateImageFunction;
+      }
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-cspline") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkCSplineInterpolateImageFunction;
+      if (source.GetZ() == 1){
+      	interpolator = new irtkCSplineInterpolateImageFunction2D;
+      } else {
+      	interpolator = new irtkCSplineInterpolateImageFunction;
+      }
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-sinc") == 0)) {
       argc--;
       argv++;
-      interpolator = new irtkSincInterpolateImageFunction;
+      if (source.GetZ() == 1){
+      	interpolator = new irtkSincInterpolateImageFunction2D;
+      } else {
+      	interpolator = new irtkSincInterpolateImageFunction;
+      }
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
@@ -289,7 +305,11 @@ int main(int argc, char **argv)
 
   // Create default interpolator if necessary
   if (interpolator == NULL) {
-    interpolator = new irtkNearestNeighborInterpolateImageFunction;
+  	if (source.GetZ() == 1){
+  		interpolator = new irtkNearestNeighborInterpolateImageFunction2D;
+  	} else {
+  		interpolator = new irtkNearestNeighborInterpolateImageFunction;
+  	}
   }
   interpolator->SetInput(&source);
   interpolator->Initialize();
@@ -337,19 +357,36 @@ int main(int argc, char **argv)
           // Transform point into image coordinates
           source.WorldToImage(p);
 
-          if ((p._x > x1) && (p._x < x2) &&
-              (p._y > y1) && (p._y < y2) &&
-              (p._z > z1) && (p._z < z2)) {
+        	// A bad thing might happen for the 2D case.
+        	if ((source.GetZ() == 1) &&
+		    (p._z > 0.5 || p._z < -0.5)){
+		  cerr << "Transformed point outside plane of 2D source image." << endl;
+		  exit(1);
+        	}
 
-            val = interpolator->EvaluateInside(p._x, p._y, p._z);
+        	// 2D and in plane but out of FoV.
+        	if ((source.GetZ() == 1) &&
+		    (p._x <= x1 || p._x >= x2 ||
+		     p._y <= y1 || p._y >= y2))
+		  continue;
 
-            histogram.AddSample(target(x, y, z), val);
-            if (val >  source_max)
-              source_max = val;
-            if (val < source_min)
-              source_min = val;
+        	// 3D and out of FoV.
+        	if ((source.GetZ() > 1) &&
+		    (p._x <= x1 || p._x >= x2 ||
+		     p._y <= y1 || p._y >= y2 ||
+		     p._z <= z1 || p._z >= z2))
+		  continue;
 
-          }
+		// Should be able to interpolate if we've got this far.
+
+        	val = interpolator->EvaluateInside(p._x, p._y, p._z);
+
+        	histogram.AddSample(target(x, y, z), val);
+        	if (val >  source_max)
+        		source_max = val;
+        	if (val < source_min)
+        		source_min = val;
+
         }
       }
     }
