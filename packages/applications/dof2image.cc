@@ -22,6 +22,7 @@ void usage()
   cerr << "Usage: dof2image [image] [dof] [dx] [dy] [dz] <options>\n" << endl;
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-invert>                  Store the inverted displacement field" << endl;
+  cerr << "<-image>                   Store the displacement field in terms of image coordinate" << endl;
   cerr << "<-total image>             Store the total displacement in image" << endl;
   cerr << "<-scale factor>            Scale displacement by a factor" << endl;
   cerr << "<-padding value>           Ignore padded region" << endl;
@@ -36,7 +37,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int x, y, z, t, ok, invert;
+  int x, y, z, t, ok, invert, imaged;
   int x1, y1, z1, t1, x2, y2, z2, t2;
   irtkGreyPixel padding;
   double p1[3], p2[3], scale;
@@ -82,6 +83,7 @@ int main(int argc, char **argv)
   scale   = 1;
   padding = MIN_GREY;
   invert  = false;
+  imaged   = false;
 
   // Parse arguments
   while (argc > 1) {
@@ -114,6 +116,12 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       invert = true;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-image") == 0)) {
+      argc--;
+      argv++;
+      imaged = true;
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
@@ -218,9 +226,16 @@ int main(int argc, char **argv)
             } else {
               transform->Transform(p2[0], p2[1], p2[2], time);
             }
-            p2[0] -= p1[0];
-            p2[1] -= p1[1];
-            p2[2] -= p1[2];
+			if(imaged){
+				image.WorldToImage(p2[0],p2[1],p2[2]);
+				p2[0] -= x;
+				p2[1] -= y;
+				p2[2] -= z;
+			}else{
+				p2[0] -= p1[0];
+				p2[1] -= p1[1];
+				p2[2] -= p1[2];
+			}
             dx(x, y, z, t) = scale * p2[0];
             dy(x, y, z, t) = scale * p2[1];
             dz(x, y, z, t) = scale * p2[2];
