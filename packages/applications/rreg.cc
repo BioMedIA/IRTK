@@ -45,6 +45,7 @@ void usage()
   cerr << "<-Sz2 value>         Region of interest in source image" << endl;
   cerr << "<-Tp  value>         Padding value in target" << endl;
   cerr << "<-center>            Center voxel grids onto image origins" << endl;
+  cerr << "<-image>             Project transformation into image coordinate" << endl;
   cerr << "                     before running registration." << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
   exit(1);
@@ -57,9 +58,12 @@ int main(int argc, char **argv)
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
   double tox, toy, toz, sox, soy, soz;
   tox = toy = toz = sox = soy = soz = 0.0;
-  int centerImages = false;
+  irtkImageAttributes tatr,satr,atr;
+  int centerImages = false, worldImages = false;
   irtkMatrix tmat(4, 4);
   irtkMatrix smat(4, 4);
+  irtkMatrix itmat(4, 4);
+  irtkMatrix ismat(4, 4);
   irtkMatrix tempMat, transfMat;
   tmat.Ident();
   smat.Ident();
@@ -349,6 +353,12 @@ int main(int argc, char **argv)
       centerImages = true;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-image") == 0)) {
+      argc--;
+      argv++;
+      worldImages = true;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -376,8 +386,35 @@ int main(int argc, char **argv)
     transformation->Read(dofin_name);
   }
 
+  if (worldImages == true) {
+    cout << "From world to image ... ";
+    // Place the voxel coordinate
+	tatr = target.GetImageAttributes();
+	satr = source.GetImageAttributes();
+	itmat = target.GetImageToWorldMatrix();
+	ismat = source.GetWorldToImageMatrix();
+	target.PutOrientation(atr._xaxis,atr._yaxis,atr._zaxis);
+	//target.PutOrigin(0,0,0);
+	target.PutOrigin(double(tatr._x) / 2.0,double(tatr._y) / 2.0,double(tatr._z) / 2.0);
+	target.PutPixelSize(atr._dx,atr._dy,atr._dz);
+    source.PutOrientation(atr._xaxis,atr._yaxis,atr._zaxis);
+	//source.PutOrigin(0,0,0);
+	source.PutOrigin(double(satr._x) / 2.0,double(satr._y) / 2.0,double(satr._z) / 2.0);
+	source.PutPixelSize(atr._dx,atr._dy,atr._dz);
+
+    irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
+
+    transfMat = rigidTransf->GetMatrix();
+    tempMat   = transfMat * itmat;
+    tempMat   = ismat * tempMat;
+
+    rigidTransf->PutMatrix(tempMat);
+    transformation = rigidTransf;
+    cout << "done" << endl;
+  }
+
   if (centerImages == true) {
-    cout << "Centering ... ";
+	cout << "Centering ... ";    
     // Place the voxel centre at the world origin.
     target.GetOrigin(tox, toy, toz);
     source.GetOrigin(sox, soy, soz);
@@ -428,25 +465,40 @@ int main(int argc, char **argv)
 
   // Write the final transformation estimate
   if (dofout_name != NULL) {
-    if (centerImages == false) {
-      transformation->Write(dofout_name);
-    } else {
-      // Undo the effect of centering the images.
-      irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
+	  if(centerImages == false && worldImages == false){
+		   transformation->Write(dofout_name);
+	  }else{
+		  irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
+		  transfMat = rigidTransf->GetMatrix();
+		  if (centerImages == true) {
+			  // Undo the effect of centering the images.	 
+			  tmat(0, 3) = -1.0 * tox; 
+			  tmat(1, 3) = -1.0 * toy;
+			  tmat(2, 3) = -1.0 * toz;
+			  smat(0, 3) = sox;
+			  smat(1, 3) = soy;
+			  smat(2, 3) = soz;
 
-      tmat(0, 3) = -1.0 * tox;
-      tmat(1, 3) = -1.0 * toy;
-      tmat(2, 3) = -1.0 * toz;
-      smat(0, 3) = sox;
-      smat(1, 3) = soy;
-      smat(2, 3) = soz;
+			  tempMat   = transfMat * tmat;
+			  tempMat   = smat * tempMat;
+		  }
+		  if (worldImages == true) {
+			  cout << "From image to world ... ";
+			  target.PutOrientation(tatr._xaxis,tatr._yaxis,tatr._zaxis);
+			  target.PutOrigin(tatr._xorigin,tatr._yorigin,tatr._zorigin);
+			  target.PutPixelSize(tatr._dx,tatr._dy,tatr._dz);
+			  source.PutOrientation(satr._xaxis,satr._yaxis,satr._zaxis);
+			  source.PutOrigin(satr._xorigin,satr._yorigin,satr._zorigin);
+			  source.PutPixelSize(satr._dx,satr._dy,satr._dz);
+			  itmat = target.GetWorldToImageMatrix();
+			  ismat = source.GetImageToWorldMatrix();			 
 
-      transfMat = rigidTransf->GetMatrix();
-      tempMat   = transfMat * tmat;
-      tempMat   = smat * tempMat;
-
-      rigidTransf->PutMatrix(tempMat);
-      rigidTransf->irtkTransformation::Write(dofout_name);
-    }
+			  tempMat   = transfMat * itmat;
+			  tempMat   = ismat * tempMat;			  
+			  cout << "done" << endl;
+		  }
+		  rigidTransf->PutMatrix(tempMat);
+		  rigidTransf->irtkTransformation::Write(dofout_name);
+	  }
   }
 }
