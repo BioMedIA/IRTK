@@ -116,6 +116,9 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       ok = true;
+    } else if (!ok) {
+      cerr << "Invalid option : " << argv[1] << endl;
+      exit(1);
     }
   }
 
