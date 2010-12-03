@@ -46,6 +46,7 @@ void usage()
   cerr << "<-Tp  value>         Padding value in target" << endl;
   cerr << "<-center>            Center voxel grids onto image origins" << endl;
   cerr << "<-image>             Project transformation into image coordinate" << endl;
+  cerr << "<-translation_only>  Allow only translation" << endl;
   cerr << "                     before running registration." << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
   exit(1);
@@ -330,7 +331,14 @@ int main(int argc, char **argv)
       transformation->PutStatus(RY,  _Passive);
       ok = true;
     }
-
+	if ((ok == false) && (strcmp(argv[1], "-translation_only") == 0)) {
+      argc--;
+      argv++;
+      transformation->PutStatus(RZ,  _Passive);
+      transformation->PutStatus(RX,  _Passive);
+      transformation->PutStatus(RY,  _Passive);
+      ok = true;
+    }
     if ((ok == false) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
       argc--;
       argv++;
@@ -470,6 +478,7 @@ int main(int argc, char **argv)
 	  }else{
 		  irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
 		  transfMat = rigidTransf->GetMatrix();
+		  tempMat = transfMat;
 		  if (centerImages == true) {
 			  // Undo the effect of centering the images.	 
 			  tmat(0, 3) = -1.0 * tox; 
@@ -479,7 +488,7 @@ int main(int argc, char **argv)
 			  smat(1, 3) = soy;
 			  smat(2, 3) = soz;
 
-			  tempMat   = transfMat * tmat;
+			  tempMat   = tempMat * tmat;
 			  tempMat   = smat * tempMat;
 		  }
 		  if (worldImages == true) {
@@ -493,7 +502,7 @@ int main(int argc, char **argv)
 			  itmat = target.GetWorldToImageMatrix();
 			  ismat = source.GetImageToWorldMatrix();			 
 
-			  tempMat   = transfMat * itmat;
+			  tempMat   = tempMat * itmat;
 			  tempMat   = ismat * tempMat;			  
 			  cout << "done" << endl;
 		  }
