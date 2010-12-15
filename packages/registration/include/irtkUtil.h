@@ -163,7 +163,7 @@ extern double GuessResolution(double, double);
 extern double GuessResolution(double, double, double);
 extern int GuessPadding(irtkGreyImage &);
 extern int read_line(istream &, char *, char *&);
-extern double combine_similarity(irtkSimilarityMetric *, irtkSimilarityMetric *,double,double);
+//extern double combine_similarity(irtkSimilarityMetric *, irtkSimilarityMetric *,double,double);
 
 
 #ifdef HAS_VTK
