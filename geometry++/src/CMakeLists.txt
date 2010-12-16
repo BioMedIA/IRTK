@@ -17,7 +17,8 @@ SET(GEOMETRY_INCLUDES
 ../include/irtkScalarGaussianDyDz.h
 ../include/irtkScalarGaussianDzDz.h
 ../include/irtkVector.h
-../include/irtkVector3D.h)
+../include/irtkVector3D.h
+../include/irtkVTKFunctions.h)
 
 SET(GEOMETRY_SRCS 
 irtkComplexFunction.cc
@@ -37,7 +38,8 @@ irtkScalarGaussianDyDy.cc
 irtkScalarGaussianDyDz.cc
 irtkScalarGaussianDzDz.cc
 irtkVector.cc
-irtkVector3D.cc)
+irtkVector3D.cc
+irtkVTKFunctions.cc)
 
 ADD_LIBRARY(geometry++ ${GEOMETRY_SRCS} ${GEOMETRY_INCLUDES})
 

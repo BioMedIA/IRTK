@@ -30,4 +30,7 @@
 #include <irtkPoint.h>
 #include <irtkPointSet.h>
 
+// VTK functions
+#include <irtkVTKFunctions.h>
+
 #endif
