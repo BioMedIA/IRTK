@@ -173,8 +173,6 @@ extern int read_line(istream &, char *, char *&);
 
 void MarkBoundary(vtkPolyData *polydata);
 
-void GetConnectedVertices(vtkSmartPointer<vtkPolyData> mesh, int seed, vtkSmartPointer<vtkIdList> connectedVertices);
-
 #endif
 
 #endif
