@@ -15,15 +15,7 @@ Changes   : $Author$
 
 #ifdef HAS_VTK
 
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkDoubleArray.h>
-#include <vtkPointLocator.h>
-#include <vtkIdList.h>
-#include <vtkSmartPointer.h>
-#include <vtkCell.h>
+
 
 char *input_name = NULL, *output_name = NULL, *image_name = NULL, *count_name = NULL;
 
