@@ -37,16 +37,15 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(noise noise.cc)
     ADD_EXECUTABLE(padding padding.cc)
     ADD_EXECUTABLE(region region.cc)
-
     ADD_EXECUTABLE(binarize binarize.cc)
     ADD_EXECUTABLE(blur blur.cc)
     ADD_EXECUTABLE(closing closing.cc)
     ADD_EXECUTABLE(dicom2image dicom2image.cc)
+    ADD_EXECUTABLE(dicemetric dicemetric.cc)
     ADD_EXECUTABLE(dmap dmap.cc)
     ADD_EXECUTABLE(edgedetect edgedetect.cc)
     ADD_EXECUTABLE(flip flip.cc)
     ADD_EXECUTABLE(giplmagic giplmagic.cc)
-    ADD_EXECUTABLE(headertool headertool.cc)
     ADD_EXECUTABLE(labelStats labelStats.cc)
     ADD_EXECUTABLE(lcc lcc.cc)
     ADD_EXECUTABLE(lcc_iterative lcc_iterative.cc)
@@ -69,8 +68,8 @@ ELSE(BUILD_CONDOR_EXE)
     
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin binarize blur closing convert dilation
-dicom2image dmap edgedetect erosion flip giplmagic headertool info lcc
+INSTALL_TARGETS(/bin binarize blur closing convert dilation dicemetric
+dicom2image dmap edgedetect erosion flip giplmagic info lcc
 lcc_iterative makesequence makevolume mcubes msample noise opening 
 overlap padding raw2image reflect region resample threshold voxelsize 
 histogram sbig anisoDiff)
