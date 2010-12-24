@@ -63,6 +63,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdtransform ffdtransform.cc)
     ADD_EXECUTABLE(flirt2dof flirt2dof.cc)
     ADD_EXECUTABLE(fluid fluid.cc)
+    ADD_EXECUTABLE(headertool headertool.cc)
     ADD_EXECUTABLE(hreg hreg.cc)
     ADD_EXECUTABLE(image2dof image2dof.cc)
     ADD_EXECUTABLE(jacobian jacobian.cc)
@@ -109,7 +110,7 @@ INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare
 demons dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
 evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
 ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
-hreg image2dof jacobian mat2dof mareg mnreg motiontrack mrreg nreg nreg2 
+headertool hreg image2dof jacobian mat2dof mareg mnreg motiontrack mrreg nreg nreg2 
 normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 
 subtract sareg sevaluation shreg snreg srreg stransformation subtract 
 symnreg transformation transformation2 volumechange vtk2ffd jactest)
