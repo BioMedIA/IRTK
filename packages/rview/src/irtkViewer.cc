@@ -180,7 +180,7 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
       return false;
     }
   } else {
-    affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
+    affd = mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
   }
 
   if ((affd->GetX() >= MaxNumberOfCP) || (affd->GetY() >= MaxNumberOfCP) || (affd->GetZ() >= MaxNumberOfCP)) {
@@ -243,10 +243,6 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
       _NumberOfX = j2-j1+1;
       _NumberOfY = k2-k1+1;
       break;
-    default:
-      cerr << "Not a valid viewer mode" << endl;
-      exit(1);
-      break;
   }
 
   for (k = k1; k <= k2; k++) {
@@ -306,110 +302,72 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
 }
 
 bool irtkViewer::UpdateTagGrid(irtkGreyImage *image, irtkTransformation *transformation, irtkPointSet landmark)
-{
-  if(landmark.Size() == 4) {
-    irtkFreeFormTransformation *affd = NULL;
-    irtkMultiLevelFreeFormTransformation *mffd = NULL;
-    irtkPoint p1,p2;
-    double dx,dy,dz, t;
-    int i, j, k, i1, j1, k1, i2, j2, k2, m, n;
-    for (i = 0; i < landmark.Size(); i++) {
-      image->WorldToImage(landmark(i));
-    }
-    // Check transformation
-    mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
+{  
+	if(landmark.Size() == 3){	
+		irtkFreeFormTransformation *affd = NULL;
+		irtkMultiLevelFreeFormTransformation *mffd = NULL;
+		irtkPoint p1,p2;
+		double dx1,dy1,dx2,dy2,dz, t,x,y;
+		int i,k, k1, k2, m, n;
+		for (i = 0; i < landmark.Size(); i++) {
+			image->WorldToImage(landmark(i));
+		}
+		// Check transformation
+		mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transformation);
 
-    if (mffd == NULL) {
-      // Not an multi-level FFD, so let's try a single-level FFD
-      affd = dynamic_cast<irtkFreeFormTransformation *>(transformation);
-    } else {
-      affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
-    }
+		if (mffd == NULL) {
+			// Not an multi-level FFD, so let's try a single-level FFD
+			affd = dynamic_cast<irtkFreeFormTransformation *>(transformation);
+		} else {
+			affd = mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
+		}
 
-    // Find out time
-    t = image->ImageToTime(0);
+		// Find out time
+		t = image->ImageToTime(0);
 
-    // Find out first corner of ROI
-    landmark.BoundingBox(p1,p2);
-    i1 = round(p1._x);
-    j1 = round(p1._y);
-    k1 = round(p1._z);
+		// Find out first corner of ROI
+		landmark.BoundingBox(p1,p2);
+		k1 = round(p1._z);
+		k2 = round(p2._z);
+		
+		_NumberOfGridX = 13;
+		_NumberOfGridY = 13;
 
-    // Find out second corner of ROI
-    i2 = round(p2._x);
-    j2 = round(p2._y);
-    k2 = round(p2._z);
+		dx1 = (landmark(1)._x - landmark(0)._x)/12.0;
+		dy1 = (landmark(1)._y - landmark(0)._y)/12.0;
+		dx2 = (landmark(2)._x - landmark(1)._x)/12.0;
+		dy2 = (landmark(2)._y - landmark(1)._y)/12.0;
+		dz = (k2 - k1)/12;
 
-    switch (_viewerMode) {
-      case Viewer_XY:
-        _NumberOfGridX = 9;
-        _NumberOfGridY = 9;
-        break;
-      case Viewer_XZ:
-        _NumberOfGridX = 9;
-        _NumberOfGridY = 9;
-        break;
-      case Viewer_YZ:
-        _NumberOfGridX = 9;
-        _NumberOfGridY = 9;
-        break;
-      default:
-      	cerr << "Not a valid viewer mode" << endl;
-      	exit(1);
-      	break;
-    }
+		if(dz < 1) dz = 1;
 
-    dx = (i2 - i1)/8;
-    dy = (j2 - j1)/8;
-    dz = (k2 - k1)/8;
-
-    if(dx < 1) dx = 1;
-    if(dy < 1) dy = 1;
-    if(dz < 1) dz = 1;
-
-    m = 0;
-    n = 0;
-    for (k = k1; k <= k2; k = k+dz) {
-      for (j = j1; j <= j2; j = j+dy) {
-        for (i = i1; i <= i2; i = i+dx) {
-          // Calculate control points before and after deformation
-          switch (_viewerMode) {
-            case Viewer_XY:
-              m = (i-i1)/dx;
-              n = (j-j1)/dy;
-              break;
-            case Viewer_XZ:
-              m = (i-i1)/dx;
-              n = (k-k1)/dz;
-              break;
-            case Viewer_YZ:
-              m = (j-j1)/dy;
-              n = (k-k1)/dz;
-              break;
-            default:
-              break;
-          }
-          _BeforeGridX[m][n] = i;
-          _BeforeGridY[m][n] = j;
-          _BeforeGridZ[m][n] = k;
-          image->ImageToWorld(_BeforeGridX[m][n], _BeforeGridY[m][n], _BeforeGridZ[m][n]);
-          _AfterGridX[m][n] = _BeforeGridX[m][n];
-          _AfterGridY[m][n] = _BeforeGridY[m][n];
-          _AfterGridZ[m][n] = _BeforeGridZ[m][n];
-          if (mffd != NULL) {
-            mffd->Transform(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n], t);
-            mffd->irtkAffineTransformation::Inverse(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n]);
-          } else if(affd != NULL) {
-            affd->Transform(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n], t);
-          }
-          image->WorldToImage(_BeforeGridX[m][n], _BeforeGridY[m][n], _BeforeGridZ[m][n]);
-          image->WorldToImage(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n]);
-        }
-      }
-    }
-    return true;
-  } else
-    return false;
+		for (k = k1; k <= k2; k = k+dz) {
+			for (m = 0; m < 13; m++) {
+				for (n = 0; n < 13; n++) {
+					x = landmark(0)._x + dx1*n + dx2*m;
+					y = landmark(0)._y + dy1*n + dy2*m;
+					// Calculate control points before and after deformation
+					_BeforeGridX[m][n] = x;
+					_BeforeGridY[m][n] = y;
+					_BeforeGridZ[m][n] = k;
+					image->ImageToWorld(_BeforeGridX[m][n], _BeforeGridY[m][n], _BeforeGridZ[m][n]);
+					_AfterGridX[m][n] = _BeforeGridX[m][n];
+					_AfterGridY[m][n] = _BeforeGridY[m][n];
+					_AfterGridZ[m][n] = _BeforeGridZ[m][n];
+					if (mffd != NULL && _rview->GetSourceTransformApply() == true) {
+						mffd->Transform(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n], t);
+						mffd->irtkAffineTransformation::Inverse(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n]);
+					} else if(affd != NULL && _rview->GetSourceTransformApply() == true) {
+						affd->Transform(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n], t);
+					}
+					image->WorldToImage(_BeforeGridX[m][n], _BeforeGridY[m][n], _BeforeGridZ[m][n]);
+					image->WorldToImage(_AfterGridX[m][n], _AfterGridY[m][n], _AfterGridZ[m][n]);
+				}
+			}
+		}
+		return true;
+	}else
+		return false;
 }
 
 bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformation)
@@ -433,7 +391,7 @@ bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
       return false;
     }
   } else {
-    affd = (irtkFreeFormTransformation *)mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
+    affd = mffd->GetLocalTransformation(mffd->NumberOfLevels()-1);
   }
 
   dx = _rview->_DisplayDeformationGridResolution;
@@ -554,7 +512,7 @@ void irtkViewer::DrawIsolines(irtkGreyImage *image, int value)
            (image->Get(i+1, j, 0) <= value))) {
         glVertex2f(_screenX1+i+0.5, _screenY1+j-0.5);
         glVertex2f(_screenX1+i+0.5, _screenY1+j+0.5);
-
+		
       }
       if (((image->Get(i, j, 0)   <= value) &&
            (image->Get(i, j+1, 0)  > value)) ||
@@ -680,6 +638,30 @@ void irtkViewer::DrawArrows()
       glVertex2f(_screenX1+_BeforeX[i][j], _screenY1+_BeforeY[i][j]);
       glVertex2f(_screenX1+_AfterX[i][j],  _screenY1+_AfterY[i][j]);
       glEnd();
+	  float dx = _AfterX[i][j] - _BeforeX[i][j];
+	  float dy = _AfterY[i][j] - _BeforeY[i][j];
+	  float fat_factor = 2.0;
+	  float line_len = sqrt(dx*dx+dy*dy);
+	  float archor_width = line_len / 6.0;
+	  if(line_len > 0.01){
+		  float factor = fat_factor*archor_width/line_len;
+		  float add1dx = (dx*factor);
+		  float add1dy = (dy*factor);
+		  float add2dx = (dy*factor/(2*fat_factor));
+		  float add2dy = (-dx*factor/(2*fat_factor));
+		  irtkPoint point[3];
+		  point[0]._x = _screenX1+_AfterX[i][j];
+		  point[0]._y = _screenY1+_AfterY[i][j];
+		  point[1]._x = point[0]._x-add1dx+add2dx;
+		  point[1]._y = point[0]._y-add1dy+add2dy;
+		  point[2]._x = point[0]._x-add1dx-add2dx;
+		  point[2]._y = point[0]._y-add1dy-add2dy;
+		  glBegin(GL_POLYGON);
+		  glVertex2f(point[0]._x, point[0]._y);
+		  glVertex2f(point[1]._x, point[1]._y);
+		  glVertex2f(point[2]._x, point[2]._y);
+		  glEnd();
+	  }
     }
   }
 }
@@ -815,7 +797,7 @@ void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
   }
 }
 
-void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int, int)
+void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _DisplayObjectWarp, int _DisplayObjectGrid)
 {
   int i, j;
   double p1[3], p2[3], p3[3], v1[3], v2[3], point[3], normal[3];
@@ -877,10 +859,6 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int, int)
             break;
           case Viewer_XZ:
             p = irtkPoint(point[0], point[1], 0);
-            break;
-          default:
-            cerr << "Not a valid viewer mode" << endl;
-            exit(1);
             break;
         }
         pset.Add(p);
@@ -1049,10 +1027,6 @@ void irtkViewer::DrawInfo(irtkDisplayMode m)
       glListBase(fontOffset);
       glCallLists(strlen("S"), GL_UNSIGNED_BYTE, (GLubyte *) "S");
       glPopAttrib ();
-      break;
-    default:
-      cerr << "Not a valid viewer mode" << endl;
-      exit(1);
       break;
   }
 }
