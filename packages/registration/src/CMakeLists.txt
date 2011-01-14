@@ -26,6 +26,7 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkLabelConsistencySimilarityMetric.h
 ../include/irtkLargeDeformationGradientLagrange.h
 ../include/irtkLargeDeformationSciCalcPack.h
+../include/irtkLargeDeformationShooting.h
 ../include/irtkLocator.h
 ../include/irtkMLSimilarityMetric.h
 ../include/irtkModelFreeFormRegistration.h
@@ -83,6 +84,7 @@ irtkGradientDescentOptimizer.cc
 irtkGradientDescentSymmetricOptimizer.cc
 irtkLargeDeformationGradientLagrange.cc
 irtkLargeDeformationSciCalcPack.cc
+irtkLargeDeformationShooting.cc
 irtkMotionTracking.cc
 irtkModelFreeFormRegistration.cc
 irtkModelRegistration.cc
