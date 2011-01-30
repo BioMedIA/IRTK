@@ -299,6 +299,46 @@ void irtkPointSet::WriteVTK(char *filename)
 #endif
 }
 
+irtkPoint irtkPointSet::ClosestPoint(irtkPoint& p_input){
+	int i,j;
+	double mindistance = 100000;
+	double tmpdistance;
+	irtkPoint e;
+
+	if (this->Size() == 0) {
+		cerr << "irtkPointSet::ClosestPoint(): No points in pointset" << endl;
+		return e;
+	}
+	j = 0;
+	for (i = 0; i < this->Size(); i++) {
+		tmpdistance = _data[i].Distance(p_input);
+		if(tmpdistance < mindistance){
+			mindistance = tmpdistance;
+			j = i;
+		}
+	}
+	e = _data[j];
+	return e ;
+}
+
+double irtkPointSet::PointDistance(irtkPoint& p_input){
+	int i;
+	double mindistance = 100000;
+	double tmpdistance;
+
+	if (this->Size() == 0) {
+		cerr << "irtkPointSet::PointDistant(): No points in pointset" << endl;
+		return 0;
+	}
+	for (i = 0; i < this->Size(); i++) {
+		tmpdistance = _data[i].Distance(p_input);
+		if(tmpdistance < mindistance){
+			mindistance = tmpdistance;
+		}
+	}
+	return mindistance ;
+}
+
 irtkPoint irtkPointSet::StandardDeviationEllipsoid() const
 {
   int i;

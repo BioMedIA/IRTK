@@ -96,6 +96,12 @@ public:
   /// Centre of gravity
   virtual irtkPoint CenterOfGravity() const;
 
+  /// Closest point to given point
+  virtual irtkPoint ClosestPoint(irtkPoint&);
+
+  /// Point set distance to given point
+  virtual double PointDistance(irtkPoint&);
+
   /// Bounding box
   virtual void BoundingBox(irtkPoint &, irtkPoint &) const;
 
