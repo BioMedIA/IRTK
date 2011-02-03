@@ -42,11 +42,11 @@ irtkSimilarityMeasure;
 
 #include <irtkTransformation.h>
 
-#include <irtkUtil.h>
-
 #include <irtkSimilarityMetric.h>
 
 #include <irtkOptimizer.h>
+
+#include <irtkUtil.h>
 
 class irtkRegistration : public irtkObject
 {
