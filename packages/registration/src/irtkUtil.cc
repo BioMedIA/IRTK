@@ -12,7 +12,7 @@
 
 #include <irtkRegistration.h>
 
-double combine_similarity(double sv1, double sv2, double p1, double p2)
+double combine_mysimilarity(double sv1, double sv2, double p1, double p2)
 {
 	double combined;
 
@@ -28,7 +28,7 @@ double combine_similarity(double sv1, double sv2, double p1, double p2)
 	return combined;
 }
 
-double combine_similarity(irtkSimilarityMetric **s, double *weight, double number)
+double combine_mysimilarity(irtkSimilarityMetric **s, double *weight, double number)
 {
 	double combined, factor;
 	int i;

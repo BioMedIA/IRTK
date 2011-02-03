@@ -574,7 +574,7 @@ double irtkMultipleImageFreeFormRegistration::Evaluate()
 #endif
 
 	// Evaluate similarity measure
-	double similarity = combine_similarity(_metric,sweight,_numberOfImages);
+	double similarity = combine_mysimilarity(_metric,sweight,_numberOfImages);
 
 	// Add penalty for landmark regulation
 	if (this->_Lregu > 0) {
@@ -733,7 +733,7 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 	double dof = _affd->Get(index);
 
 	// Evaluate similarity measure
-	double similarityA = combine_similarity(tmpMetricA,weight,_numberOfImages);
+	double similarityA = combine_mysimilarity(tmpMetricA,weight,_numberOfImages);
 
 	// Add penalties
 	_affd->Put(index, dof + step);
@@ -755,7 +755,7 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 	}
 
 	// Evaluate similarity measure
-	double similarityB = combine_similarity(tmpMetricB,weight,_numberOfImages);
+	double similarityB = combine_mysimilarity(tmpMetricB,weight,_numberOfImages);
 
 	// Add penalties
 	_affd->Put(index, dof - step);
