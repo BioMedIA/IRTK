@@ -29,8 +29,8 @@ int main(int argc, char **argv)
   int i, ok, affine, import, invert;
 
   irtkMatrix matrix;
-  irtkTransformation *transformation = NULL;
-  irtkPointRegistration *registration = NULL;
+  //irtkTransformation *transformation = NULL;
+  //irtkPointRegistration *registration = NULL;
 
   // Check arguments
   if (argc < 3) usage();
@@ -93,7 +93,24 @@ int main(int argc, char **argv)
     matrix.Invert();
   }
 
-  // Create homogeneous transformation from matrix
+  if (affine != true) {
+	  // Create transformation;
+	  irtkRigidTransformation transformation;
+	  transformation.PutMatrix(matrix);
+	  transformation.UpdateParameter();
+	  // Write transformation
+	  transformation.irtkTransformation::Write(dof_name);
+	  transformation.Print();
+  }else{
+	  irtkAffineTransformation transformation;
+	  transformation.PutMatrix(matrix);
+	  transformation.UpdateParameter();
+	  // Write transformation
+	  transformation.irtkTransformation::Write(dof_name);
+	  transformation.Print();
+  }
+
+  /*// Create homogeneous transformation from matrix
   irtkHomogeneousTransformation mattrans;
   mattrans.PutMatrix(matrix);
 
@@ -150,9 +167,9 @@ int main(int argc, char **argv)
   error /= pset1.Size();
   if (error > 0.1) {
     cout << "RMS is " << error/pset1.Size() << " mm" << endl;
-  }
+  }*/
 
   // Write transformation
-  transformation->Write(dof_name);
-  transformation->Print();
+  //transformation->Write(dof_name);
+  //transformation->Print();
 }
