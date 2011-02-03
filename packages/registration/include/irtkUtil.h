@@ -154,8 +154,6 @@ inline void irtkHistory::Print()
   }
 }
 
-double combine_mysimilarity(double,double,double,double);
-double combine_mysimilarity(irtkSimilarityMetric **, double *, double);
 extern void irtkPadding(irtkGreyImage &, irtkGreyPixel);
 extern void irtkPadding(irtkGreyImage &, irtkGreyPixel, irtkFreeFormTransformation3D *ffd);
 extern void irtkPadding(irtkGreyImage **, irtkGreyPixel, irtkFreeFormTransformation3D *ffd, int numberOfImages);

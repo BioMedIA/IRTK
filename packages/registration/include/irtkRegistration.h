@@ -61,6 +61,9 @@ public:
 
 };
 
+double combine_mysimilarity(double,double,double,double);
+double combine_mysimilarity(irtkSimilarityMetric **, double *, double);
+
 #include <irtkPointRegistration.h>
 #include <irtkSurfaceRegistration.h>
 #include <irtkModelRegistration.h>
