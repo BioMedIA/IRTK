@@ -12,22 +12,38 @@
 
 #include <irtkRegistration.h>
 
-double combine_similarity(irtkSimilarityMetric *s1, irtkSimilarityMetric *s2, double p1, double p2)
+double combine_similarity(double sv1, double sv2, double p1, double p2)
 {
 	double combined;
 
 	double factor;
 
-	double sv1,sv2;
-
-	//combined similarity = (sv1*p1 + sv2*p2)/(p1 + p2)
-
-	sv1 = s1->Evaluate();
-	sv2 = s2->Evaluate();
 	factor = p1 + p2;
 
 	if(factor > 0)
 		combined = (sv1*p1 + sv2*p2)/factor;
+	else
+		combined = 0;
+
+	return combined;
+}
+
+double combine_similarity(irtkSimilarityMetric **s, double *weight, double number)
+{
+	double combined, factor;
+	int i;
+
+	factor = 0; combined = 0;
+
+	for (i = 0; i < number; i++){
+		if ( weight[i] != 0 ){
+			combined += s[i]->Evaluate() * weight[i];
+			factor += weight[i];
+		}
+	}
+
+	if(factor > 0)
+		combined = combined/factor;
 	else
 		combined = 0;
 
