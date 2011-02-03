@@ -134,6 +134,8 @@ void irtkImageFreeFormRegistration::Initialize()
 
   // Initialize base class
   this->irtkImageRegistration::Initialize();
+  int i, j;
+  double u;
 
   // Pointer to multi-level FFD
   _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
@@ -153,14 +155,22 @@ void irtkImageFreeFormRegistration::Initialize()
   _tmpImage         = NULL;
   _affdLookupTable  = NULL;
   _mffdLookupTable  = NULL;
+    // Allocate memory for local lookuptable
   _localLookupTable = new float [FFDLOOKUPTABLESIZE];
+
+  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
+    u = i / (FFDLOOKUPTABLESIZE / 4.0);
+    j = (int)floor(u);
+    u = u - j;
+    _localLookupTable[i] = _affd->B(j, 1-u);
+  }
 
 }
 
 void irtkImageFreeFormRegistration::Initialize(int level)
 {
   int i, j, k, n;
-  double u, x, y, z;
+  double x, y, z;
   float *ptr;
 
   // Print debugging information
@@ -188,16 +198,6 @@ void irtkImageFreeFormRegistration::Initialize(int level)
 
   // Allocate memory for lookup table for multi-level FFD
   _mffdLookupTable  = new float[n];
-
-  // Allocate memory for local lookuptable
-  _localLookupTable = new float [FFDLOOKUPTABLESIZE];
-
-  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-    u = i / (FFDLOOKUPTABLESIZE / 4.0);
-    j = (int)floor(u);
-    u = u - j;
-    _localLookupTable[i] = _affd->B(j, 1-u);
-  }
 
   // Initialize lookup table for multi-level FFD (this is done only once)
   ptr = _mffdLookupTable;
@@ -330,9 +330,7 @@ void irtkImageFreeFormRegistration::UpdateLUT()
         ptr2affd[1] = y + ptr2mffd[1];
         ptr2affd[2] = z + ptr2mffd[2];
         ptr2mffd += 3;
-        ptr2affd++;
-        ptr2affd++;
-        ptr2affd++;
+        ptr2affd += 3;
       }
     }
   }
@@ -374,37 +372,43 @@ double irtkImageFreeFormRegistration::SmoothnessPenalty(int index)
 double irtkImageFreeFormRegistration::VolumePreservationPenalty()
 {
   int i, j, k;
-  double x, y, z, penalty;
+  double x, y, z, penalty, jacobian;
 
   penalty = 0;
   for (k = 0; k < _affd->GetZ(); k++) {
     for (j = 0; j < _affd->GetY(); j++) {
-      for (i = 0; i < _affd->GetZ(); i++) {
+      for (i = 0; i < _affd->GetX(); i++) {
         x = i;
         y = j;
         z = k;
         _affd->LatticeToWorld(x, y, z);
         // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
-        penalty += fabs(log(_affd->irtkTransformation::Jacobian(x, y, z)));
+		jacobian = _affd->irtkTransformation::Jacobian(x, y, z);
+		if (jacobian < 0.001)
+			jacobian = 0.001;
+        penalty += fabs(log(jacobian));
       }
     }
   }
 
   // Normalize sum by number of DOFs
-  return penalty / (double) _affd->NumberOfDOFs();
+  return -penalty / (double) _affd->NumberOfDOFs();
 }
 
 double irtkImageFreeFormRegistration::VolumePreservationPenalty(int index)
 {
   int i, j, k;
-  double x, y, z;
+  double x, y, z, jacobian;
 
   _affd->IndexToLattice(index, i, j, k);
   x = i;
   y = j;
   z = k;
   _affd->LatticeToWorld(x, y, z);
-  return fabs(log(_affd->irtkTransformation::Jacobian(x, y, z)));
+  jacobian = _affd->irtkTransformation::Jacobian(x, y, z);
+  if (jacobian < 0.001)
+	  jacobian = 0.001;
+  return -fabs(log(jacobian));
 }
 
 
@@ -800,7 +804,21 @@ bool irtkImageFreeFormRegistration::Read(char *buffer1, char *buffer2, int &leve
     }
     ok = true;
   }
-
+  if (strstr(buffer1, "MFFDMode") != NULL) {
+    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
+      this->_MFFDMode = false;
+      cout << "MFFDMode is ... false" << endl;
+    } else {
+      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+        this->_MFFDMode = true;
+        cout << "MFFDMode is ... true" << endl;
+      } else {
+        cerr << "Can't read boolean value = " << buffer2 << endl;
+        exit(1);
+      }
+    }
+    ok = true;
+  }
   if (ok == false) {
     return this->irtkImageRegistration::Read(buffer1, buffer2, level);
   } else {
@@ -823,6 +841,11 @@ void irtkImageFreeFormRegistration::Write(ostream &to)
     to << "Subdivision                       = False" << endl;
   }
   to << "Speedup factor                    = " << this->_SpeedupFactor << endl;
+  if (_MFFDMode == true) {
+    to << "MFFDMode                       = True" << endl;
+  } else {
+    to << "MFFDMode                       = False" << endl;
+  }
 
   this->irtkImageRegistration::Write(to);
 }

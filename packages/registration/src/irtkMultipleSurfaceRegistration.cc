@@ -16,7 +16,7 @@
 
 #include <irtkUtil.h>
 
-#define HISTORY
+//#define HISTORY
 
 #ifdef HISTORY
 

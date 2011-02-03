@@ -55,7 +55,7 @@ protected:
   irtkMultiLevelFreeFormTransformation *_mffd;
 
   /// Used as temporary memory for metric
-  irtkSimilarityMetric *_tmpMetricA, *_tmpMetricB;
+  irtkSimilarityMetric **_tmpMetricA, **_tmpMetricB;
 
   /** Used as lookup table for transformed coordinates up to level n-1.  This
       lookup table needs to be calculated only once for each image resolution
@@ -109,6 +109,9 @@ protected:
 
   /// Final set up for the registration
   virtual void Finalize(int);
+
+  /** Evaluates the landmark preservation term. */
+  virtual double LandMarkPenalty(int = -1,int = 1);
 
   /** Evaluates the smoothness preservation term. */
   virtual double SmoothnessPenalty();
@@ -213,7 +216,7 @@ inline void irtkMultipleImageFreeFormRegistration::SetOutput(irtkTransformation 
 
 inline const char *irtkMultipleImageFreeFormRegistration::NameOfClass()
 {
-  return "irtkFreeFormRegistration";
+  return "irtkMultipleImageFreeFormRegistration";
 }
 
 inline void irtkMultipleImageFreeFormRegistration::Print()

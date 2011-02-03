@@ -18,7 +18,7 @@
 
 #include <irtkGaussianBlurring.h>
 
-#define HISTORY
+//#define HISTORY
 
 #ifdef HISTORY
 

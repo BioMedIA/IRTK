@@ -64,6 +64,12 @@ protected:
    */
   irtkGreyImage **_source;
 
+  /// Landmark regulation Input
+  irtkPointSet *_ptarget;
+
+  /// Landmark regulation Input
+  irtkPointSet *_psource;
+
   /// Number of images (must be equal for source and target images)
   int _numberOfImages;
 
@@ -71,7 +77,7 @@ protected:
   irtkTransformation *_transformation;
 
   /// Histogram
-  irtkSimilarityMetric *_metric;
+  irtkSimilarityMetric **_metric;
 
   /// Interpolator
   irtkInterpolateImageFunction **_interpolator;
@@ -121,6 +127,9 @@ protected:
   /// Convergence parameter for optimization based on change in similarity.
   double _Epsilon;
 
+  /// Landmark regulation penalty coefficient
+  double _Lregu;
+
   /// Convergence parameter for optimization based on change in the transformation.
   double _Delta[MAX_NO_RESOLUTIONS];
 
@@ -157,6 +166,9 @@ public:
   /// Sets input for the registration filter
   virtual void SetInput (irtkGreyImage **, irtkGreyImage **, int);
 
+  /// Sets landmark regulation input for the registration filter
+  virtual void SetLandmarks (irtkPointSet *, irtkPointSet *);
+
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
 
@@ -181,6 +193,9 @@ public:
    *  well as the gradient vector containing the partial derivatives.
    */
   virtual double EvaluateGradient(float, float *);
+
+  /** Evaluates the smoothness preservation term. */
+  virtual double LandMarkPenalty();
 
   /// Returns the name of the class
   virtual const char *NameOfClass() = 0;
@@ -227,6 +242,12 @@ inline void irtkMultipleImageRegistration::SetInput(irtkGreyImage **target, irtk
     _target[i] = target[i];
     _source[i] = source[i];
   }
+}
+
+inline void irtkMultipleImageRegistration::SetLandmarks (irtkPointSet * target, irtkPointSet * source)
+{
+  _ptarget = target;
+  _psource = source;
 }
 
 inline void irtkMultipleImageRegistration::Debug(string message)

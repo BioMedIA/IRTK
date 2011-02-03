@@ -67,6 +67,7 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
   _OptimizationMethod = DownhillDescent;
   _InterpolationMode  = Interpolation_Linear;
   _Epsilon            = 0;
+  _Lregu              = 0;
 
   // Default parameters for debugging
   _DebugFlag = false;
@@ -77,6 +78,10 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
   // Set inputs
   _target = NULL;
   _source = NULL;
+
+  // Set regulation landmarks
+  _ptarget = NULL;
+  _psource = NULL;
 
   // Set output
   _transformation = NULL;
@@ -127,302 +132,305 @@ void irtkMultipleImageRegistration::Initialize()
 
 void irtkMultipleImageRegistration::Initialize(int level)
 {
-  int i, j, k, t, n;
-  double dx, dy, dz, temp;
-  irtkGreyPixel target_min, target_max, target_nbins;
-  irtkGreyPixel source_min, source_max, source_nbins;
+	int i, j, k, t, n;
+	double dx, dy, dz, temp;
+	irtkGreyPixel target_min, target_max, target_nbins;
+	irtkGreyPixel source_min, source_max, source_nbins;
 
-  // Allocate memory for temporary images
-  tmp_mtarget = new irtkGreyImage*[_numberOfImages];
-  tmp_msource = new irtkGreyImage*[_numberOfImages];
+	// Allocate memory for temporary images
+	tmp_mtarget = new irtkGreyImage*[_numberOfImages];
+	tmp_msource = new irtkGreyImage*[_numberOfImages];
 
-  target_max = MIN_GREY;
-  target_min = MAX_GREY;
-  source_max = MIN_GREY;
-  source_min = MAX_GREY;
+	target_max = MIN_GREY;
+	target_min = MAX_GREY;
+	source_max = MIN_GREY;
+	source_min = MAX_GREY;
 
-  for (n = 0; n < _numberOfImages; n++) {
+	for (n = 0; n < _numberOfImages; n++) {
 
-    // Copy source and target to temp space
-    tmp_mtarget[n] = new irtkGreyImage(*_target[n]);
-    tmp_msource[n] = new irtkGreyImage(*_source[n]);
-	
-	/*char buffer[255];
-	sprintf(buffer, "target%d.nii", n);
-	_target[n]->Write(buffer);
-	sprintf(buffer, "source%d.nii", n);
-	_source[n]->Write(buffer);*/
+		// Copy source and target to temp space
+		tmp_mtarget[n] = new irtkGreyImage(*_target[n]);
+		tmp_msource[n] = new irtkGreyImage(*_source[n]);
 
-    // Swap source and target with temp space copies
-    swap(tmp_mtarget[n], _target[n]);
-    swap(tmp_msource[n], _source[n]);
+		/*char buffer[255];
+		sprintf(buffer, "target%d.nii", n);
+		_target[n]->Write(buffer);
+		sprintf(buffer, "source%d.nii", n);
+		_source[n]->Write(buffer);*/
 
-    // Blur images if necessary
-    if (_TargetBlurring[level] > 0) {
-      cout << "Blurring target ... "; cout.flush();
-      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
-      blurring.SetInput (_target[n]);
-      blurring.SetOutput(_target[n]);
-      blurring.Run();
-      cout << "done" << endl;
-    }
+		// Swap source and target with temp space copies
+		swap(tmp_mtarget[n], _target[n]);
+		swap(tmp_msource[n], _source[n]);
 
-    if (_SourceBlurring[level] > 0) {
-      cout << "Blurring source ... "; cout.flush();
-      irtkGaussianBlurring<irtkGreyPixel> blurring(_SourceBlurring[level]);
-      blurring.SetInput (_source[n]);
-      blurring.SetOutput(_source[n]);
-      blurring.Run();
-      cout << "done" << endl;
-    }
+		// Blur images if necessary
+		if (_TargetBlurring[level] > 0) {
+			cout << "Blurring target ... "; cout.flush();
+			irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
+			blurring.SetInput (_target[n]);
+			blurring.SetOutput(_target[n]);
+			blurring.Run();
+			cout << "done" << endl;
+		}
 
-    _target[n]->GetPixelSize(&dx, &dy, &dz);
-    temp = fabs(_TargetResolution[0][0]-dx) + fabs(_TargetResolution[0][1]-dy) + fabs(_TargetResolution[0][2]-dz);
+		if (_SourceBlurring[level] > 0) {
+			cout << "Blurring source ... "; cout.flush();
+			irtkGaussianBlurring<irtkGreyPixel> blurring(_SourceBlurring[level]);
+			blurring.SetInput (_source[n]);
+			blurring.SetOutput(_source[n]);
+			blurring.Run();
+			cout << "done" << endl;
+		}
 
-    if (level > 0 || temp > 0.000001) {
-      cout << "Resampling target ... "; cout.flush();
-      // Create resampling filter
-      irtkResamplingWithPadding<irtkGreyPixel> resample(_TargetResolution[level][0],
-          _TargetResolution[level][1],
-          _TargetResolution[level][2],
-          _TargetPadding);
-      resample.SetInput (_target[n]);
-      resample.SetOutput(_target[n]);
-      resample.Run();
-      cout << "done" << endl;
-    }
+		_target[n]->GetPixelSize(&dx, &dy, &dz);
+		temp = fabs(_TargetResolution[0][0]-dx) + fabs(_TargetResolution[0][1]-dy) + fabs(_TargetResolution[0][2]-dz);
 
-    _source[n]->GetPixelSize(&dx, &dy, &dz);
-    temp = fabs(_SourceResolution[0][0]-dx) + fabs(_SourceResolution[0][1]-dy) + fabs(_SourceResolution[0][2]-dz);
+		if (level > 0 || temp > 0.000001) {
+			cout << "Resampling target ... "; cout.flush();
+			// Create resampling filter
+			irtkResamplingWithPadding<irtkGreyPixel> resample(_TargetResolution[level][0],
+				_TargetResolution[level][1],
+				_TargetResolution[level][2],
+				_TargetPadding);
+			resample.SetInput (_target[n]);
+			resample.SetOutput(_target[n]);
+			resample.Run();
+			cout << "done" << endl;
+		}
 
-    if (level > 0 || temp > 0.000001) {
-      cout << "Resampling source ... "; cout.flush();
-      // Create resampling filter
-      irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
-          _SourceResolution[level][1],
-          _SourceResolution[level][2], MIN_GREY);
+		_source[n]->GetPixelSize(&dx, &dy, &dz);
+		temp = fabs(_SourceResolution[0][0]-dx) + fabs(_SourceResolution[0][1]-dy) + fabs(_SourceResolution[0][2]-dz);
 
-      resample.SetInput (_source[n]);
-      resample.SetOutput(_source[n]);
-      resample.Run();
-      cout << "done" << endl;
-    }
+		if (level > 0 || temp > 0.000001) {
+			cout << "Resampling source ... "; cout.flush();
+			// Create resampling filter
+			irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
+				_SourceResolution[level][1],
+				_SourceResolution[level][2], MIN_GREY);
 
-    // Find out the min and max values in target image, ignoring padding
-    for (t = 0; t < _target[n]->GetT(); t++) {
-      for (k = 0; k < _target[n]->GetZ(); k++) {
-        for (j = 0; j < _target[n]->GetY(); j++) {
-          for (i = 0; i < _target[n]->GetX(); i++) {
-            if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
-              if (_target[n]->Get(i, j, k, t) > target_max)
-                target_max = _target[n]->Get(i, j, k, t);
-              if (_target[n]->Get(i, j, k, t) < target_min)
-                target_min = _target[n]->Get(i, j, k, t);
-            } else {
-              _target[n]->Put(i, j, k, t, _TargetPadding);
-            }
-          }
-        }
-      }
-    }
+			resample.SetInput (_source[n]);
+			resample.SetOutput(_source[n]);
+			resample.Run();
+			cout << "done" << endl;
+		}
 
-    // Find out the min and max values in source image, ignoring padding
-    for (t = 0; t < _source[n]->GetT(); t++) {
-      for (k = 0; k < _source[n]->GetZ(); k++) {
-        for (j = 0; j < _source[n]->GetY(); j++) {
-          for (i = 0; i < _source[n]->GetX(); i++) {
-            if (_source[n]->Get(i, j, k, t) > source_max)
-              source_max = _source[n]->Get(i, j, k, t);
-            if (_source[n]->Get(i, j, k, t) < source_min)
-              source_min = _source[n]->Get(i, j, k, t);
-          }
-        }
-      }
-    }
-  }
+		// Find out the min and max values in target image, ignoring padding
+		for (t = 0; t < _target[n]->GetT(); t++) {
+			for (k = 0; k < _target[n]->GetZ(); k++) {
+				for (j = 0; j < _target[n]->GetY(); j++) {
+					for (i = 0; i < _target[n]->GetX(); i++) {
+						if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
+							if (_target[n]->Get(i, j, k, t) > target_max)
+								target_max = _target[n]->Get(i, j, k, t);
+							if (_target[n]->Get(i, j, k, t) < target_min)
+								target_min = _target[n]->Get(i, j, k, t);
+						} else {
+							_target[n]->Put(i, j, k, t, _TargetPadding);
+						}
+					}
+				}
+			}
+		}
 
-  for (n = 0; n < _numberOfImages; n++) {
-	  // Check whether dynamic range of data is not to large
-	  if (target_max - target_min > MAX_GREY) {
-		  cerr << this->NameOfClass()
-			  << "::Initialize: Dynamic range of target is too large" << endl;
-		  exit(1);
-	  } else {
-		  for (t = 0; t < _target[n]->GetT(); t++) {
-			  for (k = 0; k < _target[n]->GetZ(); k++) {
-				  for (j = 0; j < _target[n]->GetY(); j++) {
-					  for (i = 0; i < _target[n]->GetX(); i++) {
-						  if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
-							  _target[n]->Put(i, j, k, t, _target[n]->Get(i, j, k, t) - target_min);
-						  } else {
-							  _target[n]->Put(i, j, k, t, -1);
-						  }
-					  }
-				  }
-			  }
-		  }
-	  }
+		// Find out the min and max values in source image, ignoring padding
+		for (t = 0; t < _source[n]->GetT(); t++) {
+			for (k = 0; k < _source[n]->GetZ(); k++) {
+				for (j = 0; j < _source[n]->GetY(); j++) {
+					for (i = 0; i < _source[n]->GetX(); i++) {
+						if (_source[n]->Get(i, j, k, t) > source_max)
+							source_max = _source[n]->Get(i, j, k, t);
+						if (_source[n]->Get(i, j, k, t) < source_min)
+							source_min = _source[n]->Get(i, j, k, t);
+					}
+				}
+			}
+		}
+	}
 
-    if ((_SimilarityMeasure == SSD) || (_SimilarityMeasure == CC) ||
-        (_SimilarityMeasure == LC)  || (_SimilarityMeasure == K) || (_SimilarityMeasure == ML)) {
-      if (source_max - target_min > MAX_GREY) {
-        cerr << this->NameOfClass()
-             << "::Initialize: Dynamic range of source is too large" << endl;
-        exit(1);
-      } else {
-        for (t = 0; t < _source[n]->GetT(); t++) {
-          for (k = 0; k < _source[n]->GetZ(); k++) {
-            for (j = 0; j < _source[n]->GetY(); j++) {
-              for (i = 0; i < _source[n]->GetX(); i++) {
-                _source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - target_min);
-              }
-            }
-          }
-        }
-      }
-    } else {
-      if (source_max - source_min > MAX_GREY) {
-        cerr << this->NameOfClass()
-             << "::Initialize: Dynamic range of source is too large" << endl;
-        exit(1);
-      } else {
-        for (t = 0; t < _source[n]->GetT(); t++) {
-          for (k = 0; k < _source[n]->GetZ(); k++) {
-            for (j = 0; j < _source[n]->GetY(); j++) {
-              for (i = 0; i < _source[n]->GetX(); i++) {
-                _source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - source_min);
-              }
-            }
-          }
-        }
-      }
-    }
+	for (n = 0; n < _numberOfImages; n++) {
+		// Check whether dynamic range of data is not to large
+		if (target_max - target_min > MAX_GREY) {
+			cerr << this->NameOfClass()
+				<< "::Initialize: Dynamic range of target is too large" << endl;
+			exit(1);
+		} else {
+			for (t = 0; t < _target[n]->GetT(); t++) {
+				for (k = 0; k < _target[n]->GetZ(); k++) {
+					for (j = 0; j < _target[n]->GetY(); j++) {
+						for (i = 0; i < _target[n]->GetX(); i++) {
+							if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
+								_target[n]->Put(i, j, k, t, _target[n]->Get(i, j, k, t) - target_min);
+							} else {
+								_target[n]->Put(i, j, k, t, -1);
+							}
+						}
+					}
+				}
+			}
+		}
 
-    // Pad target image if necessary
-    irtkPadding(*_target[n], _TargetPadding);
-  }
+		if ((_SimilarityMeasure == SSD) || (_SimilarityMeasure == CC) ||
+			(_SimilarityMeasure == LC)  || (_SimilarityMeasure == K) || (_SimilarityMeasure == ML)) {
+				if (source_max - target_min > MAX_GREY) {
+					cerr << this->NameOfClass()
+						<< "::Initialize: Dynamic range of source is too large" << endl;
+					exit(1);
+				} else {
+					for (t = 0; t < _source[n]->GetT(); t++) {
+						for (k = 0; k < _source[n]->GetZ(); k++) {
+							for (j = 0; j < _source[n]->GetY(); j++) {
+								for (i = 0; i < _source[n]->GetX(); i++) {
+									_source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - target_min);
+								}
+							}
+						}
+					}
+				}
+		} else {
+			if (source_max - source_min > MAX_GREY) {
+				cerr << this->NameOfClass()
+					<< "::Initialize: Dynamic range of source is too large" << endl;
+				exit(1);
+			} else {
+				for (t = 0; t < _source[n]->GetT(); t++) {
+					for (k = 0; k < _source[n]->GetZ(); k++) {
+						for (j = 0; j < _source[n]->GetY(); j++) {
+							for (i = 0; i < _source[n]->GetX(); i++) {
+								_source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - source_min);
+							}
+						}
+					}
+				}
+			}
+		}
 
-  // Allocate memory for metric
-  switch (_SimilarityMeasure) {
-  case SSD:
-    _metric = new irtkSSDSimilarityMetric;
-    break;
-  case CC:
-    // Rescale images by an integer factor if necessary
-    _metric = new irtkCrossCorrelationSimilarityMetric;
-    break;
-  case JE:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max, _numberOfImages);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max, _numberOfImages);
-    _metric = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
-    break;
-  case MI:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max, _numberOfImages);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max, _numberOfImages);
-    _metric = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case NMI:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max, _numberOfImages);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max, _numberOfImages);
-    _metric = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case CR_XY:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max, _numberOfImages);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max, _numberOfImages);
-    _metric = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case CR_YX:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max, _numberOfImages);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max, _numberOfImages);
-    _metric = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case LC:
-    _metric = new irtkLabelConsistencySimilarityMetric;
-    break;
-  case K:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
-                   target_min, target_max, _numberOfImages);
-    source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
-                   source_min, source_max, _numberOfImages);
-    _metric = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case ML:
-    // Rescale images by an integer factor if necessary
-    _metric = new irtkMLSimilarityMetric(classification);
-    if (_metric==NULL) {
-      cerr<<"Please, do not forget to set the ML metric!!!"<<endl;
-    }
-    break;
-  }
+		// Pad target image if necessary
+		irtkPadding(*_target[n], _TargetPadding);
+	}
 
-  for (n = 0; n < _numberOfImages; n++) {
-    // Setup the interpolator
-    _interpolator[n] = irtkInterpolateImageFunction::New(_InterpolationMode, _source[n]);
+	// Allocate memory for metric
+	_metric = new irtkSimilarityMetric*[_numberOfImages];
+	for (n = 0; n < _numberOfImages; n++) {
+		switch (_SimilarityMeasure) {
+		case SSD:
+			_metric[n] = new irtkSSDSimilarityMetric;
+			break;
+		case CC:
+			// Rescale images by an integer factor if necessary
+			_metric[n] = new irtkCrossCorrelationSimilarityMetric;
+			break;
+		case JE:
+			// Rescale images by an integer factor if necessary
+			target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+				target_min, target_max, _numberOfImages);
+			source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+				source_min, source_max, _numberOfImages);
+			_metric[n] = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
+			break;
+		case MI:
+			// Rescale images by an integer factor if necessary
+			target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+				target_min, target_max, _numberOfImages);
+			source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+				source_min, source_max, _numberOfImages);
+			_metric[n] = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
+			break;
+		case NMI:
+			// Rescale images by an integer factor if necessary
+			target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+				target_min, target_max, _numberOfImages);
+			source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+				source_min, source_max, _numberOfImages);
+			_metric[n] = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
+			break;
+		case CR_XY:
+			// Rescale images by an integer factor if necessary
+			target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+				target_min, target_max, _numberOfImages);
+			source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+				source_min, source_max, _numberOfImages);
+			_metric[n] = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
+			break;
+		case CR_YX:
+			// Rescale images by an integer factor if necessary
+			target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+				target_min, target_max, _numberOfImages);
+			source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+				source_min, source_max, _numberOfImages);
+			_metric[n] = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
+			break;
+		case LC:
+			_metric[n] = new irtkLabelConsistencySimilarityMetric;
+			break;
+		case K:
+			// Rescale images by an integer factor if necessary
+			target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins,
+				target_min, target_max, _numberOfImages);
+			source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins,
+				source_min, source_max, _numberOfImages);
+			_metric[n] = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
+			break;
+		case ML:
+			// Rescale images by an integer factor if necessary
+			_metric[n] = new irtkMLSimilarityMetric(classification);
+			if (_metric[n]==NULL) {
+				cerr<<"Please, do not forget to set the ML metric!!!"<<endl;
+			}
+			break;
+		}
+	}
 
-    // Setup interpolation for the source image
-    _interpolator[n]->SetInput(_source[n]);
-    _interpolator[n]->Initialize();
+	for (n = 0; n < _numberOfImages; n++) {
+		// Setup the interpolator
+		_interpolator[n] = irtkInterpolateImageFunction::New(_InterpolationMode, _source[n]);
 
-    // Calculate the source image domain in which we can interpolate
-    _interpolator[n]->Inside(_source_x1[n], _source_y1[n], _source_z1[n],
-                             _source_x2[n], _source_y2[n], _source_z2[n]);
-  }
+		// Setup interpolation for the source image
+		_interpolator[n]->SetInput(_source[n]);
+		_interpolator[n]->Initialize();
 
-  // Setup the optimizer
-  switch (_OptimizationMethod) {
-  case DownhillDescent:
-    _optimizer = new irtkDownhillDescentOptimizer;
-    break;
-  case GradientDescent:
-    _optimizer = new irtkGradientDescentOptimizer;
-    break;
-  case GradientDescentConstrained:
-    _optimizer = new irtkGradientDescentConstrainedOptimizer;
-    break;
-  case SteepestGradientDescent:
-    _optimizer = new irtkSteepestGradientDescentOptimizer;
-    break;
-  case ConjugateGradientDescent:
-    _optimizer = new irtkConjugateGradientDescentOptimizer;
-    break;
-  default:
-    cerr << "Unkown optimizer" << endl;
-    exit(1);
-  }
-  _optimizer->SetTransformation(_transformation);
-  _optimizer->SetRegistration(this);
+		// Calculate the source image domain in which we can interpolate
+		_interpolator[n]->Inside(_source_x1[n], _source_y1[n], _source_z1[n],
+			_source_x2[n], _source_y2[n], _source_z2[n]);
+	}
 
-  for (n = 0; n < _numberOfImages; n++) {
+	// Setup the optimizer
+	switch (_OptimizationMethod) {
+	case DownhillDescent:
+		_optimizer = new irtkDownhillDescentOptimizer;
+		break;
+	case GradientDescent:
+		_optimizer = new irtkGradientDescentOptimizer;
+		break;
+	case GradientDescentConstrained:
+		_optimizer = new irtkGradientDescentConstrainedOptimizer;
+		break;
+	case SteepestGradientDescent:
+		_optimizer = new irtkSteepestGradientDescentOptimizer;
+		break;
+	case ConjugateGradientDescent:
+		_optimizer = new irtkConjugateGradientDescentOptimizer;
+		break;
+	default:
+		cerr << "Unkown optimizer" << endl;
+		exit(1);
+	}
+	_optimizer->SetTransformation(_transformation);
+	_optimizer->SetRegistration(this);
 
-    // Print some debugging information
-    cout << "Target image (reference) no. " << n << endl;
-    _target[n]->Print();
-    cout << "Range is from " << target_min << " to " << target_max << endl;
+	for (n = 0; n < _numberOfImages; n++) {
 
-    cout << "Source image (transform) no. " << n << endl;
-    _source[n]->Print();
-    cout << "Range is from " << source_min << " to " << source_max << endl;
-  }
+		// Print some debugging information
+		cout << "Target image (reference) no. " << n << endl;
+		_target[n]->Print();
+		cout << "Range is from " << target_min << " to " << target_max << endl;
 
-  // Print initial transformation
-  cout << "Initial transformation for level = " << level+1 << endl;;
-  _transformation->Print();
+		cout << "Source image (transform) no. " << n << endl;
+		_source[n]->Print();
+		cout << "Range is from " << source_min << " to " << source_max << endl;
+	}
+
+	// Print initial transformation
+	cout << "Initial transformation for level = " << level+1 << endl;;
+	_transformation->Print();
 
 }
 
@@ -459,11 +467,12 @@ void irtkMultipleImageRegistration::Finalize(int level)
 	  delete tmp_mtarget[n];
 	  delete tmp_msource[n];
 	  delete _interpolator[n];
+	  delete _metric[n];
   }
   delete []tmp_mtarget;
   delete []tmp_msource;
+  delete []_metric;
   delete _optimizer;
-  delete _metric;
 }
 
 void irtkMultipleImageRegistration::Run()
@@ -569,6 +578,29 @@ void irtkMultipleImageRegistration::Run()
 
   // Do the final cleaning up for all levels
   this->Finalize();
+}
+
+double irtkMultipleImageRegistration::LandMarkPenalty ()
+{
+  int i;
+  double distance = 0;
+
+  if (_ptarget == NULL || _psource == NULL){
+	  return 0;
+  }else if(_ptarget->Size() != _psource->Size()){
+	  cerr<<"Regulation landmarks' size does not correspond"<<endl;
+	  exit(1);
+  }else if(_ptarget->Size() == 0){
+	  return 0;
+  }else{
+	  for (i = 0; i < _ptarget->Size (); i++) {
+		  irtkPoint a = _ptarget->operator()(i);
+		  irtkPoint b = _psource->operator()(i);
+		  _transformation->Transform(a);
+		  distance += a.Distance (b);
+	  }
+	  return -(distance/double(_ptarget->Size()));
+  }
 }
 
 double irtkMultipleImageRegistration::EvaluateGradient(float step, float *dx)
@@ -743,6 +775,10 @@ bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
     this->_Epsilon = atof(buffer2);
     ok = true;
   }
+  if (strstr(buffer1, "Lregulation") != NULL) {
+    this->_Lregu = atof(buffer2);
+    ok = true;
+  }
   if (strstr(buffer1, "Delta") != NULL) {
     if (level == -1) {
       for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
@@ -884,6 +920,7 @@ void irtkMultipleImageRegistration::Write(ostream &to)
   to << "No. of resolution levels          = " << this->_NumberOfLevels << endl;
   to << "No. of bins                       = " << this->_NumberOfBins << endl;
   to << "Epsilon                           = " << this->_Epsilon << endl;
+  to << "Lregulation                       = " << this->_Lregu << endl;
   to << "Padding value                     = " << this->_TargetPadding << endl;
 
   switch (this->_SimilarityMeasure) {
