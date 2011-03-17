@@ -18,7 +18,7 @@ irtkRealImage image;
 
 void usage()
 {
-  cerr << "Usage: enlarge_image [image] [output] <-x voxels> <-y voxels> <-z voxels>"<<endl;
+  cerr << "Usage: enlarge_image [image] [output] <-x voxels> <-y voxels> <-z voxels> <-percent> <-value value>"<<endl;
   exit(1);
 }
 
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  int ex=0,ey=0,ez=0;
+  int ex=0,ey=0,ez=0,percent=0,value=0;
   int ok;
 
   image.Read(argv[1]);
@@ -68,6 +68,20 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-percent") == 0)){
+      argc--;
+      argv++;
+      percent = 1;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-value") == 0)){
+      argc--;
+      argv++;
+      value = atoi(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+    }
      if (ok == false){
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -77,17 +91,30 @@ int main(int argc, char **argv)
 
   irtkRealImage new_image; 
   irtkImageAttributes attr = image.GetImageAttributes();
+  if(percent == 1){
+	  ex = round(double(image.GetX()*ex)/100.0);
+	  ey = round(double(image.GetY()*ey)/100.0);
+	  ez = round(double(image.GetZ()*ez)/100.0);
+  }
   attr._x += 2*ex;
   attr._y += 2*ey;
   attr._z += 2*ez;
   new_image.Initialize(attr);
-  int i,j,k;
-  for(i=0; i<image.GetX();i++)
-    for(j=0; j<image.GetY();j++)
-      for(k=0; k<image.GetZ();k++)
-      {
-        new_image.Put(i+ex,j+ey,k+ez,image.Get(i,j,k));
-      }
+  int i,j,k,l;
+  for(l=0;l<new_image.GetT();l++)
+	  for(i=0; i<new_image.GetX();i++)
+		  for(j=0; j<new_image.GetY();j++)
+			  for(k=0; k<new_image.GetZ();k++){
+			    new_image.Put(i,j,k,l,value);
+			  }
+
+  for(l=0;l<image.GetT();l++)
+	  for(i=0; i<image.GetX();i++)
+		  for(j=0; j<image.GetY();j++)
+			  for(k=0; k<image.GetZ();k++)
+			  {
+				new_image.Put(i+ex,j+ey,k+ez,l,image.Get(i,j,k,l));
+			  }
   new_image.Write(output_name);
  
 }
