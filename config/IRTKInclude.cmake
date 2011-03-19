@@ -198,3 +198,6 @@ IF (BUILD_WITH_NIFTI)
    LINK_LIBRARIES(znz)
    LINK_LIBRARIES(niftiio)
 ENDIF (BUILD_WITH_NIFTI)
+
+# Option to build with cardiac spatial temporal correction, segmentation and motion tracking toolbox.
+OPTION(BUILD_CARDIAC "Build with cardiac tool box" OFF)
