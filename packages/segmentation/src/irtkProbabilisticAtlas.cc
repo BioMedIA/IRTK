@@ -216,6 +216,11 @@ irtkRealImage irtkProbabilisticAtlas::ComputeHardSegmentation()
   return _segmentation;
 }
 
+irtkRealImage irtkProbabilisticAtlas::GetImage(int i)
+{
+  return _images[i];
+}
+
 void irtkProbabilisticAtlas::ExtractLabel(int label, irtkRealImage& image)
 {
   cerr<<"irtkProbabilisticAtlas::ExtractLabel"<<endl;

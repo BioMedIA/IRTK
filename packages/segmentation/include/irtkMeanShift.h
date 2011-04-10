@@ -4,13 +4,12 @@
 // queue::push/pop
 
 #include <irtkImage.h>
-#include <irtkGeometry.h>
-#include <irtkGaussianBlurring.h>
-#include <irtkErosion.h>
 #include <irtkDilation.h>
-
+#include <irtkErosion.h>
+#include <irtkGaussianBlurring.h>
 #include <algorithm>
 #include <queue>
+
 using namespace std;
 
 

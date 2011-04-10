@@ -2,13 +2,6 @@
 // queue::push/pop
 
 #include <irtkMeanShift.h>
-/*#include <irtkImage.h>
-#include <irtkGeometry.h>
-#include <irtkErosion.h>
-#include <irtkDilation.h>
-
-#include <algorithm>
-#include <queue>*/
 
 
 irtkMeanShift::irtkMeanShift(irtkGreyImage& image, int padding, int nBins)

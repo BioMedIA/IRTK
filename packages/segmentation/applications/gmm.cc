@@ -20,13 +20,14 @@ char *output_name;
 
 void usage()
 {
-  cerr << "Usage: ems [image] [n] [atlas 1 ... atlas n] [output] <options>" << endl;
+  cerr << "Usage: gmm [image] [n] [atlas 1 ... atlas n] [output] <options>" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i, n, ok, padding, iterations;
+  int n, ok, padding, iterations;
+  int i,j,k,m;
 
   if (argc < 4) {
     usage();
@@ -101,10 +102,21 @@ int main(int argc, char **argv)
     }
   }
 
-  //irtkEMClassification classification(n, atlas, background);
-  irtkEMClassification classification(n, atlas);
-
-
+  if (!background){
+	  background = (irtkRealImage*)irtkRealImage::New(&image);
+	  for(i = 0;i < image.GetX(); i++)
+		  for(j = 0;j < image.GetY(); j++)
+			  for(k = 0;k < image.GetZ(); k++){
+				  double tmp = 255;
+				  for (m = 0; m < n; m++) {
+					  tmp = tmp - atlas[m]->GetAsDouble(i,j,k);
+				  }
+				  if(tmp < 0) tmp = 0;
+				  background->PutAsDouble(i,j,k,tmp);
+			  }
+  }
+  background->Write("back.nii");
+  irtkEMClassification classification(n, atlas, background);
   classification.SetPadding(padding);
   classification.SetInput(image);
   classification.InitialiseGMM();
@@ -113,9 +125,9 @@ int main(int argc, char **argv)
   //for (i = 0; rel_diff > 0.0001; i++){
   i=1;
   do {
-    cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = classification.IterateGMM(i);
-    i++;
+	  cout << "Iteration = " << i << " / " << iterations << endl;
+	  rel_diff = classification.IterateGMM(i);
+	  i++;
   } while ((rel_diff>0.001)&&(i<50));
 
 
@@ -125,36 +137,35 @@ int main(int argc, char **argv)
   classification.ConstructSegmentationNoBG(segmentation);
   segmentation.Write(output_name);
   if (n==11) {
-    classification.WriteProbMap(0,"csf.nii.gz");
-    classification.WriteProbMap(1,"gray.nii.gz");
-    classification.WriteProbMap(2,"caudate.nii.gz");
-    classification.WriteProbMap(3,"putamen.nii.gz");
-    classification.WriteProbMap(4,"nigra.nii.gz");
-    classification.WriteProbMap(5,"cerebellum.nii.gz");
-    classification.WriteProbMap(6,"thalamus.nii.gz");
-    classification.WriteProbMap(7,"pallidum.nii.gz");
-    classification.WriteProbMap(8,"brainstem.nii.gz");
-    classification.WriteProbMap(9,"white.nii.gz");
-    classification.WriteProbMap(10,"cerebellum-white.nii.gz");
-    classification.WriteProbMap(11,"other.nii.gz");
+	  classification.WriteProbMap(0,"csf.nii.gz");
+	  classification.WriteProbMap(1,"gray.nii.gz");
+	  classification.WriteProbMap(2,"caudate.nii.gz");
+	  classification.WriteProbMap(3,"putamen.nii.gz");
+	  classification.WriteProbMap(4,"nigra.nii.gz");
+	  classification.WriteProbMap(5,"cerebellum.nii.gz");
+	  classification.WriteProbMap(6,"thalamus.nii.gz");
+	  classification.WriteProbMap(7,"pallidum.nii.gz");
+	  classification.WriteProbMap(8,"brainstem.nii.gz");
+	  classification.WriteProbMap(9,"white.nii.gz");
+	  classification.WriteProbMap(10,"cerebellum-white.nii.gz");
+	  classification.WriteProbMap(11,"other.nii.gz");
   }
   if (n==5) {
-    classification.WriteProbMap(0,"caudate.nii.gz");
-    classification.WriteProbMap(1,"putamen.nii.gz");
-    classification.WriteProbMap(2,"thalamus.nii.gz");
-    classification.WriteProbMap(3,"pallidum.nii.gz");
-    classification.WriteProbMap(4,"white.nii.gz");
+	  classification.WriteProbMap(0,"caudate.nii.gz");
+	  classification.WriteProbMap(1,"putamen.nii.gz");
+	  classification.WriteProbMap(2,"thalamus.nii.gz");
+	  classification.WriteProbMap(3,"pallidum.nii.gz");
+	  classification.WriteProbMap(4,"white.nii.gz");
   }
   if (n==2) {
-    classification.WriteProbMap(0,"gray.nii.gz");
-    classification.WriteProbMap(1,"white.nii.gz");
+	  classification.WriteProbMap(0,"gray.nii.gz");
+	  classification.WriteProbMap(1,"white.nii.gz");
   }
 
   if (n==3) {
-    classification.WriteProbMap(0,"csf.nii.gz");
-    classification.WriteProbMap(1,"gray.nii.gz");
-    classification.WriteProbMap(2,"white.nii.gz");
+	  classification.WriteProbMap(0,"csf.nii.gz");
+	  classification.WriteProbMap(1,"gray.nii.gz");
+	  classification.WriteProbMap(2,"white.nii.gz");
   }
-
 }
 

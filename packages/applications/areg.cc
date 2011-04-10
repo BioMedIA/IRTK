@@ -25,6 +25,8 @@ void usage()
   cerr << "<-parout file>       Write parameter to file" << endl;
   cerr << "<-dofin  file>       Read transformation from file" << endl;
   cerr << "<-dofout file>       Write transformation to file" << endl;
+  cerr << "<-p3>                Rigid transformation with 3 dofs (for -image)" << endl;
+  cerr << "<-p6>                Rigid transformation with 6 dofs (for -image)" << endl;
   cerr << "<-p9>                Affine transformation with 9 dofs" << endl;
   cerr << "<-p12>               Affine transformation with 12 dofs" << endl;
   cerr << "<-Rx1 value>         Region of interest in both images" << endl;
@@ -341,6 +343,31 @@ int main(int argc, char **argv)
       transformation->PutStatus(SXZ, _Passive);
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-p3") == 0)) {
+      argc--;
+      argv++;
+	  transformation->PutStatus(RX,  _Passive);
+      transformation->PutStatus(RY,  _Passive);
+      transformation->PutStatus(RZ,  _Passive);
+	  transformation->PutStatus(SX,  _Passive);
+      transformation->PutStatus(SY,  _Passive);
+      transformation->PutStatus(SZ,  _Passive);
+      transformation->PutStatus(SXY, _Passive);
+      transformation->PutStatus(SYZ, _Passive);
+      transformation->PutStatus(SXZ, _Passive);
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-p6") == 0)) {
+		argc--;
+		argv++;
+		transformation->PutStatus(SX,  _Passive);
+		transformation->PutStatus(SY,  _Passive);
+		transformation->PutStatus(SZ,  _Passive);
+		transformation->PutStatus(SXY, _Passive);
+		transformation->PutStatus(SYZ, _Passive);
+		transformation->PutStatus(SXZ, _Passive);
+		ok = true;
+	}
     if ((ok == false) && (strcmp(argv[1], "-p9") == 0)) {
       argc--;
       argv++;

@@ -10,11 +10,7 @@
 
 =========================================================================*/
 
-#include <irtkImage.h>
-
 #include <irtkEMClassification.h>
-
-#include <irtkGaussian.h>
 
 char *output_name;
 
@@ -64,7 +60,7 @@ int main(int argc, char **argv)
   argv++;
 
   // Default parameters
-  iterations = 15;
+  iterations = 50;
   padding    = -1;//MIN_GREY;
 
   // Parse remaining parameters
@@ -125,7 +121,7 @@ int main(int argc, char **argv)
     cout << "Iteration = " << i+1 << " / " << iterations << endl;
     rel_diff = classification->Iterate(i);
     i++;
-  } while ((rel_diff>0.001)&&(i<50));
+  } while ((rel_diff>0.001)&&(i<iterations));
 
   irtkRealImage segmentation;
   classification->ConstructSegmentation(segmentation);

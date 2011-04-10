@@ -69,6 +69,9 @@ public:
   /// Flag whether to invert transformation
   int _Invert;
 
+  /// Flag whether input is 2D
+  int _2D;
+
 public:
 
   /** Constructor. This constructs an transformation filter with a given
@@ -126,6 +129,12 @@ public:
   /// Sets the interpolator
   virtual void InvertOff(void);
 
+    /// Invert on
+  virtual void TwoDOn(void);
+
+  /// Sets the interpolator
+  virtual void TwoDOff(void);
+
   /// Runs the filter
   virtual void Run();
 
@@ -175,6 +184,16 @@ inline void irtkImageTransformation::InvertOn()
 inline void irtkImageTransformation::InvertOff()
 {
   _Invert = false;
+}
+
+inline void irtkImageTransformation::TwoDOn()
+{
+  _2D = true;
+}
+
+inline void irtkImageTransformation::TwoDOff()
+{
+  _2D = false;
 }
 
 #endif

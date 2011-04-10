@@ -71,6 +71,18 @@ public:
   /// Minimum and maximum pixel values get accessor
   void GetMinMax(VoxelType *, VoxelType *) const;
 
+  /// Average pixel values get accessor
+  VoxelType GetAverage(int = 1) const;
+
+  /// Standard Deviation of the pixels
+  VoxelType GetSD(int = 1) const;
+
+  /// Get Max Intensity position around the point
+  void GetMaxPosition(irtkPoint &, int = 1, int = 0) const;
+
+  /// Get Gravity center position of a given window
+  void GravityCenter(irtkPoint &, int = 1, int = 0) const;
+
   /// Minimum and maximum pixel values get accessor with padding
   void GetMinMaxPad(VoxelType *, VoxelType *, VoxelType) const;
 

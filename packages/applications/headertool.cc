@@ -16,7 +16,7 @@ Changes   : $Author: dr $
 
 #include <irtkTransformation.h>
 
-char *input_name = NULL, *output_name = NULL, *dof_name  = NULL;
+char *input_name = NULL, *output_name = NULL, *dof_name  = NULL, *output_header = NULL;
 
 void usage()
 {
@@ -28,6 +28,7 @@ void usage()
 	cerr << "<-origin      x  y  z>                       \t Image origin (in mm)\n";
 	cerr << "<-torigin     t>                             \t Image origin (in ms)\n";
 	cerr << "<-dofin       dof>                           \t Change header from transformation\n";
+	cerr << "<-outputheader matrixfilename>               \t Output header in matrix\n";
 	cerr << "<-target      image>                         \t Copy header from target image\n\n";
 	exit(1);
 }
@@ -61,6 +62,14 @@ int main(int argc, char **argv)
 			argc--;
 			argv++;
 			dof_name = argv[1];
+			argc--;
+			argv++;
+			ok = true;
+		}
+		if ((ok == false) && (strcmp(argv[1], "-outputheader") == 0)) {
+			argc--;
+			argv++;
+			output_header = argv[1];
 			argc--;
 			argv++;
 			ok = true;
@@ -323,6 +332,23 @@ int main(int argc, char **argv)
 	}
 
 	image->Write(output_name);
+
+	if(output_header != NULL){
+		irtkMatrix header(4,4);
+		header = image->GetImageToWorldMatrix();
+		//irtkImageAttributes attr = image->GetImageAttributes();
+		//header.Ident();
+		//header(0, 0) = attr._xaxis[0];
+		//header(1, 0) = attr._xaxis[1];
+		//header(2, 0) = attr._xaxis[2];
+		//header(0, 1) = attr._yaxis[0];
+		//header(1, 1) = attr._yaxis[1];
+		//header(2, 1) = attr._yaxis[2];
+		//header(0, 2) = attr._zaxis[0];
+		//header(1, 2) = attr._zaxis[1];
+		//header(2, 2) = attr._zaxis[2];
+		header.Write(output_header);
+	}
 
 	return 0;
 }

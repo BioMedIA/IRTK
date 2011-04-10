@@ -8,7 +8,7 @@ IF (BUILD_CONDOR_EXE)
 ENDIF (BUILD_CONDOR_EXE)
 
 # Option to build with OpenCV or not.
-OPTION(BUILD_WITH_OPENCV "Build using OPENCV" ON)
+OPTION(BUILD_WITH_OPENCV "Build using OPENCV" OFF)
 
 IF (BUILD_WITH_OPENCV)
   ADD_DEFINITIONS(-DHAS_OPENCV)
@@ -201,3 +201,9 @@ ENDIF (BUILD_WITH_NIFTI)
 
 # Option to build with cardiac spatial temporal correction, segmentation and motion tracking toolbox.
 OPTION(BUILD_CARDIAC "Build with cardiac tool box" OFF)
+IF (BUILD_CARDIAC)
+   ADD_DEFINITIONS(-DHAS_CARDIAC)
+   INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/cardiac/include)
+   LINK_LIBRARIES(cardiac++)
+ENDIF (BUILD_CARDIAC)
+

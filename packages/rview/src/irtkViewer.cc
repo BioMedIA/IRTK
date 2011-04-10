@@ -276,13 +276,26 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
         _AfterX[m][n] = _BeforeX[m][n];
         _AfterY[m][n] = _BeforeY[m][n];
         _AfterZ[m][n] = _BeforeZ[m][n];
-        if (mffd != NULL) {
-          mffd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
-          mffd->irtkAffineTransformation::Inverse(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
-        } else {
-          affd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
-        }
-        image->WorldToImage(_BeforeX[m][n], _BeforeY[m][n], _BeforeZ[m][n]);
+		image->WorldToImage(_BeforeX[m][n], _BeforeY[m][n], _BeforeZ[m][n]);
+		int ii,ij,ik;
+		ii = round(_BeforeX[m][n]);
+		ij = round(_BeforeY[m][n]);
+		ik = round(_BeforeZ[m][n]);
+		if(ii<0) ii = 0;
+		if(ii>=image->GetX()) ii = image->GetX() - 1;
+		if(ij<0) ij = 0;
+		if(ij>=image->GetY()) ij = image->GetY() - 1;
+		if(ik<0) ik = 0;
+		if(ik>=image->GetZ()) ik = image->GetZ() - 1;
+		if(  image->GetAsDouble(ii,ij,ik,t)
+			 > this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity()){
+				if (mffd != NULL) {
+					mffd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
+					mffd->irtkAffineTransformation::Inverse(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
+				} else {
+					affd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
+				}
+		}
         image->WorldToImage(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
         if (affd->GetStatus(index) == _Active) {
           _CPStatus[m][n] = _Active;
@@ -414,22 +427,35 @@ bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
       _AfterX[i][j]  = _BeforeX[i][j];
       _AfterY[i][j]  = _BeforeY[i][j];
       _AfterZ[i][j]  = 0;
+
+	  int ii,ij,ik;
+	  ii = round(_BeforeX[i][j]);
+	  ij = round(_BeforeY[i][j]);
+	  ik = 0;
+	  if(ii<0) ii = 0;
+	  if(ii>=image->GetX()) ii = image->GetX() - 1;
+	  if(ij<0) ij = 0;
+	  if(ij>=image->GetY()) ij = image->GetY() - 1;
+
       image->ImageToWorld(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
-      if (mffd != NULL) {
-        if (_rview->_sourceTransformInvert == true) {
-          mffd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-          mffd->irtkAffineTransformation::Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-        } else {
-          mffd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-          mffd->irtkAffineTransformation::Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-        }
-      } else {
-        if (_rview->_sourceTransformInvert == true) {
-          affd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-        } else {
-          affd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
-        }
-      }
+	  if(  image->GetAsDouble(ii,ij,ik,t)
+		> this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity()){
+			if (mffd != NULL) {
+				if (_rview->_sourceTransformInvert == true) {
+					mffd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+					mffd->irtkAffineTransformation::Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+				} else {
+					mffd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+					mffd->irtkAffineTransformation::Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+				}
+			} else {
+				if (_rview->_sourceTransformInvert == true) {
+					affd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+				} else {
+					affd->Transform(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
+				}
+			}
+	  }
       image->WorldToImage(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
       _CPStatus[i][j] = _Unknown;
     }

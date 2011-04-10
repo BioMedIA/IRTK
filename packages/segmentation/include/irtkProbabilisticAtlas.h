@@ -102,6 +102,8 @@ public:
   /// Writes hard segmentation into a file
   void WriteHardSegmentation(char *filename);
 
+  irtkRealImage GetImage(int);
+
 };
 
 inline void irtkProbabilisticAtlas::First()

@@ -67,6 +67,9 @@ irtkInterpolateImageFunction *irtkInterpolateImageFunction::New(irtkInterpolatio
     case Interpolation_BSpline:
       return new irtkBSplineInterpolateImageFunction;
       break;
+	case Interpolation_SBased:
+		return new irtkShapeBasedInterpolateImageFunction;
+		break;
     case Interpolation_Sinc:
       return new irtkSincInterpolateImageFunction;
       break;

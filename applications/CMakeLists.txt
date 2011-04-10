@@ -28,7 +28,7 @@ ELSE(BUILD_CONDOR_EXE)
   IF (BUILD_MPI_EXE)
 
   ELSE (BUILD_MPI_EXE)
-
+    ADD_EXECUTABLE(average average.cc)
     ADD_EXECUTABLE(combineLabels combineLabels.cc)
     ADD_EXECUTABLE(convert convert.cc)
     ADD_EXECUTABLE(dilation dilation.cc)
@@ -51,28 +51,29 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(lcc_iterative lcc_iterative.cc)
     ADD_EXECUTABLE(makevolume makevolume.cc)
     ADD_EXECUTABLE(makesequence makesequence.cc)
+    ADD_EXECUTABLE(combineimages combineimages.cc)
     ADD_EXECUTABLE(mcubes mcubes.cc)
     ADD_EXECUTABLE(msample msample.cc)
     ADD_EXECUTABLE(opening opening.cc)
+    ADD_EXECUTABLE(polar2cartesian polar2cartesian.cc)
     ADD_EXECUTABLE(overlap overlap.cc)
     ADD_EXECUTABLE(raw2image raw2image.cc)
     ADD_EXECUTABLE(reflect reflect.cc)
     ADD_EXECUTABLE(resample resample.cc)
     ADD_EXECUTABLE(rescale rescale.cc)
     ADD_EXECUTABLE(rescale_real rescale_real.cc)
+    ADD_EXECUTABLE(temporalalign temporalalign.cc)
     ADD_EXECUTABLE(threshold threshold.cc)
     ADD_EXECUTABLE(voxelsize voxelsize.cc)
     ADD_EXECUTABLE(histogram histogram.cc)
-    ADD_EXECUTABLE(sbig  sbig.cc)	
-    ADD_EXECUTABLE(anisoDiff AnisoDiff.cc)
+    ADD_EXECUTABLE(sbig  sbig.cc)
+    ADD_EXECUTABLE(splitvolume splitvolume.cc)
+    ADD_EXECUTABLE(surfacedistance surfacedistance.cc)
+    ADD_EXECUTABLE(AnisoDiff AnisoDiff.cc)
     
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin binarize blur closing convert dilation dicemetric
-dicom2image dmap edgedetect erosion flip giplmagic info lcc
-lcc_iterative makesequence makevolume mcubes msample noise opening 
-overlap padding raw2image reflect region resample threshold voxelsize 
-histogram sbig anisoDiff)
+INSTALL_TARGETS(/bin average binarize blur closing convert dicemetric dilation dicom2image dmap edgedetect erosion flip giplmagic info lcc lcc_iterative makesequence makevolume combineimages mcubes msample noise overlap opening padding polar2cartesian raw2image reflect region resample temporalalign threshold voxelsize histogram sbig splitvolume surfacedistance AnisoDiff)
 
 ENDIF (BUILD_CONDOR_EXE)
 

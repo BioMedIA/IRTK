@@ -14,18 +14,36 @@
 
 char *input_name = NULL, *output_name = NULL;
 
+void findminmax(double *var,int num,double &min, double &max){
+	int i;
+	min = 1000000;
+	max = 0;
+	for(i = 0; i < num; i++){
+		if(var[i]<min) min = var[i];
+		if(var[i]>max) max = var[i];
+	}
+}
+
 void usage()
 {
-  cerr << "Usage: region [in] [out] <-Rx1 x1> <-Ry1 y1> <-Rz1 z1> <-Rt1 zt1> "
-       << "<-Rx2 x2> <-Ry2 y2> <-Rz2 z2> <-Rt2 t2> " << endl;
+  cerr << "Usage: region [in] [out] <-Rx1 x1> <-Ry1 y1> <-Rz1 z1> <-Rt1 t1> "
+       << "<-Rx2 x2> <-Ry2 y2> <-Rz2 z2> <-Rt2 t2> <-landmarks points> <-ref image>" << endl
+       << "<-scale value>	value times of the specified interest region" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
   bool ok;
-  irtkGreyImage in, out;
+  irtkGreyImage in, out, ref;
+  irtkPointSet landmarks;
   int x1, x2, y1, t1, y2, z1, z2, t2;
+  double tx[8],ty[8],tz[8],scale;
+  double tx1,ty1,tz1,tx2,ty2,tz2;
+  int i,refon;
+
+  refon = 0;
+  scale = 1;
 
   if (argc < 3) {
     usage();
@@ -116,10 +134,94 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       ok = true;
-    } else if (!ok) {
+    }
+	if ((ok == false) && (strcmp(argv[1], "-landmarks") == 0)) {
+      argc--;
+      argv++;
+	  landmarks.ReadVTK(argv[1]);
+	  for( i=0; i<landmarks.Size(); i++){
+		  in.WorldToImage(landmarks(i));
+	  }
+	  x1 = landmarks(0)._x; x2 = landmarks(1)._x;
+	  y1 = landmarks(0)._y; y2 = landmarks(1)._y;
+      argc--;
+      argv++;
+      ok = true;
+    }
+	if ((ok == false) && strcmp(argv[1], "-ref") == 0) {
+		argc--;
+		argv++;
+		refon = 1;
+		ok = true;
+		ref.Read(argv[1]);
+		//refatr = ref.GetImageAttributes();
+		argc--;
+		argv++;
+    }
+	if ((ok == false) && strcmp(argv[1], "-scale") == 0) {
+		argc--;
+		argv++;
+		ok = true;
+		scale = atof(argv[1]);
+		//refatr = ref.GetImageAttributes();
+		argc--;
+		argv++;
+    }
+	if (!ok) {
       cerr << "Invalid option : " << argv[1] << endl;
       exit(1);
     }
+  }
+
+  if(refon){
+	  tx[0] = 0; ty[0] = 0; tz[0] = 0;
+	  tx[1] = 0; ty[1] = 0; tz[1] = ref.GetZ();
+	  tx[2] = 0; ty[2] = ref.GetY(); tz[2] = ref.GetZ();
+	  tx[3] = 0; ty[3] = ref.GetY(); tz[3] = 0;
+	  tx[4] = ref.GetX(); ty[4] = 0; tz[4] = 0;
+	  tx[5] = ref.GetX(); ty[5] = 0; tz[5] = ref.GetZ();
+	  tx[6] = ref.GetX(); ty[6] = ref.GetY(); tz[6] = 0;
+	  tx[7] = ref.GetX(); ty[7] = ref.GetY(); tz[7] = ref.GetZ();
+
+	  for (i=0;i<8;i++){
+		  ref.ImageToWorld(tx[i],ty[i],tz[i]);
+		  in.WorldToImage(tx[i],ty[i],tz[i]);
+	  }
+      findminmax(tx,8,tx1,tx2);
+	  findminmax(ty,8,ty1,ty2);
+	  findminmax(tz,8,tz1,tz2);
+
+	  x1 = round(tx1); x2 = round(tx2); y1 = round(ty1);
+	  y2 = round(ty2); z1 = round(tz1); z2 = round(tz2);
+	  if(x1<0) x1 = 0; if(y1<0) y1 = 0; if(z1<0) z1 = 0;
+	  if(x2 == 0) x2 = 1;
+	  if(y2 == 0) y2 = 1;
+	  if(z2 == 0) z2 = 1;
+	  if(x2 > in.GetX()) x2 = in.GetX();
+	  if(y2 > in.GetY()) y2 = in.GetY();
+	  if(z2 > in.GetZ()) z2 = in.GetZ();
+  }
+
+  if(scale != 1.0){
+	tx1 = (x1 + x2)/2.0;
+	ty1 = (y1 + y2)/2.0;
+	tx2 = abs(x1 - x2)/2.0;
+    ty2 = abs(y1 - y2)/2.0;
+	tx2 = tx2 * scale;
+	ty2 = ty2 * scale;
+	x1 = round(tx1 - tx2);
+	x2 = round(tx1 + tx2);
+	y1 = round(ty1 - ty2);
+	y2 = round(ty1 + ty2);
+	z1 = 0;
+	z2 = in.GetZ();
+	if(x1<0) x1 = 0; if(y1<0) y1 = 0; if(z1<0) z1 = 0;
+	if(x2 == 0) x2 = 1;
+	if(y2 == 0) y2 = 1;
+	if(z2 == 0) z2 = 1;
+	if(x2 > in.GetX()) x2 = in.GetX();
+	if(y2 > in.GetY()) y2 = in.GetY();
+	if(z2 > in.GetZ()) z2 = in.GetZ();
   }
 
   // Get region

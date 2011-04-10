@@ -391,19 +391,17 @@ void irtkImageRegistration::Initialize(int level)
   _transformation->Print();
 
 }
-
 void irtkImageRegistration::Finalize()
 {}
 
 void irtkImageRegistration::Finalize(int level)
 {
   // Print final transformation
-  cout << "Final transformation for level = " << level+1 << endl;;
-  _transformation->Print();
-
-  // Swap source and target back with temp space copies (see Initialize)
-  swap(tmp_target, _target);
-  swap(tmp_source, _source);
+    cout << "Final transformation for level = " << level+1 << endl;;
+    _transformation->Print();
+    // Swap source and target back with temp space copies (see Initialize)
+    swap(tmp_target, _target);
+    swap(tmp_source, _source);
 
 #ifdef HAS_TBB
   irtkSimilarityMetric *metric;
@@ -485,7 +483,6 @@ void irtkImageRegistration::Run()
     // Run the registration filter at this resolution
     for (i = 0; i < _NumberOfSteps[level]; i++) {
       for (j = 0; j < _NumberOfIterations[level]; j++) {
-
         cout << "Iteration = " << j + 1 << " (out of " << _NumberOfIterations[level];
         cout << "), step size = " << step << endl;
 

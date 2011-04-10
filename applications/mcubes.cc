@@ -32,20 +32,22 @@ char *input_name, *output_name;
 void usage()
 {
 
-  cerr << "Usage: mcubes [image] [polydata] [threshold] <-decimate> <-smooth> <-normals on|off> <-gradients on|off> <-blur sigma> <-isotropic> <-size x y z> <-ascii>\n";
-
+  cerr << "Usage: mcubes [image] [polydata] [threshold] <-decimate> <-smooth> <-normals on|off> <-gradients on|off> <-blur sigma> <-isotropic> <-size x y z> <-ascii> <-sepsuf> <-rmatr> \n"<<endl;
+  cerr << "<-close put blank slices on both side so a set of closed surface will be generated>";
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int ok, i, bASCII = false;
+  int ok, i, j, k, t, bASCII = false,rmatr,close;
   float threshold;
   double xaxis[3], yaxis[3], zaxis[3], point[3];
   irtkPoint origin;
 
   vtkDecimatePro *decimate = NULL;
   vtkSmoothPolyDataFilter *smooth = NULL;
+  rmatr = 0;
+  close = 0;
 
   if (argc < 4) {
     usage();
@@ -85,6 +87,18 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       smooth = vtkSmoothPolyDataFilter::New();
+      ok = true;
+    }
+	if ((!ok) && (strcmp(argv[1], "-rmatr") == 0)) {
+      argc--;
+      argv++;
+      rmatr = 1;
+      ok = true;
+    }
+	if ((!ok) && (strcmp(argv[1], "-close") == 0)) {
+      argc--;
+      argv++;
+      close = 1;
       ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-gradients") == 0) && (strcmp(argv[2], "on") == 0)) {
@@ -143,13 +157,13 @@ int main(int argc, char **argv)
       size = (size < zsize) ? size : zsize;
       cerr << "Resampling image to isotropic voxel size (in mm): "
            << size << endl;
-      irtkResampling<irtkRealPixel> resampling(size, size, size);
-      irtkLinearInterpolateImageFunction interpolator;
-      resampling.SetInput (&image);
-      resampling.SetOutput(&image);
-      resampling.SetInterpolator(&interpolator);
-      resampling.Run();
-      ok = true;
+	  irtkResampling<irtkRealPixel> resampling(size, size, size);
+	  irtkLinearInterpolateImageFunction interpolator;
+	  resampling.SetInput (&image);
+	  resampling.SetOutput(&image);
+	  resampling.SetInterpolator(&interpolator);
+	  resampling.Run();
+	  ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-size") == 0)) {
       argc--;
@@ -173,6 +187,10 @@ int main(int argc, char **argv)
       bASCII = true;
       ok = true;
     }
+	if ((!ok) && (strcmp(argv[1], "-sepsuf") == 0)) {
+		mcubes->SetNumberOfContours(2);
+		mcubes->SetValue(1, threshold+0.1);
+	}
     if (!ok) {
       cerr << "Cannot parse argument " << argv[1] << endl;
       usage();
@@ -181,12 +199,41 @@ int main(int argc, char **argv)
 
   // Convert image to VTK, taking the differences in vtk/irtk image geometry into account
   vtkStructuredPoints *vtkimage = vtkStructuredPoints::New();
-  irtkRealImage dummy(image);
+  if(rmatr == 1){
+	  irtkImageAttributes tmpatr;
+	  image.PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+	  image.PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
+  }
+  irtkRealImage dummy;
+  if(close){
+	  irtkImageAttributes atr = image.GetImageAttributes();
+	  atr._z = atr._z + 2;
+	  dummy.Initialize(atr);
+	  for(t = 0; t < image.GetT(); t++){
+		  for(k = 0; k < image.GetZ(); k++){
+			  for(j = 0; j < image.GetY(); j++){
+				  for(i = 0; i < image.GetX(); i++){
+					  dummy.PutAsDouble(i,j,k+1,t,image.GetAsDouble(i,j,k,t));
+				  }
+			  }
+		  }
+	  }
+  }else{
+	  dummy.Initialize(image.GetImageAttributes());
+	  for(t = 0; t < image.GetT(); t++){
+		  for(k = 0; k < image.GetZ(); k++){
+			  for(j = 0; j < image.GetY(); j++){
+				  for(i = 0; i < image.GetX(); i++){
+					  dummy.PutAsDouble(i,j,k,t,image.GetAsDouble(i,j,k,t));
+				  }
+			  }
+		  }
+	  }
+  }
   xaxis[0] = 1; xaxis[1] = 0; xaxis[2] = 0;
   yaxis[0] = 0; yaxis[1] = 1; yaxis[2] = 0;
   zaxis[0] = 0; zaxis[1] = 0; zaxis[2] = 1;
   dummy.PutPixelSize(1, 1, 1);
-  dummy.PutOrigin(0, 0, 0);
   dummy.PutOrientation(xaxis, yaxis, zaxis);
   dummy.ImageToVTK(vtkimage);
 
@@ -199,17 +246,17 @@ int main(int argc, char **argv)
   // Let's go to work
   if (decimate != NULL) {
     cout << "Decimating ... \n";
-    decimate->SetInput(mcubes->GetOutput());
+    decimate->SetInputConnection(mcubes->GetOutputPort());
     if (smooth != NULL) {
       cout << "Smoothing ... \n";
-      smooth->SetInput(decimate->GetOutput());
+      smooth->SetInputConnection(decimate->GetOutputPort());
       output = smooth->GetOutput();
     } else {
       output = decimate->GetOutput();
     }
   } else if (smooth != NULL) {
     cout << "Smoothing ... \n";
-    smooth->SetInput(mcubes->GetOutput());
+    smooth->SetInputConnection(mcubes->GetOutputPort());
     output = smooth->GetOutput();
   } else {
     output = mcubes->GetOutput();
@@ -220,6 +267,9 @@ int main(int argc, char **argv)
   for (i = 0; i < output->GetNumberOfPoints(); i++) {
     output->GetPoint(i, point);
     dummy.WorldToImage(point[0], point[1], point[2]);
+	if(close){
+		point[2] = point[2] - 1;
+	}
     image.ImageToWorld(point[0], point[1], point[2]);
     output->GetPoints()->SetPoint(i, point);
   }

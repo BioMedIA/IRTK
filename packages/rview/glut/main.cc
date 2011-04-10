@@ -21,7 +21,11 @@
 #else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#ifdef WIN32
+#include <glut.h>
+#else
 #include <GL/glut.h>
+#endif
 #endif
 
 #include <irtkRView.h>

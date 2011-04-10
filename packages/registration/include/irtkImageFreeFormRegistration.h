@@ -196,8 +196,6 @@ public:
   virtual GetMacro(DZ, double);
   virtual SetMacro(SpeedupFactor, double);
   virtual GetMacro(SpeedupFactor, double);
-  virtual SetMacro(Lambda1, double);
-  virtual GetMacro(Lambda1, double);
 
   // Access parameters for registration mode
   virtual SetMacro(Mode, irtkImageFreeFormRegistrationMode);

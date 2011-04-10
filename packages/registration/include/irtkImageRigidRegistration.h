@@ -55,6 +55,7 @@ public:
 
   /// Guess parameters
   virtual void GuessParameter();
+
 };
 
 inline void irtkImageRigidRegistration::SetOutput(irtkTransformation *transformation)

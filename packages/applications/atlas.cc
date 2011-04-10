@@ -95,10 +95,11 @@ int main(int argc, char **argv)
   irtkGreyPixel *ptr1;
   irtkGreyImage input;
   irtkRealPixel *ptr2;
+  irtkRealPixel *ptr3;
   irtkRealImage tmp, output;
 
   // Check command line
-  if (argc < 5) {
+  if (argc < 4) {
     usage();
   }
 
@@ -286,7 +287,14 @@ int main(int argc, char **argv)
 
     cerr << "Adding input to atlas..."; cout.flush();
     tmp *= input_weight[i];
-    output += tmp;
+    //output += tmp;
+	ptr2 = tmp.GetPointerToVoxels();
+	ptr3 = output.GetPointerToVoxels();
+	for (j = 0; j < n; j++) {
+		*ptr3 += *ptr2;
+		ptr2++;
+		ptr3++;
+	}
     cerr << "done\n";
 
   }

@@ -68,6 +68,12 @@ public:
   /// Comparison operator
   bool operator==(const irtkImageAttributes &attr) const;
 
+  /// Get Index from Lattice
+  int LatticeToIndex(int i, int j, int k, int l = 0) const;
+
+  /// Get Index from Lattice
+  void IndexToLattice(int index, int *i, int *j, int *k, int *l = NULL);
+
   /// Print attributes
   void Print();
 
@@ -201,6 +207,19 @@ inline void irtkImageAttributes::Print()
   cerr<<_xaxis[0]<<" "<<_xaxis[1]<<" "<<_xaxis[2]<<endl;
   cerr<<_yaxis[0]<<" "<<_yaxis[1]<<" "<<_yaxis[2]<<endl;
   cerr<<_zaxis[0]<<" "<<_zaxis[1]<<" "<<_zaxis[2]<<endl;
+}
+
+inline int irtkImageAttributes::LatticeToIndex(int i, int j, int k, int l) const
+{
+  return l*_z*_y*_x + k*_y*_x + j*_x + i;
+}
+
+inline void irtkImageAttributes::IndexToLattice(int index, int *i, int *j, int *k, int *l)
+{
+	*l = index/(_x*_y*_z);
+	*k = index%(_x*_y*_z)/(_y*_x);
+	*j = index%(_x*_y*_z)%(_y*_x)/_x;
+	*i = index%(_x*_y*_z)%(_y*_x)%_x;
 }
 
 

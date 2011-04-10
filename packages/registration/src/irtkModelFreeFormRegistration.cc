@@ -245,36 +245,42 @@ double irtkModelFreeFormRegistration::SmoothnessPenalty(int index) {
 
 double irtkModelFreeFormRegistration::VolumePreservationPenalty() {
 	int i, j, k;
-	double x, y, z, penalty;
+	double x, y, z, penalty, jacobian;
 
 	penalty = 0;
 	for (k = 0; k < _affd->GetZ(); k++) {
 		for (j = 0; j < _affd->GetY(); j++) {
-			for (i = 0; i < _affd->GetZ(); i++) {
+			for (i = 0; i < _affd->GetX(); i++) {
 				x = i;
 				y = j;
 				z = k;
 				_affd->LatticeToWorld(x, y, z);
+				jacobian = _affd->irtkTransformation::Jacobian(x, y, z);
+				if (jacobian < 0.001)
+					jacobian = 0.001;
 				// Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
-				penalty += fabs(log(_affd->irtkTransformation::Jacobian(x, y, z)));
+				penalty += fabs(log(jacobian));
 			}
 		}
 	}
 
 	// Normalize sum by number of DOFs
-	return penalty / (double) _affd->NumberOfDOFs();
+	return -penalty / (double) _affd->NumberOfDOFs();
 }
 
 double irtkModelFreeFormRegistration::VolumePreservationPenalty(int index) {
 	int i, j, k;
-	double x, y, z;
+	double x, y, z, jacobian;
 
 	_affd->IndexToLattice(index, i, j, k);
 	x = i;
 	y = j;
 	z = k;
 	_affd->LatticeToWorld(x, y, z);
-	return fabs(log(_affd->irtkTransformation::Jacobian(x, y, z)));
+	jacobian = _affd->irtkTransformation::Jacobian(x, y, z);
+	if (jacobian < 0.001)
+		jacobian = 0.001;
+	return -fabs(log(jacobian));
 }
 
 double irtkModelFreeFormRegistration::TopologyPreservationPenalty() {
@@ -567,11 +573,11 @@ bool irtkModelFreeFormRegistration::Read(char *buffer1, char *buffer2,
 		ok = true;
 	}
 	if (strstr(buffer1, "Subdivision") != NULL) {
-		if ((strcmp(buffer2, "false") == 0) || (strcmp(buffer2, "No") == 0)) {
+		if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
 			this->_Subdivision = false;
 			cout << "Subdivision is ... false" << endl;
 		} else {
-			if ((strcmp(buffer2, "true") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+			if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
 				this->_Subdivision = true;
 				cout << "Subdivision is ... true" << endl;
 			} else {
@@ -598,9 +604,9 @@ void irtkModelFreeFormRegistration::Write(ostream &to) {
 	to << "Control point spacing in Y        = " << this->_DY << endl;
 	to << "Control point spacing in Z        = " << this->_DZ << endl;
 	if (_Subdivision == true) {
-		to << "Subdivision                       = true" << endl;
+		to << "Subdivision                       = True" << endl;
 	} else {
-		to << "Subdivision                       = false" << endl;
+		to << "Subdivision                       = False" << endl;
 	}
 
 	this->irtkModelRegistration::Write(to);

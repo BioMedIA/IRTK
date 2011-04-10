@@ -1,4 +1,4 @@
-/*=========================================================================
+﻿/*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
@@ -53,16 +53,16 @@ class irtkImageRegistration : public irtkRegistration
 
 protected:
 
-  /** First input image. This image is denoted as target image and its
-   *  coordinate system defines the frame of reference for the registration.
-   */
-  irtkGreyImage *_target;
+	/** First set of input image. This image is denoted as target image and its
+	*  coordinate system defines the frame of reference for the registration.
+	*/
+	irtkGreyImage *_target;
 
-  /** Second input image. This image is denoted as source image. The goal of
-   *  the registration is to find the transformation which maps the source
-   *  image into the coordinate system of the target image.
-   */
-  irtkGreyImage *_source;
+	/** Second input image. This image is denoted as source image. The goal of
+	*  the registration is to find the transformation which maps the source
+	*  image into the coordinate system of the target image.
+	*/
+	irtkGreyImage *_source;
 
   /// Output
   irtkTransformation *_transformation;

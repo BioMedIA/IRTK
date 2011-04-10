@@ -21,10 +21,12 @@ void usage()
   cerr << "<-char|uchar|short|ushort|float|double>    Output voxel type\n";
   cerr << "<-minmax value value>                      Output min and max intensity\n";
   cerr << "<-x/-y/-z>                                 Flip the image in the x/y/z-direction\n\n";
+  cerr << "<-rx/-ry/-rz>                              Revert the x/y/z-direction\n\n";
   cerr << "<-rmatr>									  Remove Orientation and Origion info\n";
   cerr << "<-swapxy>								  Swap x y axis\n";
   cerr << "<-swapzt>								  Swap z t axis\n";
   cerr << "<-ref image>								  Using Reference's coordinate\n";
+  cerr << "<-reforigin image>						  Using Reference's origin\n";
   cerr << "<-second image>							  Convert 2 Images in to one output\n";
   cerr << "Please note that IRTK will flip Analyze in the y-direction when the image \n";
   cerr << "is read and written (for historical reasons). This means that the coordinate \n";
@@ -37,9 +39,9 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  double min, max, scale;
-  int ok, minmax, flip_x, flip_y, flip_z, image_type, rmatr, swapxy, swapzt;
-  int i,j,k,t,refon, secondon;
+  double min, max;
+  int ok, minmax, flip_x, flip_y, flip_z, revert_x, revert_y, revert_z, image_type, rmatr, swapxy, swapzt;
+  int i,j,k,t,refon,refoon, secondon;
   irtkImageAttributes refatr;
   irtkRealImage second;
 
@@ -59,12 +61,16 @@ int main(int argc, char **argv)
   flip_x = false;
   flip_y = false;
   flip_z = false;
+  revert_x = false;
+  revert_y = false;
+  revert_z = false;
   minmax = false;
   min    = 0;
   max    = 0;
   image_type = IRTK_VOXEL_SHORT;
   rmatr  = 0;
   refon = 0;
+  refoon = 0;
   secondon = 0;
   swapxy = 0;
   swapzt = 0;
@@ -112,11 +118,26 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     } else if (strcmp(argv[1], "-z") == 0) {
-      flip_y = true;
+      flip_z = true;
       argc--;
       argv++;
       ok = true;
-    } else if (strcmp(argv[1], "-minmax") == 0) {
+	} else if (strcmp(argv[1], "-rx") == 0) {
+		revert_x = true;
+		argc--;
+		argv++;
+		ok = true;
+	} else if (strcmp(argv[1], "-ry") == 0) {
+		revert_y = true;
+		argc--;
+		argv++;
+		ok = true;
+	} else if (strcmp(argv[1], "-rz") == 0) {
+		revert_z = true;
+		argc--;
+		argv++;
+		ok = true;
+	}else if (strcmp(argv[1], "-minmax") == 0) {
       argc--;
       argv++;
       min = atof(argv[1]);
@@ -151,7 +172,16 @@ int main(int argc, char **argv)
 		refatr = ref.GetImageAttributes();
 		argc--;
 		argv++;
-    }else if (strcmp(argv[1], "-second") == 0) {
+	}else if (strcmp(argv[1], "-reforigin") == 0) {
+		argc--;
+		argv++;
+		refoon = 1;
+		ok = true;
+		irtkGreyImage ref(argv[1]);
+		refatr = ref.GetImageAttributes();
+		argc--;
+		argv++;
+	}else if (strcmp(argv[1], "-second") == 0) {
 		argc--;
 		argv++;
 		secondon = 1;
@@ -243,10 +273,46 @@ int main(int argc, char **argv)
 	irtkImageAttributes tmpatr;
 	image.PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
 	image.PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
+	//image.PutOrigin(tmpatr._xorigin + (image.GetX() - 1)/2.0
+		//,tmpatr._yorigin + (image.GetY() - 1)/2.0,
+		//tmpatr._zorigin + (image.GetZ() - 1)/2.0);
+	//image.PutPixelSize(tmpatr._dx,tmpatr._dy,tmpatr._dz);
+  }
+
+  if(revert_x){
+	  irtkImageAttributes tmpatr;
+	  tmpatr = image.GetImageAttributes();
+	  tmpatr._xaxis[0] = -tmpatr._xaxis[0];
+	  tmpatr._xaxis[1] = -tmpatr._xaxis[1];
+	  tmpatr._xaxis[2] = -tmpatr._xaxis[2];
+	  image.PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+  }
+
+  if(revert_y){
+	  irtkImageAttributes tmpatr;
+	  tmpatr = image.GetImageAttributes();
+	  tmpatr._yaxis[0] = -tmpatr._yaxis[0];
+	  tmpatr._yaxis[1] = -tmpatr._yaxis[1];
+	  tmpatr._yaxis[2] = -tmpatr._yaxis[2];
+	  image.PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+  }
+
+  if(revert_z){
+	  irtkImageAttributes tmpatr;
+	  tmpatr = image.GetImageAttributes();
+	  tmpatr._zaxis[0] = -tmpatr._zaxis[0];
+	  tmpatr._zaxis[1] = -tmpatr._zaxis[1];
+	  tmpatr._zaxis[2] = -tmpatr._zaxis[2];
+	  image.PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
   }
   // use reference image's setting
   if(refon == 1){
 	  image.PutOrientation(refatr._xaxis,refatr._yaxis,refatr._zaxis);
+	  image.PutOrigin(refatr._xorigin,refatr._yorigin,refatr._zorigin);
+  }
+
+  // use reference image's setting
+  if(refoon == 1){
 	  image.PutOrigin(refatr._xorigin,refatr._yorigin,refatr._zorigin);
   }
   // combine two images

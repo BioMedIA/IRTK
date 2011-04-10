@@ -46,6 +46,7 @@ void usage()
   cerr << "<-Tp  value>         Padding value in target" << endl;
   cerr << "<-center>            Center voxel grids onto image origins" << endl;
   cerr << "<-image>             Project transformation into image coordinate" << endl;
+  cerr << "Due to rreg does not have scale, can't use this option if two images's projection matrix contain scale coefficients (two images do not have same voxel size)" << endl;
   cerr << "<-translation_only>  Allow only translation" << endl;
   cerr << "                     before running registration." << endl;
   cerr << "<-debug>             Enable debugging information" << endl;

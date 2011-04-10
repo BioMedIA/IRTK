@@ -10,17 +10,7 @@
 
 =========================================================================*/
 
-#include <irtkImage.h>
-
 #include <irtkEMClassification.h>
-
-#include <irtkGaussian.h>
-
-#include <irtkHistogram.h>
-
-#include <irtkMeanShift.h>
-
-
 
 irtkEMClassification::irtkEMClassification()
 {
@@ -488,6 +478,21 @@ void irtkEMClassification::WStep()
   _weightsB.Write("_weightsB.nii.gz");
   cerr<<"done."<<endl;
 }
+
+void irtkEMClassification::GetMean(double *mean){
+	int i;
+	for(i=0;i<_number_of_tissues;i++){
+		mean[i] = _mi[i];
+	}
+}
+
+void irtkEMClassification::GetVariance(double *variance){
+	int i;
+	for(i=0;i<_number_of_tissues;i++){
+		variance[i] = sqrt(_sigma[i]);
+	}	
+}
+
 void irtkEMClassification::BrainmaskInput()
 {
   int i;
@@ -584,6 +589,8 @@ void irtkEMClassification::MStepGMM(bool uniform_prior)
 
   for (k = 0; k <_number_of_tissues; k++) {
     _sigma[k] = sigma_num[k] / denom[k];
+	if(_sigma[k]<1)
+		_sigma[k] = 1;
   }
 }
 
@@ -939,7 +946,14 @@ void irtkEMClassification::ConstructSegmentationWithPadding(irtkRealImage &segme
     _output.Next();
   }
 }
-
+void irtkEMClassification::GetProbMap(int i,irtkRealImage& image){
+	if  (i < _number_of_tissues) {
+		image = _output.GetImage(i);
+	} else {
+		cerr << "irtkProbabilisticAtlas::Write: No such probability map" << endl;
+		exit(1);
+	}
+}
 void irtkEMClassification::ConstructSegmentation()
 {
   int i, j;
@@ -1042,7 +1056,7 @@ void irtkEMClassification::WriteProbMap(int i, char *filename)
   _output.Write(i, filename);
 }
 
-void irtkEMClassification::WriteGaussianParameters(char *file_name)
+void irtkEMClassification::WriteGaussianParameters(char *file_name, int flag)
 {
   cerr << "Writing GaussianDistributionParameters: " << file_name << endl;
 
@@ -1055,31 +1069,42 @@ void irtkEMClassification::WriteGaussianParameters(char *file_name)
 
   int k,l,m;
 
-  fileOut << "mi: " <<endl;
-  for (k=0; k<_number_of_tissues; k++) {
-    fileOut << "Tissue " << k << ": (";
-    for (l=0; l < 1/*_input.GetNumberOfChannels()*/; l++) {
-      fileOut << _mi[k];//.Get(l);
-      if (l == 0/*_input.GetNumberOfChannels() - 1*/) fileOut << ")" << endl;
-      else fileOut << ", ";
-    }
-  }
+  if(flag){
+	  // out put without names
+	  for (k=0; k<_number_of_tissues; k++) {
+			  fileOut << _mi[k] << " " << _sigma[k] << endl;
+	  }
+  }else{
+	  // out put with names
+	  fileOut << "mi: " <<endl;
+	  for (k=0; k<_number_of_tissues; k++) {
+		  fileOut << "Tissue " << k << ": (";
+		  for (l=0; l < 1/*_input.GetNumberOfChannels()*/; l++) {
+			  fileOut << _mi[k];//.Get(l);
+			  if (l == 0/*_input.GetNumberOfChannels() - 1*/) fileOut << ")" << endl;
+			  else fileOut << ", ";
+		  }
+	  }
 
-  fileOut << "sigma: " << endl;
-  for (k=0; k<_number_of_tissues; k++) {
-    fileOut << "Tissue " << k << ":" <<endl << "(";
+	  fileOut << "sigma: " << endl;
+	  for (k=0; k<_number_of_tissues; k++) {
+		  fileOut << "Tissue " << k << ": (";
+		  //<<endl << "(";
 
-    for (l=0; l < 1/*_input.GetNumberOfChannels()*/; l++) {
-      fileOut << "(";
-      for (m = 0; m < 1/*_input.GetNumberOfChannels()*/; m++) {
-        double s = _sigma[k];//.Get(m,l);
-        if ( s >= 0) fileOut << sqrt(s);
-        else fileOut << -sqrt(-s);
-        if (m < 1/*_input.GetNumberOfChannels() - 1*/) fileOut << ", ";
-        else fileOut <<  ")" << endl;
-      }
-    }
-    if (l == 0/*_input.GetNumberOfChannels() - 1*/) fileOut << ")" << endl;
+		  for (l=0; l < 1/*_input.GetNumberOfChannels()*/; l++) {
+			  //fileOut << "(";
+			  for (m = 0; m < 1/*_input.GetNumberOfChannels()*/; m++) {
+				  double s = _sigma[k];//.Get(m,l);
+				  if ( s >= 0) fileOut << sqrt(s);
+				  else fileOut << -sqrt(-s);
+				  //if (m < 1/*_input.GetNumberOfChannels() - 1*/) fileOut << ", ";
+				  //else 
+				  //fileOut <<  ")" << endl;
+			  }
+		  }
+		  //if (l == 0/*_input.GetNumberOfChannels() - 1*/) fileOut << ")" << endl;
+		  fileOut <<  ")" << endl;
+	  }
   }
 }
 

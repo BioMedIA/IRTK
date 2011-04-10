@@ -22,6 +22,7 @@ void usage()
   cerr << "Usage: resample [in] [out] <options>\n";
   cerr << "Where <options> are one or more of the following:\n";
   cerr << "\t<-size x y z>      New voxel size in mm (default: 1 1 1)\n";
+  cerr << "\t<-isotropic m>     Resample to isotropic size z size*m\n";
   cerr << "\t<-linear>          Linear interpolation\n";
   cerr << "\t<-bspline>         B-spline interpolation\n";
   cerr << "\t<-cspline>         Cubic spline interpolation\n";
@@ -153,7 +154,7 @@ int main(int argc, char **argv)
   // Isotropic?
   if(isotropic){
 	  // Resample image to isotropic voxels (smallest voxel dimension)
-	  double xsize, ysize, zsize, size;
+	  double size;
 	  image->GetPixelSize(&xsize, &ysize, &zsize);
 	  size = xsize;
 	  size = (size < ysize) ? size : ysize;

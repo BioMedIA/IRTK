@@ -22,6 +22,8 @@
 template <class HistogramType> class irtkHistogram_1D : public irtkObject
 {
 
+protected:
+
   /// Number of bins
   int _nbins;
 
@@ -279,5 +281,7 @@ template <class HistogramType> inline double irtkHistogram_1D<HistogramType>::Bi
   if (_nsamp == 0) return 0;
   return _bins[i] / (double)_nsamp;
 }
+
+#include <irtkImageHistogram_1D.h>
 
 #endif

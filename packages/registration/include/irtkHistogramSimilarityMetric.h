@@ -28,7 +28,7 @@ class irtkHistogramSimilarityMetric : public irtkSimilarityMetric
 protected:
 
   /// Histogram
-  irtkHistogram_2D<int> *_histogram;
+  irtkHistogram_2D<double> *_histogram;
 
 public:
 
@@ -39,10 +39,10 @@ public:
   ~irtkHistogramSimilarityMetric();
 
   /// Add sample
-  virtual void Add(int, int);
+  virtual void Add(int, int, double = 1);
 
   /// Remove sample
-  virtual void Delete(int, int);
+  virtual void Delete(int, int, double = 1);
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
@@ -60,13 +60,13 @@ public:
   int NumberOfBinsY();
 
   /// Return pointer to histogram
-  irtkHistogram_2D<int> *GetPointerToHistogram();
+  irtkHistogram_2D<double> *GetPointerToHistogram();
 
 };
 
 inline irtkHistogramSimilarityMetric::irtkHistogramSimilarityMetric(int nbins_x, int nbins_y)
 {
-  _histogram = new irtkHistogram_2D<int>(nbins_x, nbins_y);
+  _histogram = new irtkHistogram_2D<double>(nbins_x, nbins_y);
 }
 
 inline irtkHistogramSimilarityMetric::~irtkHistogramSimilarityMetric()
@@ -74,14 +74,18 @@ inline irtkHistogramSimilarityMetric::~irtkHistogramSimilarityMetric()
   delete _histogram;
 }
 
-inline void irtkHistogramSimilarityMetric::Add(int x, int y)
+inline void irtkHistogramSimilarityMetric::Add(int x, int y, double weight)
 {
-  _histogram->Add(x, y);
+  //if ( y < 0 )
+  //	  int test = 1;
+  _histogram->Add(x, y, weight);
 }
 
-inline void irtkHistogramSimilarityMetric::Delete(int x, int y)
+inline void irtkHistogramSimilarityMetric::Delete(int x, int y, double weight)
 {
-  _histogram->Delete(x, y);
+  for (int i = 0; i< weight; i++){
+	_histogram->Delete(x, y);
+  }
 }
 
 inline void irtkHistogramSimilarityMetric::Combine(irtkSimilarityMetric *metric)
@@ -133,7 +137,7 @@ inline int irtkHistogramSimilarityMetric::NumberOfBinsY()
   return _histogram->NumberOfBinsY();
 }
 
-inline irtkHistogram_2D<int> * irtkHistogramSimilarityMetric::GetPointerToHistogram()
+inline irtkHistogram_2D<double> * irtkHistogramSimilarityMetric::GetPointerToHistogram()
 {
   return _histogram;
 }

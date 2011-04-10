@@ -36,6 +36,8 @@ public:
   void Initialise(const double &mi, const double &sigma);
 
   double Evaluate(const double &x);
+
+  GetMacro(norm,double);
 };
 
 inline double irtkGaussian::Evaluate(const double &x)

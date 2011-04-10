@@ -66,9 +66,6 @@ class irtkLookupTable
   /// Set minimum display intensity
   void SetMinDisplayIntensity(int);
 
-  /// Get minimum display intensity
-  int  GetMinDisplayIntensity();
-
   /// Set maximum display intensity
   void SetMaxDisplayIntensity(int);
 
@@ -104,6 +101,9 @@ public:
   void SetColorModeToJacobian();
   void SetColorModeToJacobianExpansion();
   void SetColorModeToJacobianContraction();
+
+  /// Get minimum display intensity
+  int  GetMinDisplayIntensity();
 
   /// Return color scheme
   irtkColorMode GetColorMode();

@@ -23,12 +23,13 @@ void usage()
   cerr << "Usage: pareg [target] [source]\n" << endl;
   cerr << "<-dofout    file>    Final transformation estimate" << endl;
   cerr << "<-dofin     file>    Start transformation estimate" << endl;
+  cerr << "<-p9>                Affine transformation with 9 dofs" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int ok, i;
+  int ok, i, p9;
   double error;
   irtkPointSet target, source;
 
@@ -36,6 +37,8 @@ int main(int argc, char **argv)
   if (argc < 3) {
     usage();
   }
+
+  p9 = 0;
 
   // Parse source and target point lists
   target_name = argv[1];
@@ -50,6 +53,9 @@ int main(int argc, char **argv)
 
   // Read point set
   source.ReadVTK(source_name);
+
+  // Create initial affine transformation
+  irtkAffineTransformation *transformation = NULL;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -70,6 +76,12 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-p9") == 0)) {
+      argc--;
+      argv++;
+	  p9 = 1;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -78,9 +90,6 @@ int main(int argc, char **argv)
 
   // Create registration filter
   irtkPointAffineRegistration *registration = new irtkPointAffineRegistration;
-
-  // Create initial affine transformation
-  irtkAffineTransformation *transformation = NULL;
 
   if (dofin_name != NULL) {
     irtkTransformation *transform = irtkTransformation::New(dofin_name);
@@ -98,6 +107,12 @@ int main(int argc, char **argv)
   } else {
     // Otherwise use identity transformation to start
     transformation = new irtkAffineTransformation;
+  }
+
+  if(p9 == 1){
+	  transformation->PutStatus(SXY, _Passive);
+	  transformation->PutStatus(SYZ, _Passive);
+	  transformation->PutStatus(SXZ, _Passive);
   }
 
   // Set input and output for the registration filter

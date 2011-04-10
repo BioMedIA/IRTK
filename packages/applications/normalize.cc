@@ -11,9 +11,12 @@
 =========================================================================*/
 
 #include <irtkImage.h>
+#include <irtkHistogram.h>
+#include <irtkSegmentationFunction.h>
+#include <irtkGaussianBlurring.h>
 
 // Default filenames
-char *target_name = NULL, *source_name = NULL, *output_name = NULL;
+char *target_name = NULL, *source_name = NULL, *sourceoutput_name = NULL, *targetoutput_name = NULL;
 
 void usage()
 {
@@ -22,14 +25,20 @@ void usage()
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-Tp value>        Target padding value" << endl;
   cerr << "<-Sp value>        Source padding value" << endl;
+  cerr << "<-equalize value targetoutput>  equalize the image's histogram and backproject" << endl;
+  cerr << "<-mask value>	  Mask out background and foreground from the images" <<endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i, j, k, n, ok;
+  int i, j, k, n, ok, mask;
   int target_padding, source_padding;
-  double a, b, cov, var, x_avg, y_avg;
+  double a, b, cov, var, x_avg, y_avg,x,y,z,min,max;
+
+  mask = 0;
+
+  if(argc < 4) usage();
 
   // Parse image
   target_name  = argv[1];
@@ -38,12 +47,26 @@ int main(int argc, char **argv)
   source_name = argv[1];
   argc--;
   argv++;
-  output_name = argv[1];
+  sourceoutput_name = argv[1];
   argc--;
   argv++;
 
   source_padding = 0;
   target_padding = MIN_GREY;
+
+  // Read image
+  cout << "Reading target image ... "; cout.flush();
+  irtkRealImage target (target_name);
+  cout << "done" << endl;
+
+  // Read image
+  cout << "Reading source image ... "; cout.flush();
+  irtkRealImage source(source_name);
+  cout << "done" << endl;
+  source.GetMinMaxAsDouble(&min,&max);
+
+  irtkRealImage targetback(target);
+  irtkRealImage sourceback(source);
 
   while (argc > 1) {
     ok = false;
@@ -63,21 +86,43 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
+			argc--;
+			argv++;
+			mask = 1;
+			int n = atoi(argv[1]);
+			argc--;
+			argv++;
+			irtkSegmentationFunction cf;
+			cf.DetectBackGround(&targetback,&sourceback,n);
+			ok = true;
+	}
+	if ((ok == false) && (strcmp(argv[1], "-equalize") == 0)) {
+		argc--;
+		argv++;
+		double padding = atoi(argv[1]);
+		argc--;
+		argv++;
+		targetoutput_name = argv[1];
+		argc--;
+		argv++;
+		double min,max;
+		target.GetMinMaxAsDouble(&min,&max);
+		irtkImageHistogram_1D<irtkRealPixel> histogram;
+		histogram.Evaluate(&target,padding);
+		histogram.Equalize(min,max);
+		histogram.BackProject(&target);
+		histogram.Evaluate(&source,padding);
+		histogram.Equalize(min,max);
+		histogram.BackProject(&source);
+
+		ok = true;
+	}
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
   }
-
-  // Read image
-  cout << "Reading target image ... "; cout.flush();
-  irtkGreyImage target (target_name);
-  cout << "done" << endl;
-
-  // Read image
-  cout << "Reading source image ... "; cout.flush();
-  irtkGreyImage source(source_name);
-  cout << "done" << endl;
 
   n = 0;
   x_avg = 0;
@@ -85,11 +130,21 @@ int main(int argc, char **argv)
   for (k = 0; k < source.GetZ(); k++) {
     for (j = 0; j < source.GetY(); j++) {
       for (i = 0; i < source.GetX(); i++) {
-        if ((source(i, j, k) > source_padding) && (target(i, j, k) > target_padding)) {
-          n++;
-          x_avg += source(i, j, k);
-          y_avg += target(i, j, k);
-        }
+		  x = i; y = j; z = k;
+		  source.ImageToWorld(x,y,z);
+		  target.WorldToImage(x,y,z);
+		  x = round(x); y = round(y); z = round(z);
+		  if(x >= 0 && x < target.GetX()
+			  && y >= 0 && y < target.GetY()
+			  && z >= 0 && z < target.GetZ()){
+				  if ((source(i, j, k) > source_padding) && (target(x,y,z) > target_padding)) {
+					  if(mask == 0 || (sourceback(i,j,k) == 0 && targetback(x,y,z) == 0)){
+						  n++;
+						  x_avg += source(i, j, k);
+						  y_avg += target(x, y, z);
+					  }
+				  }
+		  }
       }
     }
   }
@@ -101,14 +156,24 @@ int main(int argc, char **argv)
   cov = 0;
   var = 0;
   for (k = 0; k < source.GetZ(); k++) {
-    for (j = 0; j < source.GetY(); j++) {
-      for (i = 0; i < source.GetX(); i++) {
-        if ((source(i, j, k) > source_padding) && (target(i, j, k) > target_padding)) {
-          cov += (source(i, j, k) - x_avg) * (target(i, j, k) - y_avg);
-          var += (source(i, j, k) - x_avg) * (source(i, j, k) - x_avg);
-        }
-      }
-    }
+	  for (j = 0; j < source.GetY(); j++) {
+		  for (i = 0; i < source.GetX(); i++) {
+			  x = i; y = j; z = k;
+			  source.ImageToWorld(x,y,z);
+			  target.WorldToImage(x,y,z);
+			  x = round(x); y = round(y); z = round(z);
+			  if(x >= 0 && x < target.GetX()
+				  && y >= 0 && y < target.GetY()
+				  && z >= 0 && z < target.GetZ()){
+					  if ((source(i, j, k) > source_padding) && (target(x, y, z) > target_padding)) {
+						  if(mask == 0 || (sourceback(i,j,k) == 0 && targetback(x,y,z) == 0)){
+						  cov += (source(i, j, k) - x_avg) * (target(x, y, z) - y_avg);
+						  var += (source(i, j, k) - x_avg) * (source(i, j, k) - x_avg);
+						  }
+					  }
+			  }
+		  }
+	  }
   }
   cov /= n;
   var /= n;
@@ -122,12 +187,28 @@ int main(int argc, char **argv)
     for (j = 0; j < source.GetY(); j++) {
       for (i = 0; i < source.GetX(); i++) {
         if (source(i, j, k) > source_padding) {
-          source(i, j, k) = round(a + b * source(i, j, k));
+			if(mask == 0 || sourceback(i,j,k) == 0){
+				source(i, j, k) = round(a + b * source(i, j, k));
+			}
         }
       }
     }
   }
 
+  // what to do...need to think
+  if(mask){
+  cout << "Blurring ... "; cout.flush();
+  irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(1, 1);
+  blurring.SetInput (&source);
+  blurring.SetOutput(&source);
+  blurring.Run();
+  cout << "done" << endl;
+  }
+  source.PutMinMaxAsDouble(min,max);
+
   // Write image
-  source.Write(output_name);
+  source.Write(sourceoutput_name);
+  if(targetoutput_name){
+	target.Write(targetoutput_name);
+  }
 }

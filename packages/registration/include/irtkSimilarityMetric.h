@@ -25,7 +25,6 @@
 
 class irtkSimilarityMetric : public irtkObject
 {
-
 public:
 
   /// Constructor
@@ -38,10 +37,10 @@ public:
   static irtkSimilarityMetric *New(irtkSimilarityMetric *);
 
   /// Add sample
-  virtual void Add(int, int) = 0;
+  virtual void Add(int, int, double =1) = 0;
 
   /// Remove sample
-  virtual void Delete(int, int) = 0;
+  virtual void Delete(int, int, double =1) = 0;
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *) = 0;

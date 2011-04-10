@@ -332,8 +332,8 @@ inline void irtkBaseImage::PutOrigin(const irtkPoint &p)
 	_attr._yorigin = p._y;
 	_attr._zorigin = p._z;
 
-  // Update transformation matrix
-  this->UpdateMatrix();
+	// Update transformation matrix
+	this->UpdateMatrix();
 }
 
 inline void irtkBaseImage::PutOrigin(double x, double y, double z)
@@ -342,8 +342,8 @@ inline void irtkBaseImage::PutOrigin(double x, double y, double z)
 	_attr._yorigin = y;
 	_attr._zorigin = z;
 
-  // Update transformation matrix
-  this->UpdateMatrix();
+	// Update transformation matrix
+	this->UpdateMatrix();
 }
 
 inline void irtkBaseImage::PutOrigin(double x, double y, double z, double t)
@@ -351,12 +351,11 @@ inline void irtkBaseImage::PutOrigin(double x, double y, double z, double t)
 	_attr._xorigin = x;
 	_attr._yorigin = y;
 	_attr._zorigin = z;
+	// Calculate origin
+	_attr._torigin = t;
 
-  // Update transformation matrix
-  this->UpdateMatrix();
-
-  // Calculate origin
-  _attr._torigin = t;
+	// Update transformation matrix
+	this->UpdateMatrix();
 }
 
 inline void irtkBaseImage::GetOrigin(double &x, double &y, double &z) const
@@ -509,7 +508,6 @@ inline bool irtkBaseImage::IsEmpty() const
 {
   return ((_attr._x < 1) || (_attr._y < 1) || (_attr._z < 1) || (_attr._t < 1));
 }
-
 
 typedef class irtkBaseImage irtkImage;
 

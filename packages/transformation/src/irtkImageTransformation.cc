@@ -104,6 +104,9 @@ irtkImageTransformation::irtkImageTransformation()
   
   // Set invert mode
   _Invert = false;
+
+  // Set 2D mode
+  _2D = false;
 }
 
 irtkImageTransformation::~irtkImageTransformation()
@@ -276,8 +279,11 @@ void irtkImageTransformation::Run()
               // Check whether transformed point is in FOV of input
               if ((x > -0.5) && (x < _input->GetX()-0.5) &&
                   (y > -0.5) && (y < _input->GetY()-0.5) &&
-                  (z > -0.5) && (z < _input->GetZ()-0.5)) {
-              	this->_output->PutAsDouble(i, j, k, l, _ScaleFactor * _interpolator->Evaluate(x, y, z, t) + _Offset);
+                  (((z > -0.5) && (z < _input->GetZ()-0.5)) || _2D)) {
+					  if(_2D)
+						  this->_output->PutAsDouble(i, j, k, l, _ScaleFactor * _interpolator->Evaluate(x, y, k, t) + _Offset);
+					  else
+						  this->_output->PutAsDouble(i, j, k, l, _ScaleFactor * _interpolator->Evaluate(x, y, z, t) + _Offset);
               } else {
                 // Fill with padding value
               	this->_output->PutAsDouble(i, j, k, l, _SourcePaddingValue);

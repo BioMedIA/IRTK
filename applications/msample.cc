@@ -406,6 +406,7 @@ int main(int argc, char **argv)
 	writer->SetInput(model);
 	writer->SetFileName(output_name);
 	writer->Write();
+	writer->Delete();
 	reader->Delete();
 
 	delete []profile;

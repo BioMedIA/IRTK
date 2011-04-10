@@ -38,6 +38,7 @@ public:
 
   /// Guess parameters
   virtual void GuessParameter();
+
 };
 
 inline const char *irtkImageRigidRegistration2D::NameOfClass()

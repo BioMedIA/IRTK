@@ -149,16 +149,16 @@ void Fl_RViewUI::cb_addLandmark(Fl_Button *, void* v)
   label = new char[256];
   sprintf(label, "%s", ""); // To avoid zero-length format string warning
   if ((Fl_Browser *)v == rviewUI->targetLandmarkBrowser) {
-    /*temp remove  if (rview->GetTrackTAG()){
+    if (rview->GetTrackTAG()){
 	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetMaxPosition(point,1);
-	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetWindowCenter(point,2);
-    }*/
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GravityCenter(point,2);
+    }
     rview->AddTargetLandmark(point, label);
   } else {
-    /*temp remove  if (rview->GetTrackTAG()){
+    if (rview->GetTrackTAG()){
 	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetMaxPosition(point,1);
-	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetWindowCenter(point,2);
-    }*/
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GravityCenter(point,2);
+    }
     rview->AddSourceLandmark(point, label);
   }
 
@@ -278,16 +278,14 @@ void Fl_RViewUI::cb_insertLandmark(Fl_Button *, void* v)
   sprintf(label, "%s", ""); // To avoid zero-length format string warning
   if ((Fl_Browser *)v == rviewUI->targetLandmarkBrowser) {
     if (rview->GetTrackTAG()){
-	  /*temp remove  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetMaxPosition(point,1);
-	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetWindowCenter(point,2);
-	  */
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GetMaxPosition(point,1);
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetTarget()))->GravityCenter(point,2);
     }
     rview->InsertTargetLandmark(point, id, label);
   } else {
     if (rview->GetTrackTAG()){
-	  /*temp remove ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetMaxPosition(point,1);
-	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetWindowCenter(point,2);
-	  */
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GetMaxPosition(point,1);
+	  ((irtkGenericImage<irtkGreyPixel>*)(rview->GetSource()))->GravityCenter(point,2);
     }
     rview->InsertSourceLandmark(point, id, label);
   }

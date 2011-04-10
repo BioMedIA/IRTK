@@ -17,7 +17,7 @@ char *input_name = NULL, *output_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: binarize [in] [out] [threshold] [value1] [value2]" << endl;
+  cerr << "Usage: binarize [in] [out] [threshold1] [threshold2] [value1] [value2]" << endl;
   exit(1);
 }
 
@@ -25,9 +25,9 @@ int main(int argc, char **argv)
 {
   int i, j, k, l;
   irtkBaseImage *input;
-  double threshold, valueIn, value1, value2;
+  double threshold1, threshold2, valueIn, value1, value2;
 
-  if (argc != 6) {
+  if (argc != 7) {
     usage();
   }
 
@@ -37,7 +37,10 @@ int main(int argc, char **argv)
   output_name = argv[1];
   argc--;
   argv++;
-  threshold = atof(argv[1]);
+  threshold1 = atof(argv[1]);
+  argc--;
+  argv++;
+  threshold2 = atof(argv[1]);
   argc--;
   argv++;
   value1 = atof(argv[1]);
@@ -56,7 +59,7 @@ int main(int argc, char **argv)
       for (j = 0; j < input->GetY(); ++j){
         for (i = 0; i < input->GetX(); ++i){
           valueIn = input->GetAsDouble(i, j, k, l);
-          if (valueIn <= threshold){
+          if (valueIn >=threshold1 && valueIn <= threshold2){
             input->PutAsDouble(i, j, k, l, value1);
           } else {
             input->PutAsDouble(i, j, k, l, value2);

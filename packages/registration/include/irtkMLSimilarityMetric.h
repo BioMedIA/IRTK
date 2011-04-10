@@ -42,10 +42,10 @@ public:
   irtkMLSimilarityMetric(irtkEMClassification *);
 
   /// Add sample
-  virtual void Add(int, int);
+  virtual void Add(int, int, double =1);
 
   /// Remove sample
-  virtual void Delete(int, int);
+  virtual void Delete(int, int, double =1);
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
@@ -80,7 +80,7 @@ inline void irtkMLSimilarityMetric::Reset()
   _n=0;
 }
 
-inline void irtkMLSimilarityMetric::Add(int x, int y)
+inline void irtkMLSimilarityMetric::Add(int x, int y, double weight)
 {
   //cerr<<"Add"<<endl;
   //if ((x>0)&&(y>0))
@@ -89,7 +89,7 @@ inline void irtkMLSimilarityMetric::Add(int x, int y)
   _n ++;
 }
 
-inline void irtkMLSimilarityMetric::Delete(int x, int y)
+inline void irtkMLSimilarityMetric::Delete(int x, int y, double weight)
 {
   _ll -= _classification->PointLogLikelihoodGMM(x,y);
   //  _ll -= (y-x)*(y-x);

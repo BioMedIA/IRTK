@@ -41,6 +41,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkHistogram.h
 ../include/irtkDensity.h
 ../include/irtkImageFunction.h
+../include/irtkImageHistogram_1D.h
 ../include/irtkImage.h
 ../include/irtkImageAttributes.h
 ../include/irtkImageToFileANALYZE.h
@@ -52,6 +53,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkImageToFileNIFTI.h
 ../include/irtkImageToImage.h
 ../include/irtkImageToImage2.h
+../include/irtkImageToOpenCv.h
 ../include/irtkInterpolateImageFunction.h
 ../include/irtkLargestConnectedComponent.h
 ../include/irtkLargestConnectedComponentIterative.h
@@ -118,6 +120,7 @@ irtkHistogram_1D.cc
 irtkHistogram_2D.cc
 irtkDensity.cc
 irtkImageFunction.cc
+irtkImageHistogram_1D.cc
 irtkImageToFile.cc
 irtkImageToFileANALYZE.cc
 irtkImageToFileGIPL.cc
@@ -127,6 +130,7 @@ irtkImageToFileVTK.cc
 irtkImageToFileNIFTI.cc
 irtkImageToImage.cc
 irtkImageToImage2.cc
+irtkImageToOpenCv.cc
 irtkInterpolateImageFunction.cc
 irtkLargestConnectedComponent.cc
 irtkLargestConnectedComponentIterative.cc

@@ -87,7 +87,7 @@ void irtkImageRigidRegistration2D::GuessParameter()
 double irtkImageRigidRegistration2D::Evaluate()
 {
 #ifndef HAS_TBB
-  int i, j;
+  int i, j, t;
 #endif
 
   // Pointer to reference data
@@ -115,27 +115,33 @@ double irtkImageRigidRegistration2D::Evaluate()
   parallel_reduce(blocked_range<int>(0, _target->GetY(), 20), evaluate);
 #else
 
-  // Loop over all voxels in the target (reference) volume
-  for (j = 0; j < _target->GetY(); j++) {
-    for (i = 0; i < _target->GetX(); i++) {
-      // Check whether reference point is valid
-      if (*ptr2target >= 0) {
-        // Check whether transformed point is inside source volume
-        if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
-            (iterator._y > _source_y1) && (iterator._y < _source_y2)) {
-          // Add sample to metric
-          _metric->Add(*ptr2target, round(_interpolator->EvaluateInside(iterator._x, iterator._y, 0)));
+   for (t = 0; t < _target->GetT(); t++) {
+
+    // Initialize iterator
+    iterator.Initialize(_target, _source);
+
+    // Loop over all voxels in the target (reference) volume
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          // Check whether reference point is valid
+          if (*ptr2target >= 0) {
+            // Check whether transformed point is inside source volume
+            if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
+                (iterator._y > _source_y1) && (iterator._y < _source_y2)) {
+              // Add sample to metric
+              _metric->Add(*ptr2target, round(_interpolator->EvaluateInside(iterator._x, iterator._y, iterator._z, t)));
+            }
+            iterator.NextX();
+          } else {
+            // Advance iterator by offset
+            iterator.NextX(*ptr2target * -1);
+            i          -= (*ptr2target) + 1;
+            ptr2target -= (*ptr2target) + 1;
+          }
+          ptr2target++;
         }
-        iterator.NextX();
-      } else {
-        // Advance iterator by offset
-        iterator.NextX(*ptr2target * -1);
-        i          -= (*ptr2target) + 1;
-        ptr2target -= (*ptr2target) + 1;
+        iterator.NextY();
       }
-      ptr2target++;
-    }
-    iterator.NextY();
   }
 
 #endif

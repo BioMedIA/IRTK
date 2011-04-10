@@ -20,17 +20,19 @@
 #include <irtkTransformation.h>
 
 char *_target_name = NULL, *_source_name = NULL;
-char *dofin_name = NULL, *dofout_name = NULL;
+//char *dofin_name = NULL, *dofout_name = NULL;
+char *resultout_name = NULL;
 
 void usage()
 {
   cerr << "Usage: pevaluation [target] [source]" << endl;
+  cerr << "<-output file>       Result output file" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i;
+  int i, ok;
   double error, source_point[3], target_point[3];
 
   if (argc < 3) {
@@ -44,6 +46,23 @@ int main(int argc, char **argv)
   _source_name = argv[1];
   argv++;
   argc--;
+
+  // Parse remaining parameters
+  while (argc > 1){
+    ok = false;
+	if ((ok == false) && (strcmp(argv[1], "-output") == 0)){
+      argc--;
+      argv++;
+      resultout_name = argv[1];
+      argc--;
+      argv++;
+      ok = true;
+    }
+    if (ok == false){
+      cerr << "Can not parse argument " << argv[1] << endl;
+      usage();
+    }
+  } 
 
   // Target pipeline
   cout << "Reading target ... " << _target_name << endl;
@@ -84,8 +103,28 @@ int main(int argc, char **argv)
 
   }
 
-  error /= target->GetNumberOfPoints();
+  error /= (double)target->GetNumberOfPoints();
   cout << "RMS = " << error << " mm" << endl;
+
+  double tstd = 0, stderror = 0;
+  for (i = 0; i < target->GetNumberOfPoints(); i++){
+	  target->GetPoints()->GetPoint (i, target_point);
+	  source->GetPoints()->GetPoint (i, source_point);
+	  tstd = sqrt((target_point[0] - source_point[0]) * (target_point[0] - source_point[0]) +
+		  (target_point[1] - source_point[1]) * (target_point[1] - source_point[1]) +
+		  (target_point[2] - source_point[2]) * (target_point[2] - source_point[2]));
+	  tstd = pow(tstd - error,2);
+	  stderror += tstd;
+  }
+  stderror=sqrt(stderror/double(target->GetNumberOfPoints()));
+  cout<<"standard deviation is " << stderror  << " mm" << endl;
+
+  if(resultout_name){
+	  cerr << "Writing Results: " << resultout_name << endl;
+	  ofstream fout(resultout_name,ios::app);	  
+	  fout << error << " " << stderror << endl;
+	  fout.close();
+  }
 }
 
 #else

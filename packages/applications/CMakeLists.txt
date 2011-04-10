@@ -70,11 +70,14 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(jactest jactest.cc)
     ADD_EXECUTABLE(largedeformations largedeformations.cc)
     ADD_EXECUTABLE(largedeformationsShoot largedeformationShooting.cc)
+    
     ADD_EXECUTABLE(largedeformationsTools largedeformationsTools.cc)
     ADD_EXECUTABLE(mat2dof mat2dof.cc)
     ADD_EXECUTABLE(mareg mareg.cc)
     ADD_EXECUTABLE(mnreg mnreg.cc)
     ADD_EXECUTABLE(motiontrack motiontrack.cc)
+    ADD_EXECUTABLE(motiontrack2 motiontrack2.cc)
+    ADD_EXECUTABLE(motiontrackmultimage motiontrackmultimage.cc)
     ADD_EXECUTABLE(mrreg mrreg.cc)
     ADD_EXECUTABLE(msareg msareg.cc)
     ADD_EXECUTABLE(mshreg mshreg.cc)
@@ -103,20 +106,25 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(stransformation stransformation.cc)
     ADD_EXECUTABLE(subtract subtract.cc)
     ADD_EXECUTABLE(symnreg symnreg.cc)
+    ADD_EXECUTABLE(temporalextract temporalextract.cc)
     ADD_EXECUTABLE(transformation transformation.cc)
     ADD_EXECUTABLE(transformation2 transformation2.cc)
+    ADD_EXECUTABLE(trans_uncertainty trans_uncertainty.cc)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
 INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare 
-demons dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint 
-evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcreate ffdedit 
-ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
-headertool hreg image2dof jacobian largedeformations largedeformationsShoot 
-largedeformationsTools mat2dof mareg mnreg motiontrack mrreg nreg nreg2 
-normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 
-subtract sareg sevaluation shreg snreg srreg stransformation subtract 
-symnreg transformation transformation2 volumechange vtk2ffd jactest)
+demons dofcombine dof2flirt dofinvert dof2mat dof2vtk dofsubtract 
+dofprint evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse 
+ffdcreate ffdedit ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract 
+ffdtransform flirt2dof headertool hreg image2dof jacobian 
+largedeformationsShoot 
+largedeformationsTools mat2dof mareg mnreg 
+motiontrack motiontrack2 motiontrackmultimage mrreg
+nreg nreg2 normalize pareg pevaluation phreg pnreg prreg ptransformation
+rreg rreg2 subtract sareg sevaluation shreg snreg srreg stransformation
+subtract symnreg temporalextract transformation transformation2 trans_uncertainty 
+volumechange vtk2ffd jactest)
 
 ENDIF (BUILD_CONDOR_EXE)
 

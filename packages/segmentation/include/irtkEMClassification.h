@@ -18,6 +18,8 @@
 
 #include <irtkProbabilisticAtlas.h>
 #include <irtkGaussian.h>
+#include <irtkHistogram.h>
+#include <irtkMeanShift.h>
 
 /*
 
@@ -123,7 +125,9 @@ public:
   /// Computes log likelihood for GMM for current parameters
   virtual double LogLikelihoodGMM();
 
-public:
+  /// Get ProbMap
+  virtual void GetProbMap(int i,irtkRealImage& image);
+
   /// Print parameters
   virtual void Print();
 
@@ -195,7 +199,7 @@ public:
   ///Write probability map into a file
   void WriteProbMap(int i, char *filename);
   ///Write Gaussian parameters into a file
-  void WriteGaussianParameters(char *file_name);
+  void WriteGaussianParameters(char *file_name, int flag = 0);
   ///Write image estimate
   void WriteEstimate(char *filename);
   ///Write weights
@@ -222,6 +226,8 @@ public:
     return 0;
   }
   virtual void BrainmaskInput();
+  virtual void GetMean(double *);
+  virtual void GetVariance(double *);
   inline double LLGMM();
 
   void InitialiseGMMParameters3();
@@ -262,6 +268,8 @@ inline double irtkEMClassification::LLGMM()
 {
   return _f;
 }
+
+#include <irtkEMClassificationMultiComp.h>
 
 
 #endif

@@ -94,8 +94,8 @@ void irtkImageRigidRegistration::Initialize()
   this->irtkImageRegistration::Initialize();
 
   // Invert rigid transformation (to be backwards compatible)
-  ((irtkRigidTransformation *)_transformation)->Invert();
-  ((irtkRigidTransformation *)_transformation)->UpdateParameter();
+  //((irtkRigidTransformation *)_transformation)->Invert();
+  //((irtkRigidTransformation *)_transformation)->UpdateParameter();
 }
 
 void irtkImageRigidRegistration::Finalize()
@@ -104,8 +104,8 @@ void irtkImageRigidRegistration::Finalize()
   this->irtkImageRegistration::Finalize();
 
   // Invert rigid transformation (to be backwards compatible)
-  ((irtkRigidTransformation *)_transformation)->Invert();
-  ((irtkRigidTransformation *)_transformation)->UpdateParameter();
+  //((irtkRigidTransformation *)_transformation)->Invert();
+  //((irtkRigidTransformation *)_transformation)->UpdateParameter();
 }
 
 double irtkImageRigidRegistration::Evaluate()
@@ -122,7 +122,7 @@ double irtkImageRigidRegistration::Evaluate()
   this->Debug("irtkImageRigidRegistration::Evaluate");
 
   // Invert transformation
-  ((irtkRigidTransformation *)_transformation)->Invert();
+  //((irtkRigidTransformation *)_transformation)->Invert();
 
   // Create iterator
   irtkHomogeneousTransformationIterator
@@ -176,7 +176,7 @@ double irtkImageRigidRegistration::Evaluate()
 
 
   // Invert transformation
-  ((irtkRigidTransformation *)_transformation)->Invert();
+  //((irtkRigidTransformation *)_transformation)->Invert();
 
   // Evaluate similarity measure
   return _metric->Evaluate();

@@ -41,4 +41,10 @@ extern template class irtkGenericImage<irtkRealPixel>;
 
 #endif
 
+#ifdef HAS_OPENCV
+
+#include <irtkImageToOpenCv.h>
+
+#endif
+
 #endif

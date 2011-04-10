@@ -16,15 +16,7 @@
 
 #define MAX_NO_RESOLUTIONS 10
 
-#include <irtkImage.h>
-
-#include <irtkResampling.h>
-
-#include <irtkImageFunction.h>
-
-#include <irtkTransformation.h>
-
-#include <irtkUtil.h>
+#include <irtkRegistration.h>
 
 /**
  * Generic for image registration based on voxel similarity measures.
