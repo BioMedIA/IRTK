@@ -4,7 +4,7 @@
   Module    : $Id: irtkCardiac3DImageFreeFormRegistration.h 153 2010-06-03 11:12:52Z ws207 $
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2010-06-03 12:12:52 +0100 (�? 03 六月 2010) $
+  Date      : $Date: 2010-06-03 12:12:52 +0100 () $
   Version   : $Revision: 153 $
   Changes   : $Author: ws207 $
 
