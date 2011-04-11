@@ -194,28 +194,28 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
   // Convert image
   if (dynamic_cast<irtkGenericImage<char> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<char> *>(image));
-  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
-  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-  		cerr << "irtkGenericImage<double> instead" << endl;
-  	}
+    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
+      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+      cerr << "irtkGenericImage<double> instead" << endl;
+    }
   } else if (dynamic_cast<irtkGenericImage<unsigned char> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<unsigned char> *>(image));
-  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
-  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-  		cerr << "irtkGenericImage<double> instead" << endl;
-  	}
+    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
+      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+      cerr << "irtkGenericImage<double> instead" << endl;
+    }
   } else  if (dynamic_cast<irtkGenericImage<short> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<short> *>(image));
-  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
-  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-  		cerr << "irtkGenericImage<double> instead" << endl;
-  	}
+    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
+      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+      cerr << "irtkGenericImage<double> instead" << endl;
+    }
   } else if (dynamic_cast<irtkGenericImage<unsigned short> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<unsigned short> *>(image));
-  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
-  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-  		cerr << "irtkGenericImage<double> instead" << endl;
-  	}
+    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
+      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+      cerr << "irtkGenericImage<double> instead" << endl;
+    }
   } else if (dynamic_cast<irtkGenericImage<float> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<float> *>(image)) * reader->GetSlope() + reader->GetIntercept();
   } else if (dynamic_cast<irtkGenericImage<double> *>(image) != NULL) {
@@ -263,10 +263,10 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::GetMinMax(VoxelType
     *min = ptr[0];
     *max = ptr[0];
     for (i = 0; i < n; i++) {
-      if (ptr[i] < *min) 
-		  *min = ptr[i];
-      if (ptr[i] > *max) 
-		  *max = ptr[i];
+      if (ptr[i] < *min)
+        *min = ptr[i];
+      if (ptr[i] > *max)
+        *max = ptr[i];
     }
   }
 }
@@ -284,66 +284,66 @@ template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetAverage(int
   m = 0;
   if (n > 0) {
     for (i = 0; i < n; i++) {
-		if(*ptr > 0){
-		m ++;
-		}
-	  ptr ++;
+      if(*ptr > 0) {
+        m ++;
+      }
+      ptr ++;
     }
-	ptr = this->GetPointerToVoxels();
-	for (i = 0; i < n; i++){
-		if(toggle == 1)
-		    average += (float)((VoxelType)*ptr)/(float)m;
-		else
-			average += (float)((VoxelType)*ptr)/(float)n;
-		ptr ++;
-	}
+    ptr = this->GetPointerToVoxels();
+    for (i = 0; i < n; i++) {
+      if(toggle == 1)
+        average += (float)((VoxelType)*ptr)/(float)m;
+      else
+        average += (float)((VoxelType)*ptr)/(float)n;
+      ptr ++;
+    }
   }
   return average;
 }
 
 template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetSD(int toggle) const
 {
-	// Initialize pixels
-	float average = 0, std = 0;
-	int i, n;
-	VoxelType *ptr;
-	n   = this->GetNumberOfVoxels();
-	ptr = this->GetPointerToVoxels();
-	average = this->GetAverage(toggle);
+  // Initialize pixels
+  float average = 0, std = 0;
+  int i, n;
+  VoxelType *ptr;
+  n   = this->GetNumberOfVoxels();
+  ptr = this->GetPointerToVoxels();
+  average = this->GetAverage(toggle);
 
-	if (n > 0) {
-		for (i = 0; i < n; i++) {
-			if(*ptr > 0 && toggle == 1){
-				std += pow((double)*ptr - average,2)/(double)n;
-			}else{
-				std += pow((double)*ptr - average,2)/(double)n;
-			}
-			ptr ++;
-		}
-	}
-	return sqrt(std);
+  if (n > 0) {
+    for (i = 0; i < n; i++) {
+      if(*ptr > 0 && toggle == 1) {
+        std += pow((double)*ptr - average,2)/(double)n;
+      } else {
+        std += pow((double)*ptr - average,2)/(double)n;
+      }
+      ptr ++;
+    }
+  }
+  return sqrt(std);
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::GetMaxPosition(irtkPoint& p, int ds, int t) const
+template <class VoxelType> void irtkGenericImage<VoxelType>::GetMaxPosition(irtkPoint& p, int ds, int) const
 {
   double i, j, k;
   VoxelType *ptr;
-   double x,y,z;
+  double x, y , z;
 
   this->WorldToImage(p);
-  int max = 0;
+  VoxelType max = 0;
   x = round(p._x); y = round(p._y); z = round(p._z);
   k = round(p._z);
   ptr = this->GetPointerToVoxels();
-  for (j = round(p._y) - ds; j < round(p._y) +ds + 1; j = j ++) {
-	  for (i = round(p._x) - ds; i < round(p._x)+ds + 1; i = i ++) {
-		  // Initialize pixels
-		  if(max < *ptr){
-			  max = *ptr;
-			  x = i; y = j; z = k;
-		  }
-		  ptr++;
-	  }
+  for (j = round(p._y) - ds; j < round(p._y) +ds + 1; j++) {
+    for (i = round(p._x) - ds; i < round(p._x)+ds + 1; i++) {
+      // Initialize pixels
+      if (max < *ptr) {
+        max = *ptr;
+        x = i; y = j; z = k;
+      }
+      ptr++;
+    }
   }
   p._x = x; p._y = y; p._z = z;
   this->ImageToWorld(p);
@@ -366,22 +366,16 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::GravityCenter(irtkP
   this->WorldToImage(p);
   si = 0; sj = 0; sk = 0; sweight = 0;
   x = round(p._x); y = round(p._y); z = round(p._z);
-//  k = round(p._z);
-  for (k = round(p._z) - ds; k < round(p._z) +ds + 1; k = k ++){
-	for (j = round(p._y) - ds; j < round(p._y) +ds + 1; j = j ++) {
-      for (i = round(p._x) - ds; i < round(p._x)+ds + 1; i = i ++) {
-			// Initialize pixels
-		    //*ptr = interpolator->EvaluateInside(i,j,k,0);
-			//if(max < *ptr){
-			  //max = *ptr;
-			  //x = i; y = j; z = k;
-			//}
-		    ptr = this->GetPointerToVoxels(i,j,k,t);
-		    si += *ptr * i;
-			sj += *ptr * j;
-			sk += *ptr * k;
-			sweight += *ptr;
-	  }
+  for (k = round(p._z) - ds; k < round(p._z) +ds + 1; k++) {
+    for (j = round(p._y) - ds; j < round(p._y) +ds + 1; j++) {
+      for (i = round(p._x) - ds; i < round(p._x)+ds + 1; i++) {
+        // Initialize pixels
+        ptr = this->GetPointerToVoxels(i,j,k,t);
+        si += *ptr * i;
+        sj += *ptr * j;
+        sk += *ptr * k;
+        sweight += *ptr;
+      }
     }
   }
   x = si/sweight; y = sj/sweight; z = sk/sweight;
