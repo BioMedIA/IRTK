@@ -33,6 +33,12 @@ int main(int argc, char **argv)
   if (argc < 8) {
     usage();
   }
+  st[0] = 0;
+  st[1] = 0;
+  et[0] = 0;
+  et[1] = 0;
+  gap[0] = 0;
+  gap[1] = 0;
 
   irtkGreyImage imageA(argv[1]);
   argc--;

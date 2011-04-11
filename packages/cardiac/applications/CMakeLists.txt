@@ -1,4 +1,10 @@
-
+LINK_LIBRARIES(cardiac++ registration++ segmentation++ transformation++ contrib++ image++ geometry++ common++ contrib++ image++ geometry++ common++) 
+IF (USE_VXL)
+  LINK_LIBRARIES(irtkvnl irtkvcl irtkvnl_algo irtknetlib)
+ELSE (USE_VXL)
+  LINK_LIBRARIES(recipes)
+ENDIF (USE_VXL)
+ 
 IF (BUILD_CONDOR_EXE)
   #  SET (CMAKE_CXX_COMPILER "condor_compile ${CMAKE_CXX_COMPILER}")
   # This is a hack since the line above doesn't work: this local

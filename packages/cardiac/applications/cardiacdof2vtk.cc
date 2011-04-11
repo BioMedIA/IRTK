@@ -1,15 +1,3 @@
-﻿/*=========================================================================
-
-  Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: cardiacdof2vtk.cc 304 2011-04-10 21:46:30Z ws207 $
-  Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2011-04-10 22:46:30 +0100 (Sun, 10 Apr 2011) $
-  Version   : $Revision: 304 $
-  Changes   : $Author: ws207 $
-
-=========================================================================*/
-
 #ifdef HAS_VTK
 #define Normal 0
 #define Radial 1
@@ -194,7 +182,7 @@ int main(int argc, char **argv)
 			  p2[1] = ds * axis[1];
 			  p2[2] = ds * axis[2];
 		  }else if(mode == Circumferential){
-			  //(a2b3 − a3b2, a3b1 − a1b3, a1b2 − a2b1)
+			  //(a2b3 ? a3b2, a3b1 ? a1b3, a1b2 ? a2b1)
 			  circle[0] = axis[1]*normal[2] - axis[2]*normal[1];
 			  circle[1] = axis[2]*normal[0] - axis[0]*normal[2];
 			  circle[2] = axis[0]*normal[1] - axis[1]*normal[0];

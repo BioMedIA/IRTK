@@ -659,7 +659,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty()
 
 double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty(int index)
 {	
-	int i, j, k, i1, j1, k1, i2, j2, k2;
+	int i, j, k;
 	double x, y, z, jacobian;
 	irtkMatrix jac,tmp_jac;
 	if(_comega[index] > 0){
