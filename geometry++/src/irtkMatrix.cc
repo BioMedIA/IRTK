@@ -631,9 +631,9 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
   float *eigen_value, **eigen_vector, **m;
 
   // Allocate menory
-  m            = matrix(1, _rows, 1, _rows);
-  eigen_vector = matrix(1, _rows, 1, _rows);
-  eigen_value  = vector(1, _rows);
+  m            = ::matrix(1, _rows, 1, _rows);
+  eigen_vector = ::matrix(1, _rows, 1, _rows);
+  eigen_value  = ::vector(1, _rows);
 
   // Convert matrix to NR format
   Matrix2NR(m);
@@ -745,12 +745,12 @@ void irtkMatrix::LeastSquaresFit(const irtkVector &y, irtkVector &x)
   }
 
   // Allocate NR memory
-  NR_b = vector(1, _rows);
-  NR_w = vector(1, _cols);
-  NR_x = vector(1, _cols);
-  NR_y = vector(1, _rows);
-  NR_v = matrix(1, _cols, 1, _cols);
-  NR_u = matrix(1, _rows, 1, _cols);
+  NR_b = ::vector(1, _rows);
+  NR_w = ::vector(1, _cols);
+  NR_x = ::vector(1, _cols);
+  NR_y = ::vector(1, _rows);
+  NR_v = ::matrix(1, _cols, 1, _cols);
+  NR_u = ::matrix(1, _rows, 1, _cols);
 
   // Convert matrix to NR
   this->Matrix2NR(NR_u);
