@@ -25,8 +25,8 @@ int main( int argc, char** argv )
 	irtkRealImage **atlas = NULL;
 	irtkImageAttributes atr;
 	irtkSegmentationFunction cf;
-	int i,j,k,l,ok,n,*c = NULL,*ts = NULL;
-	int numberOfImages = 0, sublate = 0, numberofatlas = 0, cutmode = 3, 
+	int i,ok,n,*c = NULL,*ts = NULL;
+	int numberOfImages = 0, numberofatlas = 0, cutmode = 3,
 		connect = 0, outputvalue = 1,loadsegmentation = 0;
 	double x,y,z,t,regionweight = 0.5,timeweight = 1.0;
 

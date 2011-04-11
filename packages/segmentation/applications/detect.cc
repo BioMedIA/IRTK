@@ -28,7 +28,6 @@ int main(int argc, char **argv)
 {
   double scale;
   int ok,image_type,marginalvalue;
-  int i,j,k,t;
   irtkSegmentationFunction cf;
 #ifdef HAS_OPENCV
   CvHaarClassifierCascade *_classifier = NULL;

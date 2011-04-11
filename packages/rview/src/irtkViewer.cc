@@ -243,6 +243,8 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
       _NumberOfX = j2-j1+1;
       _NumberOfY = k2-k1+1;
       break;
+    default:
+    	break;
   }
 
   for (k = k1; k <= k2; k++) {
@@ -823,7 +825,7 @@ void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
   }
 }
 
-void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _DisplayObjectWarp, int _DisplayObjectGrid)
+void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int, int)
 {
   int i, j;
   double p1[3], p2[3], p3[3], v1[3], v2[3], point[3], normal[3];
@@ -886,6 +888,8 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int _Disp
           case Viewer_XZ:
             p = irtkPoint(point[0], point[1], 0);
             break;
+          default:
+          	break;
         }
         pset.Add(p);
       }
@@ -1054,6 +1058,9 @@ void irtkViewer::DrawInfo(irtkDisplayMode m)
       glCallLists(strlen("S"), GL_UNSIGNED_BYTE, (GLubyte *) "S");
       glPopAttrib ();
       break;
+
+    default:
+    	break;
   }
 }
 

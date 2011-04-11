@@ -25,8 +25,8 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int i, n, m, ok, padding, iterations;
-  bool nobg=false,outputprob=false;
+  int i, n, ok, padding, iterations;
+  bool nobg = false, outputprob = false;
 
   if (argc < 5) {
     usage();

@@ -80,7 +80,7 @@ inline void irtkMLSimilarityMetric::Reset()
   _n=0;
 }
 
-inline void irtkMLSimilarityMetric::Add(int x, int y, double weight)
+inline void irtkMLSimilarityMetric::Add(int x, int y, double)
 {
   //cerr<<"Add"<<endl;
   //if ((x>0)&&(y>0))
@@ -89,7 +89,7 @@ inline void irtkMLSimilarityMetric::Add(int x, int y, double weight)
   _n ++;
 }
 
-inline void irtkMLSimilarityMetric::Delete(int x, int y, double weight)
+inline void irtkMLSimilarityMetric::Delete(int x, int y, double)
 {
   _ll -= _classification->PointLogLikelihoodGMM(x,y);
   //  _ll -= (y-x)*(y-x);

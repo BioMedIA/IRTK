@@ -25,8 +25,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  double x, y, z, error;
-  int i, ok, affine, import, invert;
+  int ok, affine, import, invert;
 
   irtkMatrix matrix;
   //irtkTransformation *transformation = NULL;

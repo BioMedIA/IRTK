@@ -118,7 +118,7 @@ int main(int argc, char **argv)
       invert = true;
       ok = true;
     }
-	if ((ok == false) && (strcmp(argv[1], "-image") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-image") == 0)) {
       argc--;
       argv++;
       imaged = true;
@@ -226,16 +226,16 @@ int main(int argc, char **argv)
             } else {
               transform->Transform(p2[0], p2[1], p2[2], time);
             }
-			if(imaged){
-				image.WorldToImage(p2[0],p2[1],p2[2]);
-				p2[0] -= x;
-				p2[1] -= y;
-				p2[2] -= z;
-			}else{
-				p2[0] -= p1[0];
-				p2[1] -= p1[1];
-				p2[2] -= p1[2];
-			}
+            if (imaged) {
+              image.WorldToImage(p2[0],p2[1],p2[2]);
+              p2[0] -= x;
+              p2[1] -= y;
+              p2[2] -= z;
+            } else {
+              p2[0] -= p1[0];
+              p2[1] -= p1[1];
+              p2[2] -= p1[2];
+            }
             dx(x, y, z, t) = scale * p2[0];
             dy(x, y, z, t) = scale * p2[1];
             dz(x, y, z, t) = scale * p2[2];

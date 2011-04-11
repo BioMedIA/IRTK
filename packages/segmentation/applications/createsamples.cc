@@ -175,11 +175,11 @@ int main(int argc, char **argv)
 #else
 void usage()
 {
-	cerr << "Do not have opencv\n" << endl;
+	cerr << "Must be compiled with OpenCV\n" << endl;
 	exit(1);
 }
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
 	usage();
 }

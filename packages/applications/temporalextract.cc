@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   irtkTransformation *transformation = NULL;
   irtkInterpolateImageFunction *interpolator = NULL;
   irtkRealPixel target_min, target_max, source_min, source_max;
-  int ok, i, x, y, z, t;
+  int ok, x, y, z, t;
   double x1, y1, z1, x2, y2, z2, widthx, widthy, val;
 
   // Check command line
@@ -183,6 +183,7 @@ int main(int argc, char **argv)
   int maxphase;
 
   maxvalue = 0;
+  maxphase = 0;
 
   // Fill histogram
   for (t = 0; t < from.GetT(); t++){

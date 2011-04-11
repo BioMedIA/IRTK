@@ -57,13 +57,13 @@ inline irtkLabelConsistencySimilarityMetric::irtkLabelConsistencySimilarityMetri
   _n = 0;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y, double weight)
+inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y, double)
 {
   if (x == y) _match++;
   _n++;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y, double weight)
+inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y, double)
 {
   if (x == y) _match--;
   _n--;

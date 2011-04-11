@@ -423,7 +423,7 @@ void EulerianShooting::SchemeStep(void)
 }
 
 /// Implements the advection scheme on the inverse of the diffeomorphism and the Euler scheme on the diffeomorphism with the corresponding arguments
-void EulerianShooting::SchemeStep(VectorField *TempInvDiffeoLoc, VectorField *TempDiffeoLoc, VectorField *Output1, VectorField *Output2,int t1, int t2)
+void EulerianShooting::SchemeStep(VectorField *TempInvDiffeoLoc, VectorField *, VectorField *Output1, VectorField *Output2,int t1, int t2)
 {
 	TransportMomentum(&this->InitialMomentum, TempInvDiffeoLoc, &this->Momentum,this->DeltaX);
 	TransportImage(&this->ImTemplate, TempInvDiffeoLoc, &this->Image);

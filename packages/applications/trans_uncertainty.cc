@@ -25,8 +25,8 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int i,j,k,n;
-  float meant,sigmat,pt,pti, meanti,sigmati;
+  int i, j, k;
+  float meant, sigmat, pt, pti, meanti, sigmati;
   irtkRician Rician;
   irtkGaussian gaussian;
   //irtkMutualInformationSimilarityMetric metric;

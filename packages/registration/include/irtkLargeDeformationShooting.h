@@ -65,9 +65,9 @@ class EulerianShooting
     }
     return 0.0;
   }
-  static inline float UpWindLimiter(float a,float b){return 0.0;}
+  static inline float UpWindLimiter(float, float){return 0.0;}
 
-  static float SuperBeeLimiter(float , float);
+  static float SuperBeeLimiter(float, float);
   void Run();
   /// private parameters
   

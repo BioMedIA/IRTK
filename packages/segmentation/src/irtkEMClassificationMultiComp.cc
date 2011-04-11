@@ -572,7 +572,7 @@ void irtkEMClassificationMultiComp::InitialEStep(int j, int n)
 
 }
 
-double irtkEMClassificationMultiComp::Iterate(int iteration)
+double irtkEMClassificationMultiComp::Iterate(int)
 {
   this->MStep();
   this->EStep();
