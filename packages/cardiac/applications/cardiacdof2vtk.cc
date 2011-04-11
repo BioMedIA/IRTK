@@ -11,6 +11,7 @@
 =========================================================================*/
 
 #ifdef HAS_VTK
+#define Normal 0
 #define Radial 1
 #define Longitudinal 2
 #define Circumferential 3
@@ -29,6 +30,7 @@ void usage()
   cerr << "<-longitudinal>           Define output in longitudinal direction\n" <<endl;
   cerr << "<-circumferential>        Define output in circumferential direction\n" <<endl;
   cerr << "<-radial>                 Define output in radial direction\n" <<endl;
+  cerr << "<-strain>				 Output Strain" <<endl;
   exit(1);
 }
 
@@ -37,12 +39,13 @@ int main(int argc, char **argv)
   int i, j, x, y, z;
   double p1[3], p2[3],normal[3],axis[3],circle[3];
   double ds,distance;
-  int ok,mode;
+  int ok,mode,strain;
 
   if (argc < 5) {
     usage();
   }
-  mode = 0;
+  mode = Normal;
+  strain = false;
 
   input_name  = argv[1];
   argc--;
@@ -59,7 +62,12 @@ int main(int argc, char **argv)
 
   while (argc > 1) {
 	  ok = false;
-	  if (strcmp(argv[1], "-radial") == 0) {
+	  if (strcmp(argv[1], "-strain") == 0) {
+		  argc--;
+		  argv++;
+		  strain = true;
+		  ok = true;	 
+	  } else if (strcmp(argv[1], "-radial") == 0) {
 		  argc--;
 		  argv++;
 		  mode = Radial;
@@ -96,6 +104,9 @@ int main(int argc, char **argv)
   // Set up vtk vectors
   vtkDoubleArray *vectors = vtkDoubleArray::New();
   vectors->SetNumberOfComponents(3);
+  // Set up vtk vectors
+  vtkDoubleArray *strainvectors = vtkDoubleArray::New();
+  strainvectors->SetNumberOfComponents(1);
 
   // Read model
   vtkPolyDataReader *reader = vtkPolyDataReader::New();
@@ -194,11 +205,50 @@ int main(int argc, char **argv)
 		  }
 
 		  vectors->InsertNextTuple(p2);
+
+		  if(strain){
+			 double result_of_strain;
+			 irtkMatrix jac,strainm;
+			 jac.Initialize(3, 3);
+			 strainm.Initialize(3,3);
+			 transform->LocalJacobian(jac,p1[0],p1[1],p1[2]);
+			 strainm = jac;
+			 strainm.Transpose();
+			 strainm = strainm*jac;
+			 strainm(0,0) = strainm(0,0) - 1;
+			 strainm(1,1) = strainm(1,1) - 1;
+			 strainm(2,2) = strainm(2,2) - 1;
+
+			 irtkMatrix spt,sp;
+			 spt.Initialize(1,3);
+			 sp.Initialize(3,1);
+			 if(mode == Radial){
+				 sp(0,0) = normal[0]; spt(0,0) = normal[0];
+				 sp(1,0) = normal[1]; spt(0,1) = normal[1];
+				 sp(2,0) = normal[2]; spt(0,2) = normal[2];
+				 strainm = spt*strainm*sp;
+			 }else if(mode == Longitudinal){
+				 sp(0,0) = axis[0]; spt(0,0) = axis[0];
+				 sp(1,0) = axis[1]; spt(0,1) = axis[1];
+				 sp(2,0) = axis[2]; spt(0,2) = axis[2];
+				 strainm = spt*strainm*sp;
+			 }else if(mode == Circumferential){
+				 sp(0,0) = circle[0]; spt(0,0) = circle[0];
+				 sp(1,0) = circle[1]; spt(0,1) = circle[1];
+				 sp(2,0) = circle[2]; spt(0,2) = circle[2];
+				 strainm = spt*strainm*sp;
+			 }
+			 result_of_strain = strainm.Det();
+			 strainvectors->InsertNextTuple(&result_of_strain);
+		  }
 	  }			
   }
   vtkPolyData *output = vtkPolyData::New();
   output->SetPoints(points);
   output->GetPointData()->SetVectors(vectors);
+  if(strain){
+	  output->GetPointData()->SetScalars(strainvectors);
+  }
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(output);
   writer->SetFileName(output_name);

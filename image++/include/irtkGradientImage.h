@@ -40,9 +40,6 @@ protected:
   /// Runs the filter on a single voxel.
   virtual double Run(int, int, int, int);
 
-  /// Runs the filter on a single voxel without Z direction.
-  virtual double RunnoZ(int, int, int, int);
-
 public:
   /// Constructor
   irtkGradientImage();
@@ -52,8 +49,6 @@ public:
   /// Run the convolution filter
   virtual void Run();
 
-  /// Run the convolution filter without Z direction
-  virtual void RunnoZ();
 };
 
 #include <irtkGradientImageX.h>

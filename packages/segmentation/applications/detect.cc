@@ -27,7 +27,7 @@ void usage()
 int main(int argc, char **argv)
 {
   double scale;
-  int ok,image_type,marginalvalue;
+  int i,j,k,ok,image_type,marginalvalue;
   irtkSegmentationFunction cf;
 #ifdef HAS_OPENCV
   CvHaarClassifierCascade *_classifier = NULL;
@@ -124,7 +124,6 @@ int main(int argc, char **argv)
   // Detect Object
 #ifdef HAS_OPENCV
   if(_classifier){
-	  double x,y,z;
 	  irtkImageAttributes atr = image.GetImageAttributes();
 	  atr._t = 1;
 	  irtkRealImage threshold(atr);
