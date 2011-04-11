@@ -1860,7 +1860,8 @@ void irtkCardiac3DImageFreeFormRegistration::Run()
     // Run the registration filter at this resolution
     for (i = 0; i < _NumberOfSteps[level]; i++) {
 		//Update Omega
-		if (this->_Lambda2 > 0 && (level == 0 || level < _NumberOfLevels-1)) {
+		//&& (level == 0 || level < _NumberOfLevels-1)
+		if (this->_Lambda2 > 0) {
 			this->UpdateOmega();
 			this->EvaluateOmega();
 			_omega->Write("omega.nii.gz");
