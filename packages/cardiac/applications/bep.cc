@@ -21,9 +21,6 @@ void checkslice(irtkGreyImage& target, int z){
 		cerr<<"Invaliade z slice number: "<< z <<endl;
 		exit(1);
 	}
-	if(z == target.GetZ() && Zcheck == 0){
-		Zcheck == 1;
-	}
 	if(z == target.GetZ() && Zcheck == 1){
 		cerr<<"Invaliade z slice number: "<< z <<endl;
 		exit(1);
