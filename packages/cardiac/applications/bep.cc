@@ -33,7 +33,7 @@ void checkslice(irtkGreyImage& target, int z){
 
 int main( int argc, char** argv )
 {
-	irtkGreyImage target,source,late,*interest = NULL;
+	irtkGreyImage target,source,late;
 	irtkPointSet landmarks;
 	irtkPointSet olandmarks;
 	int tip,aa,am,mb,bottom,swapped,mode,prefix;
@@ -47,14 +47,14 @@ int main( int argc, char** argv )
 	irtkRealImage threshold,compare,segmentation;
 	irtkImageAttributes atr;
 	irtkBep bf;
-	int i,j,k,l,t,ok;
-	double x,y,z;
+	int i,j,k,l,ok;
 
 	if( argc < 7 ) usage();
 	
 	tip = 0;
 	mode = 0;
 	prefix = -1;
+	aa = 0; am = 0; mb = 0; bottom = 0;
 
 	// Read image
 	cout << "Reading original image: " << argv[1] << endl;
