@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 
   rms = 0;
   scalar = 0;
+  array = NULL;
 
   // Parse source and target point lists
   target_name = argv[1];
@@ -138,6 +139,7 @@ int main(int argc, char **argv)
 	  array->Delete();
   }
   double meanerror,stderror;
+  stderror = 0;
   
   // output to cout
   if(rms == 0){

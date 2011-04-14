@@ -92,9 +92,12 @@ int main(int argc, char **argv)
   // Set up vtk vectors
   vtkDoubleArray *vectors = vtkDoubleArray::New();
   vectors->SetNumberOfComponents(3);
-  // Set up vtk vectors
+  // Set up strain value
   vtkDoubleArray *strainvectors = vtkDoubleArray::New();
   strainvectors->SetNumberOfComponents(1);
+  // Set up strain tensor
+  vtkDoubleArray *straintensor = vtkDoubleArray::New();
+  straintensor->SetNumberOfComponents(9);
 
   // Read model
   vtkPolyDataReader *reader = vtkPolyDataReader::New();
@@ -195,7 +198,7 @@ int main(int argc, char **argv)
 		  vectors->InsertNextTuple(p2);
 
 		  if(strain){
-			 double result_of_strain;
+			 double result_of_strain,tensor_of_strain[9];
 			 irtkMatrix jac,strainm;
 			 jac.Initialize(3, 3);
 			 strainm.Initialize(3,3);
@@ -203,6 +206,10 @@ int main(int argc, char **argv)
 			 strainm = jac;
 			 strainm.Transpose();
 			 strainm = strainm*jac;
+
+			 for(x=0;x<9;x++){
+				 tensor_of_strain[x] = strainm(x/3,x%3);
+			 }
 			 strainm(0,0) = strainm(0,0) - 1;
 			 strainm(1,1) = strainm(1,1) - 1;
 			 strainm(2,2) = strainm(2,2) - 1;
@@ -228,6 +235,7 @@ int main(int argc, char **argv)
 			 }
 			 result_of_strain = strainm.Det();
 			 strainvectors->InsertNextTuple(&result_of_strain);
+			 straintensor->InsertNextTuple(tensor_of_strain);
 		  }
 	  }			
   }
@@ -236,6 +244,7 @@ int main(int argc, char **argv)
   output->GetPointData()->SetVectors(vectors);
   if(strain){
 	  output->GetPointData()->SetScalars(strainvectors);
+	  output->GetPointData()->SetTensors(straintensor);
   }
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(output);

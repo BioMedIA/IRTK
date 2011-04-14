@@ -6,6 +6,11 @@
 
 char *dofout_name = NULL, *parin_name  = NULL, *parin_name2  = NULL, *parout_name = NULL, **untagfilenames = NULL,**tagfilenames = NULL, *thresholdname = NULL;
 
+void numberofframeerror(){
+	cerr << "the images' number of frames do not equal" << endl;
+	exit(1);
+}
+
 void usage()
 {
 	cerr << "Usage: motiontrackcardiac numberOfUntaggedImages numberOfTaggedImages [untaggedimage sequence] [taggedimage sequence] <options>" << endl;
@@ -341,6 +346,20 @@ int main(int argc, char **argv)
 	// Use identity transformation to start
 	mffd = new irtkMultiLevelFreeFormTransformation;
 	int tagtrigger = 0;
+	// check time sequence is equal
+	if(uimage[0]->GetT() != timage[0]->GetT()){
+		numberofframeerror();
+	}
+	for(l=1;l<numberOfUntaggedImages;l++){
+		if(uimage[0]->GetT() != uimage[l]->GetT()){
+			numberofframeerror();
+		}
+	}
+	for(l=1;l<numberOfTaggedImages;l++){
+		if(timage[0]->GetT() != timage[l]->GetT()){
+			numberofframeerror();
+		}
+	}
 	for (t = 1; t < uimage[0]->GetT(); t++) {
 		tagtrigger = 0;
 		// Create registration filter

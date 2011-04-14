@@ -464,6 +464,9 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
       cerr<<"Please, do not forget to set the ML metric!!!"<<endl;
     }
     break;
+  default:
+	  cerr<<"Can not recognize similarity metric type!!!"<<endl;
+	  exit(1);
   }
   }
 
@@ -1624,8 +1627,8 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateOmega (){
 
 void irtkCardiac3DImageFreeFormRegistration::EvaluateOmega (int index){
 	irtkPoint p1, p2;
-	int i, j, k, i1, i2, j1, j2, k1, k2, dim, t, n,min,max;
-	double bi, bj, bk, dx, dy, dz, p[3],x,y,z,wx,wy,wz;
+	int i, j, k, i1, i2, j1, j2, k1, k2, dim, t, min,max;
+	double bi, bj, bk, dx, dy, dz, x,y,z;
 	irtkRealPixel *ptr;
 
 	dim = int(index / (_affd->GetX()*_affd->GetY()*_affd->GetZ()));

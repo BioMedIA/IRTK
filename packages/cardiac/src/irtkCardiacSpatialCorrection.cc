@@ -305,6 +305,10 @@ void irtkCardiacSpatialCorrection::Initialize(int level)
     _metric = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
 	_intmetric = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, target_nbins);
     break;
+  default:
+  	  cerr<<"Can not recognize similarity metric type!!!"<<endl;
+  	  exit(1);
+  	break;
   }
 
   // Setup the interpolator
@@ -658,7 +662,7 @@ double irtkCardiacSpatialCorrection::Evaluate()
 double irtkCardiacSpatialCorrection::EvaluateGradient(float step, float *dx)
 {
   int i, j, k;
-  double s1, s2, norm, sum, parameterValue;
+  double s1, s2, norm, parameterValue;
 
   j = 0;
   for (k = 0; k < _target->GetZ(); k++){
@@ -706,7 +710,7 @@ double irtkCardiacSpatialCorrection::EvaluateGradient(float step, float *dx)
 }
 
 double irtkCardiacSpatialCorrection::InternalSimilarity(){
-	int i, j, k, t, n;
+	int i, j, k, t;
 	double x, y, z;
 
 	// Print debugging information
@@ -1006,7 +1010,7 @@ bool irtkCardiacSpatialCorrection::Read(char *buffer1, char *buffer2, int &level
 
 void irtkCardiacSpatialCorrection::Write(ostream &to)
 {
-  int i;
+	int i;
 
   to << "\n#\n# Registration parameters\n#\n\n";
   to << "No. of resolution levels          = " << this->_NumberOfLevels << endl;
@@ -1038,6 +1042,9 @@ void irtkCardiacSpatialCorrection::Write(ostream &to)
   case SSD:
     to << "Similarity measure                = SSD" << endl;
     break;
+  default:
+  	  cerr<<"Can not recognize similarity metric type!!!"<<endl;
+  	  exit(1);
   }
 
   switch (this->_InterpolationMode) {
