@@ -32,14 +32,14 @@ char *input_name, *output_name;
 void usage()
 {
 
-  cerr << "Usage: mcubes [image] [polydata] [threshold] <-decimate> <-smooth> <-normals on|off> <-gradients on|off> <-blur sigma> <-isotropic> <-size x y z> <-ascii> <-sepsuf> <-rmatr> \n"<<endl;
+  cerr << "Usage: mcubes [image] [polydata] [threshold] <-decimate> <-smooth iterations> <-normals on|off> <-gradients on|off> <-blur sigma> <-isotropic> <-size x y z> <-ascii> <-sepsuf> <-rmatr> \n"<<endl;
   cerr << "<-close put blank slices on both side so a set of closed surface will be generated>";
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int ok, i, j, k, t, bASCII = false,rmatr,close;
+  int ok, i, j, k, t, bASCII = false,rmatr,close,iterations;
   float threshold;
   double xaxis[3], yaxis[3], zaxis[3], point[3];
   irtkPoint origin;
@@ -48,6 +48,7 @@ int main(int argc, char **argv)
   vtkSmoothPolyDataFilter *smooth = NULL;
   rmatr = 0;
   close = 0;
+  iterations = 10;
 
   if (argc < 4) {
     usage();
@@ -87,6 +88,9 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       smooth = vtkSmoothPolyDataFilter::New();
+	  iterations = atoi(argv[1]);
+	  argc--;
+	  argv++;
       ok = true;
     }
 	if ((!ok) && (strcmp(argv[1], "-rmatr") == 0)) {
@@ -250,12 +254,14 @@ int main(int argc, char **argv)
     if (smooth != NULL) {
       cout << "Smoothing ... \n";
       smooth->SetInputConnection(decimate->GetOutputPort());
+	  smooth->SetNumberOfIterations(iterations);
       output = smooth->GetOutput();
     } else {
       output = decimate->GetOutput();
     }
   } else if (smooth != NULL) {
     cout << "Smoothing ... \n";
+	smooth->SetNumberOfIterations(iterations);
     smooth->SetInputConnection(mcubes->GetOutputPort());
     output = smooth->GetOutput();
   } else {

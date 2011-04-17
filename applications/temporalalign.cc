@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 			l = i;
 		  }
 	  }
-	  if(distance <= gap[1] || distance <= gap[0]){
+	  if(distance <= gap[1] || distance <= gap[0] || l == imageB.GetT()-1){
 		  for (z = 0; z < imageB.GetZ(); z++) {
 			  for (y = 0; y < imageB.GetY(); y++) {
 				  for (x = 0; x < imageB.GetX(); x++) {

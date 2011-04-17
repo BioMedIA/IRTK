@@ -25,7 +25,7 @@ void usage()
 int main(int argc, char **argv)
 {
   int i, j, x, y, z;
-  double p1[3], p2[3],normal[3],axis[3],circle[3];
+  double p1[3], p2[3],normal[3],axis[3],circle[3],radial[3];
   double ds,distance;
   int ok,mode,strain;
 
@@ -174,11 +174,22 @@ int main(int argc, char **argv)
 		  p2[2] -= p1[2];
 		  points->InsertNextPoint(p1);
 
+		  ds = normal[0]*axis[0] + normal[1]*axis[1] + normal[2]*axis[2];
+		  radial[0] = normal[0] - ds * axis[0];
+		  radial[1] = normal[1] - ds * axis[1];
+		  radial[2] = normal[2] - ds * axis[2];
+		  distance = sqrt(pow(radial[0],2)+pow(radial[1],2)+pow(radial[2],2));
+		  if(distance > 0){
+			  for(j = 0; j < 3; j++){
+				  radial[j] = radial[j] / distance;
+			  }
+		  }
+
 		  if(mode == Radial){
-			  ds = p2[0]*normal[0] + p2[1]*normal[1] + p2[2]*normal[2];
-			  p2[0] = ds * normal[0];
-			  p2[1] = ds * normal[1];
-			  p2[2] = ds * normal[2];
+			  ds = p2[0]*radial[0] + p2[1]*radial[1] + p2[2]*radial[2];
+			  p2[0] = ds * radial[0];
+			  p2[1] = ds * radial[1];
+			  p2[2] = ds * radial[2];
 		  }else if(mode == Longitudinal){
 			  ds = p2[0]*axis[0] + p2[1]*axis[1] + p2[2]*axis[2];
 			  p2[0] = ds * axis[0];
@@ -186,9 +197,9 @@ int main(int argc, char **argv)
 			  p2[2] = ds * axis[2];
 		  }else if(mode == Circumferential){
 			  //(a2b3 ? a3b2, a3b1 ? a1b3, a1b2 ? a2b1)
-			  circle[0] = axis[1]*normal[2] - axis[2]*normal[1];
-			  circle[1] = axis[2]*normal[0] - axis[0]*normal[2];
-			  circle[2] = axis[0]*normal[1] - axis[1]*normal[0];
+			  circle[0] = axis[1]*radial[2] - axis[2]*radial[1];
+			  circle[1] = axis[2]*radial[0] - axis[0]*radial[2];
+			  circle[2] = axis[0]*radial[1] - axis[1]*radial[0];
 			  ds = p2[0]*circle[0] + p2[1]*circle[1] + p2[2]*circle[2];
 			  p2[0] = ds * circle[0];
 			  p2[1] = ds * circle[1];
@@ -218,9 +229,9 @@ int main(int argc, char **argv)
 			 spt.Initialize(1,3);
 			 sp.Initialize(3,1);
 			 if(mode == Radial){
-				 sp(0,0) = normal[0]; spt(0,0) = normal[0];
-				 sp(1,0) = normal[1]; spt(0,1) = normal[1];
-				 sp(2,0) = normal[2]; spt(0,2) = normal[2];
+				 sp(0,0) = radial[0]; spt(0,0) = radial[0];
+				 sp(1,0) = radial[1]; spt(0,1) = radial[1];
+				 sp(2,0) = radial[2]; spt(0,2) = radial[2];
 				 strainm = spt*strainm*sp;
 			 }else if(mode == Longitudinal){
 				 sp(0,0) = axis[0]; spt(0,0) = axis[0];
