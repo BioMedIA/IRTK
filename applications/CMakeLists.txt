@@ -68,12 +68,11 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(histogram histogram.cc)
     ADD_EXECUTABLE(sbig  sbig.cc)
     ADD_EXECUTABLE(splitvolume splitvolume.cc)
-    ADD_EXECUTABLE(surfacedistance surfacedistance.cc)
     ADD_EXECUTABLE(AnisoDiff AnisoDiff.cc)
     
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin average binarize blur closing convert dicemetric dilation dicom2image dmap edgedetect erosion flip giplmagic info lcc lcc_iterative makesequence makevolume combineimages mcubes msample noise overlap opening padding polar2cartesian raw2image reflect region resample temporalalign threshold voxelsize histogram sbig splitvolume surfacedistance AnisoDiff)
+INSTALL_TARGETS(/bin average binarize blur closing convert dicemetric dilation dicom2image dmap edgedetect erosion flip giplmagic info lcc lcc_iterative makesequence makevolume combineimages mcubes msample noise overlap opening padding polar2cartesian raw2image reflect region resample temporalalign threshold voxelsize histogram sbig splitvolume AnisoDiff)
 
 ENDIF (BUILD_CONDOR_EXE)
 

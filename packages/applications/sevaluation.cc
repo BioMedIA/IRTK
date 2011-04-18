@@ -22,7 +22,7 @@
 #include <irtkSurfaceRegistration.h>
 
 char *_target_name = NULL, *_source_name = NULL;
-char *dofin_name = NULL, *dofout_name = NULL;
+char *dofin_name = NULL, *resultout_name = NULL;
 
 void usage()
 {
@@ -31,15 +31,20 @@ void usage()
   cerr << "<-locator>          Locator: 0 = cell locator, 1 = point locator, 2 = kd-tree locator (default = 1)" << endl;
   cerr << "<-symmetric>        Use symmetric distance (default OFF)" << endl;
   cerr << "<-ignoreedges>      Ignores edges in ICP (default OFF)" << endl;
+  cerr << "<-RMS>			   Use rms distance instead of mean distance" << endl;
+  cerr << "<-output file>      Result output file" << endl;
+  cerr << "<-scalar>           Put the distance as scalar back to target" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i, n, id, locatorType, ok;
+  int i, n, id, locatorType, rms, scalar, ok;
   bool ignoreEdges, symmetricDistance;
-  double error, source_point[3], target_point[3];
+  double error, rerror, source_point[3], target_point[3];
   irtkLocator *target_locator, *source_locator;
+  irtkTransformation *transformation = NULL;
+  vtkDoubleArray *array = NULL;
 
   if (argc < 3) {
     usage();
@@ -48,6 +53,8 @@ int main(int argc, char **argv)
   // Default parameters
   locatorType = 1;
   ok = 0;
+  rms = 0;
+  scalar = 0;
   ignoreEdges = false;
   symmetricDistance = false;
 
@@ -76,14 +83,6 @@ int main(int argc, char **argv)
       ignoreEdges = true;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
-      argc--;
-      argv++;
-      dofout_name = argv[1];
-      argc--;
-      argv++;
-      ok = true;
-    }
     if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
       argc--;
       argv++;
@@ -98,6 +97,26 @@ int main(int argc, char **argv)
       symmetricDistance = true;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-RMS") == 0)){
+		argc--;
+		argv++;
+		rms = 1;
+		ok = true;
+	}
+	if ((ok == false) && (strcmp(argv[1], "-output") == 0)){
+		argc--;
+		argv++;
+		resultout_name = argv[1];
+		argc--;
+		argv++;
+		ok = true;
+	}
+	if ((ok == false) && (strcmp(argv[1], "-scalar") == 0)){
+		argc--;
+		argv++;
+		scalar = true;
+		ok = true;
+	}
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -152,6 +171,13 @@ int main(int argc, char **argv)
     exit (1);
   }
 
+  if(scalar){
+	  array = vtkDoubleArray::New();
+	  array->SetNumberOfTuples(target->GetNumberOfPoints());
+	  array->SetNumberOfComponents(1);
+	  array->SetName("DistanceProfile");
+  }
+
   n = 0;
   error = 0;
   for (i = 0; i < target->GetNumberOfPoints(); i++) {
@@ -162,16 +188,30 @@ int main(int argc, char **argv)
     id = source_locator->FindClosestPoint (source_point);
     if (ignoreEdges) {
       if ((id > 0) && (id < source->GetNumberOfPoints()-1)) {
-        error += sqrt((target_point[0] - source_point[0]) * (target_point[0] - source_point[0]) +
-                      (target_point[1] - source_point[1]) * (target_point[1] - source_point[1]) +
-                      (target_point[2] - source_point[2]) * (target_point[2] - source_point[2]));
+		  rerror = pow(target_point[0] -source_point[0], 2) 
+			  + pow(target_point[1] - source_point[1], 2) 
+			  +  pow(target_point[2] - source_point[2], 2);
+		  if(!rms){
+			  rerror = sqrt(rerror);
+		  }
+		  error += rerror;
+		  if(scalar){
+			  array->InsertTupleValue(i, &rerror);
+		  }
         n++;
       }
     } else {
-      error += sqrt((target_point[0] - source_point[0]) * (target_point[0] - source_point[0]) +
-                    (target_point[1] - source_point[1]) * (target_point[1] - source_point[1]) +
-                    (target_point[2] - source_point[2]) * (target_point[2] - source_point[2]));
-      n++;
+		rerror = pow(target_point[0] -source_point[0], 2) 
+			+ pow(target_point[1] - source_point[1], 2) 
+			+  pow(target_point[2] - source_point[2], 2);
+		if(!rms){
+			rerror = sqrt(rerror);
+		}
+		error += rerror;
+		if(scalar){
+			array->InsertTupleValue(i, &rerror);
+		}
+		n++;
     }
   }
   if (symmetricDistance == true) {
@@ -183,28 +223,80 @@ int main(int argc, char **argv)
       id = target_locator->FindClosestPoint (target_point);
       if (ignoreEdges) {
         if ((id > 0) && (id < target->GetNumberOfPoints()-1)) {
-          error += sqrt((target_point[0] - source_point[0]) * (target_point[0] - source_point[0]) +
-                        (target_point[1] - source_point[1]) * (target_point[1] - source_point[1]) +
-                        (target_point[2] - source_point[2]) * (target_point[2] - source_point[2]));
-          n++;
+			rerror = pow(target_point[0] -source_point[0], 2) 
+				+ pow(target_point[1] - source_point[1], 2) 
+				+  pow(target_point[2] - source_point[2], 2);
+			if(!rms){
+				rerror = sqrt(rerror);
+			}
+			error += rerror;
+			n++;
         }
       } else {
-        error += sqrt((target_point[0] - source_point[0]) * (target_point[0] - source_point[0]) +
-                      (target_point[1] - source_point[1]) * (target_point[1] - source_point[1]) +
-                      (target_point[2] - source_point[2]) * (target_point[2] - source_point[2]));
-        n++;
+		  rerror = pow(target_point[0] -source_point[0], 2) 
+			  + pow(target_point[1] - source_point[1], 2) 
+			  +  pow(target_point[2] - source_point[2], 2);
+		  if(!rms){
+			  rerror = sqrt(rerror);
+		  }
+		  error += rerror;
+		  n++;
       }
     }
   }
 
-  if (n == 0) {
-    cout << "No corresponding points found" << endl;
-    return 0;
-  } else {
-    error /= n;
+  if(scalar){
+	  target->GetPointData()->SetScalars(array);
+	  vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+	  writer->SetInput(target);
+	  writer->SetFileName(_target_name);
+	  writer->Write();
+	  writer->Delete();
+	  array->Delete();
+  }
+  double meanerror,stderror;
+  stderror = 0;
+
+  // output to cout
+  if(rms == 0){
+	  meanerror = error/n;
+	  cout << "Mean distance is " << meanerror << " mm" << endl;
+	  double tstd = 0;
+	   for (i = 0; i < target->GetNumberOfPoints(); i++) {
+	  target->GetPoints()->GetPoint (i, target_point);
+	  source_point[0] = target_point[0];
+	  source_point[1] = target_point[1];
+	  source_point[2] = target_point[2];
+	  id = source_locator->FindClosestPoint (source_point);
+		  
+			  tstd = pow(target_point[0] -source_point[0], 2) 
+				  + pow(target_point[1] - source_point[1], 2) 
+				  +  pow(target_point[2] - source_point[2], 2);
+			  tstd = sqrt(tstd);
+			  tstd = pow(tstd - meanerror,2);
+			  stderror += tstd;
+	  }
+	  stderror=sqrt(stderror/double(target->GetNumberOfPoints()));
+	  cout<<"standard deviation is " << stderror  << " mm" << endl;
+  }else{
+	  meanerror = sqrt(error/n);
+	  cout << "RMS distance is " << meanerror << " mm" << endl;
+	  stderror = 0;
   }
 
-  cout << "RMS = " << error << " mm" << endl;
+  if(resultout_name){
+	  cerr << "Writing Results: " << resultout_name << endl;
+	  ofstream fout(resultout_name,ios::app);	  
+	  fout << meanerror << " " << stderror << endl;
+	  fout.close();
+  }
+
+  //Final clean up
+  if (symmetricDistance == true)
+	  delete target_locator;
+  delete source_locator;
+  target_reader->Delete();
+  source_reader->Delete();
 }
 
 #else
