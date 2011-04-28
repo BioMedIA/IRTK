@@ -1056,13 +1056,13 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage *threshold, irtkR
     classification->GetProbMap(0,tmpatest0);
     classification->GetProbMap(1,tmpatest1);
   }
-  char name[100];
-  for(int i=0;i<n;i++) {
-    sprintf(name, "emgmmseg%d.nii.gz",i);
-    atest[i].Write(name);
-  }
-  tmpatest0.Write("embackground.nii.gz");
-  tmpatest1.Write("emforeground.nii.gz");
+  //char name[100];
+  //for(int i=0;i<n;i++) {
+  //  sprintf(name, "emgmmseg%d.nii.gz",i);
+  //  atest[i].Write(name);
+  //}
+  //tmpatest0.Write("embackground.nii.gz");
+  //tmpatest1.Write("emforeground.nii.gz");
   //add weights for graph cut
   irtkImageGraphCut<float> graphcut;
   graphcut.SetInput(number,input,&tmpatest0,&tmpatest1);
