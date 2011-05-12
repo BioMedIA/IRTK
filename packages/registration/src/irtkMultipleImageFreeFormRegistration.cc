@@ -323,7 +323,7 @@ void irtkMultipleImageFreeFormRegistration::UpdateLUT()
 
 double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int trigger)
 {
-  int i;
+  int i,count;
   double dx = 0, dy = 0, dz = 0, min, max, distance = 0;
   irtkPoint p1, p2, pt;
 
@@ -341,43 +341,53 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int tri
 
   if (_ptarget == NULL || _psource == NULL) {
     return 0;
-  } else if(_ptarget->Size() != _psource->Size() && trigger == 1) {
-    cerr<<"Regulation landmarks' size does not correspond"<<endl;
-    exit(1);
   } else if(_ptarget->Size() == 0) {
     return 0;
-  } else {
-    for (i = 0; i < _ptarget->Size (); i++) {
+  } else if(_ptarget->Size() != _psource->Size() && trigger == 1) {
+      if(index == -1){
+          cerr<<"Regulation landmarks' sizes do not correspond, use surface to surface distance instead"<<endl;
+      }
+      trigger = 0;
+  }
+
+  count = 0;
+  for (i = 0; i < _ptarget->Size (); i++) {
       irtkPoint a = _ptarget->operator()(i);
       int valid = 1;
       if(index != -1) {
-        pt = a;
-        _target[0]->WorldToImage(pt);
-        if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
-            &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
-            &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
-          valid = 1;
-        } else {
-          valid = 0;
-        }
+          pt = a;
+          _target[0]->WorldToImage(pt);
+          if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
+              &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
+              &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
+                  valid = 1;
+                  count ++;
+          } else {
+              valid = 0;
+          }
       }
       if(valid == 1) {
-        irtkPoint b = _psource->operator()(i);
-        irtkPoint d = a;
-        _mffd->Transform(a._x,a._y,a._z);
-        _affd->LocalDisplacement(d._x,d._y,d._z);
-        a._x += d._x;
-        a._y += d._y;
-        a._z += d._z;
-        if(trigger != 1) {
-          distance += _psource->PointDistance(a);
-        } else {
-          distance += a.Distance(b);
-        }
+          irtkPoint b = _psource->operator()(i);
+          irtkPoint d = a;
+          _mffd->Transform(a._x,a._y,a._z);
+          _affd->LocalDisplacement(d._x,d._y,d._z);
+          a._x += d._x;
+          a._y += d._y;
+          a._z += d._z;
+          if(trigger != 1) {
+              distance += _psource->PointDistance(a);
+          } else {
+              distance += a.Distance(b);
+          }
       }
-    }
-    return -(distance/double(_ptarget->Size()));
   }
+  if(index != -1)
+      if(count != 0)
+          return -(distance/double(count));
+      else
+          return 0;
+  else
+      return -(distance/double(_ptarget->Size()));
 }
 
 double irtkMultipleImageFreeFormRegistration::SmoothnessPenalty()
