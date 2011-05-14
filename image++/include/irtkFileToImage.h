@@ -110,6 +110,9 @@ public:
 
   // Returns the name of the class
   virtual const char *NameOfClass() = 0;
+
+  // Return the type of the image's data
+  virtual int GetDataType();
 };
 
 #include <irtkFilePGMToImage.h>

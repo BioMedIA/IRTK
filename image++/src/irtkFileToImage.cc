@@ -274,3 +274,8 @@ void irtkFileToImage::Debug(char *message)
   if (_debug) cerr << message << endl;
 }
 
+int irtkFileToImage::GetDataType()
+{
+	return this->_type;
+}
+

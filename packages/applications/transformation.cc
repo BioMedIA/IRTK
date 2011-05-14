@@ -11,6 +11,7 @@ Changes   : $Author$
 =========================================================================*/
 
 #include <irtkImage.h>
+#include <irtkFileToImage.h>
 
 #include <irtkRegionFilter.h>
 
@@ -20,6 +21,46 @@ Changes   : $Author$
 
 // Default filenames
 char *input_name = NULL, *output_name = NULL, *dof_name  = NULL;
+
+std::string dataTypeName(int dataType)
+{
+	std::string typeName;
+
+	switch (dataType){
+  case IRTK_VOXEL_CHAR:
+    typeName = "char";
+    break;
+  case IRTK_VOXEL_UNSIGNED_CHAR:
+    typeName = "unsigned char";
+    break;
+  case IRTK_VOXEL_SHORT:
+    typeName = "short";
+    break;
+  case IRTK_VOXEL_UNSIGNED_SHORT:
+    typeName = "unsigned short";
+    break;
+  case IRTK_VOXEL_INT:
+    typeName = "int";
+    break;
+  case IRTK_VOXEL_UNSIGNED_INT:
+    typeName = "unsigned int";
+    break;
+  case IRTK_VOXEL_FLOAT:
+    typeName = "float";
+    break;
+  case IRTK_VOXEL_DOUBLE:
+    typeName = "double";
+    break;
+  case IRTK_VOXEL_RGB:
+    typeName = "RGB";
+    break;
+  default:
+    typeName = "unknown";
+	}
+
+	return typeName;
+}
+
 
 void usage()
 {
@@ -69,6 +110,9 @@ int main(int argc, char **argv)
 	irtkImage *target = NULL;
 	irtkImageFunction *interpolator = NULL;
 
+	int targetType = -1;
+	int sourceType = -1;
+
 	// Check command line
 	if (argc < 3) {
 		usage();
@@ -85,6 +129,8 @@ int main(int argc, char **argv)
 	// Read image
 	cout << "Reading image ... "; cout.flush();
 	source = irtkImage::New(input_name);
+	irtkFileToImage *inputReader = irtkFileToImage::New(input_name);
+	sourceType = inputReader->GetDataType();
 	cout << "done" << endl;
 
 	// Fix ROI
@@ -121,6 +167,8 @@ int main(int argc, char **argv)
 			argc--;
 			argv++;
 			target = irtkImage::New(argv[1]);
+			irtkFileToImage *targetReader = irtkFileToImage::New(argv[1]);
+			targetType = targetReader->GetDataType();
 			argc--;
 			argv++;
 			ok = true;
@@ -351,6 +399,11 @@ int main(int argc, char **argv)
 		irtkImageAttributes atr = target->GetImageAttributes();
 		atr._t = source->GetT();
 		target->Initialize(atr);
+
+		if (sourceType != targetType){
+			cerr << "\nWarning! source and target image have different data types:" << endl;
+			cerr << "Converting data from " << dataTypeName(sourceType) << " to " << dataTypeName(targetType) << ".\n" << endl;
+		}
 	}
 
 	// Compute region of interest for target image
