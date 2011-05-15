@@ -469,33 +469,50 @@ double irtkMultipleImageFreeFormRegistration::VolumePreservationPenalty()
 
 double irtkMultipleImageFreeFormRegistration::VolumePreservationPenalty(int index)
 {
-  int i, j, k;
-  double x, y, z, jacobian;
-  irtkMatrix jac,tmp_jac;
+    int i, j, k, i1, j1, k1, i2, j2, k2, count;
+    double x, y, z, jacobian, penalty;
 
-  _affd->IndexToLattice(index, i, j, k);
-  x = i;
-  y = j;
-  z = k;
-  _affd->LatticeToWorld(x, y, z);
-  _affd->Jacobian(tmp_jac,x,y,z);
-  // Calculate jacobian
-  jac.Initialize(3, 3);
-  _mffd->LocalJacobian(jac, x, y, z);
+    _affd->IndexToLattice(index, i, j, k);
+    penalty = 0;
+    count = 0;
+    k1 = (k-1)>0?(k-1):0;
+    j1 = (j-1)>0?(j-1):0;
+    i1 = (i-1)>0?(i-1):0;
+    k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
+    j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
+    i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
+    for (k = k1; k < k2; k++) {
+        for (j = j1; j < j2; j++) {
+            for (i = i1; i < i2; i++) {
+                x = i;
+                y = j;
+                z = k;
+                _affd->LatticeToWorld(x, y, z);
+                // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
+                irtkMatrix jac,tmp_jac;
+                _affd->Jacobian(tmp_jac,x,y,z);
+                // Calculate jacobian
+                jac.Initialize(3, 3);
+                _mffd->LocalJacobian(jac, x, y, z);
 
-  // Subtract identity matrix
-  tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
-  tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
-  tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
+                // Subtract identity matrix
+                tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
+                tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
+                tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
 
-  // Add jacobian
-  jac += tmp_jac;
-  // Determinant of Jacobian of deformation derivatives
-  jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
-              jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
-              jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-  if(jacobian < 0.0001) jacobian = 0.0001;
-  return -fabs(log(jacobian));
+                // Add jacobian
+                jac += tmp_jac;
+                // Determinant of Jacobian of deformation derivatives
+                jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
+                    jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
+                    jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
+                if(jacobian < 0.0001) jacobian = 0.0001;
+                penalty += fabs(log(jacobian));
+                count ++;
+            }
+        }
+    }
+    return -penalty/count;
 }
 
 
