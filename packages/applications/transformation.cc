@@ -96,8 +96,6 @@ void usage()
 	cerr << "<-cspline>         Cubic spline interpolation" << endl;
 	cerr << "<-sbased>          Shape based interpolation" << endl;
 	cerr << "<-sinc>            Sinc interpolation" << endl;
-	cerr << endl;
-	cerr << "Revision: $Revision$ " << endl;
 	exit(1);
 }
 
