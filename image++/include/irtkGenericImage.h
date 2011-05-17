@@ -62,6 +62,9 @@ public:
   /// Initialize an image
   void Initialize(const irtkImageAttributes &);
 
+  /// Clear an image
+  void Clear();
+
   /// Read image from file
   void Read (const char *);
 

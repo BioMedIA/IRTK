@@ -84,6 +84,9 @@ public:
   /// Initialize image from attributes
   virtual void Initialize(const irtkImageAttributes &) = 0;
 
+  /// Clear an image
+  virtual void Clear() = 0;
+
   //
   // Access functions for voxel dimensions
   //

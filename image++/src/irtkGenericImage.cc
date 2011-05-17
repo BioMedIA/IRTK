@@ -181,6 +181,19 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const ir
   }
 }
 
+template <class VoxelType> void irtkGenericImage<VoxelType>::Clear()
+{
+	// Free memory
+	if (_matrix != NULL)
+		Deallocate<VoxelType>(_matrix);
+
+  _attr._x = 0;
+  _attr._y = 0;
+  _attr._z = 0;
+  _attr._t = 0;
+
+}
+
 template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *filename)
 {
   irtkBaseImage *image;
@@ -220,6 +233,12 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
     *this = *(dynamic_cast<irtkGenericImage<float> *>(image)) * reader->GetSlope() + reader->GetIntercept();
   } else if (dynamic_cast<irtkGenericImage<double> *>(image) != NULL) {
     *this = *(dynamic_cast<irtkGenericImage<double> *>(image)) * reader->GetSlope() + reader->GetIntercept();
+  } else if (dynamic_cast<irtkGenericImage<int> *>(image) != NULL) {
+    *this = *(dynamic_cast<irtkGenericImage<int> *>(image));
+  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
+  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+  		cerr << "irtkGenericImage<double> instead" << endl;
+  	}
   } else {
     cerr << "irtkGenericImage<VoxelType>::Read: Cannot convert image to desired type" << endl;
     exit(1);
