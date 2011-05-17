@@ -22,46 +22,6 @@ Changes   : $Author$
 // Default filenames
 char *input_name = NULL, *output_name = NULL, *dof_name  = NULL;
 
-std::string dataTypeName(int dataType)
-{
-	std::string typeName;
-
-	switch (dataType){
-  case IRTK_VOXEL_CHAR:
-    typeName = "char";
-    break;
-  case IRTK_VOXEL_UNSIGNED_CHAR:
-    typeName = "unsigned char";
-    break;
-  case IRTK_VOXEL_SHORT:
-    typeName = "short";
-    break;
-  case IRTK_VOXEL_UNSIGNED_SHORT:
-    typeName = "unsigned short";
-    break;
-  case IRTK_VOXEL_INT:
-    typeName = "int";
-    break;
-  case IRTK_VOXEL_UNSIGNED_INT:
-    typeName = "unsigned int";
-    break;
-  case IRTK_VOXEL_FLOAT:
-    typeName = "float";
-    break;
-  case IRTK_VOXEL_DOUBLE:
-    typeName = "double";
-    break;
-  case IRTK_VOXEL_RGB:
-    typeName = "RGB";
-    break;
-  default:
-    typeName = "unknown";
-	}
-
-	return typeName;
-}
-
-
 void usage()
 {
 	cerr << "Usage: transformation [source] [output] <options>\n" << endl;
@@ -96,6 +56,9 @@ void usage()
 	cerr << "<-cspline>         Cubic spline interpolation" << endl;
 	cerr << "<-sbased>          Shape based interpolation" << endl;
 	cerr << "<-sinc>            Sinc interpolation" << endl;
+	cerr << "<-matchInputType>  Make the output data type (short, float, etc.)" << endl;
+	cerr << "                   the same as that of the input image regardless" << endl;
+	cerr << "                   of the data type of the target (if specified)." << endl;
 	cerr << endl;
 
 	PrintVersion(cerr, "$Revision$");
@@ -113,6 +76,7 @@ int main(int argc, char **argv)
 	irtkImage *source = NULL;
 	irtkImage *target = NULL;
 	irtkImageFunction *interpolator = NULL;
+	bool matchSourceType;
 
 	int targetType = -1;
 	int sourceType = -1;
@@ -156,6 +120,7 @@ int main(int argc, char **argv)
   twod = false;
   source_padding = 0;
   target_padding = MIN_GREY;
+  matchSourceType = false;
 
 	while (argc > 1) {
 		ok = false;
@@ -175,6 +140,12 @@ int main(int argc, char **argv)
 			targetType = targetReader->GetDataType();
 			argc--;
 			argv++;
+			ok = true;
+		}
+		if ((ok == false) && (strcmp(argv[1], "-matchInputType") == 0)){
+			argc--;
+			argv++;
+			matchSourceType = true;
 			ok = true;
 		}
 		if ((ok == false) && (strcmp(argv[1], "-Rx1") == 0)) {
@@ -404,9 +375,17 @@ int main(int argc, char **argv)
 		atr._t = source->GetT();
 		target->Initialize(atr);
 
-		if (sourceType != targetType){
+		if (matchSourceType){
+			// Deallocate the target data that was read in.
+			target->Clear();
+			// Read the source data into the target so that the data type matches.
+			target = irtkImage::New(input_name);
+			// Override with the geometry of the target.
+			target->Initialize(atr);
+		} else if (sourceType != targetType){
+			// Target image was specified but has different type.
 			cerr << "\nWarning! source and target image have different data types:" << endl;
-			cerr << "Converting data from " << dataTypeName(sourceType) << " to " << dataTypeName(targetType) << ".\n" << endl;
+			cerr << "Converting data from " << DataTypeName(sourceType) << " to " << DataTypeName(targetType) << ".\n" << endl;
 		}
 	}
 
