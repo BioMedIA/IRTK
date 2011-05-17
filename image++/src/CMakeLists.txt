@@ -151,6 +151,7 @@ irtkSincInterpolateImageFunction2D.cc
 irtkUniformNoise.cc
 irtkUniformNoiseWithPadding.cc
 irtkAnisoDiffusion.cc
+irtkVoxel.cc
 )
 
 ADD_LIBRARY(image++ ${IMAGE_SRCS} ${IMAGE_INCLUDES})

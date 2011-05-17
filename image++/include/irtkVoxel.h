@@ -2,6 +2,8 @@
 
 #define IRTKVOXEL_H_
 
+#include <string>
+
 typedef unsigned char  irtkBytePixel;
 typedef short          irtkGreyPixel;
 typedef float          irtkRealPixel;
@@ -83,6 +85,8 @@ template <> struct voxel_limits<double> {
 	static double max() throw() { return static_cast<double>( 1.0e+299); }
 	
 };
+
+extern std::string DataTypeName(int dataType);
 
 #include <irtkVector3D.h>
 
