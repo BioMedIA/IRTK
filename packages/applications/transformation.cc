@@ -96,6 +96,10 @@ void usage()
 	cerr << "<-cspline>         Cubic spline interpolation" << endl;
 	cerr << "<-sbased>          Shape based interpolation" << endl;
 	cerr << "<-sinc>            Sinc interpolation" << endl;
+	cerr << endl;
+
+	PrintVersion(cerr, "$Revision$");
+
 	exit(1);
 }
 

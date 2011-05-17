@@ -59,6 +59,8 @@ type Get##name () { return this->_##name; }
 extern const char *dirname2(const char *path);
 extern char       *basename2(const char *filename);
 
+extern void PrintVersion(ostream &, const char*);
+
 extern int   ReadInt   (ifstream &in);
 extern float ReadFloat (ifstream &in);
 extern char *ReadString(ifstream &in);
