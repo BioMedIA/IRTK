@@ -33,13 +33,17 @@ void usage()
 {
 
   cerr << "Usage: mcubes [image] [polydata] [threshold] <-decimate> <-smooth iterations> <-normals on|off> <-gradients on|off> <-blur sigma> <-isotropic> <-size x y z> <-ascii> <-sepsuf> <-rmatr> \n"<<endl;
-  cerr << "<-close put blank slices on both side so a set of closed surface will be generated>";
+  cerr << "<-close put blank slices on all direction so a set of closed surface will be generated> \n"<<endl;
+  cerr << "<-close_x put blank slices on x direction> \n"<<endl;
+  cerr << "<-close_y put blank slices on y direction> \n"<<endl;
+  cerr << "<-close_z put blank slices on z direction> \n"<<endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int ok, i, j, k, t, bASCII = false,rmatr,close,iterations;
+  int ok, i, j, k, t, bASCII = false,rmatr,iterations;
+  int cx,cy,cz;
   float threshold;
   double xaxis[3], yaxis[3], zaxis[3], point[3];
   irtkPoint origin;
@@ -47,7 +51,9 @@ int main(int argc, char **argv)
   vtkDecimatePro *decimate = NULL;
   vtkSmoothPolyDataFilter *smooth = NULL;
   rmatr = 0;
-  close = 0;
+  cx = 0;
+  cy = 0;
+  cz = 0;
   iterations = 10;
 
   if (argc < 4) {
@@ -102,8 +108,28 @@ int main(int argc, char **argv)
 	if ((!ok) && (strcmp(argv[1], "-close") == 0)) {
       argc--;
       argv++;
-      close = 1;
+      cx = 1;
+      cy = 1;
+      cz = 1;
       ok = true;
+    }
+    if ((!ok) && (strcmp(argv[1], "-close_x") == 0)) {
+        argc--;
+        argv++;
+        cx = 1;
+        ok = true;
+    }
+    if ((!ok) && (strcmp(argv[1], "-close_y") == 0)) {
+        argc--;
+        argv++;
+        cy = 1;
+        ok = true;
+    }
+    if ((!ok) && (strcmp(argv[1], "-close_z") == 0)) {
+        argc--;
+        argv++;
+        cz = 1;
+        ok = true;
     }
     if ((!ok) && (strcmp(argv[1], "-gradients") == 0) && (strcmp(argv[2], "on") == 0)) {
       argc--;
@@ -209,31 +235,23 @@ int main(int argc, char **argv)
 	  image.PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
   }
   irtkRealImage dummy;
-  if(close){
-	  irtkImageAttributes atr = image.GetImageAttributes();
-	  atr._z = atr._z + 2;
-	  dummy.Initialize(atr);
-	  for(t = 0; t < image.GetT(); t++){
-		  for(k = 0; k < image.GetZ(); k++){
-			  for(j = 0; j < image.GetY(); j++){
-				  for(i = 0; i < image.GetX(); i++){
-					  dummy.PutAsDouble(i,j,k+1,t,image.GetAsDouble(i,j,k,t));
-				  }
-			  }
-		  }
-	  }
-  }else{
-	  dummy.Initialize(image.GetImageAttributes());
-	  for(t = 0; t < image.GetT(); t++){
-		  for(k = 0; k < image.GetZ(); k++){
-			  for(j = 0; j < image.GetY(); j++){
-				  for(i = 0; i < image.GetX(); i++){
-					  dummy.PutAsDouble(i,j,k,t,image.GetAsDouble(i,j,k,t));
-				  }
-			  }
-		  }
-	  }
-  }
+  irtkImageAttributes attr = image.GetImageAttributes();
+  attr._x += 2*cx;
+  attr._y += 2*cy;
+  attr._z += 2*cz;
+  dummy.Initialize(attr);
+  for(i=0; i<dummy.GetX();i++)
+      for(j=0; j<dummy.GetY();j++)
+          for(k=0; k<dummy.GetZ();k++){
+            dummy.Put(i,j,k,threshold-10.0);
+          }
+
+  for(i=0; i<image.GetX();i++)
+      for(j=0; j<image.GetY();j++)
+          for(k=0; k<image.GetZ();k++)
+          {
+            dummy.Put(i+cx,j+cy,k+cz,image.Get(i,j,k));
+          }
   xaxis[0] = 1; xaxis[1] = 0; xaxis[2] = 0;
   yaxis[0] = 0; yaxis[1] = 1; yaxis[2] = 0;
   zaxis[0] = 0; zaxis[1] = 0; zaxis[2] = 1;
@@ -273,9 +291,9 @@ int main(int argc, char **argv)
   for (i = 0; i < output->GetNumberOfPoints(); i++) {
     output->GetPoint(i, point);
     dummy.WorldToImage(point[0], point[1], point[2]);
-	if(close){
-		point[2] = point[2] - 1;
-	}
+	point[2] = point[2] - cz;
+    point[1] = point[1] - cy;
+    point[0] = point[0] - cx;
     image.ImageToWorld(point[0], point[1], point[2]);
     output->GetPoints()->SetPoint(i, point);
   }
