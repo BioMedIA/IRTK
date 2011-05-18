@@ -6,7 +6,7 @@
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2006
   Purpose   :
-  Date      : $Date: 2007/05/24 15:22:19 $
+  Date      : $Date$
 
 =========================================================================*/
 
