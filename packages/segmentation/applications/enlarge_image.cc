@@ -1,12 +1,12 @@
 /*=========================================================================
 
-  Library   : packages/segmentation
-  Module    : $RCSfile: gmm.cc,v $
-  Authors   : Maria Murgasova and Daniel Rueckert
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2006
-  Purpose   :
+              Visual Information Processing (VIP), 2009 onwards
   Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 
