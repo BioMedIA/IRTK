@@ -12,6 +12,24 @@
 
 #include "irtkSegmentationFunction.h"
 #ifdef HAS_OPENCV
+/* these settings affect the quality of detection: change with care */
+void on_mouse( int event, int x, int y, int flags, void* param )
+{
+    switch( event )
+    {
+    case CV_EVENT_LBUTTONDOWN:
+        {
+            ((CvRect*)param)->x = x; ((CvRect*)param)->y = y;
+        }
+        break;
+    case CV_EVENT_LBUTTONUP:
+        {
+            ((CvRect*)param)->width = x - ((CvRect*)param)->x;
+            ((CvRect*)param)->height = y - ((CvRect*)param)->y;
+        }
+        break;
+    }
+}
 /// detect possible presence of the object at threshold == 3
 irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *threshold, irtkGreyImage *target, CvHaarClassifierCascade *classifier, int oxsize, double fscale, int size)
 {
@@ -592,140 +610,79 @@ void irtkSegmentationFunction::RegionGrow(irtkPoint& center, irtkGreyImage* targ
 
 }
 
-void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage *threshold, irtkRealImage **input,irtkRealImage **atlas, int numberofinput, int numberofatlas, double timeweight,int cutmode,int connectmode, double regionweight,int seperate,int padding, int *c)
+void irtkSegmentationFunction::EvaluateGraphCut (irtkGreyImage *threshold, irtkGreyImage **input,irtkRealImage **atlas, int numberofinput, int numberofatlas, double timeweight,int cutmode,int connectmode, double dataweight,int padding, int *c)
 {
   double treshold = 0.0001;
   int iterations = 20;
-  int i,j,k,l,n;
+  int i,n;
   irtkEMClassificationMultiComp *classification;
   irtkRealImage background;
-  irtkRealImage *test;
-  test = new irtkRealImage[numberofatlas+1];
+  irtkRealImage **test;
+  test = new irtkRealImage*[numberofatlas+1];
 
-  if(!seperate) {
-    cout << "Initialize classification"<<endl;
-    classification= new irtkEMClassificationMultiComp(numberofatlas, atlas, NULL, c);
-    cout << "Initialize finished"<<endl;
-    classification->SetPadding(padding);
-    classification->SetInput(*input[0]);
-    classification->Initialise();
+  cout << "Initialize classification"<<endl;
+  classification= new irtkEMClassificationMultiComp(numberofatlas, atlas, NULL, c);
+  cout << "Initialize finished"<<endl;
+  classification->SetPadding(padding);
+  classification->SetInput(*input[0]);
+  classification->Initialise();
 
-    double rel_diff,previous;
-    cout << "Segmenting tissues: Background, Blood, Cardiac wall"<<endl;
-    i=0; rel_diff = 100;
-    do {
+  double rel_diff,previous;
+  cout << "Segmenting tissues: Background, Blood, Cardiac wall"<<endl;
+  i=0; rel_diff = 100;
+  do {
       previous = rel_diff;
       cout << "Iteration = " << i+1 << " / " << iterations << endl;
       rel_diff = classification->Iterate(i);
       i++;
-    } while ((rel_diff>treshold)&&(i<iterations)&&(rel_diff < previous));
+  } while ((rel_diff>treshold)&&(i<iterations)&&(rel_diff < previous));
 
-    classification->ConstructSegmentation(background);
+  classification->ConstructSegmentation(background);
 
-    //weights for graph cut
-    for(n = 0; n < numberofatlas + 1; n ++) {
-      classification->GetProbMap(n,test[n]);
-    }
-    for(n = 2; n < numberofatlas+1; n++) {
-      for(l = 0; l < threshold->GetT();l++) {
-        for(k = 0; k < threshold->GetZ(); k++) {
-          for(j = 0; j < threshold->GetY(); j++) {
-            for(i = 0; i < threshold->GetX(); i++) {
-              test[1].PutAsDouble(i,j,k,l,test[1].GetAsDouble(i,j,k,l) + test[n].GetAsDouble(i,j,k,l));
-              if(test[1].GetAsDouble(i,j,k,l) > 1) test[1].PutAsDouble(i,j,k,l,1);
-            }
-          }
-        }
-      }
-    }
-    delete classification;
-  } else {
-    background.Initialize(threshold->GetImageAttributes());
-    for(n=0;n<numberofatlas+1;n++) {
-      test[n].Initialize(threshold->GetImageAttributes());
-    }
-    for(l = 0; l < threshold->GetT();l++) {
-      irtkRealImage **newatlas = new irtkRealImage*[numberofatlas];
-      irtkRealImage *newtest = new irtkRealImage[numberofatlas+1];
-      for(n = 0; n < numberofatlas; n++) {
-        newatlas[n] = &atlas[n]->GetFrame(l);
-      }
-      irtkRealImage newbackground;
-      classification= new irtkEMClassificationMultiComp(numberofatlas, atlas, NULL, c);
-      classification->SetPadding(padding);
-      classification->SetInput(input[0]->GetFrame(l));
-      classification->Initialise();
-
-      double rel_diff;
-      cout << "Segmenting tissues: Background, Blood, Cardiac wall"<<endl;
-      i=0;
-      do {
-        cout << "Iteration = " << i+1 << " / " << iterations << endl;
-        rel_diff = classification->Iterate(i);
-        i++;
-      } while ((rel_diff>treshold)&&(i<iterations));
-
-      classification->ConstructSegmentation(newbackground);
-
-      //weights for graph cut
-      for(n = 0; n < numberofatlas + 1; n ++) {
-        classification->GetProbMap(n,newtest[n]);
-      }
-      for(k = 0; k < threshold->GetZ(); k++) {
-        for(j = 0; j < threshold->GetY(); j++) {
-          for(i = 0; i < threshold->GetX(); i++) {
-            test[0].PutAsDouble(i,j,k,l,newtest[0].GetAsDouble(i,j,k));
-          }
-        }
-      }
-      for(n = 1; n < numberofatlas + 1; n ++) {
-        for(k = 0; k < threshold->GetZ(); k++) {
-          for(j = 0; j < threshold->GetY(); j++) {
-            for(i = 0; i < threshold->GetX(); i++) {
-              test[1].PutAsDouble(i,j,k,l,newtest[n].GetAsDouble(i,j,k) + test[1].GetAsDouble(i,j,k,l));
-              if(test[1].GetAsDouble(i,j,k,l) > 1) test[1].PutAsDouble(i,j,k,l,1);
-            }
-          }
-        }
-      }
-
-      delete classification;
-      delete []newatlas;
-      delete []newtest;
-    }
+  //weights for graph cut
+  for(n = 0; n < numberofatlas + 1; n ++) {
+      test[n] = new irtkRealImage(input[0]->GetImageAttributes());
+      classification->GetProbMap(n,*test[n]);
   }
+  delete classification;
 
   //add weights for graph cut
-  irtkImageGraphCut<float> graphcut;
-  graphcut.SetInput(numberofinput,input,&test[1],&test[0]);
+  irtkImageGraphCut<irtkGreyPixel> graphcut;
+  graphcut.SetInput(numberofinput,input,numberofatlas+1,test);
   graphcut.SetOutput(threshold);
   graphcut.Setdt(timeweight);
-  //graphcut.AddWeight(&atest0,&atest1,0.5);
 
   graphcut.SetMode(cutmode);
-  graphcut.Run(regionweight,connectmode);
+  graphcut.Run(dataweight,connectmode);
 
   //finalize
+   for(n = 0; n < numberofatlas + 1; n ++) {
+    delete test[n];
+   }
   delete []test;
 }
 
-void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage **threshold, irtkRealImage **input,irtkRealImage **atlas, int numberofinput, int numberofatlas, double timeweight,int cutmode,int connectmode, double regionweight, int padding, int *c)
+void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage **threshold, irtkRealImage **input,irtkRealImage **atlas, int numberofinput, int numberofatlas, double timeweight,int cutmode,int connectmode, double dataweight, int padding, int *c)
 {
   double treshold = 0.0001;
   int iterations = 20;
-  int i,j,k,l,n,m;
+  int i,n,m;
   irtkEMClassificationMultiComp *classification;
-  irtkRealImage **backgroundp,**foregroundp,**tmpatlas;
+  irtkRealImage **tmpatlas;
   irtkRealImage *test;
+  double *datacost,count,*imageoffset;
   irtkLinearInterpolateImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
   test = new irtkRealImage[numberofatlas+1];
   tmpatlas = new irtkRealImage*[numberofatlas];
-  backgroundp = new irtkRealImage*[numberofinput];
-  foregroundp = new irtkRealImage*[numberofinput];
+  imageoffset = new double[numberofinput];
+  count = 0;
+  for(n=0;n<numberofinput;n++) {
+      imageoffset[n] = count;
+      count += input[n]->GetNumberOfVoxels();
+  }
+  datacost = new double[round(count)*(numberofatlas+1)];
 
   for(n=0;n<numberofinput;n++) {
-    backgroundp[n] = new irtkRealImage(input[n]->GetImageAttributes());
-    foregroundp[n] = new irtkRealImage(input[n]->GetImageAttributes());
     cout << "Initialize classification"<<endl;
     for(i=0;i<numberofatlas;i++) {
       tmpatlas[i] = new irtkRealImage(input[n]->GetImageAttributes());
@@ -762,27 +719,10 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage **threshold, irtk
     //weights for graph cut
     for(m = 0; m < numberofatlas + 1; m ++) {
       classification->GetProbMap(m,test[m]);
-    }
-    for(m = 2; m < numberofatlas+1; m++) {
-      for(l = 0; l < threshold[n]->GetT();l++) {
-        for(k = 0; k < threshold[n]->GetZ(); k++) {
-          for(j = 0; j < threshold[n]->GetY(); j++) {
-            for(i = 0; i < threshold[n]->GetX(); i++) {
-              test[1].PutAsDouble(i,j,k,l,test[1].GetAsDouble(i,j,k,l) + test[m].GetAsDouble(i,j,k,l));
-              if(test[1].GetAsDouble(i,j,k,l) > 1) test[1].PutAsDouble(i,j,k,l,1);
-            }
-          }
-        }
-      }
-    }
-    for(l = 0; l < threshold[n]->GetT();l++) {
-      for(k = 0; k < threshold[n]->GetZ(); k++) {
-        for(j = 0; j < threshold[n]->GetY(); j++) {
-          for(i = 0; i < threshold[n]->GetX(); i++) {
-            foregroundp[n]->PutAsDouble(i,j,k,l,test[0].GetAsDouble(i,j,k,l));
-            backgroundp[n]->PutAsDouble(i,j,k,l,test[1].GetAsDouble(i,j,k,l));
-          }
-        }
+      irtkRealPixel *ptr = test[m].GetPointerToVoxels();
+      for(i = 0; i < test[m].GetNumberOfVoxels(); i++){
+          datacost[round(imageoffset[n]+i)*(numberofatlas + 1)+m]=*ptr;
+          ptr++;
       }
     }
     delete classification;
@@ -793,22 +733,19 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage **threshold, irtk
 
   //add weights for graph cut
   irtkMultiImageGraphCut<float> graphcut;
-  graphcut.SetInput(numberofinput,input,backgroundp,foregroundp);
+  graphcut.SetInput(numberofinput,input,numberofatlas+1,datacost);
   graphcut.SetOutput(threshold);
   graphcut.Setdt(timeweight);
 
   graphcut.SetMode(cutmode);
-  graphcut.Run(regionweight,connectmode);
+  graphcut.Run(dataweight,connectmode);
 
   //finalize
   delete []test;
+  delete []tmpatlas;
+  delete []imageoffset;
+  delete []datacost;
   delete interpolator;
-  for(n=0;n<numberofinput;n++) {
-    delete foregroundp[n];
-    delete backgroundp[n];
-  }
-  delete []foregroundp;
-  delete []backgroundp;
 }
 
 void irtkSegmentationFunction::Normalize(irtkRealImage *target, irtkRealImage *source, int n)
@@ -1006,7 +943,7 @@ void irtkSegmentationFunction::DetectBackGround(irtkRealImage *target, irtkRealI
   delete []sourcec;
 }
 
-void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage *threshold, irtkRealImage **input, int number,double timeweight,int cutmode,int connectmode, double regionweight,int padding, int n, int splitgmm)
+void irtkSegmentationFunction::EvaluateGraphCut (irtkGreyImage *threshold, irtkGreyImage **input, int number,double timeweight,int cutmode,int connectmode, double dataweight,int padding, int n)
 {
   double treshold = 0.0001;
   int iterations = 50;
@@ -1021,7 +958,7 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage *threshold, irtkR
   var  = new double[n];
   c    = new double[n];
 
-  irtkRealPixel min, max;
+  irtkGreyPixel min, max;
   input[0]->GetMinMax(&min,&max);
 
   for (int i=0;i<n;i++)  mean[i] = min + i*(max-min)/(double) n;
@@ -1041,48 +978,24 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage *threshold, irtkR
   } while ((rel_diff>treshold)&&(i<iterations));
 
   //weights for graph cut
-  irtkRealImage *atest;
-  atest=new irtkRealImage [n];
-  for (int i=0;i<n;i++)
-    classification->GetProbMap(i,atest[i]);
-
-  irtkRealImage tmpatest0,tmpatest1;
-  if(n>2) {
-    classification->GetProbMap(0,tmpatest0);
-    classification->GetProbMap(n-1,tmpatest1);
-
-    for(int l=0;l<threshold->GetT();l++)
-      for(int k=0;k<threshold->GetZ();k++)
-        for(int j=0;j<threshold->GetY();j++)
-          for(int i=0;i<threshold->GetX();i++) {
-            double tmp0=0,tmp1=0;
-            for(int m=0;m<splitgmm;m++)
-              tmp0+=atest[m].GetAsDouble(i,j,k,l);
-            for(int m=splitgmm;m<n;m++)
-              tmp1+=atest[m].GetAsDouble(i,j,k,l);
-
-            tmpatest0(i,j,k,l)=tmp0;
-            tmpatest1(i,j,k,l)=tmp1;
-          }
-  } else {
-    classification->GetProbMap(0,tmpatest0);
-    classification->GetProbMap(1,tmpatest1);
+  irtkRealImage **atest;
+  atest=new irtkRealImage*[n];
+  for (int i=0;i<n;i++){
+      atest[i] = new irtkRealImage(input[0]->GetImageAttributes());
+      classification->GetProbMap(i,*atest[i]);
   }
-  //char name[100];
-  //for(int i=0;i<n;i++) {
-  //  sprintf(name, "emgmmseg%d.nii.gz",i);
-  //  atest[i].Write(name);
-  //}
-  //tmpatest0.Write("embackground.nii.gz");
-  //tmpatest1.Write("emforeground.nii.gz");
-  //add weights for graph cut
-  irtkImageGraphCut<float> graphcut;
-  graphcut.SetInput(number,input,&tmpatest0,&tmpatest1);
+
+  irtkImageGraphCut<irtkGreyPixel> graphcut;
+  graphcut.SetInput(number,input,n,atest);
   graphcut.SetOutput(threshold);
   graphcut.SetMode(cutmode);
   graphcut.Setdt(timeweight);
-  graphcut.Run(regionweight,connectmode);
+  graphcut.Run(dataweight,connectmode);
 
+  for (int i=0;i<n;i++){
+    delete atest[i];
+  }
+  delete []atest;
   delete []mean;
   delete []var;
   delete []c;

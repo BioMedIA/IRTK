@@ -2,6 +2,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkBiasCorrection.h
 ../include/irtkBiasField.h
 ../include/irtkBSplineBiasField.h
+../include/irtkDynamicSegmentation.h
 ../include/irtkEMClassification.h
 ../include/irtkEMClassificationBiasCorrection.h
 ../include/irtkEMClassificationMultiComp.h
@@ -15,6 +16,9 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkRician.h
 ../include/block.h
 ../include/graph.h
+../include/energy.h
+../include/GCoptimization.h
+../include/LinkedBlockList.h
 ../include/instances.inc
 ../include/irtkImageGraphCut.h
 ../include/irtkSegmentationFunction.h)
@@ -23,6 +27,7 @@ SET(SEGMENTATION_SRCS
 irtkBiasCorrection.cc
 irtkBiasField.cc
 irtkBSplineBiasField.cc
+irtkDynamicSegmentation.cc
 irtkEMClassification.cc
 irtkEMClassificationBiasCorrection.cc
 irtkEMClassificationMultiComp.cc
@@ -34,6 +39,8 @@ irtkMeanShift.cc
 irtkProbabilisticAtlas.cc
 irtkRician.cc
 graph.cpp
+GCoptimization.cpp
+LinkedBlockList.cpp
 irtkImageGraphCut.cc
 irtkMultiImageGraphCut.cc
 irtkSegmentationFunction.cc)

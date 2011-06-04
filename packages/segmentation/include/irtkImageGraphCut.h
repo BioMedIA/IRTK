@@ -15,7 +15,7 @@
 #define _irtkImageGraphCut_H
 
 #include <irtkImage.h>
-#include <graph.h>
+#include <GCoptimization.h>
 /**
  * Abstract base class for any general image to image filter.
  *
@@ -45,10 +45,7 @@ protected:
   irtkGenericImage<VoxelType> *_output;
 
   /// source weight image
-  irtkGenericImage<VoxelType> *_sourceweight;
-
-  /// sink weight image
-  irtkGenericImage<VoxelType> *_sinkweight;
+  irtkRealImage **_weight;
 
   /** Initialize the filter. This function must be called by any derived
    *  filter class to perform some initialize tasks. */
@@ -59,14 +56,16 @@ protected:
   virtual void Finalize();
 
   /// add regionweight to graph
-  virtual void AddBoundaryTerm(Graph<double, double, double>& graph, int count, 
+  virtual void AddBoundaryTerm(GCoptimizationGeneralGraph* graph, int count, 
 	  int i,int j, int k, int l,
 	  int xoff, int yoff, int zoff, int toff, double divide);
-  //irtkGenericImage<VoxelType>** tmpedge,
 
 
   /// geometry mode 0 no connection 1 x 2 xy 3 xyz 4 xyzt
   int _mode;
+
+  /// number of labels
+  int _labels;
 
 public:
 
@@ -77,13 +76,10 @@ public:
   virtual ~irtkImageGraphCut();
 
   /// Set input image for filter
-  virtual void SetInput (int, irtkGenericImage<VoxelType> **,irtkGenericImage<VoxelType> *,irtkGenericImage<VoxelType> *);
+  virtual void SetInput (int, irtkGenericImage<VoxelType> **,int, irtkRealImage **);
 
   /// Set input image for filter
-  virtual void SetInput (irtkGenericImage<VoxelType> *,irtkGenericImage<VoxelType> *,irtkGenericImage<VoxelType> *);
-
-  /// Add weight image for filter
-  virtual void AddWeight (irtkGenericImage<VoxelType> *,irtkGenericImage<VoxelType> *, double = 1.0);
+  virtual void SetInput (irtkGenericImage<VoxelType> *,int, irtkRealImage **);
 
   /// Set output image for filter
   virtual void SetOutput(irtkGenericImage<VoxelType> *);

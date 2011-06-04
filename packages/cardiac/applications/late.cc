@@ -1,177 +1,78 @@
 #include <irtkBep.h>
 
-int Zcheck = 0;
+char *late_name = NULL, *seg_name = NULL;
+char *out_name = NULL;
 
 void usage()
 {
-	cerr << "Usage: late [originalsequence] [lateimage] [PointSet] [Output] [MaxOutput]" << endl;
-	cerr << "-threshold [thresholdname] segmentation information for segmentation"    << endl;
-	cerr << "-mod toggle late/wall/motion -1/0/1" << endl;
-	cerr << "where PointSet is the sector landmarks of the bull's eye plot" << endl;
+	cerr << "Usage: late [lateimage] [segmentation output]" << endl;
+	cerr << "-threshold [thresholdname] myocardium mask for segmentation"    << endl;
 	exit(1);
-}
-
-void checkslice(irtkGreyImage& target, int z){
-	if(z < 0 || z > target.GetZ()){
-		cerr<<"Invaliade z slice number: "<< z <<endl;
-		exit(1);
-	}
-	if(z == target.GetZ() && Zcheck == 0){
-		Zcheck = 1;
-	}
-	if(z == target.GetZ() && Zcheck == 1){
-		cerr<<"Invaliade z slice number: "<< z <<endl;
-		exit(1);
-	}
-	return;
 }
 
 int main( int argc, char** argv )
 {
-	irtkGreyImage target,late;
-	irtkPointSet landmarks;
-	irtkPointSet olandmarks;
-	int tip,aa,am,mb,bottom;
-	double gap;
-	char *outputfilename1 = NULL;
-	char *outputfilename2 = NULL;
-	char *osequence = NULL;
-	char *lsequence = NULL;
-	char *thresholdname = NULL;
-	char *segmentname = NULL;
-	irtkRealImage threshold,compare,segmentation;
-	irtkImageAttributes atr;
-	irtkBep bf;
-	int i,j,k,l,t,ok, latewall = 1,swapped;
+	int ok,i,j,k;
+	irtkBep cf;
+	// Check command line
+	if (argc < 3) {
+		usage();
+	}
 
-	if( argc < 6 ) usage();
+	// Parse source and target images
+	late_name = argv[1];
+	argc--;
+	argv++;
+	out_name = argv[1];
+	argc--;
+	argv++;
 
-	// Read image
-	cout << "Reading image: " << argv[1] << endl;
-	target.Read(argv[1]);
-	argc--;
-	argv++;
-	cout << "Reading late image: " << argv[1] << endl;
-	compare.Read(argv[1]);
-	argc--;
-	argv++;
-	olandmarks.ReadVTK(argv[1]);
-	argc--;
-	argv++;
-	outputfilename1 = argv[1];
-	argc--;
-	argv++;
-	outputfilename2 = argv[1];
-	argc--;
-	argv++;
-	remove(outputfilename1);
-	remove(outputfilename2);
+	// Read target image
+	cout << "Reading target ... "; cout.flush();
+	irtkRealImage **late = new irtkRealImage *[1];
+	late[0] = new irtkRealImage(late_name);
+	cout << "done" << endl;
+	irtkRealImage output(late[0]->GetImageAttributes());
 
+	// Parse remaining parameters
 	while (argc > 1) {
 		ok = false;
-		if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
-			argc--;
-			argv++;
-			latewall = atoi(argv[1]);
-			argc--;
-			argv++;
-			ok = true;
-		}
 		if ((ok == false) && (strcmp(argv[1], "-threshold") == 0)) {
 			argc--;
 			argv++;
-			thresholdname = argv[1];
-			argc--;
-			argv++;
 			ok = true;
-		}
-		if ((ok == false) && (strcmp(argv[1], "-segmentation") == 0)) {
+			seg_name = argv[1];
 			argc--;
 			argv++;
-			segmentname = argv[1];
-			argc--;
-			argv++;
-			ok = true;
 		}
 		if (ok == false) {
 			cerr << "Can not parse argument " << argv[1] << endl;
 			usage();
 		}
-	}  
-
-	//find out number of time frame
-	atr = target.GetImageAttributes();
-	t = atr._t;
-	atr._t = 1;
-	if(!thresholdname){
-		cerr << "Segmentation result not given please use graphcut4D to generate segmentation"<< endl;
-	}else{
-		threshold.Read(thresholdname);
 	}
 
-	//Initialize landmark
-	for( i=0; i<olandmarks.Size(); i++){
-		target.WorldToImage(olandmarks(i));
-	}
-	aa = round(olandmarks(5)._z);
-	bottom = round(olandmarks(6)._z);
-	swapped = 0;
-	if(aa>bottom){
-		swap(aa,bottom);
-		swapped = 1;
-	}
-	l = 0;
-	for( k = aa; k < bottom; k++){
-		for( j = 0; j < threshold.GetY(); j++){
-			for( i = 0; i < threshold.GetX(); i++){
-				if(threshold.GetAsDouble(i,j,k) == 2 && l == 0){
-					l = k;
+	irtkGreyImage segmentation;
+	if(seg_name != NULL){
+		segmentation.Read(seg_name);
+		for ( k = 0; k < late[0]->GetZ(); k++){
+			for ( j = 0; j< late[0]->GetY(); j++){
+				for ( i = 0; i<late[0]->GetX(); i++){
+					if(segmentation.GetAsDouble(i,j,k) == 3){
+					}else
+						late[0]->PutAsDouble(i,j,k,-1);
 				}
 			}
 		}
 	}
-	aa = l;
-	gap = (double)(bottom - aa)/3.0;
-	am = round(aa + gap);
-	mb = round(bottom - gap); 	
-	checkslice(target,aa);
-	checkslice(target,am);
-	checkslice(target,mb);
-	checkslice(target,bottom);
-	if(swapped == 1){
-		swap(aa,bottom);
-		swap(am,mb);
-	}
-	tip = 0;
-
-	bf.SetInput(target,target,threshold,osequence,lsequence);
-	bf.SetLandmarks(olandmarks,tip,aa,am,mb,bottom);
-	bf.SetOutput(outputfilename1,outputfilename2);
-	if(latewall == 0){
-		for(k = 0; k < atr._z; k++){
-			for(j = 0; j < atr._y; j++){
-				for(i = 0; i < atr._x; i++){
-					if(compare.GetAsDouble(i,j,k) > 0){
-						compare.PutAsDouble(i,j,k,1);
-					}
-				}
+	cf.EvaluateInfarction(&output, late);
+	for ( k = 0; k < output.GetZ(); k++){
+		for ( j = 0; j< output.GetY(); j++){
+			for ( i = 0; i< output.GetX(); i++){
+				if(segmentation.GetAsDouble(i,j,k) == 3 || late[0]->GetAsDouble(i,j,k) > 0){
+				}else
+					output.PutAsDouble(i,j,k,0);
 			}
-		}	
-		bf.SetCompare(compare);		
-	}else{
-		bf.SetCompare(compare);
+		}
 	}
-
-	//Generate PointSet from 3 landmarks
-	if(!segmentname){
-	    bf.Initialize();
-		bf.GenerateSegmentation("surface");
-	}else{
-		segmentation.Read(segmentname);
-		bf.SetSegmentation(segmentation);
-	}
-	//start
-	bf.Bullseyeplot(latewall);
-
-	bf.Finalize();
+	output.Write(out_name);
 }

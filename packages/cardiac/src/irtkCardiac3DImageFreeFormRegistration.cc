@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: irtkCardiac3DImageFreeFormRegistration.cc 153 2010-06-03 11:12:52Z ws207 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2010-06-03 12:12:52 +0100 (�? 03 六月 2010) $
-  Version   : $Revision: 153 $
-  Changes   : $Author: ws207 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 
@@ -880,7 +880,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarity += this->_Lregu * this->LandMarkPenalty(-1,0);
+	  similarity += this->_Lregu * this->LandMarkPenalty(-1);
   }
   // Add penalty for smoothness
   if (this->_Lambda1 > 0) {
@@ -1187,7 +1187,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
    // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityA += this->_Lregu * this->LandMarkPenalty(index,0);
+	  similarityA += this->_Lregu * this->LandMarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {
@@ -1211,7 +1211,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityB += this->_Lregu * this->LandMarkPenalty(index,0);
+	  similarityB += this->_Lregu * this->LandMarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {

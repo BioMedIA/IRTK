@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: irtkCardiacSpatialCorrection.h 293 2011-02-03 21:07:57Z ws207 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2011-02-03 21:07:57 +0000 (Thu, 03 Feb 2011) $
-  Version   : $Revision: 293 $
-  Changes   : $Author: ws207 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

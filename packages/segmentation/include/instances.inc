@@ -9,8 +9,9 @@
 //    flowtype should be 'larger' than tcaptype 
 //    tcaptype should be 'larger' than captype
 
-template class Graph<int,int,int>;
-template class Graph<short,int,int>;
-template class Graph<float,float,float>;
-template class Graph<double,double,double>;
+#ifdef _WIN32
+template class Graph<int,int,__int64>;
+#else
+template class Graph<int,int,long long>;
+#endif
 

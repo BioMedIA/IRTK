@@ -366,7 +366,7 @@ int main(int argc, char **argv)
 		// Write the final transformation estimate
 		if (dofout_name != NULL) {
 			char buffer[255];
-			sprintf(buffer, "%s\\%d_sequence_%.2d.dof.gz", dofout_name,i, t);
+			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", dofout_name,i, t);
 			mffd->irtkTransformation::Write(buffer);
 		}
 

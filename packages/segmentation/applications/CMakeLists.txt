@@ -25,6 +25,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(biascorrect biascorrect.cc)
     ADD_EXECUTABLE(createsamples createsamples.cc)
     ADD_EXECUTABLE(detect detect.cc)
+    ADD_EXECUTABLE(dynamic_segmentation dynamic_segmentation.cc)
     ADD_EXECUTABLE(ems ems.cc)
     ADD_EXECUTABLE(emsmc emsmc.cc)
     ADD_EXECUTABLE(emsbc emsbc.cc)
@@ -39,7 +40,7 @@ ELSE(BUILD_CONDOR_EXE)
 
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin biasfield biascorrect createsamples detect ems emsbc emsmc graphcut multiimage_graphcut seg_uncertainty)
+INSTALL_TARGETS(/bin biasfield biascorrect createsamples detect dynamic_segmentation ems emsbc emsmc graphcut multiimage_graphcut seg_uncertainty)
 
 ENDIF (BUILD_CONDOR_EXE)
 

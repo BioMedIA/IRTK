@@ -28,6 +28,13 @@ irtkEMClassificationMultiComp::~irtkEMClassificationMultiComp()
 irtkEMClassificationMultiComp::irtkEMClassificationMultiComp(int noAtlas, irtkRealImage **atlas, int *noComp)
 {
 	int i,j,k;
+    int newed = 0;
+    if(noComp == NULL){
+        noComp = new int[noAtlas + 1];
+        for (i = 0; i < noAtlas + 1; i++)
+            noComp[i] = 1;
+        newed = 1;
+    }
 	//caculate notissues
 	int noTissues = 0;
 	for (i=0;i<noAtlas;i++){
@@ -77,6 +84,10 @@ irtkEMClassificationMultiComp::irtkEMClassificationMultiComp(int noAtlas, irtkRe
 	_background_tissue = -1;
 	_debug = false;
 	delete []output;
+
+    if(newed == 1){
+        delete []noComp;
+    }
 }
 
 irtkEMClassificationMultiComp::irtkEMClassificationMultiComp(int noAtlas, irtkRealImage **atlas, irtkRealImage *background, int *noComp)
@@ -181,44 +192,6 @@ void irtkEMClassificationMultiComp::Initialise()
 			_sigma[j] = _sigma[j]/n;
 		}
 	}
-	// Update approach to split
-	/*int *current_no,split_no,to_no,max_sigma;
-	
-	current_no = new int[_number_of_atlas];
-	//current number of components
-	for (i = 0; i < _number_of_atlas; i++){
-		current_no[i] = 1;
-	}
-	
-	//for
-	for (i = 0; i < _number_of_atlas; i++){
-		//check if current atlas needs split
-		n = _number_of_components[i];
-		while (current_no[i] < n){
-			//find out which one to split
-			max_sigma = 0;
-			for (j = _ns[i]; j < _ns[i] + current_no[i]; j++){
-				if(max_sigma < _sigma[j]){
-					max_sigma = _sigma[j];
-					split_no = j;
-				}
-			}
-			//find out which one to split to
-			to_no = _ns[i] + current_no[i];
-			//split by sigma
-			_mi[split_no] = _mi[split_no] - sqrt(_sigma[split_no])/2;
-			_sigma[split_no] = _sigma[split_no]/2;
-			_mi[to_no] = _mi[to_no] + sqrt(_sigma[split_no])/2;
-			_sigma[to_no] = _sigma[split_no];
-			//estimate new gmm based on atlas > 1
-			this->InitialEStep(i,current_no[i]+1);
-			this->InitialMStep(i,current_no[i]+1);
-			//add current number
-			current_no[i] ++;
-		}
-	}//end
-	delete []current_no;
-	*/
 
 	//Update output
 	this->EStep();
@@ -379,9 +352,13 @@ void irtkEMClassificationMultiComp::EStep()
 		  for (k = _ns[j]; k < _ne[j]; k++) {
 			  if(_mi[k]!=-1){
 				  gv[k] = G[k].Evaluate(v);
-				  _input.GetImageAttributes().IndexToLattice(i,&x,&y,&z,&t);
-				  distance = sqrt(pow(x-center_x[k],2)+pow(y-center_y[k],2)+pow(z-center_z[k],2)) + 1;
-				  numerator[k] = gv[k] * _atlas.GetValue(j) * _c[k] / distance;
+				  if(k == _ns[j]){
+                      numerator[k] = gv[k] * _atlas.GetValue(j) * _c[k];
+                  }else{
+                      _input.GetImageAttributes().IndexToLattice(i,&x,&y,&z,&t);
+                      distance = sqrt(pow(x-center_x[k],2)+pow(y-center_y[k],2)+pow(z-center_z[k],2)) + 1;
+                      numerator[k] = gv[k] * _atlas.GetValue(j) * _c[k] / distance;
+                  }
 				  denominator += numerator[k];
 			  }else{
 				  numerator[k] = 0;

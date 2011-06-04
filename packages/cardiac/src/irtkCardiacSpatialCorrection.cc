@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: irtkCardiacSpatialCorrection.cc 247 2010-10-28 22:07:41Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2010-10-28 23:07:41 +0100 (ËÄ, 28 Ê®ÔÂ 2010) $
-  Version   : $Revision: 247 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 
@@ -711,7 +711,7 @@ double irtkCardiacSpatialCorrection::EvaluateGradient(float step, float *dx)
 
 double irtkCardiacSpatialCorrection::InternalSimilarity(){
 	int i, j, k, t;
-	double x, y, z;
+	double x, y, z, v1, v2;
 
 	// Print debugging information
 	this->Debug("irtkCardiacSpatialCorrection::InternalSimilarity()");
@@ -732,8 +732,11 @@ double irtkCardiacSpatialCorrection::InternalSimilarity(){
 					&& round(y)>=0 && round(y)<_target->GetY()
 					&& round(z)>=0 && round(z)<_target->GetZ()){
 						for (t = 0; t < _target->GetT(); t++){
-							_intmetric->Add(_target->GetAsDouble(i,j,k,t),
-							_target->GetAsDouble(round(x),round(y),round(z),t));
+							v1 = _target->GetAsDouble(i,j,k,t);
+							v2 = _target->GetAsDouble(round(x),round(y),round(z),t);
+							if(v1 >= 0 && v2 >= 0){
+								_intmetric->Add(v1,v2);
+							}
 						}
 				}
 			}
@@ -755,7 +758,7 @@ double irtkCardiacSpatialCorrection::ConstrainTransformation(){
 
 	for (k = 0; k < _target->GetZ(); k++){
 		for (i = 0; i < 6; i++) {
-				result += fabs(_transformation[k]->Get(i) - _origintransformation->Get(i));
+				result += pow(fabs(_transformation[k]->Get(i) - _origintransformation->Get(i)),2);
 		}
 	}
 
@@ -1139,7 +1142,7 @@ void irtkCardiacSpatialCorrection::GuessParameter()
 	_SimilarityMeasure  = NMI;
 	_Epsilon            = 0.0001;
 	_IntLambda			= 0.3;
-	_ConstrainLambda    = 0;
+	_ConstrainLambda    = 0.001;
 
 	// Read target pixel size
 	_target->GetPixelSize(&xsize, &ysize, &zsize);

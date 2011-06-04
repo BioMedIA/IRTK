@@ -193,6 +193,9 @@ public:
   /// Invert of matrix
   void   Invert();
 
+  /// Adjugate of matrix and return determine;
+  void   Adjugate(double &);
+
   /// Transpose matrix
   void   Transpose();
 

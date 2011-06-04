@@ -6,8 +6,6 @@
 
 #include <irtkRegistration.h>
 
-#include <irtkTagFunction.h>
-
 #include <cxcore.h>
 
 #include <highgui.h>

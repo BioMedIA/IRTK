@@ -219,7 +219,6 @@ int main(int argc, char **argv)
 			argv++;
 			ok = true;
 		}
-
 		if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
 			argc--;
 			argv++;

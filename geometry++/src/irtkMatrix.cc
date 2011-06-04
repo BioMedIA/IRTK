@@ -570,6 +570,65 @@ void irtkMatrix::Invert(void)
 #endif
 }
 
+void irtkMatrix::Adjugate(double &d)
+{
+    if (_rows != _cols) {
+        cerr << "irtkMatrix::Adjugate: Must be square" << endl;
+        exit(1);
+    }
+
+#ifdef USE_VXL
+    vnl_matrix<float> input(_rows,_cols);
+    Matrix2Vnl(&input);
+    vnl_matrix<float> output = vnl_matrix_inverse<float>(input);
+    Vnl2Matrix(&output);
+#else
+    double **a, **b, *v;
+    int i, j, *index;
+
+    // Allocate memory
+    a = dmatrix(1, _rows, 1, _rows);
+    b = dmatrix(1, _rows, 1, _rows);
+    v = dvector(1, _rows);
+
+    // Convert matrix to NR format
+    Matrix2NR(a);
+
+    index = ivector(1, _rows);
+
+    ludcmp(a, _rows, index, &d);
+
+    for (j = 1; j <= _rows; j++) {
+        d *= a[j][j];
+    }
+    if (d == 0) {
+        cerr << "irtkMatrix::Invert: Zero determinant\n";
+        //exit(1);
+    }
+    for (j = 1; j <= _rows; j++) {
+        for (i = 1; i <= _rows; i++) {
+            v[i] = 0.0;
+        }
+        v[j] = 1.0;
+
+        lubksb(a, _rows, index, v);
+
+        for (i = 1; i <= _rows; i++) {
+            b[i][j] = v[i]*d;
+        }
+    }
+
+    // Convert NR format back
+    NR2Matrix(b);
+
+    // Deallocate memory
+    free_dmatrix(a, 1, _rows, 1, _rows);
+    free_dmatrix(b, 1, _rows, 1, _rows);
+    free_dvector(v, 1, _rows);
+    free_ivector( index, 1, _rows);
+#endif
+}
+
 void irtkMatrix::Transpose(void)
 {
   int i, j;

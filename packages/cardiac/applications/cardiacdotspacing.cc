@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Library   : Image Registration Toolkit (IRTK)
-Module    : $Id: makesequence.cc 32 2009-03-26 18:01:30Z lrisser $
+Module    : $Id$
 Copyright : Imperial College, Department of Computing
 Visual Information Processing (VIP), 2008 onwards
-Date      : $Date: 2009-03-26 18:01:30 +0000 (�? 26 三月 2009) $
-Version   : $Revision: 32 $
-Changes   : $Author: lrisser $
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
 =========================================================================*/
 
@@ -26,6 +26,7 @@ Changes   : $Author: lrisser $
 
 char *input_name = NULL, *output_name = NULL, *dofin_name = NULL, *out_name = NULL;
 
+/// example: cardiacdotspacing 1 surface\endo1.vtk surface\streching.vtk -dofin transformation\lnreg.dof -outsurface surface\epi1.vtk
 void usage()
 {
 	cerr << "Usage: cardiacdotspacing [mode] [input pointset/mesh] [output txt/mesh]\n" << endl;
@@ -160,27 +161,12 @@ int main(int argc, char **argv)
 		}
 
 		// Create initial multi-level free-form deformation
-		irtkMultiLevelFreeFormTransformation *mffd = NULL;
+		irtkTransformation *transform = NULL;
 		if (dofin_name != NULL){
-			irtkTransformation *transform = irtkTransformation::New(dofin_name);
-			if (strcmp(transform->NameOfClass(), "irtkRigidTransformation") == 0){
-				mffd = new irtkMultiLevelFreeFormTransformation(*((irtkRigidTransformation *)transform));
-			} else {
-				if (strcmp(transform->NameOfClass(), "irtkAffineTransformation") == 0){
-					mffd = new irtkMultiLevelFreeFormTransformation(*((irtkAffineTransformation *)transform));
-				} else {
-					if (strcmp(transform->NameOfClass(), "irtkMultiLevelFreeFormTransformation") == 0){
-						mffd = new irtkMultiLevelFreeFormTransformation(*((irtkMultiLevelFreeFormTransformation *)transform));
-					} else {
-						cerr << "Input transformation is not of type rigid, affine " << endl;
-						cerr << "or multi-level free form deformation" << endl;
-						exit(1);
-					}
-				}
-			}
-			delete transform;
+			transform = irtkTransformation::New(dofin_name);
 		} else {
-			mffd = new irtkMultiLevelFreeFormTransformation;
+			cerr << "mode 1 must have transformation" << endl;
+            exit(1);
 		}
 
 		// Read model
@@ -214,6 +200,7 @@ int main(int argc, char **argv)
 				double distance = 1000000;
 				double point[3],point2[3],normal[3];
 				model->GetPoints()->GetPoint (i, point);
+                closest = i;
 				for(j = 0; j < model_out->GetNumberOfPoints(); j++){
 					model_out->GetPoints()->GetPoint (j, point2);
 					if(distance > sqrt(pow(point[0] - point2[0],2)+
@@ -263,7 +250,7 @@ int main(int argc, char **argv)
 			decimatemodel->GetPoints()->GetPoint (i, point1);
 			//transform current vertices
 			tpoint1[0] = point1[0]; tpoint1[1] = point1[1]; tpoint1[2] = point1[2];
-			mffd->Transform(tpoint1[0],tpoint1[1],tpoint1[2]);
+			transform->Transform(tpoint1[0],tpoint1[1],tpoint1[2]);
 			//Initialize ds
 			ds[0] = 0; ds[1] = 0;
 			for (j = 0; j < n; j++){
@@ -272,7 +259,7 @@ int main(int argc, char **argv)
 				+ pow(point2[1] - point1[1], 2) + pow(point2[0] - point1[0], 2))/n;
 			//transform neighbor vertices
 			tpoint2[0] = point2[0]; tpoint2[1] = point2[1]; tpoint2[2] = point2[2];
-			mffd->Transform(tpoint2[0],tpoint2[1],tpoint2[2]);
+			transform->Transform(tpoint2[0],tpoint2[1],tpoint2[2]);
 			//evaluate new distance
 			ds[1] += sqrt(pow(tpoint2[2] - tpoint1[2], 2)
 				+ pow(tpoint2[1] - tpoint1[1], 2) + pow(tpoint2[0] - tpoint1[0], 2))/n;
@@ -313,6 +300,7 @@ int main(int argc, char **argv)
 			//Find closest decimate point
 			int closest,j;
 			double distance = 1000000;
+            closest = i;
 			for(j = 0; j < decimatemodel->GetNumberOfPoints(); j++){
 				decimatemodel->GetPoints()->GetPoint (j, point2);
 				if(distance > sqrt(pow(point1[0] - point2[0],2)+
@@ -322,6 +310,7 @@ int main(int argc, char **argv)
 					closest = j;
 				}
 			}
+
 			//Find neighbor
 			GetConnectedVertices(decimatemodel,closest,list);
 			//Get number of neighbor
@@ -338,6 +327,8 @@ int main(int argc, char **argv)
 			}
 			//stretch measure relative change of the vertices spacing
 			*stretch = ds[1] / ds[0];
+
+            //ndecimatearray->GetTuple(closest,stretch);
 			array->InsertTupleValue(i, stretch);
 			list->Delete();
 		}
@@ -354,6 +345,7 @@ int main(int argc, char **argv)
 		array->Delete();
 		decimatearray->Delete();
 		ndecimatearray->Delete();
+        delete transform;
 #else
 
 cerr << argv[0] << " this program needs to be compiled with vtk enabled." << endl;

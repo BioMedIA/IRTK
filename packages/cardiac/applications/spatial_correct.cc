@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: spatial_correct.cc 276 2010-12-03 22:30:26Z ws207 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2010-12-03 22:30:26 +0000 (Fri, 03 Dec 2010) $
-  Version   : $Revision: 276 $
-  Changes   : $Author: ws207 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 
@@ -20,8 +20,9 @@ char **extra_name = NULL, *prefix_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: spatial_correct [SA target volume] [3D/Detagged image] [SA before correction] [SA after correction] <options> \n" << endl;
+  cerr << "Usage: spatial_correct [SA target volume]  [SA before correction] [SA after correction] <options> \n" << endl;
   cerr << "where <options> is one or more of the following:\n" << endl;
+  cerr << "<-source file>       Read [3D/Detagged image] source from file" << endl;
   cerr << "<-parin file>        Read parameter from file" << endl;
   cerr << "<-parout file>       Write parameter to file" << endl;
   cerr << "<-p3>                Rigid transformation with 3 dofs (for -image)" << endl;
@@ -55,15 +56,12 @@ int main(int argc, char **argv)
   smat.Ident();
 
   // Check command line
-  if (argc < 5) {
+  if (argc < 4) {
     usage();
   }
 
   // Parse source and target images
   target_name = argv[1];
-  argc--;
-  argv++;
-  source_name = argv[1];
   argc--;
   argv++;
   resultinput_name = argv[1];
@@ -76,10 +74,6 @@ int main(int argc, char **argv)
   // Read target image
   cout << "Reading target ... "; cout.flush();
   irtkGreyImage target(target_name);
-  cout << "done" << endl;
-  // Read source image
-  cout << "Reading source ... "; cout.flush();
-  irtkGreyImage source(source_name);
   cout << "done" << endl;
   // Read input image
   cout << "Reading SA ... "; cout.flush();
@@ -107,12 +101,6 @@ int main(int argc, char **argv)
   target_x2 = target.GetX();
   target_y2 = target.GetY();
   target_z2 = target.GetZ();
-  source_x1 = 0;
-  source_y1 = 0;
-  source_z1 = 0;
-  source_x2 = source.GetX();
-  source_y2 = source.GetY();
-  source_z2 = source.GetZ();
 
   // Extra image number
   number_extraImage = 0;
@@ -131,6 +119,14 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+	if ((ok == false) && ((strcmp(argv[1], "-source") == 0))) {
+		argc--;
+		argv++;
+		ok = true;
+		source_name = argv[1];
+		argc--;
+		argv++;
+	}
     if ((ok == false) && (strcmp(argv[1], "-x_only") == 0)) {
       argc--;
       argv++;
@@ -274,6 +270,27 @@ int main(int argc, char **argv)
     }
   }
 
+  irtkGreyImage source;
+
+  // Read source image
+  if(source_name == NULL){
+	  cout << "Creating source ... "; cout.flush();
+	  source.Initialize(target.GetImageAttributes());
+	  cout << "done" << endl;
+  }
+  else{
+	  cout << "Reading source ... "; cout.flush();
+	  source.Read(source_name);
+	  cout << "done" << endl;
+  }
+
+  source_x1 = 0;
+  source_y1 = 0;
+  source_z1 = 0;
+  source_x2 = source.GetX();
+  source_y2 = source.GetY();
+  source_z2 = source.GetZ();
+
   // If there is an region of interest, use it
   if ((target_x1 != 0) || (target_x2 != target.GetX()) ||
       (target_y1 != 0) || (target_y2 != target.GetY()) ||
@@ -298,11 +315,9 @@ int main(int argc, char **argv)
 	itmat = target.GetImageToWorldMatrix();
 	ismat = source.GetWorldToImageMatrix();
 	target.PutOrientation(atr._xaxis,atr._yaxis,atr._zaxis);
-	//target.PutOrigin(0,0,0);
 	target.PutOrigin(double(tatr._x) / 2.0,double(tatr._y) / 2.0,double(tatr._z) / 2.0);
 	target.PutPixelSize(atr._dx,atr._dy,atr._dz);
     source.PutOrientation(atr._xaxis,atr._yaxis,atr._zaxis);
-	//source.PutOrigin(0,0,0);
 	source.PutOrigin(double(satr._x) / 2.0,double(satr._y) / 2.0,double(satr._z) / 2.0);
 	source.PutPixelSize(atr._dx,atr._dy,atr._dz);
 

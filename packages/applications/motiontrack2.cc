@@ -18,7 +18,7 @@
 
 #include <irtkGaussianBlurring4D.h>
 
-char *dofout_name = NULL, *parin_name  = NULL, *parout_name = NULL, **filenames = NULL;
+char *dofout_name = NULL, *parin_name  = NULL, *parout_name = NULL, **filenames = NULL, *mask_name = NULL;;
 
 void usage()
 {
@@ -37,6 +37,7 @@ void usage()
   cerr << "<-Rz2 value>         Region of interest in images" << endl;
   cerr << "<-Rt2 value>         Region of interest in images" << endl;
   cerr << "<-Tp  value>         Padding value" << endl;
+  cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
   exit(1);
 }
 
@@ -178,7 +179,14 @@ int main(int argc, char **argv)
 		argv++;
 		ok = true;
 	}
-
+    if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
+        argc--;
+        argv++;
+        mask_name = argv[1];
+        argc--;
+        argv++;
+        ok = true;
+    }
 	if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
 		argc--;
 		argv++;
@@ -283,6 +291,38 @@ int main(int argc, char **argv)
 				  }
 			  }
 		  }
+
+          // Mask target
+          if (mask_name != NULL) {
+              irtkGreyImage mask(mask_name);
+              irtkInterpolateImageFunction *interpolator = new irtkShapeBasedInterpolateImageFunction;
+              double xsize, ysize, zsize, size;
+              mask.GetPixelSize(&xsize, &ysize, &zsize);
+              size = xsize;
+              size = (size < ysize) ? size : ysize;
+              size = (size < zsize) ? size : zsize;
+              irtkResampling<irtkGreyPixel> resampling(size, size, size);
+              resampling.SetInput (&mask);
+              resampling.SetOutput(&mask);
+              resampling.SetInterpolator(interpolator);
+              resampling.Run();
+              delete interpolator;
+              for (z = 0; z < target->GetZ(); z++) {
+                  for (y = 0; y < target->GetY(); y++) {
+                      for (x = 0; x < target->GetX(); x++) {
+                          double wx,wy,wz;
+                          wx = x; wy = y; wz = z;
+                          target->ImageToWorld(wx,wy,wz);
+                          mask.WorldToImage(wx,wy,wz);
+                          wx = round(wx); wy = round(wy); wz = round(wz);
+                          if(wx >= 0 && wx < mask.GetX() && wy >= 0 && wy < mask.GetY()
+                              && wz >= 0 && wz < mask.GetZ() && mask.GetAsDouble(wx,wy,wz) <= 0){
+                                  target->Put(x, y, z, 0, padding);
+                          }
+                      }
+                  }
+              }
+          }
 
 		  // Set input and output for the registration filter
 		  registration->SetInput(target, source);

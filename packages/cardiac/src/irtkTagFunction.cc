@@ -396,27 +396,7 @@ inline void irtkTagFunction::SetPointSet(irtkPointSet& p1)
 	this->_p1 = p1;
 	this->sampled = 1;
 }
-
 #ifdef HAS_OPENCV
-/* these settings affect the quality of detection: change with care */
-void on_mouse( int event, int x, int y, int flags, void* param )
-{
-    switch( event )
-    {
-	case CV_EVENT_LBUTTONDOWN:
-		{
-			((CvRect*)param)->x = x; ((CvRect*)param)->y = y;
-		}
-		break;
-	case CV_EVENT_LBUTTONUP:
-		{
-			((CvRect*)param)->width = x - ((CvRect*)param)->x;
-			((CvRect*)param)->height = y - ((CvRect*)param)->y;
-		}
-		break;
-    }
-}
-
 void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr )
 {
     CvMat * tmp;

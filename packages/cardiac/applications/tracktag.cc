@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Library   : Image Registration Toolkit (IRTK)
-Module    : $Id: makesequence.cc 32 2009-03-26 18:01:30Z lrisser $
+Module    : $Id$
 Copyright : Imperial College, Department of Computing
 Visual Information Processing (VIP), 2008 onwards
-Date      : $Date: 2009-03-26 18:01:30 +0000 (�? 26 三月 2009) $
-Version   : $Revision: 32 $
-Changes   : $Author: lrisser $
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
 =========================================================================*/
 

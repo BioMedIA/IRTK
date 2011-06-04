@@ -181,6 +181,9 @@ public:
   /// Calculate the Jacobian of the local transformation
   virtual void LocalJacobian(irtkMatrix &, double, double, double, double = 0);
 
+  /// Calculate the Jacobian of the local transformation
+  virtual void JacobianDetDerivative(irtkMatrix *, int, int, int);
+
   /// Calculate the Jacobian of the global transformation
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 

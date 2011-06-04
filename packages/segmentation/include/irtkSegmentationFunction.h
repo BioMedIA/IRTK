@@ -4,11 +4,13 @@
 
 #include <irtkRegistration.h>
 
+#include <irtkEMClassification.h>
+
 #include <irtkImageGraphCut.h>
 
 #include <irtkMultiImageGraphCut.h>
 
-#include <irtkEMClassification.h>
+#include <irtkDynamicSegmentation.h>
 
 #ifdef HAS_OPENCV
 
@@ -35,11 +37,11 @@ public:
 
   virtual void EvaluateThreshold(irtkRealImage *, irtkGreyImage *, int padding = 0, int n = 3);
 
-  virtual void EvaluateGraphCut(irtkRealImage *, irtkRealImage **,irtkRealImage **, int numberofinput, int numberofatlas, double timeweight = 1,int cutmode = 2, int connectmode = 0, double regionweight = 0.9,int seperate = 0, int padding = 0, int *c = NULL);
+  virtual void EvaluateGraphCut(irtkGreyImage *, irtkGreyImage **,irtkRealImage **, int numberofinput, int numberofatlas, double timeweight = 1,int cutmode = 2, int connectmode = 0, double regionweight = 0.9, int padding = 0, int *c = NULL);
 
   virtual void EvaluateGraphCut(irtkRealImage **, irtkRealImage **,irtkRealImage **, int numberofinput, int numberofatlas, double timeweight = 1,int cutmode = 2, int connectmode = 0, double regionweight = 0.9, int padding = 0, int *c = NULL);
 
-  virtual void EvaluateGraphCut(irtkRealImage *, irtkRealImage **, int number = 1,double timeweight = 1,int cutmode = 2,int connectmode = 0, double regionweight = 0.9,int padding = 0, int n = 2, int splitgmm=2);
+  virtual void EvaluateGraphCut(irtkGreyImage *, irtkGreyImage **, int number = 1,double timeweight = 1,int cutmode = 2,int connectmode = 0, double regionweight = 0.9,int padding = 0, int n = 2);
 
   virtual void RegionGrow(irtkPoint& center, irtkGreyImage* target, irtkRealImage* threshold, int minT, int value = 2);
 

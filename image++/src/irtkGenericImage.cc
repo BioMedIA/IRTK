@@ -311,7 +311,9 @@ template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetAverage(int
     ptr = this->GetPointerToVoxels();
     for (i = 0; i < n; i++) {
       if(toggle == 1)
-        average += (float)((VoxelType)*ptr)/(float)m;
+		  if(*ptr > 0) {
+			  average += (float)((VoxelType)*ptr)/(float)m;
+		  }
       else
         average += (float)((VoxelType)*ptr)/(float)n;
       ptr ++;

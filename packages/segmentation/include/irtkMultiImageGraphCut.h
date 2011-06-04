@@ -15,7 +15,7 @@
 #define _irtkMultiImageGraphCut_H
 
 #include <irtkImage.h>
-#include <graph.h>
+#include <GCoptimization.h>
 /**
  * Abstract base class for any general image to image filter.
  *
@@ -32,26 +32,25 @@ protected:
   /// Number of input images
   int _numberOfImages;
 
+  /// number of labels
+  int _labels;
+
+  double *_datacost;
+
   /// spacing
   double *_dx,*_dy,*_dz,_dt;
 
   /// Number of Voxels
-  double _totalVoxel;
+  int _totalVoxel;
 
   /// Image node offset
-  double *_imageoffset;
+  int *_imageoffset;
 
   /// Input image for filter
   irtkGenericImage<VoxelType> **_input;
 
   /// Output image for filter
   irtkGenericImage<VoxelType> **_output;
-
-  /// source weight image
-  irtkGenericImage<VoxelType> **_sourceweight;
-
-  /// sink weight image
-  irtkGenericImage<VoxelType> **_sinkweight;
 
   /** Initialize the filter. This function must be called by any derived
    *  filter class to perform some initialize tasks. */
@@ -62,12 +61,12 @@ protected:
   virtual void Finalize();
 
   /// add regionweight to graph
-  virtual void AddBoundaryTerm(Graph<double, double, double>& graph, int count, 
+  virtual void AddBoundaryTerm(GCoptimizationGeneralGraph *graph, int count, 
 	  int i,int j, int k, int l, int n,
 	  int xoff, int yoff, int zoff, int toff, double divide);
 
   /// add multiimage weight to graph
-  virtual void AddImageTerm(Graph<double, double, double>& graph, int count, 
+  virtual void AddImageTerm(GCoptimizationGeneralGraph *graph, int count, 
 	  int count2, double divide);
 
   /// geometry mode 0 no connection 1 x 2 xy 3 xyz 4 xyzt
@@ -82,7 +81,7 @@ public:
   virtual ~irtkMultiImageGraphCut();
 
   /// Set input image for filter
-  virtual void SetInput (int, irtkGenericImage<VoxelType> **,irtkGenericImage<VoxelType> **,irtkGenericImage<VoxelType> **);
+  virtual void SetInput (int, irtkGenericImage<VoxelType> **,int, double *);
 
   /// Set output image for filter
   virtual void SetOutput(irtkGenericImage<VoxelType> **);

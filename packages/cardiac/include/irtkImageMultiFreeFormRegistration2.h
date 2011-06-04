@@ -10,35 +10,41 @@
 
 =========================================================================*/
 
-#ifndef _IRTKIMAGEFREEFORMREGISTRATION2_H
+#ifndef _IRTKIMAGEMULTIFREEFORMREGISTRATION2_H
 
-#define _IRTKIMAGEFREEFORMREGISTRATION2_H
+#define _IRTKIMAGEMULTIFREEFORMREGISTRATION2_H
 
 /**
  * Filter for non-rigid registration based on voxel similarity measures.
  *
  * This class implements a registration filter for the non-rigid registration
- * of two images. The basic algorithm is described in Rueckert et al., IEEE
- * Transactions on Medical Imaging, In press.
+ * of two images given a segmentation.
  *
  */
 
-class irtkImageFreeFormRegistration2 : public irtkImageRegistration2
+class irtkImageMultiFreeFormRegistration2 : public irtkImageRegistration2
 {
 
 protected:
+  /// Pointer to segmentation
+  irtkGreyImage *_segmentation;
 
+  /// Number of labels
+  int _NumberOfLabels;
+
+  /// multi transformations
+  irtkTransformation **_mtransformation;
   /// Pointer to the local transformation which is currently optimized
-  irtkBSplineFreeFormTransformation *_affd;
+  irtkBSplineFreeFormTransformation **_affd;
 
   /// Pointer to the global transformation which is constant
-  irtkMultiLevelFreeFormTransformation *_mffd;
+  irtkMultiLevelFreeFormTransformation **_mffd;
 
   /// Pointer to Adjugate jacobian matrix
-  irtkMatrix *_adjugate;
+  irtkMatrix **_adjugate;
 
   /// Pointer to jacobian determine
-  double *_determine;
+  double **_determine;
 
   /// Smoothness parameter for non-rigid registration
   double _Lambda1;
@@ -48,6 +54,9 @@ protected:
 
   /// Topology preservation parameter for non-rigid registration
   double _Lambda3;
+
+  /// Lambda coefficient for every segments
+  double *_LambdaC;
 
   /// Control point spacing in the x-direction
   double _DX;
@@ -79,26 +88,14 @@ protected:
   /// Final set up for the registration
   virtual void Finalize(int);
 
-  /// Update state of the registration based on current transformation estimate
-  virtual void Update();
-
-    /** Evaluates the smoothness preservation term. */
-  virtual double SmoothnessPenalty();
-
-  /** Evaluates the smoothness term. */
-  virtual double SmoothnessPenalty(int);
-
   /** Evaluates the volume preservation term. */
   virtual double VolumePreservationPenalty();
 
   /** Evaluates the volume preservation term. */
-  virtual void VolumePreservationPenalty(int,double*);
+  virtual void VolumePreservationPenalty(int,int,double*);
 
-  /** Evaluates the topology preservation term. */
-  virtual double TopologyPreservationPenalty();
-
-  /** Evaluates the topology preservation term. */
-  virtual double TopologyPreservationPenalty(int);
+  /// Update transformed source and source gradient
+  virtual void Update();
 
   /** Evaluates the registration. This function evaluates the registration by
    *  looping over the target image and interpolating the transformed source
@@ -108,12 +105,18 @@ protected:
   virtual double Evaluate();
 
   /// Evaluate the gradient of the similarity measure for the current transformation.
-  virtual double EvaluateGradient(double *);
+  virtual double EvaluateGradient(int, double *);
 
 public:
 
   /// Constructor
-  irtkImageFreeFormRegistration2();
+  irtkImageMultiFreeFormRegistration2();
+
+  /// Sets input for the registration filter
+  virtual void SetInput (irtkGreyImage *, irtkGreyImage *, irtkGreyImage *);
+
+  /// Set output for the registration filter
+  virtual void SetOutput(irtkTransformation **);
 
   /// Set output for the registration filter
   virtual void SetOutput(irtkTransformation *);
@@ -143,6 +146,7 @@ public:
   virtual GetMacro(DY, double);
   virtual SetMacro(DZ, double);
   virtual GetMacro(DZ, double);
+  virtual SetMacro(LambdaC, double*);
 
   // Access parameters for registration mode
   virtual SetMacro(Mode, irtkImageFreeFormRegistrationMode);
@@ -152,26 +156,28 @@ public:
   virtual GetMacro(MFFDMode, bool);
 };
 
-inline void irtkImageFreeFormRegistration2::SetOutput(irtkTransformation *transformation)
+inline void irtkImageMultiFreeFormRegistration2::SetOutput(irtkTransformation *transformation)
 {
-  // Print debugging information
-  this->Debug("irtkImageFreeFormRegistration::SetOutput");
+    // Print debugging information
+    this->Debug("irtkImageFreeFormRegistration::SetOutput");
 
-  if (strcmp(transformation->NameOfClass(),
-             "irtkMultiLevelFreeFormTransformation") != 0) {
-    cerr << "irtkImageFreeFormRegistration::SetOutput: Transformation must be "
-         << "irtkMultiLevelFreeFormTransformation" << endl;
-    exit(0);
-  }
-  _transformation = transformation;
+        if (strcmp(transformation->NameOfClass(),
+            "irtkMultiLevelFreeFormTransformation") != 0) {
+                cerr << "irtkImageMultiFreeFormRegistration::SetOutput: Transformation must be "
+                    << "irtkMultiLevelFreeFormTransformation" << endl;
+                exit(0);
+        }
+        cerr << "irtkImageMultiFreeFormRegistration::SetOutput: Transformation must be "
+            << "Multiple irtkMultiLevelFreeFormTransformation" << endl;
+        _transformation = transformation;
 }
 
-inline const char *irtkImageFreeFormRegistration2::NameOfClass()
+inline const char *irtkImageMultiFreeFormRegistration2::NameOfClass()
 {
-  return "irtkFreeFormRegistration";
+  return "irtkImageMultiFreeFormRegistration";
 }
 
-inline void irtkImageFreeFormRegistration2::Print()
+inline void irtkImageMultiFreeFormRegistration2::Print()
 {}
 
 #endif

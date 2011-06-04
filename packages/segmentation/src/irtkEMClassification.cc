@@ -407,9 +407,6 @@ void irtkEMClassification::EStep()
           cerr<<"tissue="<<k;
           if (k==0) _output.SetValue(k, 1);
           else     _output.SetValue(k, 0);
-
-
-          //exit(1);
         }
       }
     } else {

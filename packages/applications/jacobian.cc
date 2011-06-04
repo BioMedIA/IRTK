@@ -17,7 +17,7 @@
 // Default filenames
 char *input_name = NULL, *output_name, *dof_name  = NULL;
 
-typedef enum { LocalJacobian, GlobalJacobian, RelativeJacobian, TotalJacobian } JacobianMode;
+typedef enum { LocalJacobian, GlobalJacobian, RelativeJacobian, TotalJacobian, LogJacobian } JacobianMode;
 
 void usage()
 {
@@ -27,6 +27,7 @@ void usage()
   cerr << "<-local>                 Local jacobian only " << endl;
   cerr << "<-global>                Global jacobian only " << endl;
   cerr << "<-relative>              Local jacobian divided by global Jacobian" << endl;
+  cerr << "<-log>                   Log of jacobian" << endl;
   cerr << "<-padding value>         Padding value" << endl;
   exit(1);
 }
@@ -88,6 +89,12 @@ int main(int argc, char **argv)
       jac_mode = GlobalJacobian;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-log") == 0)) {
+        argc--;
+        argv++;
+        jac_mode = LogJacobian;
+        ok = true;
+    }
     if ((ok == false) && (strcmp(argv[1], "-relative") == 0)) {
       argc--;
       argv++;
@@ -143,6 +150,11 @@ int main(int argc, char **argv)
             break;
           case RelativeJacobian:
             jac = mffd->irtkTransformation::LocalJacobian(x, y, z) / mffd->irtkTransformation::GlobalJacobian(x, y, z);
+            break;
+          case LogJacobian:
+            jac = mffd->irtkTransformation::Jacobian(x, y, z);
+            if (jac < 0.0001) jac = 0.0001;
+            jac = fabs(log(jac));
             break;
           default:
             break;

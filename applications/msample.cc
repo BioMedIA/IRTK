@@ -213,7 +213,6 @@ int main(int argc, char **argv)
 		narray->SetNumberOfTuples(model->GetNumberOfPoints());
 		narray->SetNumberOfComponents(1);
 		narray->SetName("IntensityCountProfile");
-		int count2;
 
 		// Build a locator 
 		vtkPointLocator *pointLocator = vtkPointLocator::New();
@@ -235,7 +234,7 @@ int main(int argc, char **argv)
 					normal[j] = normal[j] / distance;
 				}
 				ds = distance / n;
-				count = 0; count2 = 0;
+				count = 0;
 				if(!son){
 					for (j = 0; j < n; j++) {
 						x = point[0] + (j + 1) * ds * normal[0];
@@ -244,11 +243,7 @@ int main(int argc, char **argv)
 						image.WorldToImage(x,y,z);
 						if(interpolator.Evaluate(x, y, z) >= 0){
 							count += interpolator.Evaluate(x, y, z);
-							count2 ++;
 						}
-					}
-					if(count2 > 0){
-						count = count / count2;
 					}
 				}else{
 					x = point[0] + n / 2 * ds * normal[0];

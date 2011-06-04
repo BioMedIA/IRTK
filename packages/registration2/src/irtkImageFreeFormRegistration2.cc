@@ -36,6 +36,8 @@ irtkImageFreeFormRegistration2::irtkImageFreeFormRegistration2()
   _Subdivision = true;
   _Mode        = RegisterXYZ;
   _MFFDMode    = true;
+  _adjugate     = NULL;
+  _determine   = NULL;
 }
 
 void irtkImageFreeFormRegistration2::GuessParameter()
@@ -144,6 +146,8 @@ void irtkImageFreeFormRegistration2::Initialize()
     _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
   }
   _mffd->PushLocalTransformation(_affd);
+  _adjugate = new irtkMatrix[_affd->NumberOfDOFs()/3];
+  _determine = new double[_affd->NumberOfDOFs()/3];
 }
 
 void irtkImageFreeFormRegistration2::Initialize(int level)
@@ -206,6 +210,8 @@ void irtkImageFreeFormRegistration2::Finalize()
 
   // Finalize base class
   this->irtkImageRegistration2::Finalize();
+  delete []_adjugate;
+  delete []_determine;
 }
 
 void irtkImageFreeFormRegistration2::Finalize(int level)
@@ -221,16 +227,231 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
     if (this->_Subdivision == true) {
       _affd->Subdivide();
     } else {
-      // Push local transformation back on transformation stack
-      _mffd->PushLocalTransformation(_affd);
-
       // Create new FFD
       _affd = new irtkBSplineFreeFormTransformation(*_target,
               this->_DX / pow(2.0, this->_NumberOfLevels-level),
               this->_DY / pow(2.0, this->_NumberOfLevels-level),
               this->_DZ / pow(2.0, this->_NumberOfLevels-level));
+
+      // Push local transformation back on transformation stack
+      _mffd->PushLocalTransformation(_affd);
     }
   }
+  delete []_adjugate;
+  delete []_determine;
+  _adjugate = new irtkMatrix[_affd->NumberOfDOFs()/3];
+  _determine = new double[_affd->NumberOfDOFs()/3];
+}
+
+void irtkImageFreeFormRegistration2::Update()
+{
+    // Print debugging information
+    this->Debug("irtkImageFreeFormRegistration2::Update()");
+
+    // Finalize base class
+    this->irtkImageRegistration2::Update();
+
+    if(_Lambda2 > 0){
+        int index,i,j,k;
+        double x,y,z,jacobian;
+        // Update Jacobian and jacobian determine;
+        for (index = 0; index < _affd->NumberOfDOFs()/3; index++) {
+            _affd->IndexToLattice(index,i,j,k);
+            x = i;
+            y = j;
+            z = k;
+            _affd->LatticeToWorld(x,y,z);
+            irtkMatrix jac;
+            jac.Initialize(3,3);
+            _mffd->LocalJacobian(jac,x,y,z);
+            jac.Adjugate(jacobian);
+            if(jacobian < 0.0000001) jacobian = 0.0000001;
+            _determine[index] = jacobian;
+            _adjugate[index] = jac;
+        }
+    }
+}
+
+double irtkImageFreeFormRegistration2::SmoothnessPenalty()
+{
+    int i, j, k;
+    double x, y, z, penalty;
+
+    penalty = 0;
+    for (k = 0; k < _affd->GetZ(); k++) {
+        for (j = 0; j < _affd->GetY(); j++) {
+            for (i = 0; i < _affd->GetX(); i++) {
+                x = i;
+                y = j;
+                z = k;
+                _affd->LatticeToWorld(x, y, z);
+                penalty += _affd->Bending(x, y, z);
+            }
+        }
+    }
+    return -penalty / _affd->NumberOfDOFs();
+}
+
+double irtkImageFreeFormRegistration2::SmoothnessPenalty(int index)
+{
+    int i, j, k;
+    double x, y, z;
+
+    _affd->IndexToLattice(index, i, j, k);
+    x = i;
+    y = j;
+    z = k;
+    _affd->LatticeToWorld(x, y, z);
+    return -_affd->Bending(x, y, z);
+}
+
+double irtkImageFreeFormRegistration2::VolumePreservationPenalty()
+{
+    int k;
+    double penalty, jacobian;
+
+    penalty = 0;
+    for (k = 0; k < _affd->NumberOfDOFs()/3; k++) {
+        // Determinant of Jacobian of deformation derivatives
+        jacobian = _determine[k];
+        penalty += pow(log(jacobian),2);
+    }
+
+    // Normalize sum by number of DOFs
+    return -penalty / (double) _affd->NumberOfDOFs();
+}
+
+void irtkImageFreeFormRegistration2::VolumePreservationPenalty(int index, double *drv)
+{
+    int i, j, k, l, m, n, o, i1, j1, k1, i2, j2, k2, count, index1;
+    double jacobian;
+    irtkMatrix jac,det_drv[3];
+
+    _affd->IndexToLattice(index, i, j, k);
+    l = i;
+    m = j;
+    n = k;
+    count = 0;
+    k1 = (k-1)>0?(k-1):0;
+    j1 = (j-1)>0?(j-1):0;
+    i1 = (i-1)>0?(i-1):0;
+    k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
+    j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
+    i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
+
+    for(i=0;i<3;i++)
+        drv[i] = 0;
+    
+    for (k = k1; k < k2; k++) {
+        for (j = j1; j < j2; j++) {
+            for (i = i1; i < i2; i++) {
+                if(((k == n && j == m) 
+                    || (k == n && i == l)
+                    || (j == m && i == l))
+                    &&(k != n || j != m || i != l)){
+                index1 = _affd->LatticeToIndex(i,j,k);
+                // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
+                // Calculate jacobian
+                irtkMatrix jac = _adjugate[index1];
+
+                // find jacobian derivatives
+                jacobian = _determine[index1];
+
+                // if jacobian < 0
+                jacobian = (2.0*log(jacobian))/jacobian;
+
+                _affd->JacobianDetDerivative(det_drv,i-l,j-m,k-n);
+
+                double tmpdrv[3];
+
+                for(o = 0; o < 3; o++){
+                    // trace * adjugate * derivative
+                    tmpdrv[o] = jac(0,o)*det_drv[o](o,0) + jac(1,o)*det_drv[o](o,1) + jac(2,o)*det_drv[o](o,2);
+                    // * rest of the volume preservation derivative
+                    drv[o] += (jacobian*tmpdrv[o]);
+                }
+                count ++;
+                }
+            }
+        }
+    }
+
+    for(l=0;l<3;l++)
+        drv[l] = -drv[l]/count;
+
+    return;
+}
+
+
+double irtkImageFreeFormRegistration2::TopologyPreservationPenalty()
+{
+    int i, j, k;
+    double x, y, z, jac, penalty;
+
+    penalty = 0;
+    for (k = 0; k < _affd->GetZ()-1; k++) {
+        for (j = 0; j < _affd->GetY()-1; j++) {
+            for (i = 0; i < _affd->GetZ()-1; i++) {
+                x = i+0.5;
+                y = j+0.5;
+                z = k+0.5;
+                _affd->LatticeToWorld(x, y, z);
+                jac = _affd->irtkTransformation::Jacobian(x, y, z);
+                if (jac < 0.3) {
+                    penalty += 10*jac*jac + 0.1/(jac*jac) - 2.0;
+                }
+            }
+        }
+    }
+    return -penalty;
+}
+
+double irtkImageFreeFormRegistration2::TopologyPreservationPenalty(int index)
+{
+    int i, j, k, l, m, n;
+    double x, y, z, jac, penalty;
+
+    penalty = 0;
+    for (l = 0; l <= 1; l++) {
+        for (m = 0; m <= 1; m++) {
+            for (n = 0; n <= 1; n++) {
+                _affd->IndexToLattice(index, i, j, k);
+                x = i+l-0.5;
+                y = j+m-0.5;
+                z = k+n-0.5;
+                _affd->LatticeToWorld(x, y, z);
+                jac = _affd->irtkTransformation::Jacobian(x, y, z);
+                if (jac < 0.3) {
+                    penalty += 10*jac*jac + 0.1/(jac*jac) - 2.0;
+                }
+            }
+        }
+    }
+    return -penalty;
+}
+
+double irtkImageFreeFormRegistration2::Evaluate()
+{
+    double similarity;
+
+    // Evaluate similarity
+    similarity = this->irtkImageRegistration2::Evaluate();
+
+    // Add penalty for smoothness
+    if (this->_Lambda1 > 0) {
+        similarity += this->_Lambda1*this->SmoothnessPenalty();
+    }
+    // Add penalty for volume preservation
+    if (this->_Lambda2 > 0) {
+        similarity += this->_Lambda2*this->VolumePreservationPenalty();
+    }
+    // Add penalty for topology preservation
+    if (this->_Lambda3 > 0) {
+        similarity += this->_Lambda3*this->TopologyPreservationPenalty();
+    }
+
+    //Return similarity measure + penalty terms
+    return similarity;
 }
 
 double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
@@ -298,6 +519,24 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
               }
             }
           }
+        }
+
+        // Add penalty for smoothness
+        if (this->_Lambda1 > 0) {
+            
+        }
+        // Add penalty for volume preservation
+        if (this->_Lambda2 > 0) {
+            // Get inverted jacobian
+            double det_dev[3];
+            this->VolumePreservationPenalty(index,det_dev);
+            gradient[index]  += this->_Lambda2  * det_dev[0];
+            gradient[index2] += this->_Lambda2  * det_dev[1];
+            gradient[index3] += this->_Lambda2  * det_dev[2];
+        }
+        // Add penalty for topology preservation
+        if (this->_Lambda3 > 0) {
+            
         }
       }
     }
@@ -487,6 +726,21 @@ bool irtkImageFreeFormRegistration2::Read(char *buffer1, char *buffer2, int &lev
     cout << "Lambda 3 is ... " << this->_Lambda3 << endl;
     ok = true;
   }
+  if (strstr(buffer1, "MFFDMode") != NULL) {
+      if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
+          this->_MFFDMode = false;
+          cout << "MFFDMode is ... false" << endl;
+      } else {
+          if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+              this->_MFFDMode = true;
+              cout << "MFFDMode is ... true" << endl;
+          } else {
+              cerr << "Can't read boolean value = " << buffer2 << endl;
+              exit(1);
+          }
+      }
+      ok = true;
+  }
   if (strstr(buffer1, "Control point spacing in X") != NULL) {
     this->_DX = atof(buffer2);
     cout << "Control point spacing in X is ... " << this->_DX << endl;
@@ -538,6 +792,11 @@ void irtkImageFreeFormRegistration2::Write(ostream &to)
     to << "Subdivision                       = True" << endl;
   } else {
     to << "Subdivision                       = False" << endl;
+  }
+  if (_MFFDMode == true) {
+      to << "MFFDMode                       = True" << endl;
+  } else {
+      to << "MFFDMode                       = False" << endl;
   }
 
   this->irtkImageRegistration2::Write(to);

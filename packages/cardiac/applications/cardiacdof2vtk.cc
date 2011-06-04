@@ -247,14 +247,17 @@ int main(int argc, char **argv)
 			 result_of_strain = strainm.Det();
 			 strainvectors->InsertNextTuple(&result_of_strain);
 			 straintensor->InsertNextTuple(tensor_of_strain);
+		  }else{
+			  double magnitudev = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2]);
+			  strainvectors->InsertNextTuple(&magnitudev);
 		  }
 	  }			
   }
   vtkPolyData *output = vtkPolyData::New();
   output->SetPoints(points);
   output->GetPointData()->SetVectors(vectors);
+  output->GetPointData()->SetScalars(strainvectors);
   if(strain){
-	  output->GetPointData()->SetScalars(strainvectors);
 	  output->GetPointData()->SetTensors(straintensor);
   }
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();

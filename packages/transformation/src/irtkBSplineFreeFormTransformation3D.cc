@@ -638,6 +638,84 @@ void irtkBSplineFreeFormTransformation3D::LocalJacobian(irtkMatrix &jac, double 
   jac(2, 2) += 1;
 }
 
+void irtkBSplineFreeFormTransformation3D::JacobianDetDerivative(irtkMatrix *detdev, int x, int y, int z)
+{
+    int i;
+    double x_b,y_b,z_b,x_f,y_f,z_f,b_i,b_j,b_k;
+
+    switch(x){
+    case -1:
+        x_b=(1.0/6.0);
+        x_f=(0.5);
+        break;
+    case 0:
+        x_b=(2.0/3.0);
+        x_f=(0.0);
+        break;
+    case 1:
+        x_b=(1.0/6.0);
+        x_f=(-0.5);
+        break;
+    default:
+        x_b=0.0;
+        x_f=0.0;
+        break;
+    }
+
+    switch(y){
+    case -1:
+        y_b=(1.0/6.0);
+        y_f=(0.5);
+        break;
+    case 0:
+        y_b=(2.0/3.0);
+        y_f=(0.0);
+        break;
+    case 1:
+        y_b=(1.0/6.0);
+        y_f=(-0.5);
+        break;
+    default:
+        y_b=0.0;
+        y_f=0.0;
+        break;
+    }
+
+    switch(z){
+    case -1:
+        z_b=(1.0/6.0);
+        z_f=(0.5);
+        break;
+    case 0:
+        z_b=(2.0/3.0);
+        z_f=(0.0);
+        break;
+    case 1:
+        z_b=(1.0/6.0);
+        z_f=(-0.5);
+        break;
+    default:
+        z_b=0.0;
+        z_f=0.0;
+        break;
+    }
+
+    for(i = 0; i < 3; i++){
+      detdev[i].Initialize(3,3);
+    }
+
+    b_i = x_f*y_b*z_b;
+    b_j = x_b*y_f*z_b;
+    b_k = x_b*y_b*z_f;
+
+    for(i = 0; i < 3; i++){
+        // with respect to ui
+       detdev[i](i,0) = b_i; detdev[i](i,1) = b_j; detdev[i](i,2) = b_k;
+       detdev[i] = detdev[i] * _matW2L(0, 0, 3, 3);
+    }
+
+}
+
 void irtkBSplineFreeFormTransformation3D::JacobianDOFs(double jac[3], int dof, double x, double y, double z, double)
 {
 	int i, j, k;
