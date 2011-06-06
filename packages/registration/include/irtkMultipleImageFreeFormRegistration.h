@@ -71,6 +71,11 @@ protected:
       lookup table needs to be calculated only once. */
   float *_localLookupTable;
 
+  /// image lambda weight
+  double **_weight;
+
+  int _level;
+
   /// Smoothness parameter for non-rigid registration
   double _Lambda1;
 
@@ -195,6 +200,8 @@ public:
   virtual GetMacro(SpeedupFactor, double);
   virtual SetMacro(MFFDMode, bool);
   virtual GetMacro(MFFDMode, bool);
+  /// Set weighting between images
+  virtual void SetWeighting(double **);
 
 };
 
@@ -219,6 +226,11 @@ inline const char *irtkMultipleImageFreeFormRegistration::NameOfClass()
 
 inline void irtkMultipleImageFreeFormRegistration::Print()
 {}
+
+inline void irtkMultipleImageFreeFormRegistration::SetWeighting(double **weight)
+{
+    _weight = weight;
+}
 
 #endif
 

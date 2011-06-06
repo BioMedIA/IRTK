@@ -10,8 +10,8 @@ char *dofout_name = NULL, *parin_name  = NULL, *parout_name = NULL, **filenames 
 
 void usage()
 {
-	cerr << "Usage: motiontrackmultimage [image sequence] <options> \numberOfImages" << endl;
-	cerr << "Registration using all image sequences at the same time \numberOfImages" << endl;
+	cerr << "Usage: motiontrackmultimage [image sequence] <options> \n" << endl;
+	cerr << "Registration using all image sequences at the same time \n" << endl;
 	cerr << "where <options> is one or more of the following:\numberOfImages" << endl;
 	cerr << "<-parin file>        Read parameter from file" << endl;
 	cerr << "<-parout file>       Write parameter to file" << endl;
@@ -28,14 +28,15 @@ void usage()
 	cerr << "<-Tp  value>         Padding value" << endl;
 	cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
 	cerr << "<-landmarks name>    Landmark Regulation input name is prefix" << endl;
-	exit(1);
+    cerr << "<-weighting levelnumber weight1...weightn>    weighting for the images" << endl;
+    exit(1);
 }
 
 
 int main(int argc, char **argv)
 {
-	int l, i, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
-	double spacing, sigma, xaxis[3], yaxis[3], zaxis[3];
+	int l, i, j, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
+	double spacing, sigma, xaxis[3], yaxis[3], zaxis[3],**weight;
 	irtkGreyPixel padding;
 	irtkMultiLevelFreeFormTransformation *mffd;
 	irtkPointSet **landmarks;
@@ -48,6 +49,7 @@ int main(int argc, char **argv)
 	// Get image names for sequence
 	numberOfImages = 0;
 	filenames = argv;
+    weight = new double*[10];
 	while ((argc > 1) && (argv[1][0] != '-' )) {
 		argv++;
 		argc--;
@@ -55,6 +57,12 @@ int main(int argc, char **argv)
 	}
 	filenames++;
 	landmarks = NULL;
+    for (i = 0; i < 10; i++){
+        weight[i] = new double[numberOfImages];
+        for (j = 0; j < numberOfImages; j++) {
+            weight[i][j] = 1;
+        }
+    }
 
 	// Read image sequence
 	cout << "Reading image sequence ... "; cout.flush();
@@ -216,22 +224,40 @@ int main(int argc, char **argv)
 			argv++;
 			ok = true;
 		}
-		if ((ok == false) && (strcmp(argv[1], "-landmarks") == 0)) {
+		if ((ok == false) && (strcmp(argv[1], "-weighting") == 0)) {
 			argc--;
 			argv++;
-			cout << "Reading landmark sequence ... "; cout.flush();
-			landmarks = new irtkPointSet *[image[0]->GetT()];
-			for (i = 0; i < image[0]->GetT(); i++) {
-				char buffer[255];
-				sprintf(buffer, "%s%.2d.vtk", argv[1],i);
-				cout << buffer << endl;
-				landmarks[i] = new irtkPointSet();
-				landmarks[i]->ReadVTK(buffer);
+            int level = atoi(argv[1]);
+            if(level > 9){
+               cout << "Number of level < 10" << endl;
+               exit(1);
+            }
+            argc--;
+            argv++;
+			cout << "Setting weighting for level: " << level << endl; cout.flush();
+			for (i = 0; i < numberOfImages; i++) {
+                weight[level][i] = atof(argv[1]);
+                argc--;
+                argv++;
 			}
-			argc--;
-			argv++;
 			ok = true;
 		}
+        if ((ok == false) && (strcmp(argv[1], "-landmarks") == 0)) {
+            argc--;
+            argv++;
+            cout << "Reading landmark sequence ... "; cout.flush();
+            landmarks = new irtkPointSet *[image[0]->GetT()];
+            for (i = 0; i < image[0]->GetT(); i++) {
+                char buffer[255];
+                sprintf(buffer, "%s%.2d.vtk", argv[1],i);
+                cout << buffer << endl;
+                landmarks[i] = new irtkPointSet();
+                landmarks[i]->ReadVTK(buffer);
+            }
+            argc--;
+            argv++;
+            ok = true;
+        }
 		if (ok == false) {
 			cerr << "Can not parse argument " << argv[1] << endl;
 			usage();
@@ -356,6 +382,8 @@ int main(int argc, char **argv)
 			multimageregistration->irtkMultipleImageRegistration::Write(parout_name);
 		}
 
+        multimageregistration->SetWeighting(weight);
+
 		// Run registration filter
 		multimageregistration->Run();
 
@@ -380,4 +408,9 @@ int main(int argc, char **argv)
 		delete []target;
 		delete []source;
 	}
+
+    for(i = 0; i < 10; i++){
+        delete []weight[i];
+    }
+    delete []weight;
 }

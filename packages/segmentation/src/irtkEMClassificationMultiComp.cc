@@ -240,8 +240,6 @@ void irtkEMClassificationMultiComp::MStep()
       _mi[k] = mi_num[k] / denom[k];
     } else {
 	  _mi[k] = -1;
-      //cerr << "Division by zero while computing tissue mean!" << endl;
-      //exit(1);
     }
   }
 
@@ -286,7 +284,8 @@ void irtkEMClassificationMultiComp::MStep()
 void irtkEMClassificationMultiComp::EStep()
 {
   int i, j, k, x, y, z, t;
-  double v,distance;
+  double v;
+  //,distance;
 
   irtkGaussian* G = new irtkGaussian[_number_of_tissues];
   double *center_x = new double[_number_of_tissues];
@@ -352,13 +351,13 @@ void irtkEMClassificationMultiComp::EStep()
 		  for (k = _ns[j]; k < _ne[j]; k++) {
 			  if(_mi[k]!=-1){
 				  gv[k] = G[k].Evaluate(v);
-				  if(k == _ns[j]){
+				  //if(k == _ns[j]){
                       numerator[k] = gv[k] * _atlas.GetValue(j) * _c[k];
-                  }else{
-                      _input.GetImageAttributes().IndexToLattice(i,&x,&y,&z,&t);
-                      distance = sqrt(pow(x-center_x[k],2)+pow(y-center_y[k],2)+pow(z-center_z[k],2)) + 1;
-                      numerator[k] = gv[k] * _atlas.GetValue(j) * _c[k] / distance;
-                  }
+                  //}else{
+                     // _input.GetImageAttributes().IndexToLattice(i,&x,&y,&z,&t);
+                      //distance = sqrt(pow(x-center_x[k],2)+pow(y-center_y[k],2)+pow(z-center_z[k],2)) + 1;
+                     // numerator[k] = gv[k] * _atlas.GetValue(j) * _c[k] / distance;
+                  //}
 				  denominator += numerator[k];
 			  }else{
 				  numerator[k] = 0;

@@ -158,7 +158,6 @@ extern void irtkPadding(irtkGreyImage &, irtkGreyPixel);
 extern void irtkPadding(irtkGreyImage &, irtkGreyPixel, irtkFreeFormTransformation3D *ffd);
 extern void irtkPadding(irtkGreyImage **, irtkGreyPixel, irtkFreeFormTransformation3D *ffd, int numberOfImages);
 extern int  irtkCalculateNumberOfBins(irtkGreyImage *, int, int, int);
-extern int  irtkCalculateNumberOfBins(irtkGreyImage **, int, int, int, int);
 extern double GuessResolution(double, double);
 extern double GuessResolution(double, double, double);
 extern int GuessPadding(irtkGreyImage &);

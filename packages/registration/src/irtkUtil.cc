@@ -245,46 +245,6 @@ int irtkCalculateNumberOfBins(irtkGreyImage *image, int maxbin, int min, int max
   return nbins;
 }
 
-int irtkCalculateNumberOfBins(irtkGreyImage **image, int maxbin, int min, int max, int n)
-{
-  int i, j, nbins, range, width;
-  irtkGreyPixel *ptr;
-
-  // Find the min and max intensities
-  range = max - min + 1;
-  nbins = max - min + 1;
-  width = 1;
-
-  // Calculate number of bins to use
-  if (maxbin > 0) {
-    while (int(ceil(range/(double)width)) > maxbin) {
-      width++;
-    }
-    nbins = int(ceil(range/(double)width));
-
-    // Print out number of bins
-    cout << "Using " << nbins << " out of " << maxbin << " bin(s) with width "
-         << width << endl;
-  } else {
-    // Print out number of bins
-    cout << "Using " << nbins << " bin(s) with width " 	 << width << endl;
-  }
-
-  // Rescale intensities to the number of bins
-  for (j = 0; j < n; j++) {
-    ptr = image[j]->GetPointerToVoxels();
-    for (i = 0; i < image[j]->GetNumberOfVoxels(); i++) {
-      if (*ptr > 0) {
-        *ptr = int(*ptr/(double)width);
-      }
-      ptr++;
-    }
-  }
-
-  // Return number of bins
-  return nbins;
-}
-
 int read_line(istream &in, char *buffer1, char *&buffer2)
 {
   char c;

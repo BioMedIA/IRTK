@@ -21,7 +21,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int x, y, z, ok, invert;
+  int x, y, z, t, ok, invert;
   double i, j, k;
   irtkGreyPixel threshold;
   irtkRealPixel padding;
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   }
   invert = 0;
 
-  irtkRealImage imageA(argv[1]);
+  irtkGreyImage imageA(argv[1]);
   argc--;
   argv++;
   irtkGreyImage imageB(argv[1]);
@@ -61,24 +61,27 @@ int main(int argc, char **argv)
     }
   }
 
-  for (z = 0; z < imageA.GetZ(); z++) {
-	  for (y = 0; y < imageA.GetY(); y++) {
-		  for (x = 0; x < imageA.GetX(); x++) {
-			  i = x; j = y; k = z;
-			  imageA.ImageToWorld(i,j,k);
-			  imageB.WorldToImage(i,j,k);
-			  i = round(i); j = round(j); k = round(k);
-			  if(i >= 0 && i < imageB.GetX()
-				  && j >= 0 && j < imageB.GetY()
-				  && k >= 0 && k < imageB.GetZ()){
-					  if(invert){
-						  if (imageB(i, j, k) != threshold) imageA(x, y, z) = padding;
-					  }else{
-						  if (imageB(i, j, k) == threshold) imageA(x, y, z) = padding;
-					  }
-			  }
-		  }
-	  }
+  for (t = 0; t < imageA.GetT(); t++) {
+      for (z = 0; z < imageA.GetZ(); z++) {
+          for (y = 0; y < imageA.GetY(); y++) {
+              for (x = 0; x < imageA.GetX(); x++) {
+                  i = x; j = y; k = z;
+                  imageA.ImageToWorld(i,j,k);
+                  imageB.WorldToImage(i,j,k);
+                  i = round(i); j = round(j); k = round(k);
+                  if(i >= 0 && i < imageB.GetX()
+                      && j >= 0 && j < imageB.GetY()
+                      && k >= 0 && k < imageB.GetZ()
+                      && t >= 0 && t < imageB.GetT()){
+                          if(invert){
+                              if (imageB(i, j, k, t) != threshold) imageA(x, y, z, t) = padding;
+                          }else{
+                              if (imageB(i, j, k, t) == threshold) imageA(x, y, z, t) = padding;
+                          }
+                  }
+              }
+          }
+      }
   }
 
   imageA.Write(outputname);

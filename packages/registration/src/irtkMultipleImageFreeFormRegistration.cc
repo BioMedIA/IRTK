@@ -42,6 +42,11 @@ irtkMultipleImageFreeFormRegistration::irtkMultipleImageFreeFormRegistration()
   _DZ          = 20;
   _Subdivision = true;
   _MFFDMode    = true;
+
+  // weight
+  _weight = NULL;
+
+  _level = 0;
 }
 
 void irtkMultipleImageFreeFormRegistration::GuessParameter()
@@ -185,6 +190,9 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
   // Initialize base class
   this->irtkMultipleImageRegistration::Initialize(level);
 
+  // Set level
+  _level = level;
+
   // Tell optimizer which transformation to optimize
   _optimizer->SetTransformation(_affd);
 
@@ -200,6 +208,7 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
   _mffdLookupTable = new float*[_numberOfImages];
 
   for (l = 0; l < _numberOfImages; l++) {
+    cout << "image " << l << "th's external weight is " << _weight[_level][l] << endl;
     _tmpMetricA[l] = irtkSimilarityMetric::New(_metric[l]);
     _tmpMetricB[l] = irtkSimilarityMetric::New(_metric[l]);
     _mtmpImage[l] = new irtkGreyImage(_target[l]->GetX(),
@@ -233,9 +242,6 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
       }
     }
   }
-
-  // Padding of FFD
-  //irtkPadding(tmp_mtarget, this->_TargetPadding, _affd, _numberOfImages);
 }
 
 void irtkMultipleImageFreeFormRegistration::Finalize()
@@ -617,7 +623,10 @@ double irtkMultipleImageFreeFormRegistration::Evaluate()
                 // Add sample to metric
                 *ptr2tmp =  round(_interpolator[n]->EvaluateInside(x, y, z, t));
                 _metric[n]->Add(*ptr2target, *ptr2tmp);
-                sweight[n] ++;
+                if(_weight == NULL)
+                    sweight[n]++;
+                else
+                    sweight[n] += _weight[_level][n];
               } else {
                 *ptr2tmp = -1;
               }
@@ -752,7 +761,10 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
                            && p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
 
                     // Add sample to metric
-                    weight[n] ++;
+                    if(_weight == NULL)
+                        weight[n]++;
+                    else
+                        weight[n] += _weight[_level][n];
                     tmpMetricA[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
                   }
 
@@ -772,7 +784,10 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
                            && p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
 
                     // Add sample to metric
-                    weight[n]++;
+                    if(_weight == NULL)
+                        weight[n]++;
+                    else
+                        weight[n] += _weight[_level][n];
                     tmpMetricB[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
                   }
                 }

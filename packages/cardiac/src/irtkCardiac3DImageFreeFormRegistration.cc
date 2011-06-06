@@ -229,22 +229,19 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
   tmp_mutarget = new irtkGreyImage*[_numberOfuImages];
   tmp_musource = new irtkGreyImage*[_numberOfuImages];
 
-  target_max = MIN_GREY;
-  target_min = MAX_GREY;
-  source_max = MIN_GREY;
-  source_min = MAX_GREY;
+  // Allocate memory for metric
+  _umetric = new irtkSimilarityMetric*[_numberOfuImages];
 
   for (n = 0; n < _numberOfuImages; n++) {
+
+      target_max = MIN_GREY;
+      target_min = MAX_GREY;
+      source_max = MIN_GREY;
+      source_min = MAX_GREY;
 
     // Copy source and target to temp space
     tmp_mutarget[n] = new irtkGreyImage(*_utarget[n]);
     tmp_musource[n] = new irtkGreyImage(*_usource[n]);
-	
-	/*char buffer[255];
-	sprintf(buffer, "target%d.nii", n);
-	_utarget[n]->Write(buffer);
-	sprintf(buffer, "source%d.nii", n);
-	_usource[n]->Write(buffer);*/
 
     // Swap source and target with temp space copies
     swap(tmp_mutarget[n], _utarget[n]);
@@ -332,9 +329,6 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
         }
       }
     }
-  }
-
-  for (n = 0; n < _numberOfuImages; n++) {
 	  // Check whether dynamic range of data is not to large
 	  if (target_max - target_min > MAX_GREY) {
 		  cerr << this->NameOfClass()
@@ -393,11 +387,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
 
     // Pad target image if necessary
     irtkPadding(*_utarget[n], _TargetPadding);
-  }
 
-  // Allocate memory for metric
-  _umetric = new irtkSimilarityMetric*[_numberOfuImages];
-  for (n = 0; n < _numberOfuImages; n++) {
   switch (_SimilarityMeasure) {
   case SSD:
     _umetric[n] = new irtkSSDSimilarityMetric;
@@ -408,42 +398,42 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
     break;
   case JE:
     // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget, _NumberOfBins,
-                   target_min, target_max, _numberOfuImages);
-    source_nbins = irtkCalculateNumberOfBins(_usource, _NumberOfBins,
-                   source_min, source_max, _numberOfuImages);
+    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+                   target_min, target_max);
+    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+                   source_min, source_max);
     _umetric[n] = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
     break;
   case MI:
     // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget, _NumberOfBins,
-                   target_min, target_max, _numberOfuImages);
-    source_nbins = irtkCalculateNumberOfBins(_usource, _NumberOfBins,
-                   source_min, source_max, _numberOfuImages);
+    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+                   target_min, target_max);
+    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+                   source_min, source_max);
     _umetric[n] = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
     break;
   case NMI:
     // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget, _NumberOfBins,
-                   target_min, target_max, _numberOfuImages);
-    source_nbins = irtkCalculateNumberOfBins(_usource, _NumberOfBins,
-                   source_min, source_max, _numberOfuImages);
+    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+                   target_min, target_max);
+    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+                   source_min, source_max);
     _umetric[n] = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
     break;
   case CR_XY:
     // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget, _NumberOfBins,
-                   target_min, target_max, _numberOfuImages);
-    source_nbins = irtkCalculateNumberOfBins(_usource, _NumberOfBins,
-                   source_min, source_max, _numberOfuImages);
+    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+                   target_min, target_max);
+    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+                   source_min, source_max);
     _umetric[n] = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
     break;
   case CR_YX:
     // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget, _NumberOfBins,
-                   target_min, target_max, _numberOfuImages);
-    source_nbins = irtkCalculateNumberOfBins(_usource, _NumberOfBins,
-                   source_min, source_max, _numberOfuImages);
+    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+                   target_min, target_max);
+    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+                   source_min, source_max);
     _umetric[n] = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
     break;
   case LC:
@@ -451,10 +441,10 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
     break;
   case K:
     // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget, _NumberOfBins,
-                   target_min, target_max, _numberOfuImages);
-    source_nbins = irtkCalculateNumberOfBins(_usource, _NumberOfBins,
-                   source_min, source_max, _numberOfuImages);
+    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+                   target_min, target_max);
+    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+                   source_min, source_max);
     _umetric[n] = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
     break;
   case ML:
