@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 }
 
 #else
-
+#include <irtkCommon.h>
 int main(int argc, char **argv)
 {
   cerr << "ptransformation: this program needs to be compiled with vtk enabled.\n";

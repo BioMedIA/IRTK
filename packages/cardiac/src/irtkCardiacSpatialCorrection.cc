@@ -1126,7 +1126,6 @@ void irtkCardiacSpatialCorrection::Write(char *filename)
 
 void irtkCardiacSpatialCorrection::GuessParameter()
 {
-	int i;
 	double xsize, ysize, zsize;
 
 	if ((_target == NULL) || (_source == NULL)) {

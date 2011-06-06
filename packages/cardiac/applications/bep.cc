@@ -92,6 +92,7 @@ int main( int argc, char** argv )
     bepsurface_reader->Delete();
 }
 #else
+#include <irtkCommon.h>
 
 int main( int argc, char *argv[] )
 {
