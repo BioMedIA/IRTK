@@ -6,6 +6,8 @@ endif(COMMAND cmake_policy)
 
 PROJECT(IRTK)
 
+INCLUDE(CTest)
+
 OPTION(USE_VXL "Use VXL library instead of Numerical Recipes" OFF)
 IF (USE_VXL)
   SUBDIRS(vxl)
