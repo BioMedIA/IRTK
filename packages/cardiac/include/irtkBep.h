@@ -2,12 +2,11 @@
 
 #define _IRTKBEP_H
 
-#ifdef HAS_VTK
-
 #include <irtkRegistration.h>
 #include <irtkGaussianBlurring.h>
 #include <irtkSegmentationFunction.h>
 
+#ifdef HAS_VTK
 
 class irtkBep : public irtkObject
 {

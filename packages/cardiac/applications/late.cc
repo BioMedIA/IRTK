@@ -1,5 +1,5 @@
 #include <irtkBep.h>
-
+#ifdef HAS_VTK
 char *late_name = NULL, *seg_name = NULL;
 char *out_name = NULL;
 
@@ -76,3 +76,9 @@ int main( int argc, char** argv )
 	}
 	output.Write(out_name);
 }
+#else
+int main( int argc, char** argv ){
+  cerr << "No VTK" <<endl;
+  exit(1);
+}
+#endif
