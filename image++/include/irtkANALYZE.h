@@ -37,7 +37,7 @@ public:
   short padding2;
   char  regular;
   char  padding3;
-  short dims[4];
+  short dims[5];
   short padding4[11];
   short data_type;
   short bits;

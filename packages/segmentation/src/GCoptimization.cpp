@@ -1490,7 +1490,7 @@ void GCoptimizationGridGraph::giveNeighborInfo(SiteID site, SiteID *numSites, Si
 void GCoptimizationGridGraph::computeNeighborWeights(EnergyTermType *vCosts,EnergyTermType *hCosts)
 {
 	SiteID i,n,nSite;
-	GCoptimization::EnergyTermType weight;
+	GCoptimization::EnergyTermType weight = 0;
 	
 	m_neighborsWeights = new EnergyTermType[m_num_sites*4];
 
