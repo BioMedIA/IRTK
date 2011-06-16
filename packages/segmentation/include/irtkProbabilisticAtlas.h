@@ -91,7 +91,7 @@ public:
   int GetNumberOfTissues();
 
   /// Write
-  void Write(int, char *);
+  void Write(int, const char *);
 
   /// Computes hard segmentation
   irtkRealImage ComputeHardSegmentation();
@@ -100,7 +100,7 @@ public:
   void ExtractLabel(int label, irtkRealImage& image);
 
   /// Writes hard segmentation into a file
-  void WriteHardSegmentation(char *filename);
+  void WriteHardSegmentation(const char *filename);
 
   irtkRealImage GetImage(int);
 

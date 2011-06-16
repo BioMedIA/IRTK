@@ -150,7 +150,7 @@ void irtkProbabilisticAtlas::AddProbabilityMaps(int n, irtkRealImage **atlas)
   }
 };
 
-void irtkProbabilisticAtlas::Write(int i, char *filename)
+void irtkProbabilisticAtlas::Write(int i, const char *filename)
 {
   if  (i < _number_of_tissues) {
     _images[i] *= 255;
@@ -238,7 +238,7 @@ void irtkProbabilisticAtlas::ExtractLabel(int label, irtkRealImage& image)
   }
 }
 
-void irtkProbabilisticAtlas::WriteHardSegmentation(char *filename)
+void irtkProbabilisticAtlas::WriteHardSegmentation(const char *filename)
 {
   _segmentation.Write(filename);
 }

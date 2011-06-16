@@ -1048,12 +1048,12 @@ void irtkEMClassification::ConstructSegmentationNoBG(irtkRealImage &segmentation
   }
 }
 
-void irtkEMClassification::WriteProbMap(int i, char *filename)
+void irtkEMClassification::WriteProbMap(int i, const char *filename)
 {
   _output.Write(i, filename);
 }
 
-void irtkEMClassification::WriteGaussianParameters(char *file_name, int flag)
+void irtkEMClassification::WriteGaussianParameters(const char *file_name, int flag)
 {
   cerr << "Writing GaussianDistributionParameters: " << file_name << endl;
 
@@ -1105,7 +1105,7 @@ void irtkEMClassification::WriteGaussianParameters(char *file_name, int flag)
   }
 }
 
-void irtkEMClassification::WriteWeights(char *filename)
+void irtkEMClassification::WriteWeights(const char *filename)
 {
   irtkRealImage w(_weights);
   irtkRealPixel *pw = w.GetPointerToVoxels();
@@ -1414,7 +1414,7 @@ bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, i
 
 }
 
-void irtkEMClassification::WritePVProbMap(int i, char *filename)
+void irtkEMClassification::WritePVProbMap(int i, const char *filename)
 {
   _pv_output.Write(i, filename);
 }

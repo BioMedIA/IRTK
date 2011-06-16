@@ -197,21 +197,21 @@ public:
 
 
   ///Write probability map into a file
-  void WriteProbMap(int i, char *filename);
+  void WriteProbMap(int i, const char *filename);
   ///Write Gaussian parameters into a file
-  void WriteGaussianParameters(char *file_name, int flag = 0);
+  void WriteGaussianParameters(const char *file_name, int flag = 0);
   ///Write image estimate
-  void WriteEstimate(char *filename);
+  void WriteEstimate(const char *filename);
   ///Write weights
-  void WriteWeights(char *filename);
+  void WriteWeights(const char *filename);
   ///Write input
-  void WriteInput(char *filename);
+  void WriteInput(const char *filename);
   ///Write segmentation
-  void WriteSegmentation(char *filename);
+  void WriteSegmentation(const char *filename);
   ///Write hard PV segmentation
   void WritePVSegmentation();
   ///Write soft PV segmentation
-  void WritePVProbMap(int i, char *filename);
+  void WritePVProbMap(int i, const char *filename);
 
 
   ///Returns log likelihood for given intensity value
@@ -249,17 +249,17 @@ inline void irtkEMClassification::SetPadding(irtkRealPixel padding)
   _padding = padding;
 }
 
-inline void irtkEMClassification::WriteEstimate(char *filename)
+inline void irtkEMClassification::WriteEstimate(const char *filename)
 {
   _estimate.Write(filename);
 }
 
-inline void irtkEMClassification::WriteInput(char *filename)
+inline void irtkEMClassification::WriteInput(const char *filename)
 {
   _input.Write(filename);
 }
 
-inline void irtkEMClassification::WriteSegmentation(char *filename)
+inline void irtkEMClassification::WriteSegmentation(const char *filename)
 {
   _segmentation.Write(filename);
 }
