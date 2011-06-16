@@ -1166,7 +1166,7 @@ void irtkEMClassification::GInit()
 bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, double lcc_treshold, bool first, irtkGreyImage *)
 {
   int i,j,k,l,n;
-  int labelId[5], labelCount[4];
+  int labelId[5], labelCount[5];
   double lambda = 0, wm1Prior,wm2Prior,cortexPrior,csfPrior,cortexNew,csfNew,backgroundPrior;
   bool reduceWM = 0, reduceGM = 0;
   int increaseBG = 0;
@@ -1336,7 +1336,7 @@ bool irtkEMClassification::PVStep(int wm1Label, int wm2Label, int cortexLabel, i
 
            //identify csf-gm boundary csf index = 2 and gm index = 1 => csf-gm PV index =  2, with degree of certanty about wm
            if((_segmentation.GetAsDouble(i,j,k)==wm1Label)||(_segmentation.GetAsDouble(i,j,k)==wm2Label))
-             if ((PVtissues[2]>0)&&((labelCount[0]+labelCount[3])<13) )
+             if ((PVtissues[2]>0)&&((labelCount[0]+labelCount[4])<13) )
              { 
                reduceWM = 1;               
                change = true;
