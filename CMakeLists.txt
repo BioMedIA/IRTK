@@ -8,10 +8,6 @@ PROJECT(IRTK)
 
 INCLUDE(CTest)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "-Wno-deprecated")        ## Optimize
-endif()
-
 OPTION(USE_VXL "Use VXL library instead of Numerical Recipes" OFF)
 IF (USE_VXL)
   SUBDIRS(vxl)

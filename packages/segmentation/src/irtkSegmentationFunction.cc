@@ -34,7 +34,7 @@ void on_mouse( int event, int x, int y, int flags, void* param )
 irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *threshold, irtkGreyImage *target, CvHaarClassifierCascade *classifier, int oxsize, double fscale, int size)
 {
 
-  int i,j,k;
+  int i,k;
   //irtkPoint* heart_center = new irtkPoint[4];
   irtkAffineTransformation transformation;
   if(classifier == NULL) {

@@ -24,7 +24,6 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int ok;
   double average;
   irtkRealPixel std;
   irtkRealImage *image;
