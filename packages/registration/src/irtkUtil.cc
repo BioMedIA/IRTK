@@ -116,7 +116,7 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding, irtkFreeFormTransf
         index = ffd->LatticeToIndex(i, j, k);
 
         // Calculate bounding box of control point in voxels
-        ffd->BoundingBox(&image, index, x1, y1, z1, x2, y2, z2);
+        ffd->BoundingBox(&image, index, x1, y1, z1, x2, y2, z2, 0.5);
 
         ok = false;
         for (t = 0; t < image.GetT(); t++) {

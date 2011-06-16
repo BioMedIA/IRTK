@@ -176,7 +176,7 @@ template <class VoxelType> void irtkImageGraphCut<VoxelType>::AddBoundaryTerm(GC
         weight += 1/(log(10+tmpweight)/log(double(10)));
     }
     weight = weight / divide / _numberOfImages;
-    graph->setNeighbors(count,_input[0]->GetImageAttributes().LatticeToIndex(i+xoff,j+yoff,k+zoff,l+toff), round(weight*255.0));
+    graph->setNeighbors(count,_input[0]->GetImageAttributes().LatticeToIndex(i+xoff,j+yoff,k+zoff,l+toff), round(weight*1000.0));
 }
 
 template <class VoxelType> void irtkImageGraphCut<VoxelType>::Run(double lambda, int connect)
@@ -208,7 +208,7 @@ template <class VoxelType> void irtkImageGraphCut<VoxelType>::Run(double lambda,
                         count = _input[0]->GetImageAttributes().LatticeToIndex(i,j,k,l);
                         //evaluate weights
                         for(n = 0; n < _labels; n++){
-                            datacost[count*_labels+n] = lambda*round(255.0-_weight[n]->GetAsDouble(i,j,k,l)*255.0);
+                            datacost[count*_labels+n] = round(lambda*1000.0*(1.0-_weight[n]->GetAsDouble(i,j,k,l)));
                         }
                     }
                 }

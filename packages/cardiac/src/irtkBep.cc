@@ -26,7 +26,7 @@ void irtkBep::Finalize(){
 void irtkBep::EvaluateInfarction (irtkRealImage *threshold, irtkRealImage **input, int number,double timeweight,int cutmode,int connectmode, double regionweight)
 {
 	double treshold = 0.0001;
-	int iterations = 20, n = 2, i,j,k;
+	int iterations = 20, n = 2, i;
 
 	irtkEMClassification *classification;
 	classification= new irtkEMClassification();
@@ -86,7 +86,7 @@ void irtkBep::EvaluateInfarction (irtkRealImage *threshold, irtkRealImage **inpu
 }
 
 void irtkBep::Bullseyeplot(){
-  int i,t,n,swapped = 0;
+  int i,t;
   double bep[17],count[17];
 
   vtkDoubleArray *beparray = vtkDoubleArray::New();

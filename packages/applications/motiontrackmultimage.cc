@@ -29,14 +29,17 @@ void usage()
 	cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
 	cerr << "<-landmarks name>    Landmark Regulation input name is prefix" << endl;
     cerr << "<-weighting levelnumber weight1...weightn>    weighting for the images" << endl;
+    cerr << "<-adaptive weight>   Adapt regulation weight using the weight" <<endl;
+    cerr << "<-mode 0/1>          Registration mode [t0-ti]/[ti-ti+1]" <<endl;
+    cerr << "                     (w = weight^(t (t<n/2) n-t (t>-n/2))*w)" << endl;
     exit(1);
 }
 
 
 int main(int argc, char **argv)
 {
-	int l, i, j, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
-	double spacing, sigma, xaxis[3], yaxis[3], zaxis[3],**weight;
+	int l, i, j, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, framemode, ok, debug;
+	double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3],**weight;
 	irtkGreyPixel padding;
 	irtkMultiLevelFreeFormTransformation *mffd;
 	irtkPointSet **landmarks;
@@ -92,6 +95,8 @@ int main(int argc, char **argv)
 	spacing   = 0;
 	sigma     = 0;
 	debug     = false;
+    adaptive  = 0;
+    framemode = 0;
 
 	// Parse remaining parameters
 	while (argc > 1) {
@@ -160,6 +165,14 @@ int main(int argc, char **argv)
 			argv++;
 			ok = true;
 		}
+        if ((ok == false) && (strcmp(argv[1], "-adaptive") == 0)) {
+            argc--;
+            argv++;
+            ok = true;
+            adaptive = atof(argv[1]);
+            argc--;
+            argv++;
+        }
 		if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
 			argc--;
 			argv++;
@@ -168,7 +181,14 @@ int main(int argc, char **argv)
 			argv++;
 			ok = true;
 		}
-
+        if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
+            argc--;
+            argv++;
+            ok = true;
+            framemode = atoi(argv[1]);
+            argc--;
+            argv++;
+        }
 		if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
 			argc--;
 			argv++;
@@ -312,15 +332,19 @@ int main(int argc, char **argv)
 			for (z = 0; z < target[l]->GetZ(); z++) {
 				for (y = 0; y < target[l]->GetY(); y++) {
 					for (x = 0; x < target[l]->GetX(); x++) {
-						target[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, 0));
+                        if(framemode == 0){
+                            target[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, 0));
+                        }else{
+                            target[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, t-1));
+                        }
 						source[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, t));
 					}
 				}
 			}
 		}
-
+        irtkGreyImage mask;
 		if (mask_name != NULL) {
-			irtkGreyImage mask(mask_name);
+			mask.Read(mask_name);
 			irtkInterpolateImageFunction *interpolator = new irtkShapeBasedInterpolateImageFunction;
 			double xsize, ysize, zsize, size;
 			mask.GetPixelSize(&xsize, &ysize, &zsize);
@@ -384,19 +408,42 @@ int main(int argc, char **argv)
 
         multimageregistration->SetWeighting(weight);
 
+        if (adaptive > 0) {
+            double weight = multimageregistration->GetLambda2();
+            int times;
+            t < round(image[0]->GetT() / 3) ? 
+                times = t: times = round(image[0]->GetT() / 3);
+            t > round(image[0]->GetT()*2 / 3) ? 
+                times = (image[0]->GetT() - 1 - t):times = times;
+            weight = pow(adaptive,2*times)*weight;
+            cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
+            multimageregistration->SetLambda2(weight);
+        }
+
 		// Run registration filter
 		multimageregistration->Run();
 
-		if(multimageregistration->GetMFFDMode()){
-			mffd->CombineLocalTransformation();
-		}
-
-		// Write the final transformation estimate
-		if (dofout_name != NULL) {
-			char buffer[255];
-			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", dofout_name,i, t);
-			mffd->irtkTransformation::Write(buffer);
-		}
+        // Write the final transformation estimate
+        if (dofout_name != NULL) {
+            char buffer[255];
+            sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", dofout_name,i, t);
+            if(framemode == 0){
+                if(multimageregistration->GetMFFDMode()){
+                    mffd->CombineLocalTransformation();
+                }
+                mffd->irtkTransformation::Write(buffer);
+            }
+            else{
+                (mffd->GetLocalTransformation(mffd->NumberOfLevels()-1))->irtkTransformation::Write(buffer);
+                if(multimageregistration->GetMFFDMode()){
+                    mffd->CombineLocalTransformation();
+                }
+            }
+        }else{
+            if(multimageregistration->GetMFFDMode()){
+                mffd->CombineLocalTransformation();
+            }
+        }
 
 		delete multimageregistration;
 

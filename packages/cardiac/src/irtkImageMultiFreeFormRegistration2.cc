@@ -383,7 +383,7 @@ double irtkImageMultiFreeFormRegistration2::VolumePreservationPenalty()
             lambdac = _LambdaC[l];
         }
         for (k = 0; k < _affd[l]->NumberOfDOFs()/3; k++) {
-            if(_affd[l]->GetStatus(k) == Active){
+            if(_affd[l]->GetStatus(k) == _Active){
                 // Determinant of Jacobian of deformation derivatives
                 jacobian = _determine[l][k];
                 penalty += lambdac*pow(log(jacobian),2);

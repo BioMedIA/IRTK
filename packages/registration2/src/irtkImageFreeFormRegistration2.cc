@@ -252,10 +252,12 @@ void irtkImageFreeFormRegistration2::Update()
     this->irtkImageRegistration2::Update();
 
     if(_Lambda2 > 0){
-        int index,i,j,k;
+        int index, index2, index3 ,i,j,k;
         double x,y,z,jacobian;
         // Update Jacobian and jacobian determine;
         for (index = 0; index < _affd->NumberOfDOFs()/3; index++) {
+            index2 = _affd->NumberOfDOFs()/3 + index;
+            index3 = _affd->NumberOfDOFs()/3*2 + index;
             _affd->IndexToLattice(index,i,j,k);
             x = i;
             y = j;
@@ -345,10 +347,7 @@ void irtkImageFreeFormRegistration2::VolumePreservationPenalty(int index, double
     for (k = k1; k < k2; k++) {
         for (j = j1; j < j2; j++) {
             for (i = i1; i < i2; i++) {
-                if(((k == n && j == m) 
-                    || (k == n && i == l)
-                    || (j == m && i == l))
-                    &&(k != n || j != m || i != l)){
+                if(k != n || j != m || i != l){
                 index1 = _affd->LatticeToIndex(i,j,k);
                 // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
                 // Calculate jacobian
@@ -485,58 +484,58 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
         // Check if any DoF corresponding to the control point is active
         if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
-        	// If so, calculate bounding box of control point in image coordinates
-          _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
+            // If so, calculate bounding box of control point in image coordinates
+            _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
 
-          // Loop over all voxels in the target (reference) volume
-          for (k = k1; k <= k2; k++) {
-            for (j = j1; j <= j2; j++) {
-              for (i = i1; i <= i2; i++) {
+            // Loop over all voxels in the target (reference) volume
+            for (k = k1; k <= k2; k++) {
+                for (j = j1; j <= j2; j++) {
+                    for (i = i1; i <= i2; i++) {
 
-                // Check whether reference point is valid
-                if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
+                        // Check whether reference point is valid
+                        if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
 
-                  // Convert position from voxel coordinates to world coordinates
-                  pos[0] = i;
-                  pos[1] = j;
-                  pos[2] = k;
-                  _target->ImageToWorld(pos[0], pos[1], pos[2]);
+                            // Convert position from voxel coordinates to world coordinates
+                            pos[0] = i;
+                            pos[1] = j;
+                            pos[2] = k;
+                            _target->ImageToWorld(pos[0], pos[1], pos[2]);
 
-                  // Convert world coordinates into lattice coordinates
-                  _affd->WorldToLattice(pos[0], pos[1], pos[2]);
+                            // Convert world coordinates into lattice coordinates
+                            _affd->WorldToLattice(pos[0], pos[1], pos[2]);
 
-                  // Compute B-spline tensor product at pos
-                  basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+                            // Compute B-spline tensor product at pos
+                            basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
 
-                  // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
-                  //
-                  // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
-                  //
-                  gradient[index]  += basis * _similarityGradient(i, j, k, 0);
-                  gradient[index2] += basis * _similarityGradient(i, j, k, 1);
-                  gradient[index3] += basis * _similarityGradient(i, j, k, 2);
+                            // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
+                            //
+                            // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
+                            //
+                            gradient[index]  += basis * _similarityGradient(i, j, k, 0);
+                            gradient[index2] += basis * _similarityGradient(i, j, k, 1);
+                            gradient[index3] += basis * _similarityGradient(i, j, k, 2);
+                        }
+                    }
                 }
-              }
             }
-          }
-        }
 
-        // Add penalty for smoothness
-        if (this->_Lambda1 > 0) {
-            
-        }
-        // Add penalty for volume preservation
-        if (this->_Lambda2 > 0) {
-            // Get inverted jacobian
-            double det_dev[3];
-            this->VolumePreservationPenalty(index,det_dev);
-            gradient[index]  += this->_Lambda2  * det_dev[0];
-            gradient[index2] += this->_Lambda2  * det_dev[1];
-            gradient[index3] += this->_Lambda2  * det_dev[2];
-        }
-        // Add penalty for topology preservation
-        if (this->_Lambda3 > 0) {
-            
+            // Add penalty for smoothness
+            if (this->_Lambda1 > 0) {
+
+            }
+            // Add penalty for volume preservation
+            if (this->_Lambda2 > 0) {
+                // Get inverted jacobian
+                double det_dev[3];
+                this->VolumePreservationPenalty(index,det_dev);
+                gradient[index]  += this->_Lambda2  * det_dev[0];
+                gradient[index2] += this->_Lambda2  * det_dev[1];
+                gradient[index3] += this->_Lambda2  * det_dev[2];
+            }
+            // Add penalty for topology preservation
+            if (this->_Lambda3 > 0) {
+
+            }
         }
       }
     }

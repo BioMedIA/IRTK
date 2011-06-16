@@ -418,6 +418,8 @@ void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr )
  
     if(src_arr==dst_arr){
         tmp = cvCreateMat(size.height/2, size.width/2, cvGetElemType(src_arr));
+    }else{
+        tmp = NULL;
     }
  
     cx = size.width/2;

@@ -38,14 +38,17 @@ void usage()
   cerr << "<-Rt2 value>         Region of interest in images" << endl;
   cerr << "<-Tp  value>         Padding value" << endl;
   cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
+  cerr << "<-adaptive weight>   Adapt regulation weight using the weight" <<endl;
+  cerr << "<-mode 0/1>          Registration mode [t0-ti]/[ti-ti+1]" <<endl;
+  cerr << "                     (w = weight^(t (t<n/2) n-t (t>-n/2))*w)" << endl;
   exit(1);
 }
 
 
 int main(int argc, char **argv)
 {
-  int i, n, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
-  double spacing, sigma, xaxis[3], yaxis[3], zaxis[3];
+  int i, n, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, framemode, ok, debug;
+  double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3];
   irtkGreyPixel padding;
   irtkImageFreeFormRegistrationMode mode;
   irtkMultiLevelFreeFormTransformation *mffd;
@@ -94,6 +97,8 @@ int main(int argc, char **argv)
   sigma     = 0;
   mode      = RegisterXYZ;
   debug     = false;
+  adaptive  = 0;
+  framemode = 0;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -219,6 +224,22 @@ int main(int argc, char **argv)
 		argc--;
 		argv++;
 	}
+    if ((ok == false) && (strcmp(argv[1], "-adaptive") == 0)) {
+        argc--;
+        argv++;
+        ok = true;
+        adaptive = atof(argv[1]);
+        argc--;
+        argv++;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
+        argc--;
+        argv++;
+        ok = true;
+        framemode = atoi(argv[1]);
+        argc--;
+        argv++;
+    }
 	if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
 		argc--;
 		argv++;
@@ -286,15 +307,16 @@ int main(int argc, char **argv)
 		  for (z = 0; z < target->GetZ(); z++) {
 			  for (y = 0; y < target->GetY(); y++) {
 				  for (x = 0; x < target->GetX(); x++) {
-					  target->Put(x, y, z, 0, image[i]->Get(x, y, z, 0));
+                      target->Put(x, y, z, 0, image[i]->Get(x, y, z, 0));                    
 					  source->Put(x, y, z, 0, image[i]->Get(x, y, z, t));
 				  }
 			  }
 		  }
 
           // Mask target
+          irtkGreyImage mask;
           if (mask_name != NULL) {
-              irtkGreyImage mask(mask_name);
+              mask.Read(mask_name);
               irtkInterpolateImageFunction *interpolator = new irtkShapeBasedInterpolateImageFunction;
               double xsize, ysize, zsize, size;
               mask.GetPixelSize(&xsize, &ysize, &zsize);
@@ -346,6 +368,17 @@ int main(int argc, char **argv)
 			  registration->SetDY(spacing);
 			  registration->SetDZ(spacing);
 		  }
+          if (adaptive > 0) {
+              double weight = registration->GetLambda2();
+              int times;
+              t < round(image[i]->GetT() / 3) ? 
+                  times = t: times = round(image[i]->GetT() / 3);
+              t > round(image[i]->GetT()*2 / 3) ? 
+                  times = (image[i]->GetT() - 1 - t):times = times;
+              weight = pow(adaptive,2*times)*weight;
+              cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
+              registration->SetLambda2(weight);
+          }
 
 		  // Write parameters if necessary
 		  if (parout_name != NULL) {
@@ -355,16 +388,27 @@ int main(int argc, char **argv)
 		  // Run registration filter
 		  registration->Run();
 
-		  if(registration->GetMFFDMode()){
-			  mffd->CombineLocalTransformation();
-		  }
-
-		  // Write the final transformation estimate
-		  if (dofout_name != NULL) {
-			  char buffer[255];
-			  sprintf(buffer, "%s\\%d_sequence_%.2d.dof.gz", dofout_name,i, t);
-			  mffd->irtkTransformation::Write(buffer);
-		  }
+          // Write the final transformation estimate
+          if (dofout_name != NULL) {
+              char buffer[255];
+              sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", dofout_name,i, t);
+              if(framemode == 0){
+                  if(registration->GetMFFDMode()){
+                      mffd->CombineLocalTransformation();
+                  }
+                  mffd->irtkTransformation::Write(buffer);
+              }
+              else{
+                  (mffd->GetLocalTransformation(mffd->NumberOfLevels()-1))->irtkTransformation::Write(buffer);
+                  if(registration->GetMFFDMode()){
+                      mffd->CombineLocalTransformation();
+                  }
+              }
+          }else{
+              if(registration->GetMFFDMode()){
+                  mffd->CombineLocalTransformation();
+              }
+          }
 
 		  delete registration;
 		  delete target;

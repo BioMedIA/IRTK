@@ -122,7 +122,7 @@ template <class VoxelType> void irtkMultiImageGraphCut<VoxelType>::AddBoundaryTe
     tmpweight = abs(_input[n]->GetAsDouble(i,j,k,l) - _input[n]->GetAsDouble(i+xoff,j+yoff,k+zoff,l+toff));
     weight += 1/(log(10+tmpweight)/log(double(10)));
     weight = weight / divide;
-    graph->setNeighbors(count,_imageoffset[n]+_input[n]->GetImageAttributes().LatticeToIndex(i+xoff,j+yoff,k+zoff,l+toff), round(weight*255.0));
+    graph->setNeighbors(count,_imageoffset[n]+_input[n]->GetImageAttributes().LatticeToIndex(i+xoff,j+yoff,k+zoff,l+toff), round(weight*1000.0));
 }
 
 template <class VoxelType> void irtkMultiImageGraphCut<VoxelType>::AddImageTerm(GCoptimizationGeneralGraph *graph, int count, 
@@ -130,7 +130,7 @@ template <class VoxelType> void irtkMultiImageGraphCut<VoxelType>::AddImageTerm(
 {
     double weight;
     weight = 1.0 / divide;
-    graph->setNeighbors(count,count2, round(weight*255.0));
+    graph->setNeighbors(count,count2, round(weight*1000.0));
 }
 
 template <class VoxelType> void irtkMultiImageGraphCut<VoxelType>::Run(double lambda, int connect)
@@ -155,7 +155,7 @@ template <class VoxelType> void irtkMultiImageGraphCut<VoxelType>::Run(double la
 
                 int *datacost = new int[ _totalVoxel*_labels];
                 for(i = 0; i < _totalVoxel*_labels; i++){
-                    datacost[i] = round((1.0 - _datacost[i]) * 255.0 * lambda);
+                    datacost[i] = round((1.0 - _datacost[i]) * 1000.0 * lambda);
                 }
                 graph->setDataCost(datacost);
 
