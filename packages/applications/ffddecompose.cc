@@ -33,7 +33,6 @@ int main(int argc, char **argv)
 {
   int i, j, k, xdim, ydim, zdim, numberOfPs, count;
   double dx, dy, dz, x, y, z, xb, yb, zb, xi, yi, zi, xStore, yStore, zStore;
-  bool ok;
 
   // Check command line
   if (argc < 5) {

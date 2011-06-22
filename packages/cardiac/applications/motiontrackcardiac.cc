@@ -373,7 +373,6 @@ int main(int argc, char **argv)
 		tagtrigger = 0;
 		// Create registration filter
 		irtkCardiac3DImageFreeFormRegistration *cardiacregistration = NULL;
-		irtkMultipleImageFreeFormRegistration *multregistration = NULL;
 		if (uimage[0]->GetZ() == 1) {
 			cerr<<"this mode can't be used with 2D images"<<endl;
 			exit(1);
@@ -479,8 +478,7 @@ int main(int argc, char **argv)
 			sprintf(buffer, "%s\\%d_sequence_%.2d.dof.gz", dofout_name, numberOfTaggedImages, t);
 			mffd->irtkTransformation::Write(buffer);
 		}
-		if(tagtrigger == 1)
-			delete cardiacregistration;
+        delete cardiacregistration;
 
 		for (l = 0; l < numberOfUntaggedImages; l++) {
 			delete target[l];

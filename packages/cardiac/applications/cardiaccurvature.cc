@@ -32,8 +32,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-    int i,j,n,iterations,ok;
-    double cvalue,p1[3],p2[3],d1,d2,normal1[3],normal2[3],dotv,angle;
+    int iterations,ok;
     vtkDecimatePro *decimate = NULL;
     vtkSmoothPolyDataFilter *smooth = NULL;
 
