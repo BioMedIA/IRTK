@@ -129,7 +129,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize()
 	  this->EvaluateMyoProb1(_myoprob,_threshold,guassian,denom);
   }
   //extend threshold
-  ExtendThreshold (_threshold, 2);
+  ExtendThreshold (_threshold, 3);
   _threshold->Write("thresholdafterdilation.nii.gz");
   //evaluate myocardium probability
   if (this->_Lambda2 > 0) {
@@ -239,225 +239,233 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
       source_max = MIN_GREY;
       source_min = MAX_GREY;
 
-    // Copy source and target to temp space
-    tmp_mutarget[n] = new irtkGreyImage(*_utarget[n]);
-    tmp_musource[n] = new irtkGreyImage(*_usource[n]);
+      // Copy source and target to temp space
+      tmp_mutarget[n] = new irtkGreyImage(*_utarget[n]);
+      tmp_musource[n] = new irtkGreyImage(*_usource[n]);
 
-    // Swap source and target with temp space copies
-    swap(tmp_mutarget[n], _utarget[n]);
-    swap(tmp_musource[n], _usource[n]);
+      // Swap source and target with temp space copies
+      swap(tmp_mutarget[n], _utarget[n]);
+      swap(tmp_musource[n], _usource[n]);
 
-    // Blur images if necessary
-    if (_TargetBlurring[level] > 0) {
-      cout << "Blurring utarget ... "; cout.flush();
-      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_uTargetBlurring[level], _TargetPadding);
-      blurring.SetInput (_utarget[n]);
-      blurring.SetOutput(_utarget[n]);
-      blurring.Run();
-      cout << "done" << endl;
-    }
-
-    if (_SourceBlurring[level] > 0) {
-      cout << "Blurring usource ... "; cout.flush();
-      irtkGaussianBlurring<irtkGreyPixel> blurring(_uSourceBlurring[level]);
-      blurring.SetInput (_usource[n]);
-      blurring.SetOutput(_usource[n]);
-      blurring.Run();
-      cout << "done" << endl;
-    }
-
-    _utarget[n]->GetPixelSize(&dx, &dy, &dz);
-    temp = fabs(_uTargetResolution[0][0]-dx) + fabs(_uTargetResolution[0][1]-dy) + fabs(_uTargetResolution[0][2]-dz);
-
-    if (level > 0 || temp > 0.000001) {
-      cout << "Resampling utarget ... "; cout.flush();
-      // Create resampling filter
-      irtkResamplingWithPadding<irtkGreyPixel> resample(_uTargetResolution[level][0],
-          _uTargetResolution[level][1],
-          _uTargetResolution[level][2],
-          _TargetPadding);
-      resample.SetInput (_utarget[n]);
-      resample.SetOutput(_utarget[n]);
-      resample.Run();
-      cout << "done" << endl;
-    }
-
-    _usource[n]->GetPixelSize(&dx, &dy, &dz);
-    temp = fabs(_uSourceResolution[0][0]-dx) + fabs(_uSourceResolution[0][1]-dy) + fabs(_uSourceResolution[0][2]-dz);
-
-    if (level > 0 || temp > 0.000001) {
-      cout << "Resampling usource ... "; cout.flush();
-      // Create resampling filter
-      irtkResamplingWithPadding<irtkGreyPixel> resample(_uSourceResolution[level][0],
-          _uSourceResolution[level][1],
-          _uSourceResolution[level][2], MIN_GREY);
-
-      resample.SetInput (_usource[n]);
-      resample.SetOutput(_usource[n]);
-      resample.Run();
-      cout << "done" << endl;
-    }
-
-    // Find out the min and max values in target image, ignoring padding
-    for (t = 0; t < _utarget[n]->GetT(); t++) {
-      for (k = 0; k < _utarget[n]->GetZ(); k++) {
-        for (j = 0; j < _utarget[n]->GetY(); j++) {
-          for (i = 0; i < _utarget[n]->GetX(); i++) {
-            if (_utarget[n]->Get(i, j, k, t) > _TargetPadding) {
-              if (_utarget[n]->Get(i, j, k, t) > target_max)
-                target_max = _utarget[n]->Get(i, j, k, t);
-              if (_utarget[n]->Get(i, j, k, t) < target_min)
-                target_min = _utarget[n]->Get(i, j, k, t);
-            } else {
-              _utarget[n]->Put(i, j, k, t, _TargetPadding);
-            }
-          }
-        }
+      // Blur images if necessary
+      if (_TargetBlurring[level] > 0) {
+          cout << "Blurring utarget ... "; cout.flush();
+          irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_uTargetBlurring[level], _TargetPadding);
+          blurring.SetInput (_utarget[n]);
+          blurring.SetOutput(_utarget[n]);
+          blurring.Run();
+          cout << "done" << endl;
       }
-    }
 
-    // Find out the min and max values in source image, ignoring padding
-    for (t = 0; t < _usource[n]->GetT(); t++) {
-      for (k = 0; k < _usource[n]->GetZ(); k++) {
-        for (j = 0; j < _usource[n]->GetY(); j++) {
-          for (i = 0; i < _usource[n]->GetX(); i++) {
-            if (_usource[n]->Get(i, j, k, t) > source_max)
-              source_max = _usource[n]->Get(i, j, k, t);
-            if (_usource[n]->Get(i, j, k, t) < source_min)
-              source_min = _usource[n]->Get(i, j, k, t);
-          }
-        }
+      if (_SourceBlurring[level] > 0) {
+          cout << "Blurring usource ... "; cout.flush();
+          irtkGaussianBlurring<irtkGreyPixel> blurring(_uSourceBlurring[level]);
+          blurring.SetInput (_usource[n]);
+          blurring.SetOutput(_usource[n]);
+          blurring.Run();
+          cout << "done" << endl;
       }
-    }
-	  // Check whether dynamic range of data is not to large
-	  if (target_max - target_min > MAX_GREY) {
-		  cerr << this->NameOfClass()
-			  << "::Initialize: Dynamic range of target is too large" << endl;
-		  exit(1);
-	  } else {
-		  for (t = 0; t < _utarget[n]->GetT(); t++) {
-			  for (k = 0; k < _utarget[n]->GetZ(); k++) {
-				  for (j = 0; j < _utarget[n]->GetY(); j++) {
-					  for (i = 0; i < _utarget[n]->GetX(); i++) {
-						  if (_utarget[n]->Get(i, j, k, t) > _TargetPadding) {
-							  _utarget[n]->Put(i, j, k, t, _utarget[n]->Get(i, j, k, t) - target_min);
-						  } else {
-							  _utarget[n]->Put(i, j, k, t, -1);
-						  }
-					  }
-				  }
-			  }
-		  }
-	  }
 
-    if ((_SimilarityMeasure == SSD) || (_SimilarityMeasure == CC) ||
-        (_SimilarityMeasure == LC)  || (_SimilarityMeasure == K) || (_SimilarityMeasure == ML)) {
-      if (source_max - target_min > MAX_GREY) {
-        cerr << this->NameOfClass()
-             << "::Initialize: Dynamic range of source is too large" << endl;
-        exit(1);
-      } else {
-        for (t = 0; t < _usource[n]->GetT(); t++) {
-          for (k = 0; k < _usource[n]->GetZ(); k++) {
-            for (j = 0; j < _usource[n]->GetY(); j++) {
-              for (i = 0; i < _usource[n]->GetX(); i++) {
-                _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - target_min);
+      _utarget[n]->GetPixelSize(&dx, &dy, &dz);
+      temp = fabs(_uTargetResolution[0][0]-dx) + fabs(_uTargetResolution[0][1]-dy) + fabs(_uTargetResolution[0][2]-dz);
+
+      if (level > 0 || temp > 0.000001) {
+          cout << "Resampling utarget ... "; cout.flush();
+          // Create resampling filter
+          irtkResamplingWithPadding<irtkGreyPixel> resample(_uTargetResolution[level][0],
+              _uTargetResolution[level][1],
+              _uTargetResolution[level][2],
+              _TargetPadding);
+          resample.SetInput (_utarget[n]);
+          resample.SetOutput(_utarget[n]);
+          resample.Run();
+          cout << "done" << endl;
+      }
+
+      _usource[n]->GetPixelSize(&dx, &dy, &dz);
+      temp = fabs(_uSourceResolution[0][0]-dx) + fabs(_uSourceResolution[0][1]-dy) + fabs(_uSourceResolution[0][2]-dz);
+
+      if (level > 0 || temp > 0.000001) {
+          cout << "Resampling usource ... "; cout.flush();
+          // Create resampling filter
+          irtkResamplingWithPadding<irtkGreyPixel> resample(_uSourceResolution[level][0],
+              _uSourceResolution[level][1],
+              _uSourceResolution[level][2], MIN_GREY);
+
+          resample.SetInput (_usource[n]);
+          resample.SetOutput(_usource[n]);
+          resample.Run();
+          cout << "done" << endl;
+      }
+
+      // Find out the min and max values in target image, ignoring padding
+      for (t = 0; t < _utarget[n]->GetT(); t++) {
+          for (k = 0; k < _utarget[n]->GetZ(); k++) {
+              for (j = 0; j < _utarget[n]->GetY(); j++) {
+                  for (i = 0; i < _utarget[n]->GetX(); i++) {
+                      if (_utarget[n]->Get(i, j, k, t) > _TargetPadding) {
+                          if (_utarget[n]->Get(i, j, k, t) > target_max)
+                              target_max = _utarget[n]->Get(i, j, k, t);
+                          if (_utarget[n]->Get(i, j, k, t) < target_min)
+                              target_min = _utarget[n]->Get(i, j, k, t);
+                      } else {
+                          _utarget[n]->Put(i, j, k, t, _TargetPadding);
+                      }
+                  }
               }
-            }
           }
-        }
       }
-    } else {
-      if (source_max - source_min > MAX_GREY) {
-        cerr << this->NameOfClass()
-             << "::Initialize: Dynamic range of source is too large" << endl;
-        exit(1);
-      } else {
-        for (t = 0; t < _usource[n]->GetT(); t++) {
+
+      // Find out the min and max values in source image, ignoring padding
+      for (t = 0; t < _usource[n]->GetT(); t++) {
           for (k = 0; k < _usource[n]->GetZ(); k++) {
-            for (j = 0; j < _usource[n]->GetY(); j++) {
-              for (i = 0; i < _usource[n]->GetX(); i++) {
-                _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - source_min);
+              for (j = 0; j < _usource[n]->GetY(); j++) {
+                  for (i = 0; i < _usource[n]->GetX(); i++) {
+                      if (_usource[n]->Get(i, j, k, t) > source_max)
+                          source_max = _usource[n]->Get(i, j, k, t);
+                      if (_usource[n]->Get(i, j, k, t) < source_min)
+                          source_min = _usource[n]->Get(i, j, k, t);
+                  }
               }
-            }
           }
-        }
       }
-    }
+      // Check whether dynamic range of data is not to large
+      if (target_max - target_min > MAX_GREY) {
+          cerr << this->NameOfClass()
+              << "::Initialize: Dynamic range of target is too large" << endl;
+          exit(1);
+      } else {
+          for (t = 0; t < _utarget[n]->GetT(); t++) {
+              for (k = 0; k < _utarget[n]->GetZ(); k++) {
+                  for (j = 0; j < _utarget[n]->GetY(); j++) {
+                      for (i = 0; i < _utarget[n]->GetX(); i++) {
+                          if (_utarget[n]->Get(i, j, k, t) > _TargetPadding) {
+                              _utarget[n]->Put(i, j, k, t, _utarget[n]->Get(i, j, k, t) - target_min);
+                          } else {
+                              _utarget[n]->Put(i, j, k, t, -1);
+                          }
+                      }
+                  }
+              }
+          }
+      }
 
-    // Pad target image if necessary
-    irtkPadding(*_utarget[n], _TargetPadding);
+      if ((_SimilarityMeasure == SSD) || (_SimilarityMeasure == CC) ||
+          (_SimilarityMeasure == LC)  || (_SimilarityMeasure == K) || (_SimilarityMeasure == ML)) {
+              if (source_max - target_min > MAX_GREY) {
+                  cerr << this->NameOfClass()
+                      << "::Initialize: Dynamic range of source is too large" << endl;
+                  exit(1);
+              } else {
+                  for (t = 0; t < _usource[n]->GetT(); t++) {
+                      for (k = 0; k < _usource[n]->GetZ(); k++) {
+                          for (j = 0; j < _usource[n]->GetY(); j++) {
+                              for (i = 0; i < _usource[n]->GetX(); i++) {
+                                  _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - target_min);
+                              }
+                          }
+                      }
+                  }
+              }
+      } else {
+          if (source_max - source_min > MAX_GREY) {
+              cerr << this->NameOfClass()
+                  << "::Initialize: Dynamic range of source is too large" << endl;
+              exit(1);
+          } else {
+              for (t = 0; t < _usource[n]->GetT(); t++) {
+                  for (k = 0; k < _usource[n]->GetZ(); k++) {
+                      for (j = 0; j < _usource[n]->GetY(); j++) {
+                          for (i = 0; i < _usource[n]->GetX(); i++) {
+                              _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - source_min);
+                          }
+                      }
+                  }
+              }
+          }
+      }
 
-  switch (_SimilarityMeasure) {
-  case SSD:
-    _umetric[n] = new irtkSSDSimilarityMetric;
-    break;
-  case CC:
-    // Rescale images by an integer factor if necessary
-    _umetric[n] = new irtkCrossCorrelationSimilarityMetric;
-    break;
-  case JE:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
-                   source_min, source_max);
-    _umetric[n] = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
-    break;
-  case MI:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
-                   source_min, source_max);
-    _umetric[n] = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case NMI:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
-                   source_min, source_max);
-    _umetric[n] = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case CR_XY:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
-                   source_min, source_max);
-    _umetric[n] = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case CR_YX:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
-                   source_min, source_max);
-    _umetric[n] = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case LC:
-    _umetric[n] = new irtkLabelConsistencySimilarityMetric;
-    break;
-  case K:
-    // Rescale images by an integer factor if necessary
-    target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
-                   target_min, target_max);
-    source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
-                   source_min, source_max);
-    _umetric[n] = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
-    break;
-  case ML:
-    // Rescale images by an integer factor if necessary
-    _umetric[n] = new irtkMLSimilarityMetric(classification);
-    if (_umetric[n]==NULL) {
-      cerr<<"Please, do not forget to set the ML metric!!!"<<endl;
-    }
-    break;
-  default:
-	  cerr<<"Can not recognize similarity metric type!!!"<<endl;
-	  exit(1);
-  }
+      // Pad target image if necessary
+      irtkPadding(*_utarget[n], _TargetPadding);
+
+      switch (_SimilarityMeasure) {
+      case SSD:
+          _umetric[n] = new irtkSSDSimilarityMetric;
+          break;
+      case CC:
+          // Rescale images by an integer factor if necessary
+          _umetric[n] = new irtkCrossCorrelationSimilarityMetric;
+          break;
+      case JE:
+          // Rescale images by an integer factor if necessary
+          target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+              target_min, target_max);
+          source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+              source_min, source_max);
+          _umetric[n] = new irtkJointEntropySimilarityMetric(target_nbins, source_nbins);
+          break;
+      case MI:
+          // Rescale images by an integer factor if necessary
+          target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+              target_min, target_max);
+          source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+              source_min, source_max);
+          _umetric[n] = new irtkMutualInformationSimilarityMetric(target_nbins, source_nbins);
+          break;
+      case NMI:
+          // Rescale images by an integer factor if necessary
+          target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+              target_min, target_max);
+          source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+              source_min, source_max);
+          _umetric[n] = new irtkNormalisedMutualInformationSimilarityMetric(target_nbins, source_nbins);
+          break;
+      case CR_XY:
+          // Rescale images by an integer factor if necessary
+          target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+              target_min, target_max);
+          source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+              source_min, source_max);
+          _umetric[n] = new irtkCorrelationRatioXYSimilarityMetric(target_nbins, source_nbins);
+          break;
+      case CR_YX:
+          // Rescale images by an integer factor if necessary
+          target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+              target_min, target_max);
+          source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+              source_min, source_max);
+          _umetric[n] = new irtkCorrelationRatioYXSimilarityMetric(target_nbins, source_nbins);
+          break;
+      case LC:
+          _umetric[n] = new irtkLabelConsistencySimilarityMetric;
+          break;
+      case K:
+          // Rescale images by an integer factor if necessary
+          target_nbins = irtkCalculateNumberOfBins(_utarget[n], _NumberOfBins,
+              target_min, target_max);
+          source_nbins = irtkCalculateNumberOfBins(_usource[n], _NumberOfBins,
+              source_min, source_max);
+          _umetric[n] = new irtkKappaSimilarityMetric(target_nbins, source_nbins);
+          break;
+      case ML:
+          // Rescale images by an integer factor if necessary
+          _umetric[n] = new irtkMLSimilarityMetric(classification);
+          if (_umetric[n]==NULL) {
+              cerr<<"Please, do not forget to set the ML metric!!!"<<endl;
+          }
+          break;
+      default:
+          cerr<<"Can not recognize similarity metric type!!!"<<endl;
+          exit(1);
+      }
+      // Print some debugging information
+      cout << "uTarget image (reference) no. " << n << endl;
+      _utarget[n]->Print();
+      cout << "Range is from " << target_min << " to " << target_max << endl;
+
+      cout << "uSource image (transform) no. " << n << endl;
+      _usource[n]->Print();
+      cout << "Range is from " << source_min << " to " << source_max << endl;
   }
 
   for (n = 0; n < _numberOfuImages; n++) {
@@ -471,18 +479,6 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
     // Calculate the source image domain in which we can interpolate
     _uinterpolator[n]->Inside(_usource_x1[n], _usource_y1[n], _usource_z1[n],
                              _usource_x2[n], _usource_y2[n], _usource_z2[n]);
-  }
-
-  for (n = 0; n < _numberOfuImages; n++) {
-
-    // Print some debugging information
-    cout << "uTarget image (reference) no. " << n << endl;
-    _utarget[n]->Print();
-    cout << "Range is from " << target_min << " to " << target_max << endl;
-
-    cout << "uSource image (transform) no. " << n << endl;
-    _usource[n]->Print();
-    cout << "Range is from " << source_min << " to " << source_max << endl;
   }
 
   // Allocate memory for metric
@@ -566,7 +562,6 @@ void irtkCardiac3DImageFreeFormRegistration::Finalize(int level)
 {
   // Print debugging information
   this->Debug("irtkCardiac3DImageFreeFormRegistration::Finalize(int)");
-
   // Finalize base class
   this->irtkMultipleImageFreeFormRegistration::Finalize(level);
 
@@ -635,7 +630,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty()
 					jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
 						jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
 						jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-					if(jacobian < 0.0001) jacobian = 0.0001;
+					if(jacobian < 0.0000001) jacobian = 0.0000001;
 					//jacobian = _affd->irtkTransformation::Jacobian(x, y, z);
 					//if (jacobian < 0.001)
 					//jacobian = 0.001;
@@ -652,37 +647,59 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty()
 
 double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty(int index)
 {	
-	int i, j, k;
-	double x, y, z, jacobian;
-	irtkMatrix jac,tmp_jac;
-	if(_comega[index] > 0){
-		_affd->IndexToLattice(index, i, j, k);
-		x = i;
-		y = j;
-		z = k;
-		_affd->LatticeToWorld(x, y, z);
-		_affd->Jacobian(tmp_jac,x,y,z);
-		// Calculate jacobian
-		jac.Initialize(3, 3);
-		_mffd->LocalJacobian(jac, x, y, z);
+    int i, j, k, i1, j1, k1, i2, j2, k2, count;
+    double x, y, z, jacobian, penalty;
 
-		// Subtract identity matrix
-		tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
-		tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
-		tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
+    _affd->IndexToLattice(index, i, j, k);
+    penalty = 0;
+    count = 0;
+    k1 = (k-1)>0?(k-1):0;
+    j1 = (j-1)>0?(j-1):0;
+    i1 = (i-1)>0?(i-1):0;
+    k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
+    j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
+    i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
+    for (k = k1; k < k2; k++) {
+        for (j = j1; j < j2; j++) {
+            for (i = i1; i < i2; i++) {
+                x = i;
+                y = j;
+                z = k;
+                index = _affd->LatticeToIndex(i,j,k);
+                if(_comega[index] > 0){
+                    x = i;
+                    y = j;
+                    z = k;
+                    _affd->LatticeToWorld(x, y, z);
+                    irtkMatrix jac,tmp_jac;
+                    _affd->Jacobian(tmp_jac,x,y,z);
+                    // Calculate jacobian
+                    jac.Initialize(3, 3);
+                    _mffd->LocalJacobian(jac, x, y, z);
 
-		// Add jacobian
-		jac += tmp_jac;
-		// Determinant of Jacobian of deformation derivatives
-		jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
-			jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
-			jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-		if(jacobian < 0.0001) jacobian = 0.0001;
-		// Normalize sum by number of weights
-		return -_comega[index]*fabs(log(jacobian));
-	}else{
-		return 0;
-	}
+                    // Subtract identity matrix
+                    tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
+                    tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
+                    tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
+
+                    // Add jacobian
+                    jac += tmp_jac;
+                    // Determinant of Jacobian of deformation derivatives
+                    jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
+                        jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
+                        jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
+                    if(jacobian < 0.0000001) jacobian = 0.0000001;
+                    // Normalize sum by number of weights
+                    penalty += _comega[index]*fabs(log(jacobian));
+                    count ++;
+                }
+            }
+        }
+    }
+    if(count > 0)
+        return -penalty/count;
+    else
+        return 0;
 
 	
 }
@@ -743,7 +760,6 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
   irtkMultiThreadedImageFreeFormRegistrationEvaluate evaluate(this);
   parallel_reduce(blocked_range<int>(0, _target->GetZ(), 1), evaluate);
 #else
-
   l1 = 0; l2 = 0;
   for (n = 0; n < _numberOfImages; n++) {
 	  // Initialize metric
@@ -758,26 +774,26 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
         for (j = 0; j < _target[n]->GetY(); j++) {
           for (i = 0; i < _target[n]->GetX(); i++) {
             // Check whether reference point is valid
-            if (*ptr2target >= _TargetPadding) {
+            if (*ptr2target > _TargetPadding) {
               x = i;
               y = j;
               z = k;
               _target[n]->ImageToWorld(x, y, z);
 			  wx = x; wy = y; wz = z;
-			  _threshold->WorldToImage(wx,wy,wz);
+			  _mweight->WorldToImage(wx,wy,wz);
+              if(wx > 0 && wy > 0 && wz > 0
+                  && wx < _mweight->GetX() - 1
+                  && wy < _mweight->GetY() - 1
+                  && wz < _mweight->GetZ() - 1 ){
+                      weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
+              }else{
+                  weight = 0;
+              }
               _affd->LocalDisplacement(x, y, z);
               x += ptr[0];
               y += ptr[1];
               z += ptr[2];
               _source[n]->WorldToImage(x, y, z);
-			  if(wx > 0 && wy > 0 && wz > 0
-				  && wx < _threshold->GetX() - 1
-				  && wy < _threshold->GetY() - 1
-				  && wz < _threshold->GetZ() - 1 ){
-				weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
-			  }else{
-				threshold = 0; weight = 0;
-			  }
               // Check whether transformed point is inside volume
               if ((x > _source_x1[n]) && (x < _source_x2[n]) &&
                   (y > _source_y1[n]) && (y < _source_y2[n]) &&
@@ -822,20 +838,29 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
               _utarget[n]->ImageToWorld(x, y, z);
 			  wx = x; wy = y; wz = z;
 			  _threshold->WorldToImage(wx,wy,wz);
+              if(wx > 0 && wy > 0 && wz > 0
+                  && wx < _threshold->GetX() - 1
+                  && wy < _threshold->GetY() - 1
+                  && wz < _threshold->GetZ() - 1 ){
+                      threshold = _threshold->GetAsDouble(round(wx),round(wy),round(wz));
+              }else{
+                  threshold = 0;
+              }
+              wx = x; wy = y; wz = z;
+              _mweight->WorldToImage(wx,wy,wz);
+              if(wx > 0 && wy > 0 && wz > 0
+                  && wx < _mweight->GetX() - 1
+                  && wy < _mweight->GetY() - 1
+                  && wz < _mweight->GetZ() - 1 ){
+                  weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
+              }else{
+                  weight = 0;
+              }
               _affd->LocalDisplacement(x, y, z);
               x += ptr[0];
               y += ptr[1];
               z += ptr[2];
               _usource[n]->WorldToImage(x, y, z);
-			  if(wx > 0 && wy > 0 && wz > 0
-				  && wx < _threshold->GetX() - 1
-				  && wy < _threshold->GetY() - 1
-				  && wz < _threshold->GetZ() - 1 ){
-			    threshold = _threshold->GetAsDouble(round(wx),round(wy),round(wz));
-				weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
-			  }else{
-				threshold = 0; weight = 0;
-			  }
               // Check whether transformed point is inside volume
               if ((x > _usource_x1[n]) && (x < _usource_x2[n]) &&
                   (y > _usource_y1[n]) && (y < _usource_y2[n]) &&
@@ -843,7 +868,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 				  ||( _utarget[n]->GetZ() != 1 
 				  && z > _usource_z1[n] && z < _usource_z2[n]))) {
 					  // Add sample to metric
-					  if (threshold > 2 || weight > 0.1) {
+					  if (threshold > 2) {
 						  *ptr2utmp =  round(_uinterpolator[n]->EvaluateInside(x, y, z, t));
 						  _umetric[n]->Add(*ptr2utarget, *ptr2utmp,1.0 - weight);
 						  tweight[n] += 1.0 - weight;
@@ -977,22 +1002,22 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 						if(round(dy*(y-p1._y))<=max && round(dy*(y-p1._y))>=min){
 							bj = bk * _localLookupTable[round(dy*(y-p1._y))];
 							// Check whether reference point is valid
-							if (*ptr2target >= _TargetPadding && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
+							if (*ptr2target > _TargetPadding && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
 									bi = bj * _localLookupTable[round(dx*(x-p1._x))];
 									// Delete old samples from both metrics
 									wx = i;	wy = j;	wz = k;
 									// Convert transformed point to image coordinates
 									_target[n]->ImageToWorld(wx,wy,wz);
-									_threshold->WorldToImage(wx,wy,wz);
+									_mweight->WorldToImage(wx,wy,wz);
 									if(wx > 0 && wy > 0 && wz > 0
-										&& wx < _threshold->GetX() - 1
-										&& wy < _threshold->GetY() - 1
-										&& wz < _threshold->GetZ() - 1 ){
+										&& wx < _mweight->GetX() - 1
+										&& wy < _mweight->GetY() - 1
+										&& wz < _mweight->GetZ() - 1 ){
 											weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
 									}else{
-										threshold = 0; weight = 0;
+										weight = 0;
 									}
-									if (*ptr2tmp != -1 && *ptr2target >= _TargetPadding && weight > 0) {
+									if (*ptr2tmp != -1 && *ptr2target > _TargetPadding && weight > 0) {
 										tmpMetricA[n]->Delete(*ptr2target, *ptr2tmp, weight);
 										tmpMetricB[n]->Delete(*ptr2target, *ptr2tmp, weight);
 									}
@@ -1010,7 +1035,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_target[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _target[n]->GetZ() != 1 
 										&& p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
-											if (*ptr2target >= _TargetPadding && weight > 0) {
+											if (*ptr2target > _TargetPadding && weight > 0) {
 											// Add sample to metric
 											tmpMetricA[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)),weight);
 											l1a += weight;
@@ -1031,7 +1056,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_target[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _target[n]->GetZ() != 1 
 										&& p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
-											if (*ptr2target >= _TargetPadding && weight > 0) {
+											if (*ptr2target > _TargetPadding && weight > 0) {
 												// Add sample to metric
 												tmpMetricB[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)),weight);
 												l1b += weight;
@@ -1101,11 +1126,22 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										&& wy < _threshold->GetY() - 1
 										&& wz < _threshold->GetZ() - 1 ){
 											threshold = _threshold->GetAsDouble(round(wx),round(wy),round(wz));
-											weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
 									}else{
-										threshold = 0; weight = 0;
+										threshold = 0;
 									}
-									if (*ptr2utmp != -1 && *ptr2utarget >= 0 && (threshold > 2 || weight > 0.1)) {
+                                    wx = i; wy = j;	wz = k;
+                                    // Convert transformed point to image coordinates
+                                    _utarget[n]->ImageToWorld(wx,wy,wz);
+                                    _mweight->WorldToImage(wx,wy,wz);
+                                    if(wx > 0 && wy > 0 && wz > 0
+                                        && wx < _mweight->GetX() - 1
+                                        && wy < _mweight->GetY() - 1
+                                        && wz < _mweight->GetZ() - 1 ){
+                                            weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
+                                    }else{
+                                        weight = 0;
+                                    }
+									if (*ptr2utmp != -1 && *ptr2utarget >= 0 && (threshold > 2)) {
 										utmpMetricA[n]->Delete(*ptr2utarget, *ptr2utmp, 1.0 - weight);
 										utmpMetricB[n]->Delete(*ptr2utarget, *ptr2utmp, 1.0 - weight);
 									}
@@ -1123,7 +1159,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_utarget[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _utarget[n]->GetZ() != 1 
 										&& p[2] > _usource_z1[n] && p[2] < _usource_z2[n]))) {
-											if (*ptr2utarget >= 0  && (threshold > 2 || weight > 0.1)) {
+											if (*ptr2utarget >= 0  && (threshold > 2)) {
 											// Add sample to metric
 											utmpMetricA[n]->Add(*ptr2utarget, round(_uinterpolator[n]->EvaluateInside(p[0], p[1], p[2], t)),1.0 - weight);
 											l2a += 1.0 - weight;
@@ -1145,7 +1181,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										||( _utarget[n]->GetZ() != 1 
 										&& p[2] > _usource_z1[n] && p[2] < _usource_z2[n]))) {
 
-											if (*ptr2utarget >= 0  && (threshold > 2 || weight > 0.1)) {
+											if (*ptr2utarget >= 0  && (threshold > 2)) {
 											// Add sample to metric
 											utmpMetricB[n]->Add(*ptr2utarget, round(_uinterpolator[n]->EvaluateInside(p[0], p[1], p[2], t)),1.0 - weight);
 											l2b += 1.0 - weight;
@@ -1715,8 +1751,8 @@ void irtkCardiac3DImageFreeFormRegistration::UpdateOmega ()
 					jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
 					jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
 
-				if(jacobian < 0.0001) 
-					jacobian = 0.0001;
+				if(jacobian < 0.0000001) 
+					jacobian = 0.0000001;
 
 				if(_myoprob->GetAsDouble(i,j,k) > 0){
 					_omega->PutAsDouble(i,j,k,
@@ -1892,7 +1928,6 @@ void irtkCardiac3DImageFreeFormRegistration::Run()
     init.terminate();
 
 #endif
-
     // Do the final cleaning up for this level
     this->Finalize(level);
 

@@ -208,7 +208,9 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
   _mffdLookupTable = new float*[_numberOfImages];
 
   for (l = 0; l < _numberOfImages; l++) {
-    cout << "image " << l << "th's external weight is " << _weight[_level][l] << endl;
+    if(_weight != NULL){
+        cout << "image " << l << "th's external weight is " << _weight[_level][l] << endl;
+    }
     _tmpMetricA[l] = irtkSimilarityMetric::New(_metric[l]);
     _tmpMetricB[l] = irtkSimilarityMetric::New(_metric[l]);
     _mtmpImage[l] = new irtkGreyImage(_target[l]->GetX(),
@@ -350,10 +352,7 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int tri
   } else if(_ptarget->Size() == 0) {
     return 0;
   } else if(_ptarget->Size() != _psource->Size() && trigger == 1) {
-      if(index == -1){
-          cerr<<"Regulation landmarks' sizes do not correspond, use surface to surface distance instead"<<endl;
-      }
-      trigger = 0;
+    trigger = 0;
   }
 
   count = 0;

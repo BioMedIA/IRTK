@@ -56,6 +56,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdcollapse ffdcollapse.cc)
     ADD_EXECUTABLE(ffdcomposeN ffdcomposeN.cc)
     ADD_EXECUTABLE(ffdcreate ffdcreate.cc)
+    ADD_EXECUTABLE(ffddecompose ffddecompose.cc)
     ADD_EXECUTABLE(ffdedit ffdedit.cc)
     ADD_EXECUTABLE(ffdinfo ffdinfo.cc)
     ADD_EXECUTABLE(ffdmovie ffdmovie.cc)
@@ -117,7 +118,7 @@ ELSE(BUILD_CONDOR_EXE)
  
 INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare demons dofcombine dofcomposeN dof2flirt 
 dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcomposeN 
-ffdcreate ffdedit ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof headertool hreg 
+ffdcreate ffddecompose ffdedit ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof headertool hreg 
 image2dof jacobian largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 
 motiontrackmultimage mrreg nreg nreg2 normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 
 subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg temporalextract transformation 

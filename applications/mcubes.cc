@@ -41,8 +41,8 @@ void usage()
 	cerr << "  <-isotropic>          Resample image to an isotropic voxel size (minimum of input" << endl;
 	cerr << "                        voxel x, y and z dimensions)" << endl;
 	cerr << "  <-decimate>           Decimate the vertices in the output surface." << endl;
-	cerr << "  <-smooth> iterations  Apply a number of iterations of (Laplacian) smoothing to " << endl;
-	cerr << "                        the resulting surface." << endl;
+    cerr << "  <-smooth> iterations  Apply a number of iterations of (Laplacian) smoothing to " << endl;
+    cerr << "                        the resulting surface." << endl;
 	cerr << "  <-normals> on|off     Choose whether to generate normals (default) or not." << endl;
 	cerr << "  <-gradients> on|off   Choose whether to generate gradients or not (default)." << endl;
 	cerr << "  <-ascii>              Write output mesh in ASCII format (default:  binary)." << endl;

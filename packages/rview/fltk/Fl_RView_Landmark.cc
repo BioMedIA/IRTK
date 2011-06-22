@@ -466,7 +466,7 @@ void Fl_RViewUI::cb_fitLandmarks(Fl_Button *, void*)
     rview->Update();
     viewer->redraw();
     sprintf(buffer, "Residual fitting error: %f mm", error);
-    fl_alert(buffer);
+    fl_alert("%s",buffer);
   }
 }
 

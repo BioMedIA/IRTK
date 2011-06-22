@@ -29,7 +29,7 @@ void usage()
 int main(int argc, char **argv)
 {
 	
-	int i, j, k, x, y, z, t, toggle;
+	int i, k, x, y, z, t;
 	char buffer[255],posdirectorybuffer[255],negdirectorybuffer[255];
 	if(argc < 5){
 		usage();

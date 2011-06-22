@@ -42,7 +42,7 @@ public:
   short data_type;
   short bits;
   short padding5;
-  float pixdims[4];
+  float pixdims[5];
   float padding6[12];
   int   glmax;
   int   glmin;

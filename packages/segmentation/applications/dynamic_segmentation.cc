@@ -40,6 +40,7 @@ int main( int argc, char** argv )
     }
 
     n = 1;
+    numberofatlas = 0;
 
     input_name = argv[1];
     argv++;

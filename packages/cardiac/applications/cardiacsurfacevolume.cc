@@ -73,6 +73,7 @@ double vote(irtkGreyImage& image, int x, int y, int z){
 	if(countzero < countnon){
 		return k;
 	}
+    return 0;
 }
 
 int main(int argc, char **argv)

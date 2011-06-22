@@ -137,6 +137,11 @@ void irtkMultipleImageRegistration::Initialize(int level)
     irtkGreyPixel target_min, target_max, target_nbins;
     irtkGreyPixel source_min, source_max, source_nbins;
 
+    target_max = MIN_GREY;
+    target_min = MAX_GREY;
+    source_max = MIN_GREY;
+    source_min = MAX_GREY;
+
     // Allocate memory for temporary images
     tmp_mtarget = new irtkGreyImage*[_numberOfImages];
     tmp_msource = new irtkGreyImage*[_numberOfImages];
@@ -367,9 +372,15 @@ void irtkMultipleImageRegistration::Initialize(int level)
             }
             break;
         }
-    }
+        // Print some debugging information
+        cout << "Target image (reference) no. " << n << endl;
+        _target[n]->Print();
+        cout << "Range is from " << target_min << " to " << target_max << endl;
 
-    for (n = 0; n < _numberOfImages; n++) {
+        cout << "Source image (transform) no. " << n << endl;
+        _source[n]->Print();
+        cout << "Range is from " << source_min << " to " << source_max << endl;
+
         // Setup the interpolator
         _interpolator[n] = irtkInterpolateImageFunction::New(_InterpolationMode, _source[n]);
 
@@ -380,6 +391,7 @@ void irtkMultipleImageRegistration::Initialize(int level)
         // Calculate the source image domain in which we can interpolate
         _interpolator[n]->Inside(_source_x1[n], _source_y1[n], _source_z1[n],
             _source_x2[n], _source_y2[n], _source_z2[n]);
+
     }
 
     // Setup the optimizer
@@ -406,18 +418,6 @@ void irtkMultipleImageRegistration::Initialize(int level)
     _optimizer->SetTransformation(_transformation);
     _optimizer->SetRegistration(this);
 
-    for (n = 0; n < _numberOfImages; n++) {
-
-        // Print some debugging information
-        cout << "Target image (reference) no. " << n << endl;
-        _target[n]->Print();
-        cout << "Range is from " << target_min << " to " << target_max << endl;
-
-        cout << "Source image (transform) no. " << n << endl;
-        _source[n]->Print();
-        cout << "Range is from " << source_min << " to " << source_max << endl;
-    }
-
     // Print initial transformation
     cout << "Initial transformation for level = " << level+1 << endl;;
     _transformation->Print();
@@ -441,7 +441,6 @@ void irtkMultipleImageRegistration::Finalize(int level)
     // Print final transformation
     cout << "Final transformation for level = " << level+1 << endl;;
     _transformation->Print();
-
     // Swap source and target back with temp space copies (see Initialize)
     swap(tmp_mtarget, _target);
     swap(tmp_msource, _source);

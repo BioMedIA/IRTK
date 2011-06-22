@@ -29,6 +29,7 @@ ELSE(BUILD_CONDOR_EXE)
 
   ELSE (BUILD_MPI_EXE)
     ADD_EXECUTABLE(average average.cc)
+    ADD_EXECUTABLE(autocontrast autocontrast.cc)
     ADD_EXECUTABLE(combineLabels combineLabels.cc)
     ADD_EXECUTABLE(convert convert.cc)
     ADD_EXECUTABLE(dilation dilation.cc)
@@ -72,7 +73,7 @@ ELSE(BUILD_CONDOR_EXE)
     
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin average binarize blur closing convert dicemetric dilation dicom2image dmap edgedetect erosion flip giplmagic info lcc lcc_iterative makesequence makevolume combineimages mcubes msample noise overlap opening padding polar2cartesian raw2image reflect region resample temporalalign threshold voxelsize histogram sbig splitvolume AnisoDiff)
+INSTALL_TARGETS(/bin average autocontrast binarize blur closing convert dicemetric dilation dicom2image dmap edgedetect erosion flip giplmagic info lcc lcc_iterative makesequence makevolume combineimages mcubes msample noise overlap opening padding polar2cartesian raw2image reflect region resample temporalalign threshold voxelsize histogram sbig splitvolume AnisoDiff)
 
 ENDIF (BUILD_CONDOR_EXE)
 

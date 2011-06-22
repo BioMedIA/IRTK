@@ -109,9 +109,9 @@ void irtkBep::Bullseyeplot(){
       bepsurface->GetPoints()->GetPoint (t, point);
       ptId = pointLocator->FindClosestPoint(point);
 	  for(i=0; i<17; i++){
-		  if(*beparray->GetTuple(ptId) == i){
+		  if(*beparray->GetTuple(t) == i){
 			  count[i] ++;
-			  bep[i] += *dataarray->GetTuple(t);
+			  bep[i] += *dataarray->GetTuple(ptId);
 		  }
 	  }
   }

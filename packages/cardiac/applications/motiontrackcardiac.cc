@@ -32,6 +32,7 @@ void usage()
 	cerr << "<-Rt2 value>         Region of interest in images" << endl;
 	cerr << "<-Tp  value>         Padding value" << endl;
 	cerr << "<-landmarks name>    Landmark Regulation input name is prefix" << endl;
+    cerr << "<-adaptive weight>   Adapt regulation weight using the weight" <<endl;
 	exit(1);
 }
 
@@ -41,7 +42,7 @@ int main(int argc, char **argv)
 	int l, i, numberOfUntaggedImages, numberOfTaggedImages, t, x, y, z, 
 		ux1, uy1, uz1, ut1, ux2, uy2, uz2, ut2, ok, debug
 		,tx1, ty1, tz1, tt1, tx2, ty2, tz2, tt2;
-	double spacing, sigma;
+	double spacing, sigma, adaptive;
 	irtkGreyPixel padding;
 	irtkMultiLevelFreeFormTransformation *mffd;
 	irtkGreyImage *threshold = NULL;
@@ -125,6 +126,7 @@ int main(int argc, char **argv)
 	padding   = MIN_GREY;
 	spacing   = 0;
 	sigma     = 0;
+    adaptive  = 0;
 	debug     = false;
 
 	// Parse remaining parameters
@@ -259,6 +261,14 @@ int main(int argc, char **argv)
 			argc--;
 			argv++;
 		}
+        if ((ok == false) && (strcmp(argv[1], "-adaptive") == 0)) {
+            argc--;
+            argv++;
+            ok = true;
+            adaptive = atof(argv[1]);
+            argc--;
+            argv++;
+        }
 		if ((ok == false) && (strcmp(argv[1], "-threshold") == 0)) {
 			argc--;
 			argv++;
@@ -440,6 +450,18 @@ int main(int argc, char **argv)
 				cardiacregistration->irtkMultipleImageRegistration::Write(parout_name);
 			}
 
+            if (adaptive > 0) {
+                double weight = cardiacregistration->GetLambda2();
+                int times;
+                t < round(target[0]->GetT() / 3) ? 
+                    times = t: times = round(target[0]->GetT() / 3);
+                t > round(target[0]->GetT()*2 / 3) ? 
+                    times = (target[0]->GetT() - 1 - t):times = times;
+                weight = pow(adaptive,2*times)*weight;
+                cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
+                cardiacregistration->SetLambda2(weight);
+            }
+
 			// Run registration filter
 			cardiacregistration->Run();
 
@@ -447,42 +469,8 @@ int main(int argc, char **argv)
 				mffd->CombineLocalTransformation();
 			}
 		}else{
-			multregistration = new irtkMultipleImageFreeFormRegistration;
-			// Set input and output for the registration filter
-			multregistration->SetInput(target, source, numberOfUntaggedImages);
-			if(landmarks != NULL){
-				multregistration->SetLandmarks(landmarks[0],landmarks[t]);
-			}
-			multregistration->SetOutput(mffd);
-			multregistration->SetDebugFlag(debug);
-
-			// Read parameter if there any, otherwise make an intelligent guess
-			multregistration->GuessParameter();
-			if (parin_name2 != NULL) {
-				multregistration->irtkMultipleImageRegistration::Read(parin_name2);
-			}
-
-			// Override parameter settings if necessary
-			if (padding != MIN_GREY) {
-				multregistration->SetTargetPadding(padding);
-			}
-			if (spacing > 0) {
-				multregistration->SetDX(spacing);
-				multregistration->SetDY(spacing);
-				multregistration->SetDZ(spacing);
-			}
-
-			// Write parameters if necessary
-			if (parout_name != NULL) {
-				multregistration->irtkMultipleImageRegistration::Write(parout_name);
-			}
-
-			// Run registration filter
-			multregistration->Run();
-
-			if(multregistration->GetMFFDMode()){
-				mffd->CombineLocalTransformation();
-			}
+			cerr << "Empty image?" <<endl;
+            exit(1);
 		}
 
 		// Write the final transformation estimate
@@ -493,8 +481,6 @@ int main(int argc, char **argv)
 		}
 		if(tagtrigger == 1)
 			delete cardiacregistration;
-		else
-			delete multregistration;
 
 		for (l = 0; l < numberOfUntaggedImages; l++) {
 			delete target[l];

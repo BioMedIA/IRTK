@@ -18,8 +18,8 @@ typedef enum pixel_type {pt_real, pt_grey, pt_byte} pixel_type;
 
 void usage()
 {
-  cerr << "Usage: rescale [in] [out] <min> <max>\n";
-  exit(1);
+    cerr << "Usage: rescale [in] [out] <min> <max>\n";
+    exit(1);
 }
 
 int main(int argc, char **argv)

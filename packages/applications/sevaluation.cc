@@ -43,7 +43,6 @@ int main(int argc, char **argv)
   bool ignoreEdges, symmetricDistance;
   double error, rerror, source_point[3], target_point[3];
   irtkLocator *target_locator, *source_locator;
-  irtkTransformation *transformation = NULL;
   vtkDoubleArray *array = NULL;
 
   if (argc < 3) {

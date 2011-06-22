@@ -184,6 +184,9 @@ int main(int argc, char **argv)
 				  radial[j] = radial[j] / distance;
 			  }
 		  }
+          circle[0] = axis[1]*radial[2] - axis[2]*radial[1];
+          circle[1] = axis[2]*radial[0] - axis[0]*radial[2];
+          circle[2] = axis[0]*radial[1] - axis[1]*radial[0];
 
 		  if(mode == Radial){
 			  ds = p2[0]*radial[0] + p2[1]*radial[1] + p2[2]*radial[2];
@@ -197,9 +200,6 @@ int main(int argc, char **argv)
 			  p2[2] = ds * axis[2];
 		  }else if(mode == Circumferential){
 			  //(a2b3 ? a3b2, a3b1 ? a1b3, a1b2 ? a2b1)
-			  circle[0] = axis[1]*radial[2] - axis[2]*radial[1];
-			  circle[1] = axis[2]*radial[0] - axis[0]*radial[2];
-			  circle[2] = axis[0]*radial[1] - axis[1]*radial[0];
 			  ds = p2[0]*circle[0] + p2[1]*circle[1] + p2[2]*circle[2];
 			  p2[0] = ds * circle[0];
 			  p2[1] = ds * circle[1];
