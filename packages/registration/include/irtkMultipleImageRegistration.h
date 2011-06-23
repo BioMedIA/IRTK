@@ -133,6 +133,9 @@ protected:
   /// Convergence parameter for optimization based on change in the transformation.
   double _Delta[MAX_NO_RESOLUTIONS];
 
+  /// Landmark regulation parameter for each level Lr(level) = Lr*(Beta(0)*Beta(1)*...*Beta(level))
+  double _Beta[MAX_NO_RESOLUTIONS];
+
   /// Debugging flag
   int    _DebugFlag;
 

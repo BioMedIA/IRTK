@@ -41,8 +41,8 @@ int main(int argc, char **argv)
 {
 	int l, i, numberOfUntaggedImages, numberOfTaggedImages, t, x, y, z, 
 		ux1, uy1, uz1, ut1, ux2, uy2, uz2, ut2, ok, debug
-		,tx1, ty1, tz1, tt1, tx2, ty2, tz2, tt2;
-	double spacing, sigma, adaptive;
+		,tx1, ty1, tz1, tt1, tx2, ty2, tz2, tt2, times;
+	double spacing, sigma, adaptive, weight;
 	irtkGreyPixel padding;
 	irtkMultiLevelFreeFormTransformation *mffd;
 	irtkGreyImage *threshold = NULL;
@@ -450,12 +450,12 @@ int main(int argc, char **argv)
 			}
 
             if (adaptive > 0) {
-                double weight = cardiacregistration->GetLambda2();
-                int times;
-                t < round(target[0]->GetT() / 3) ? 
-                    times = t: times = round(target[0]->GetT() / 3);
-                t > round(target[0]->GetT()*2 / 3) ? 
-                    times = (target[0]->GetT() - 1 - t):times = times;
+                weight = cardiacregistration->GetLambda2();
+                times = 0;
+                t < round(uimage[0]->GetT() / 3) ? 
+                    (times = t):(times = round(uimage[0]->GetT() / 3));
+                t > round(uimage[0]->GetT()*2 / 3) ? 
+                    (times = (uimage[0]->GetT() - 1 - t)):(times = times);
                 weight = pow(adaptive,2*times)*weight;
                 cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
                 cardiacregistration->SetLambda2(weight);

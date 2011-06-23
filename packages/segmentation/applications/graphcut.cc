@@ -19,8 +19,8 @@ void usage()
 {
   cerr << "Usage: graphcut [NumberOfImages] [Input_1...Input_n]" << endl;
   cerr << "-GMM [value]                       GMM number for EM"<<endl;
-  cerr << "-atlas [n atlas1...atlasn]         atlas information for segmentation, the first one is the foreground atlas, rest is back ground atlas" << endl;
-  cerr << "-numberofcomponents [n1...nn]      number of components per atlas can't be used when do not have atlas."<<endl;
+  cerr << "-atlas [n atlas1...atlasn]         atlas information for segmentation, no need to provide background" << endl;
+  cerr << "-numberofcomponents [n_1...n_n+1]  number of components per atlas + number of components of background must be used with atlas."<<endl;
   cerr << "-graphcutmode [value]              Graphcut mode 1D 2D 3D 4D (1,2,3,4 with 4 connective neighbors)"<<endl;
   cerr << "-connect 0/1	                      0 neighbor connection 1 cubic connection"<<endl;
   cerr << "-dataweight [value]                Data term weight for graphcut"<<endl;

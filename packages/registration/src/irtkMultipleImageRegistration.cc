@@ -56,6 +56,7 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
         _NumberOfSteps[i]      = 5;
         _LengthOfSteps[i]      = 2;
         _Delta[i]              = 0;
+        _Beta[i]               = 1;
     }
 
     // Default parameters for registration
@@ -418,6 +419,10 @@ void irtkMultipleImageRegistration::Initialize(int level)
     _optimizer->SetTransformation(_transformation);
     _optimizer->SetRegistration(this);
 
+    if(_Lregu > 0){
+        _Lregu = _Lregu*_Beta[level];
+    }
+
     // Print initial transformation
     cout << "Initial transformation for level = " << level+1 << endl;;
     _transformation->Print();
@@ -778,6 +783,16 @@ bool irtkMultipleImageRegistration::Read(char *buffer1, char *buffer2, int &leve
         }
         ok = true;
     }
+    if (strstr(buffer1, "Beta") != NULL) {
+        if (level == -1) {
+            for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
+                this->_Beta[i] = pow(2.0, double(i)) * atof(buffer2);
+            }
+        } else {
+            this->_Beta[level] = atof(buffer2);
+        }
+        ok = true;
+    }
     if (strstr(buffer1, "Padding value") != NULL) {
         this->_TargetPadding = atoi(buffer2);
         ok = true;
@@ -1001,6 +1016,7 @@ void irtkMultipleImageRegistration::Write(ostream &to)
         to << "No. of steps                      = " << this->_NumberOfSteps[i] << endl;
         to << "Length of steps                   = " << this->_LengthOfSteps[i] << endl;
         to << "Delta                             = " << this->_Delta[i] << endl;
+        to << "Beta                              = " << this->_Beta[i] << endl;
     }
 }
 

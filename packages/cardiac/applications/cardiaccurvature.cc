@@ -46,6 +46,8 @@ int main(int argc, char **argv)
     argc--;
     argv++;
 
+    iterations = 0;
+
     while (argc > 1) {
         ok = false;
         if ((!ok) && (strcmp(argv[1], "-decimate") == 0)) {

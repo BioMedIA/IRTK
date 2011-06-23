@@ -343,13 +343,13 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int tri
     dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
     dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
 
-    min = 0;
-    max = round((FFDLOOKUPTABLESIZE-1));
+    min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
+    max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
   }
 
   if (_ptarget == NULL || _psource == NULL) {
     return 0;
-  } else if(_ptarget->Size() == 0) {
+  } else if(_ptarget->Size() == 0 || _psource->Size() == 0) {
     return 0;
   } else if(_ptarget->Size() != _psource->Size() && trigger == 1) {
     trigger = 0;
