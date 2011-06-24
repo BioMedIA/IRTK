@@ -18,6 +18,8 @@ Changes   : $Author$
 
 #include <irtkGaussianBlurring.h>
 
+#include <vtkDecimatePro.h>
+
 #define HISTORY
 
 #ifdef HISTORY
@@ -602,7 +604,8 @@ void irtkMultipleImageRegistration::Run()
 
 double irtkMultipleImageRegistration::LandMarkPenalty ()
 {
-    int i,j,k;
+    int i,k;
+    vtkIdType j;
     double d = 0,distance = 0, p[3],q[3];
 
     if (_ptarget == NULL || _psource == NULL){

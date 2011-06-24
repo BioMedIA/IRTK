@@ -331,7 +331,8 @@ void irtkMultipleImageFreeFormRegistration::UpdateLUT()
 
 double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
 {
-  int i,j,k,count;
+  int i,k,count;
+  vtkIdType j;
   double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3];
   irtkPoint p1, p2, pt;
 
