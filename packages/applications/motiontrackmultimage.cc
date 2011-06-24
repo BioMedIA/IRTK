@@ -42,7 +42,8 @@ int main(int argc, char **argv)
 	double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3],**weight;
 	irtkGreyPixel padding;
 	irtkMultiLevelFreeFormTransformation *mffd;
-	irtkPointSet **landmarks;
+	vtkPolyData **landmarks;
+    vtkPolyDataReader *reader;
 
 	// Check command line
 	if (argc < 2) {
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
 	}
 	filenames++;
 	landmarks = NULL;
+    reader = NULL;
     for (i = 0; i < 10; i++){
         weight[i] = new double[numberOfImages];
         for (j = 0; j < numberOfImages; j++) {
@@ -266,14 +268,19 @@ int main(int argc, char **argv)
             argc--;
             argv++;
             cout << "Reading landmark sequence ... "; cout.flush();
-            landmarks = new irtkPointSet *[image[0]->GetT()];
+            landmarks = new vtkPolyData *[image[0]->GetT()];
+            reader = vtkPolyDataReader::New();
             for (i = 0; i < image[0]->GetT(); i++) {
                 char buffer[255];
                 sprintf(buffer, "%s%.2d.vtk", argv[1],i);
                 cout << buffer << endl;
-                landmarks[i] = new irtkPointSet();
-                landmarks[i]->ReadVTK(buffer);
+                landmarks[i] = vtkPolyData::New();            
+                reader->SetFileName(buffer);
+                reader->Modified();
+                reader->Update();
+                landmarks[i]->DeepCopy(reader->GetOutput());
             }
+            reader->Delete();
             argc--;
             argv++;
             ok = true;
@@ -375,11 +382,17 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+        vtkPolyData* tlandmarks = vtkPolyData::New();
+        vtkPolyData* slandmarks = vtkPolyData::New();
+        if(landmarks != NULL){
+            tlandmarks->DeepCopy(landmarks[0]);
+            slandmarks->DeepCopy(landmarks[t]);
+        }
 
 		// Set input and output for the registration filter
 		multimageregistration->SetInput(target, source, numberOfImages);
 		if(landmarks != NULL){
-			multimageregistration->SetLandmarks(landmarks[0],landmarks[t]);
+			multimageregistration->SetLandmarks(tlandmarks,slandmarks);
 		}
 		multimageregistration->SetOutput(mffd);
 		multimageregistration->SetDebugFlag(debug);
@@ -426,7 +439,7 @@ int main(int argc, char **argv)
         // Write the final transformation estimate
         if (dofout_name != NULL) {
             char buffer[255];
-            sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", dofout_name,i, t);
+            sprintf(buffer, "%s%.2d.dof.gz", dofout_name, t);
             if(framemode == 0){
                 if(multimageregistration->GetMFFDMode()){
                     mffd->CombineLocalTransformation();
@@ -454,6 +467,8 @@ int main(int argc, char **argv)
 
 		delete []target;
 		delete []source;
+        tlandmarks->Delete();
+        slandmarks->Delete();
 	}
 
     for(i = 0; i < 10; i++){

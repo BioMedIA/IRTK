@@ -46,8 +46,8 @@ int main(int argc, char **argv)
 	irtkGreyPixel padding;
 	irtkMultiLevelFreeFormTransformation *mffd;
 	irtkGreyImage *threshold = NULL;
-	irtkPointSet **landmarks;
-
+	vtkPolyData **landmarks;
+    vtkPolyDataReader *reader;
 	// Check command line
 	if (argc < 6) {
 		usage();
@@ -55,6 +55,7 @@ int main(int argc, char **argv)
 
 	// Get uimage names for sequence
 	landmarks = NULL;
+    reader = NULL;
 	numberOfUntaggedImages = 0;
 	numberOfTaggedImages = 0;
 	numberOfUntaggedImages = atoi(argv[1]);
@@ -284,20 +285,25 @@ int main(int argc, char **argv)
 			debug = true;
 		}
 		if ((ok == false) && (strcmp(argv[1], "-landmarks") == 0)) {
-			argc--;
-			argv++;
-			cout << "Reading landmark sequence ... "; cout.flush();
-			landmarks = new irtkPointSet *[uimage[0]->GetT()];
-			for (i = 0; i < uimage[0]->GetT(); i++) {
-				char buffer[255];
-				sprintf(buffer, "%s%.2d.vtk", argv[1],i);
-				cout << buffer << endl;
-				landmarks[i] = new irtkPointSet();
-				landmarks[i]->ReadVTK(buffer);
-			}
-			argc--;
-			argv++;
-			ok = true;
+            argc--;
+            argv++;
+            cout << "Reading landmark sequence ... "; cout.flush();
+            landmarks = new vtkPolyData *[uimage[0]->GetT()];
+            reader = vtkPolyDataReader::New();
+            for (i = 0; i < uimage[0]->GetT(); i++) {
+                char buffer[255];
+                sprintf(buffer, "%s%.2d.vtk", argv[1],i);
+                cout << buffer << endl;
+                landmarks[i] = vtkPolyData::New();            
+                reader->SetFileName(buffer);
+                reader->Modified();
+                reader->Update();
+                landmarks[i]->DeepCopy(reader->GetOutput());
+            }
+            reader->Delete();
+            argc--;
+            argv++;
+            ok = true;
 		}
 		if (ok == false) {
 			cerr << "Can not parse argument " << argv[1] << endl;
@@ -416,12 +422,19 @@ int main(int argc, char **argv)
 			}
 		}
 
+        vtkPolyData* tlandmarks = vtkPolyData::New();
+        vtkPolyData* slandmarks = vtkPolyData::New();
+        if(landmarks != NULL){
+            tlandmarks->DeepCopy(landmarks[0]);
+            slandmarks->DeepCopy(landmarks[t]);
+        }
+
 		if(tagtrigger == 1){
 			cardiacregistration = new irtkCardiac3DImageFreeFormRegistration;
 			// Set input and output for the registration filter
 			cardiacregistration->SetInput(target, source, numberOfUntaggedImages, ttarget, tsource, numberOfTaggedImages);
 			if(landmarks != NULL){
-				cardiacregistration->SetLandmarks(landmarks[0],landmarks[t]);
+				cardiacregistration->SetLandmarks(tlandmarks,slandmarks);
 			}
 			irtkGreyImage tmpthreshold(*threshold);
 			cardiacregistration->SetThreshold(&tmpthreshold);
@@ -475,7 +488,7 @@ int main(int argc, char **argv)
 		// Write the final transformation estimate
 		if (dofout_name != NULL) {
 			char buffer[255];
-			sprintf(buffer, "%s\\%d_sequence_%.2d.dof.gz", dofout_name, numberOfTaggedImages, t);
+			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", dofout_name, numberOfTaggedImages, t);
 			mffd->irtkTransformation::Write(buffer);
 		}
         delete cardiacregistration;
@@ -495,6 +508,8 @@ int main(int argc, char **argv)
 
 		delete []ttarget;
 		delete []tsource;
+        tlandmarks->Delete();
+        slandmarks->Delete();
 	}
 	if(thresholdname!=NULL)
 		delete threshold;

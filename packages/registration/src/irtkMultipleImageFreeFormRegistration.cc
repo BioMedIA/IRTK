@@ -329,10 +329,10 @@ void irtkMultipleImageFreeFormRegistration::UpdateLUT()
   }
 }
 
-double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int trigger)
+double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
 {
-  int i,count;
-  double dx = 0, dy = 0, dz = 0, min, max, distance = 0;
+  int i,j,k,count;
+  double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3];
   irtkPoint p1, p2, pt;
 
   if(index != -1) {
@@ -349,18 +349,24 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int tri
 
   if (_ptarget == NULL || _psource == NULL) {
     return 0;
-  } else if(_ptarget->Size() == 0 || _psource->Size() == 0) {
+  } else if(_ptarget->GetNumberOfPoints() == 0 || _psource->GetNumberOfPoints() == 0) {
     return 0;
-  } else if(_ptarget->Size() != _psource->Size() && trigger == 1) {
-    trigger = 0;
-  }
+  } 
+
+  vtkCellLocator *locator = vtkCellLocator::New(); 
+  locator->SetDataSet(_psource); // data represents the surface 
+  locator->BuildLocator(); 
+
+  vtkGenericCell *tmp = vtkGenericCell::New();
 
   count = 0;
-  for (i = 0; i < _ptarget->Size (); i++) {
-      irtkPoint a = _ptarget->operator()(i);
+  for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
+      _ptarget->GetPoints()->GetPoint(i,p);
       int valid = 1;
       if(index != -1) {
-          pt = a;
+          pt._x = p[0];
+          pt._y = p[1];
+          pt._z = p[2];
           _target[0]->WorldToImage(pt);
           if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
               &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
@@ -372,27 +378,25 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index, int tri
           }
       }
       if(valid == 1) {
-          irtkPoint b = _psource->operator()(i);
-          irtkPoint d = a;
-          _mffd->Transform(a._x,a._y,a._z);
-          _affd->LocalDisplacement(d._x,d._y,d._z);
-          a._x += d._x;
-          a._y += d._y;
-          a._z += d._z;
-          if(trigger != 1) {
-              distance += _psource->PointDistance(a);
-          } else {
-              distance += a.Distance(b);
-          }
+          q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
+          _mffd->Transform(p[0],p[1],p[2]);
+          _affd->LocalDisplacement(q[0],q[1],q[2]);
+          p[0] += q[0];
+          p[1] += q[1];
+          p[2] += q[2];
+          locator->FindClosestPoint(p,q,tmp,j,k,d);
+          distance += d;
       }
   }
+  tmp->Delete();
+  locator->Delete();
   if(index != -1)
       if(count != 0)
           return -(distance/double(count));
       else
           return 0;
   else
-      return -(distance/double(_ptarget->Size()));
+      return -(distance/double(_ptarget->GetNumberOfPoints()));
 }
 
 double irtkMultipleImageFreeFormRegistration::SmoothnessPenalty()

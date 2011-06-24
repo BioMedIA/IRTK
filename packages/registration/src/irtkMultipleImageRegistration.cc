@@ -129,6 +129,32 @@ void irtkMultipleImageRegistration::Initialize()
     _source_z2 = new double[_numberOfImages];
     _interpolator = new irtkInterpolateImageFunction *[_numberOfImages];
 
+    //calculate surface from polydata
+    vtkDecimatePro *decimate = vtkDecimatePro::New();
+    vtkDelaunay2D *delny = vtkDelaunay2D::New();
+    decimate->SetInputConnection(delny->GetOutputPort());
+
+    delny->SetInput(_ptarget);
+    delny->SetTolerance(0.01);
+    delny->Update();
+    //decimate->Update();
+    _ptarget->DeepCopy(delny->GetOutput());
+
+    delny->SetInput(_psource);
+    delny->SetTolerance(0.01);
+    delny->Update();
+    decimate->Update();
+    _psource->DeepCopy(decimate->GetOutput());
+    delny->Delete();
+    decimate->Delete();
+
+    //vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+    //writer->SetInput(_ptarget);
+    //writer->SetFileName("test1.vtk");
+    //writer->Update();
+    //writer->SetInput(_psource);
+    //writer->SetFileName("test2.vtk");
+    //writer->Update();
 }
 
 void irtkMultipleImageRegistration::Initialize(int level)
@@ -260,7 +286,7 @@ void irtkMultipleImageRegistration::Initialize(int level)
                             if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
                                 _target[n]->Put(i, j, k, t, _target[n]->Get(i, j, k, t) - target_min);
                             } else {
-                                _target[n]->Put(i, j, k, t, -1);
+                                _target[n]->Put(i, j, k, t, _TargetPadding - 1);
                             }
                         }
                     }
@@ -576,25 +602,26 @@ void irtkMultipleImageRegistration::Run()
 
 double irtkMultipleImageRegistration::LandMarkPenalty ()
 {
-    int i;
-    double distance = 0;
+    int i,j,k;
+    double d = 0,distance = 0, p[3],q[3];
 
     if (_ptarget == NULL || _psource == NULL){
         return 0;
-    }else if(_ptarget->Size() != _psource->Size()){
-        cerr<<"Regulation landmarks' size does not correspond"<<endl;
-        exit(1);
-    }else if(_ptarget->Size() == 0){
-        return 0;
-    }else{
-        for (i = 0; i < _ptarget->Size (); i++) {
-            irtkPoint a = _ptarget->operator()(i);
-            irtkPoint b = _psource->operator()(i);
-            _transformation->Transform(a);
-            distance += a.Distance (b);
-        }
-        return -(distance/double(_ptarget->Size()));
     }
+    vtkCellLocator *locator = vtkCellLocator::New(); 
+    locator->SetDataSet(_psource); // data represents the surface 
+    locator->SetNumberOfCellsPerBucket(1); 
+    locator->BuildLocator(); 
+    locator->Update(); 
+
+    for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
+        _ptarget->GetPoints()->GetPoint(i,p);
+        _transformation->Transform(p[0],p[1],p[2]);
+        locator->FindClosestPoint(p,q,j,k,d);
+        distance += d;
+    }
+    locator->Delete();
+    return -(distance/double(_ptarget->GetNumberOfPoints()));
 }
 
 double irtkMultipleImageRegistration::EvaluateGradient(float step, float *dx)

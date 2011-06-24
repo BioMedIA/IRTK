@@ -342,7 +342,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
                           if (_utarget[n]->Get(i, j, k, t) > _TargetPadding) {
                               _utarget[n]->Put(i, j, k, t, _utarget[n]->Get(i, j, k, t) - target_min);
                           } else {
-                              _utarget[n]->Put(i, j, k, t, -1);
+                              _utarget[n]->Put(i, j, k, t, _TargetPadding - 1);
                           }
                       }
                   }
@@ -833,7 +833,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
         for (j = 0; j < _utarget[n]->GetY(); j++) {
           for (i = 0; i < _utarget[n]->GetX(); i++) {
             // Check whether reference point is valid
-            if (*ptr2utarget >= 0) {
+            if (*ptr2utarget > _TargetPadding) {
               x = i; y = j; z = k;
               _utarget[n]->ImageToWorld(x, y, z);
 			  wx = x; wy = y; wz = z;
@@ -895,7 +895,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarity += this->_Lregu * this->LandMarkPenalty(-1,0);
+	  similarity += this->_Lregu * this->LandMarkPenalty(-1);
   }
   // Add penalty for smoothness
   if (this->_Lambda1 > 0) {
@@ -1114,7 +1114,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 						if(round(dy*(y-p1._y))<=max && round(dy*(y-p1._y))>=min){
 							bj = bk * _localLookupTable[round(dy*(y-p1._y))];
 							// Check whether reference point is valid
-							if (*ptr2utarget >= 0 && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
+							if (*ptr2utarget > _TargetPadding && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
 									bi = bj * _localLookupTable[round(dx*(x-p1._x))];
 									// Delete old samples from both metrics
 									wx = i; wy = j;	wz = k;
@@ -1141,7 +1141,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
                                     }else{
                                         weight = 0;
                                     }
-									if (*ptr2utmp != -1 && *ptr2utarget >= 0 && (threshold > 2)) {
+									if (*ptr2utmp != -1 && *ptr2utarget > _TargetPadding && (threshold > 2)) {
 										utmpMetricA[n]->Delete(*ptr2utarget, *ptr2utmp, 1.0 - weight);
 										utmpMetricB[n]->Delete(*ptr2utarget, *ptr2utmp, 1.0 - weight);
 									}
@@ -1159,7 +1159,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_utarget[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _utarget[n]->GetZ() != 1 
 										&& p[2] > _usource_z1[n] && p[2] < _usource_z2[n]))) {
-											if (*ptr2utarget >= 0  && (threshold > 2)) {
+											if (*ptr2utarget > _TargetPadding  && (threshold > 2)) {
 											// Add sample to metric
 											utmpMetricA[n]->Add(*ptr2utarget, round(_uinterpolator[n]->EvaluateInside(p[0], p[1], p[2], t)),1.0 - weight);
 											l2a += 1.0 - weight;
@@ -1181,7 +1181,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										||( _utarget[n]->GetZ() != 1 
 										&& p[2] > _usource_z1[n] && p[2] < _usource_z2[n]))) {
 
-											if (*ptr2utarget >= 0  && (threshold > 2)) {
+											if (*ptr2utarget > _TargetPadding  && (threshold > 2)) {
 											// Add sample to metric
 											utmpMetricB[n]->Add(*ptr2utarget, round(_uinterpolator[n]->EvaluateInside(p[0], p[1], p[2], t)),1.0 - weight);
 											l2b += 1.0 - weight;
@@ -1213,7 +1213,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
    // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityA += this->_Lregu * this->LandMarkPenalty(index,0);
+	  similarityA += this->_Lregu * this->LandMarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {
@@ -1237,7 +1237,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityB += this->_Lregu * this->LandMarkPenalty(index,0);
+	  similarityB += this->_Lregu * this->LandMarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {

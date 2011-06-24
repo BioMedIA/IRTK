@@ -26,6 +26,8 @@
 #include <vtkIdList.h>
 #include <vtkSmartPointer.h>
 #include <vtkCell.h>
+#include <vtkDelaunay2D.h>
+#include <vtkDecimatePro.h>
 
 void GetConnectedVertices(vtkSmartPointer<vtkPolyData> mesh, int seed, vtkSmartPointer<vtkIdList> connectedVertices);
 

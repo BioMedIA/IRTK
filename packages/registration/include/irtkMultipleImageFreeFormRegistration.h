@@ -116,7 +116,7 @@ protected:
   virtual void Finalize(int);
 
   /** Evaluates the landmark preservation term. */
-  virtual double LandMarkPenalty(int = -1,int = 1);
+  virtual double LandMarkPenalty(int = -1);
 
   /** Evaluates the smoothness preservation term. */
   virtual double SmoothnessPenalty();

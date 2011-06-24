@@ -60,9 +60,9 @@ int main(int argc, char **argv)
 
   irtkImage *image = irtkImage::New(image_name);
 
-  dx = image->GetXSize()*4.0;
-  dy = image->GetYSize()*4.0;
-  dz = image->GetZSize()*4.0;
+  dx = image->GetXSize()*32.0;
+  dy = image->GetYSize()*32.0;
+  dz = image->GetZSize()*32.0;
 
   // Extract FFD and get lattice dimensions
   irtkBSplineFreeFormTransformation *affd_out = new irtkBSplineFreeFormTransformation(*image, dx, dy, dz);
@@ -134,7 +134,10 @@ int main(int argc, char **argv)
 
  
   // Interpolate the ffd and write dof
-  affd_out->Approximate(xpos,ypos,zpos,xdata, ydata, zdata, numberOfPs);
+  for(i = 0; i < 4; i++){
+      affd_out->Approximate(xpos,ypos,zpos,xdata, ydata, zdata, numberOfPs);
+      affd_out->Subdivide();
+  }
   mffd_out->PushLocalTransformation(affd_out);
   mffd_out->irtkTransformation::Write(dofOut_name);
 
