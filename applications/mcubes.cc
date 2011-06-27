@@ -46,7 +46,7 @@ void usage()
 	cerr << "  <-normals> on|off     Choose whether to generate normals (default) or not." << endl;
 	cerr << "  <-gradients> on|off   Choose whether to generate gradients or not (default)." << endl;
 	cerr << "  <-ascii>              Write output mesh in ASCII format (default:  binary)." << endl;
-	cerr << "  <-sepSurfs>           Genarate surfaces for two contours." << endl;
+	cerr << "  <-sepSurfs>           Generate surfaces for two contours." << endl;
 	cerr << "  <-ignoreGeom>         Ignore the geometry of the given image (orientation etc)." << endl;
 	cerr << "  <-close>              Put zeros around the image to generate a closed surface(s)."<<endl;
 	cerr << "  <-close_x>            Close in x direction only."<<endl;
