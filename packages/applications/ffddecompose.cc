@@ -80,6 +80,13 @@ int main(int argc, char **argv)
   double *xpos = new double[numberOfPs];
   double *ypos = new double[numberOfPs];
   double *zpos = new double[numberOfPs];
+
+  double *xdstore = new double[numberOfPs];
+  double *ydstore = new double[numberOfPs];
+  double *zdstore = new double[numberOfPs];
+  double *xpstore = new double[numberOfPs];
+  double *ypstore = new double[numberOfPs];
+  double *zpstore = new double[numberOfPs];
   count = 0;
 
   // Loop for each control point in the target
@@ -108,6 +115,9 @@ int main(int argc, char **argv)
         xpos[count] = x;
         ypos[count] = y;
         zpos[count] = z;
+        xpstore[count] = x;
+        ypstore[count] = y;
+        zpstore[count] = z;
 
         // Find input transformation
         x = xStore;
@@ -126,16 +136,27 @@ int main(int argc, char **argv)
         xdata[count] = xi - xb;
         ydata[count] = yi - yb;
         zdata[count] = zi - zb;
+        xdstore[count] = xdata[count];
+        ydstore[count] = ydata[count];
+        zdstore[count] = zdata[count];
         count ++;
 
       }
     }
   }
 
- 
   // Interpolate the ffd and write dof
-  for(i = 0; i < 4; i++){
-      affd_out->Approximate(xpos,ypos,zpos,xdata, ydata, zdata, numberOfPs);
+  for(i = 0; i < 4; i++){      
+      affd_out->Approximate(xpos,ypos,zpos,xdata, ydata, zdata, numberOfPs);    
+      // Get info back
+      for(j = 0; j < numberOfPs; j++){
+          xdata[j] = xdstore[j];
+          ydata[j] = ydstore[j];
+          zdata[j] = zdstore[j];
+          xpos[j] = xpstore[j];
+          ypos[j] = ypstore[j];
+          zpos[j] = zpstore[j];
+      }
       affd_out->Subdivide();
   }
   mffd_out->PushLocalTransformation(affd_out);
@@ -147,6 +168,12 @@ int main(int argc, char **argv)
   delete [] xpos;
   delete [] ypos;
   delete [] zpos;
+  delete [] xdstore;
+  delete [] ydstore;
+  delete [] zdstore;
+  delete [] xpstore;
+  delete [] ypstore;
+  delete [] zpstore;
   delete mffd_out;
   delete t_in;
   delete t_base;

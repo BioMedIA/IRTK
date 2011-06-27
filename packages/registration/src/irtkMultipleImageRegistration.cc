@@ -131,32 +131,25 @@ void irtkMultipleImageRegistration::Initialize()
     _source_z2 = new double[_numberOfImages];
     _interpolator = new irtkInterpolateImageFunction *[_numberOfImages];
 
-    //calculate surface from polydata
-    vtkDecimatePro *decimate = vtkDecimatePro::New();
-    vtkDelaunay2D *delny = vtkDelaunay2D::New();
-    decimate->SetInputConnection(delny->GetOutputPort());
+    if(_ptarget != NULL && _psource != NULL){
+        //calculate surface from polydata
+        vtkDecimatePro *decimate = vtkDecimatePro::New();
+        vtkDelaunay2D *delny = vtkDelaunay2D::New();
+        decimate->SetInputConnection(delny->GetOutputPort());
 
-    delny->SetInput(_ptarget);
-    delny->SetTolerance(0.01);
-    delny->Update();
-    //decimate->Update();
-    _ptarget->DeepCopy(delny->GetOutput());
+        delny->SetInput(_ptarget);
+        delny->SetTolerance(0.01);
+        delny->Update();
+        _ptarget->DeepCopy(delny->GetOutput());
 
-    delny->SetInput(_psource);
-    delny->SetTolerance(0.01);
-    delny->Update();
-    decimate->Update();
-    _psource->DeepCopy(decimate->GetOutput());
-    delny->Delete();
-    decimate->Delete();
-
-    //vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-    //writer->SetInput(_ptarget);
-    //writer->SetFileName("test1.vtk");
-    //writer->Update();
-    //writer->SetInput(_psource);
-    //writer->SetFileName("test2.vtk");
-    //writer->Update();
+        delny->SetInput(_psource);
+        delny->SetTolerance(0.01);
+        delny->Update();
+        decimate->Update();
+        _psource->DeepCopy(decimate->GetOutput());
+        delny->Delete();
+        decimate->Delete();
+    }
 }
 
 void irtkMultipleImageRegistration::Initialize(int level)
