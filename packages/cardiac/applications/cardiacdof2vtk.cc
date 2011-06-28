@@ -93,8 +93,8 @@ int main(int argc, char **argv)
   vtkDoubleArray *vectors = vtkDoubleArray::New();
   vectors->SetNumberOfComponents(3);
   // Set up strain value
-  vtkDoubleArray *strainvectors = vtkDoubleArray::New();
-  strainvectors->SetNumberOfComponents(1);
+  vtkDoubleArray *scalarvectors = vtkDoubleArray::New();
+  scalarvectors->SetNumberOfComponents(1);
   // Set up strain tensor
   vtkDoubleArray *straintensor = vtkDoubleArray::New();
   straintensor->SetNumberOfComponents(9);
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		  exit(1);
 	  }
   }else{
-	  if(mode == Longitudinal || mode == Circumferential){
+	  if(mode != Normal){
 		cerr << "Longitudinal and Circumferential motion calculation needs definition of longitudinal axis" <<endl;
 		exit(1);
 	  }
@@ -174,37 +174,39 @@ int main(int argc, char **argv)
 		  p2[2] -= p1[2];
 		  points->InsertNextPoint(p1);
 
-		  ds = normal[0]*axis[0] + normal[1]*axis[1] + normal[2]*axis[2];
-		  radial[0] = normal[0] - ds * axis[0];
-		  radial[1] = normal[1] - ds * axis[1];
-		  radial[2] = normal[2] - ds * axis[2];
-		  distance = sqrt(pow(radial[0],2)+pow(radial[1],2)+pow(radial[2],2));
-		  if(distance > 0){
-			  for(j = 0; j < 3; j++){
-				  radial[j] = radial[j] / distance;
-			  }
-		  }
-          circle[0] = axis[1]*radial[2] - axis[2]*radial[1];
-          circle[1] = axis[2]*radial[0] - axis[0]*radial[2];
-          circle[2] = axis[0]*radial[1] - axis[1]*radial[0];
+          if(mode != Normal){
+              ds = normal[0]*axis[0] + normal[1]*axis[1] + normal[2]*axis[2];
+              radial[0] = normal[0] - ds * axis[0];
+              radial[1] = normal[1] - ds * axis[1];
+              radial[2] = normal[2] - ds * axis[2];
+              distance = sqrt(pow(radial[0],2)+pow(radial[1],2)+pow(radial[2],2));
+              if(distance > 0){
+                  for(j = 0; j < 3; j++){
+                      radial[j] = radial[j] / distance;
+                  }
+              }
+              circle[0] = axis[1]*radial[2] - axis[2]*radial[1];
+              circle[1] = axis[2]*radial[0] - axis[0]*radial[2];
+              circle[2] = axis[0]*radial[1] - axis[1]*radial[0];
 
-		  if(mode == Radial){
-			  ds = p2[0]*radial[0] + p2[1]*radial[1] + p2[2]*radial[2];
-			  p2[0] = ds * radial[0];
-			  p2[1] = ds * radial[1];
-			  p2[2] = ds * radial[2];
-		  }else if(mode == Longitudinal){
-			  ds = p2[0]*axis[0] + p2[1]*axis[1] + p2[2]*axis[2];
-			  p2[0] = ds * axis[0];
-			  p2[1] = ds * axis[1];
-			  p2[2] = ds * axis[2];
-		  }else if(mode == Circumferential){
-			  //(a2b3 ? a3b2, a3b1 ? a1b3, a1b2 ? a2b1)
-			  ds = p2[0]*circle[0] + p2[1]*circle[1] + p2[2]*circle[2];
-			  p2[0] = ds * circle[0];
-			  p2[1] = ds * circle[1];
-			  p2[2] = ds * circle[2];
-		  }
+              if(mode == Radial){
+                  ds = p2[0]*radial[0] + p2[1]*radial[1] + p2[2]*radial[2];
+                  p2[0] = ds * radial[0];
+                  p2[1] = ds * radial[1];
+                  p2[2] = ds * radial[2];
+              }else if(mode == Longitudinal){
+                  ds = p2[0]*axis[0] + p2[1]*axis[1] + p2[2]*axis[2];
+                  p2[0] = ds * axis[0];
+                  p2[1] = ds * axis[1];
+                  p2[2] = ds * axis[2];
+              }else if(mode == Circumferential){
+                  //(a2b3 ? a3b2, a3b1 ? a1b3, a1b2 ? a2b1)
+                  ds = p2[0]*circle[0] + p2[1]*circle[1] + p2[2]*circle[2];
+                  p2[0] = ds * circle[0];
+                  p2[1] = ds * circle[1];
+                  p2[2] = ds * circle[2];
+              }
+          }
 
 		  vectors->InsertNextTuple(p2);
 
@@ -245,18 +247,18 @@ int main(int argc, char **argv)
 				 strainm = spt*strainm*sp;
 			 }
 			 result_of_strain = strainm.Det();
-			 strainvectors->InsertNextTuple(&result_of_strain);
+			 scalarvectors->InsertNextTuple(&result_of_strain);
 			 straintensor->InsertNextTuple(tensor_of_strain);
 		  }else{
 			  double magnitudev = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2]);
-			  strainvectors->InsertNextTuple(&magnitudev);
+			  scalarvectors->InsertNextTuple(&magnitudev);
 		  }
 	  }			
   }
   vtkPolyData *output = vtkPolyData::New();
   output->SetPoints(points);
   output->GetPointData()->SetVectors(vectors);
-  output->GetPointData()->SetScalars(strainvectors);
+  output->GetPointData()->SetScalars(scalarvectors);
   if(strain){
 	  output->GetPointData()->SetTensors(straintensor);
   }

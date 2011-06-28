@@ -133,10 +133,8 @@ void irtkMultipleImageRegistration::Initialize()
 
     if(_ptarget != NULL && _psource != NULL){
         //calculate surface from polydata
-        vtkDecimatePro *decimate = vtkDecimatePro::New();
         vtkDelaunay2D *delny = vtkDelaunay2D::New();
-        decimate->SetInputConnection(delny->GetOutputPort());
-
+        
         delny->SetInput(_ptarget);
         delny->SetTolerance(0.01);
         delny->Update();
@@ -145,10 +143,8 @@ void irtkMultipleImageRegistration::Initialize()
         delny->SetInput(_psource);
         delny->SetTolerance(0.01);
         delny->Update();
-        decimate->Update();
-        _psource->DeepCopy(decimate->GetOutput());
+        _psource->DeepCopy(delny->GetOutput());
         delny->Delete();
-        decimate->Delete();
     }
 }
 

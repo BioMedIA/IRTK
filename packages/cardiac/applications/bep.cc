@@ -65,10 +65,10 @@ int main( int argc, char** argv )
 
 		datasurface_reader->Delete();
 	}else{
-		for(i = 0; i <= numberofframes; i++){
+		for(i = 0; i < numberofframes; i++){
 
             char buffer[255];
-            sprintf(buffer, "%s%.2d", data_name, i);
+            sprintf(buffer, "%s%.2d.vtk", data_name, i);
 
             // datasurface pipeline
             cout << "Reading data surface ... " << buffer << endl;
@@ -77,7 +77,7 @@ int main( int argc, char** argv )
             datasurface_reader->Modified();
             datasurface_reader->Update();
             vtkPolyData *datasurface = vtkPolyData::New();
-            datasurface = datasurface_reader->GetOutput();
+            datasurface->DeepCopy(datasurface_reader->GetOutput());
             datasurface->Update();
 
             bep.SetInput(bepsurface,datasurface);
@@ -86,6 +86,7 @@ int main( int argc, char** argv )
             bep.Bullseyeplot();
             bep.Finalize();
 
+            datasurface->Delete();
             datasurface_reader->Delete();
 		}
 	}

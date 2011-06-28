@@ -533,7 +533,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
 	  _comega[i] = 0;
 
   // Padding of FFD
-  //irtkPadding(*_threshold, 2 , _affd);
+  irtkPadding(*_threshold, 2 , _affd);
   //irtkPadding(tmp_mutarget, this->_TargetPadding, _affd, _numberOfuImages);
 }
 
