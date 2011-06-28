@@ -16,6 +16,8 @@
 
 template <class VoxelType> irtkDilation<VoxelType>::irtkDilation()
 {
+	// Default connectivity.
+	this->_Connectivity = CONNECTIVITY_26;
 }
 
 template <class VoxelType> irtkDilation<VoxelType>::~irtkDilation(void)
@@ -32,13 +34,24 @@ template <class VoxelType> const char *irtkDilation<VoxelType>::NameOfClass()
   return "irtkDilation";
 }
 
+template <class VoxelType> void irtkDilation<VoxelType>::Initialize()
+{
+  // Do the initial set up
+  this->irtkImageToImage<VoxelType>::Initialize();
+
+  this->_offsets.Initialize(this->_input, this->_Connectivity);
+}
+
 template <class VoxelType> void irtkDilation<VoxelType>::Run()
 {
-  int i, j, k, x, y, z, t;
+  int i, x, y, z, t, maskSize;
   VoxelType value;
+  VoxelType *ptr2current, *ptr2offset;
 
   // Do the initial set up
   this->Initialize();
+
+  maskSize = this->_offsets.GetSize();
 
   for (t = 0; t < this->_input->GetT(); t++) {
     for (z = 0; z < this->_input->GetZ(); z++) {
@@ -50,13 +63,11 @@ template <class VoxelType> void irtkDilation<VoxelType>::Run()
             this->_output->Put(x, y, z, t, this->_input->Get(x, y, z, t));
           } else {
             value = this->_input->Get(x, y, z, t);
-            for (k = -1; k <= 1; k++) {
-              for (j = -1; j <= 1; j++) {
-                for (i = -1; i <= 1; i++) {
-                  if (this->_input->Get(x+i, y+j, z+k, t) > value)
-                    value = this->_input->Get(x+i, y+j, z+k, t);
-                }
-              }
+          	ptr2current = this->_input->GetPointerToVoxels(x, y, z, t);
+            for (i = 0; i < maskSize; ++i) {
+          		ptr2offset = ptr2current + this->_offsets(i);
+            	if (*ptr2offset > value)
+            		value = *ptr2offset;
             }
             this->_output->Put(x, y, z, t, value);
           }

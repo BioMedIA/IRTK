@@ -34,6 +34,15 @@ protected:
   /// Returns the name of the class
   virtual const char *NameOfClass();
 
+  /// Initialize the filter
+  virtual void Initialize();
+
+  /// What connectivity to assume when running the filter.
+  irtkConnectivityType _Connectivity;
+
+  // List of voxel offsets of the neighbourhood.
+  irtkNeighbourhoodOffsets _offsets;
+
 public:
 
   /// Constructor
@@ -45,6 +54,9 @@ public:
   /// Run erosion
   virtual void Run();
 
+  SetMacro(Connectivity, irtkConnectivityType);
+
+  GetMacro(Connectivity, irtkConnectivityType);
 };
 
 #endif
