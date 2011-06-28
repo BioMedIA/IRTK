@@ -67,11 +67,16 @@ void irtkMultipleImageFreeFormRegistration::GuessParameter()
   _SimilarityMeasure  = NMI;
   _OptimizationMethod = GradientDescent;
   _Epsilon            = 0.0001;
+
+#ifdef HAS_VTK
+
   if (_ptarget != NULL && _psource != NULL) {
     _Lregu          = 0.001;
   } else {
     _Lregu          = 0;
   }
+
+#endif
 
   // Read target pixel size
   _target[0]->GetPixelSize(&xsize, &ysize, &zsize);
@@ -208,8 +213,8 @@ void irtkMultipleImageFreeFormRegistration::Initialize(int level)
   _mffdLookupTable = new float*[_numberOfImages];
 
   for (l = 0; l < _numberOfImages; l++) {
-    if(_weight != NULL){
-        cout << "image " << l << "th's external weight is " << _weight[_level][l] << endl;
+    if(_weight != NULL) {
+      cout << "image " << l << "th's external weight is " << _weight[_level][l] << endl;
     }
     _tmpMetricA[l] = irtkSimilarityMetric::New(_metric[l]);
     _tmpMetricB[l] = irtkSimilarityMetric::New(_metric[l]);
@@ -331,6 +336,9 @@ void irtkMultipleImageFreeFormRegistration::UpdateLUT()
 
 double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
 {
+
+#ifdef HAS_VTK
+
   int i,k,count;
   vtkIdType j;
   double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3];
@@ -352,52 +360,61 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
     return 0;
   } else if(_ptarget->GetNumberOfPoints() == 0 || _psource->GetNumberOfPoints() == 0) {
     return 0;
-  } 
+  }
 
-  vtkCellLocator *locator = vtkCellLocator::New(); 
-  locator->SetDataSet(_psource); // data represents the surface 
-  locator->BuildLocator(); 
+  vtkCellLocator *locator = vtkCellLocator::New();
+  locator->SetDataSet(_psource); // data represents the surface
+  locator->BuildLocator();
 
   vtkGenericCell *tmp = vtkGenericCell::New();
 
   count = 0;
   for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
-      _ptarget->GetPoints()->GetPoint(i,p);
-      int valid = 1;
-      if(index != -1) {
-          pt._x = p[0];
-          pt._y = p[1];
-          pt._z = p[2];
-          _target[0]->WorldToImage(pt);
-          if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
-              &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
-              &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
-                  valid = 1;
-                  count ++;
-          } else {
-              valid = 0;
-          }
+    _ptarget->GetPoints()->GetPoint(i,p);
+    int valid = 1;
+    if(index != -1) {
+      pt._x = p[0];
+      pt._y = p[1];
+      pt._z = p[2];
+      _target[0]->WorldToImage(pt);
+      if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
+          &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
+          &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
+        valid = 1;
+        count ++;
+      } else {
+        valid = 0;
       }
-      if(valid == 1) {
-          q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
-          _mffd->Transform(p[0],p[1],p[2]);
-          _affd->LocalDisplacement(q[0],q[1],q[2]);
-          p[0] += q[0];
-          p[1] += q[1];
-          p[2] += q[2];
-          locator->FindClosestPoint(p,q,tmp,j,k,d);
-          distance += d;
-      }
+    }
+    if(valid == 1) {
+      q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
+      _mffd->Transform(p[0],p[1],p[2]);
+      _affd->LocalDisplacement(q[0],q[1],q[2]);
+      p[0] += q[0];
+      p[1] += q[1];
+      p[2] += q[2];
+      locator->FindClosestPoint(p,q,tmp,j,k,d);
+      distance += d;
+    }
   }
   tmp->Delete();
   locator->Delete();
-  if(index != -1)
-      if(count != 0)
-          return -(distance/double(count));
-      else
-          return 0;
-  else
-      return -(distance/double(_ptarget->GetNumberOfPoints()));
+  if (index != -1) {
+    if (count != 0) {
+      return -(distance/double(count));
+    } else {
+      return 0;
+    }
+  } else {
+    return -(distance/double(_ptarget->GetNumberOfPoints()));
+  }
+
+  #else
+
+  return 0;
+
+#endif
+
 }
 
 double irtkMultipleImageFreeFormRegistration::SmoothnessPenalty()
@@ -479,50 +496,50 @@ double irtkMultipleImageFreeFormRegistration::VolumePreservationPenalty()
 
 double irtkMultipleImageFreeFormRegistration::VolumePreservationPenalty(int index)
 {
-    int i, j, k, i1, j1, k1, i2, j2, k2, count;
-    double x, y, z, jacobian, penalty;
+  int i, j, k, i1, j1, k1, i2, j2, k2, count;
+  double x, y, z, jacobian, penalty;
 
-    _affd->IndexToLattice(index, i, j, k);
-    penalty = 0;
-    count = 0;
-    k1 = (k-1)>0?(k-1):0;
-    j1 = (j-1)>0?(j-1):0;
-    i1 = (i-1)>0?(i-1):0;
-    k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
-    j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
-    i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
-    for (k = k1; k < k2; k++) {
-        for (j = j1; j < j2; j++) {
-            for (i = i1; i < i2; i++) {
-                x = i;
-                y = j;
-                z = k;
-                _affd->LatticeToWorld(x, y, z);
-                // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
-                irtkMatrix jac,tmp_jac;
-                _affd->Jacobian(tmp_jac,x,y,z);
-                // Calculate jacobian
-                jac.Initialize(3, 3);
-                _mffd->LocalJacobian(jac, x, y, z);
+  _affd->IndexToLattice(index, i, j, k);
+  penalty = 0;
+  count = 0;
+  k1 = (k-1)>0?(k-1):0;
+  j1 = (j-1)>0?(j-1):0;
+  i1 = (i-1)>0?(i-1):0;
+  k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
+  j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
+  i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
+  for (k = k1; k < k2; k++) {
+    for (j = j1; j < j2; j++) {
+      for (i = i1; i < i2; i++) {
+        x = i;
+        y = j;
+        z = k;
+        _affd->LatticeToWorld(x, y, z);
+        // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
+        irtkMatrix jac,tmp_jac;
+        _affd->Jacobian(tmp_jac,x,y,z);
+        // Calculate jacobian
+        jac.Initialize(3, 3);
+        _mffd->LocalJacobian(jac, x, y, z);
 
-                // Subtract identity matrix
-                tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
-                tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
-                tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
+        // Subtract identity matrix
+        tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
+        tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
+        tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
 
-                // Add jacobian
-                jac += tmp_jac;
-                // Determinant of Jacobian of deformation derivatives
-                jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
+        // Add jacobian
+        jac += tmp_jac;
+        // Determinant of Jacobian of deformation derivatives
+        jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
                     jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
                     jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-                if(jacobian < 0.0001) jacobian = 0.0001;
-                penalty += fabs(log(jacobian));
-                count ++;
-            }
-        }
+        if(jacobian < 0.0001) jacobian = 0.0001;
+        penalty += fabs(log(jacobian));
+        count ++;
+      }
     }
-    return -penalty/count;
+  }
+  return -penalty/count;
 }
 
 
@@ -628,9 +645,9 @@ double irtkMultipleImageFreeFormRegistration::Evaluate()
                 *ptr2tmp =  round(_interpolator[n]->EvaluateInside(x, y, z, t));
                 _metric[n]->Add(*ptr2target, *ptr2tmp);
                 if(_weight == NULL)
-                    sweight[n]++;
+                  sweight[n]++;
                 else
-                    sweight[n] += _weight[_level][n];
+                  sweight[n] += _weight[_level][n];
               } else {
                 *ptr2tmp = -1;
               }
@@ -687,11 +704,11 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 
 #ifdef HAS_TBB
   // Create similarity metric if necessary
-  if (queue.pop_if_present(tmpMetricA) == false) {
+  if (sim_queue.pop_if_present(tmpMetricA) == false) {
     tmpMetricA = irtkSimilarityMetric::New(_metric);
   }
   // Create similarity metric if necessary
-  if (queue.pop_if_present(tmpMetricB) == false) {
+  if (sim_queue.pop_if_present(tmpMetricB) == false) {
     tmpMetricB = irtkSimilarityMetric::New(_metric);
   }
 #else
@@ -766,9 +783,9 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 
                     // Add sample to metric
                     if(_weight == NULL)
-                        weight[n]++;
+                      weight[n]++;
                     else
-                        weight[n] += _weight[_level][n];
+                      weight[n] += _weight[_level][n];
                     tmpMetricA[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
                   }
 
@@ -789,9 +806,9 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 
                     // Add sample to metric
                     if(_weight == NULL)
-                        weight[n]++;
+                      weight[n]++;
                     else
-                        weight[n] += _weight[_level][n];
+                      weight[n] += _weight[_level][n];
                     tmpMetricB[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
                   }
                 }
@@ -858,8 +875,10 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
   _affd->Put(index, dof);
 
 #ifdef HAS_TBB
-  queue.push(tmpMetricA);
-  queue.push(tmpMetricB);
+
+  sim_queue.push(tmpMetricA);
+  sim_queue.push(tmpMetricB);
+
 #endif
 
   delete []weight;

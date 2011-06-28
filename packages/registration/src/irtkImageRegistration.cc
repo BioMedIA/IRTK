@@ -28,7 +28,7 @@ irtkHistory *history;
 
 #ifdef HAS_TBB
 
-concurrent_queue<irtkSimilarityMetric *> queue;
+concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 #endif
 
@@ -405,8 +405,8 @@ void irtkImageRegistration::Finalize(int level)
 
 #ifdef HAS_TBB
   irtkSimilarityMetric *metric;
-  while (queue.size() > 0) {
-    queue.pop(metric);
+  while (sim_queue.size() > 0) {
+    sim_queue.pop(metric);
     delete metric;
   }
 #endif

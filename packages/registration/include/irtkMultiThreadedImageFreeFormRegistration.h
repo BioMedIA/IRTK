@@ -12,7 +12,7 @@
 
 #ifdef HAS_TBB
 
-extern concurrent_queue<irtkSimilarityMetric *> queue;
+extern concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 class irtkMultiThreadedImageFreeFormRegistrationEvaluate
 {
@@ -40,7 +40,7 @@ public:
     _filter = r._filter;
 
     // Copy similarity metric
-    if (queue.pop_if_present(_metric) == false) {
+    if (sim_queue.pop_if_present(_metric) == false) {
       _metric = irtkSimilarityMetric::New(_filter->_metric);
     }
 
@@ -49,7 +49,7 @@ public:
   }
 
   ~irtkMultiThreadedImageFreeFormRegistrationEvaluate() {
-    if (_metric != _filter->_metric) queue.push(_metric);
+    if (_metric != _filter->_metric) sim_queue.push(_metric);
   }
 
   void join(irtkMultiThreadedImageFreeFormRegistrationEvaluate &rhs) {

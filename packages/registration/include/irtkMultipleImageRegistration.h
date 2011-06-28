@@ -64,11 +64,13 @@ protected:
    */
   irtkGreyImage **_source;
 
-  /// Landmark regulation Input
+#ifdef HAS_VTK
+  /// Landmark input
   vtkPolyData *_ptarget;
 
-  /// Landmark regulation Input
+  /// Landmark input
   vtkPolyData *_psource;
+#endif
 
   /// Number of images (must be equal for source and target images)
   int _numberOfImages;
@@ -169,8 +171,12 @@ public:
   /// Sets input for the registration filter
   virtual void SetInput (irtkGreyImage **, irtkGreyImage **, int);
 
+#ifdef HAS_VTK
+
   /// Sets landmark regulation input for the registration filter
   virtual void SetLandmarks (vtkPolyData *, vtkPolyData *);
+
+#endif
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
@@ -247,11 +253,15 @@ inline void irtkMultipleImageRegistration::SetInput(irtkGreyImage **target, irtk
   }
 }
 
+#ifdef HAS_VTK
+
 inline void irtkMultipleImageRegistration::SetLandmarks (vtkPolyData * target, vtkPolyData * source)
 {
   _ptarget = target;
   _psource = source;
 }
+
+#endif
 
 inline void irtkMultipleImageRegistration::Debug(string message)
 {

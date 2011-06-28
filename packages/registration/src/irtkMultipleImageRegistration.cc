@@ -18,7 +18,11 @@ Changes   : $Author$
 
 #include <irtkGaussianBlurring.h>
 
+#ifdef HAS_VTK
+
 #include <vtkDecimatePro.h>
+
+#endif
 
 #define HISTORY
 
@@ -30,7 +34,7 @@ extern irtkHistory *history;
 
 #ifdef HAS_TBB
 
-concurrent_queue<irtkSimilarityMetric *> queue;
+extern concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 #endif
 
@@ -82,9 +86,13 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
     _target = NULL;
     _source = NULL;
 
-    // Set regulation landmarks
+#ifdef HAS_VTK
+
+    // Set landmarks
     _ptarget = NULL;
     _psource = NULL;
+
+#endif
 
     // Set output
     _transformation = NULL;
@@ -131,6 +139,8 @@ void irtkMultipleImageRegistration::Initialize()
     _source_z2 = new double[_numberOfImages];
     _interpolator = new irtkInterpolateImageFunction *[_numberOfImages];
 
+#ifdef HAS_VTK
+
     if(_ptarget != NULL && _psource != NULL){
         //calculate surface from polydata
         vtkDelaunay2D *delny = vtkDelaunay2D::New();
@@ -141,6 +151,9 @@ void irtkMultipleImageRegistration::Initialize()
         _psource->DeepCopy(delny->GetOutput());
         delny->Delete();
     }
+
+#endif
+
 }
 
 void irtkMultipleImageRegistration::Initialize(int level)
@@ -464,8 +477,8 @@ void irtkMultipleImageRegistration::Finalize(int level)
 
 #ifdef HAS_TBB
     irtkSimilarityMetric *metric;
-    while (queue.size() > 0) {
-        queue.pop(metric);
+    while (sim_queue.size() > 0) {
+        sim_queue.pop(metric);
         delete metric;
     }
 #endif
@@ -588,6 +601,9 @@ void irtkMultipleImageRegistration::Run()
 
 double irtkMultipleImageRegistration::LandMarkPenalty ()
 {
+
+#ifdef HAS_VTK
+
     int i,k;
     vtkIdType j;
     double d = 0,distance = 0, p[3],q[3];
@@ -609,6 +625,13 @@ double irtkMultipleImageRegistration::LandMarkPenalty ()
     }
     locator->Delete();
     return -(distance/double(_ptarget->GetNumberOfPoints()));
+
+#else
+
+    return 0;
+
+#endif
+
 }
 
 double irtkMultipleImageRegistration::EvaluateGradient(float step, float *dx)
