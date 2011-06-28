@@ -33,4 +33,7 @@
 // VTK functions
 #include <irtkVTKFunctions.h>
 
+// Offsets for a neighbourhood mask
+#include <irtkNeighbourhoodOffsets.h>
+
 #endif

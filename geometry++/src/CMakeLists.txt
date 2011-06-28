@@ -2,6 +2,7 @@ SET(GEOMETRY_INCLUDES
 ../include/irtkComplexFunction.h
 ../include/irtkGeometry.h
 ../include/irtkMatrix.h
+../include/irtkNeighbourhoodOffsets.h
 ../include/irtkPoint.h
 ../include/irtkPointSet.h
 ../include/irtkQuaternion.h
@@ -23,6 +24,7 @@ SET(GEOMETRY_INCLUDES
 SET(GEOMETRY_SRCS 
 irtkComplexFunction.cc
 irtkMatrix.cc
+irtkNeighbourhoodOffsets.cc
 irtkPoint.cc
 irtkPointSet.cc
 irtkQuaternion.cc
