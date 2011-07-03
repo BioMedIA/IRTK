@@ -387,9 +387,9 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
   vtkGenericCell *tmp = vtkGenericCell::New();
 
   int valid = 0;
-  for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
-      _ptarget->GetPoints()->GetPoint(i,p);
-      if(index != -1) {
+  if(index != -1) {
+      for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
+          _ptarget->GetPoints()->GetPoint(i,p);
           pt._x = p[0];
           pt._y = p[1];
           pt._z = p[2];
@@ -398,8 +398,11 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
               &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
               &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
                   valid = 1;
+                  break;
           }
       }
+  }else{
+      valid = 1;
   }
   if(valid == 1) {
       vtkPolyData *tmpptarget = vtkPolyData::New();
