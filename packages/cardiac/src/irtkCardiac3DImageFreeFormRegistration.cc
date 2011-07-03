@@ -1233,7 +1233,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
    // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityA += this->_Lregu * this->LandMarkPenalty();
+	  similarityA += this->_Lregu * this->LandMarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {
@@ -1257,7 +1257,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityB += this->_Lregu * this->LandMarkPenalty();
+	  similarityB += this->_Lregu * this->LandMarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {

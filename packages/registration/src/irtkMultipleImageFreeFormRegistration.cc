@@ -354,12 +354,25 @@ void irtkMultipleImageFreeFormRegistration::UpdateLUT()
   }
 }
 
-double irtkMultipleImageFreeFormRegistration::LandMarkPenalty()
+double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
 {
   int i,k;
 #ifdef HAS_VTK
   vtkIdType j;
-  double d = 0, distance = 0 , p[3], q[3];
+  double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3];
+  irtkPoint p1, p2, pt;
+
+  if(index != -1) {
+    _affd->BoundingBox(index, p1, p2);
+    _target[0]->WorldToImage(p1);
+    _target[0]->WorldToImage(p2);
+    dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
+    dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
+    dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
+
+    min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
+    max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
+  }
 
   if (_ptarget == NULL || _psource == NULL) {
       return 0;
@@ -367,41 +380,57 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty()
       return 0;
   }
 
-  vtkPolyData *tmpptarget = vtkPolyData::New();
-  tmpptarget->DeepCopy(_tmpptarget);
-
   vtkCellLocator *locator = vtkCellLocator::New(); 
   locator->SetDataSet(_psource); // data represents the surface 
   locator->BuildLocator(); 
 
-  vtkCellLocator *tlocator = vtkCellLocator::New(); 
-  tlocator->SetDataSet(tmpptarget); // data represents the surface 
-
   vtkGenericCell *tmp = vtkGenericCell::New();
 
+  int valid = 0;
   for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
-      _tmpptarget->GetPoints()->GetPoint(i,p);
-      q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
-      _affd->LocalDisplacement(q[0],q[1],q[2]);
-      p[0] += q[0];
-      p[1] += q[1];
-      p[2] += q[2];
-      tmpptarget->GetPoints()->SetPoint(i,p);
-      locator->FindClosestPoint(p,q,tmp,j,k,d);
-      distance += d;
+      _ptarget->GetPoints()->GetPoint(i,p);
+      if(index != -1) {
+          pt._x = p[0];
+          pt._y = p[1];
+          pt._z = p[2];
+          _target[0]->WorldToImage(pt);
+          if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
+              &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
+              &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
+                  valid = 1;
+          }
+      }
   }
-  //symetric
-  tlocator->BuildLocator(); 
-  for (i = 0; i < _psource->GetNumberOfPoints(); i++) {
-      _psource->GetPoints()->GetPoint(i,p);
-      tlocator->FindClosestPoint(p,q,tmp,j,k,d);
-      distance += d;
+  if(valid == 1) {
+      vtkPolyData *tmpptarget = vtkPolyData::New();
+      tmpptarget->DeepCopy(_tmpptarget);
+      for (i = 0; i < _tmpptarget->GetNumberOfPoints(); i++) {
+          _tmpptarget->GetPoints()->GetPoint(i,p);
+          q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
+          _affd->LocalDisplacement(q[0],q[1],q[2]);
+          p[0] += q[0];
+          p[1] += q[1];
+          p[2] += q[2];
+          tmpptarget->GetPoints()->SetPoint(i,p);
+          locator->FindClosestPoint(p,q,tmp,j,k,d);
+          distance += d;
+      } 
+      vtkCellLocator *tlocator = vtkCellLocator::New(); 
+      tlocator->SetDataSet(tmpptarget); // data represents the surface 
+      tlocator->BuildLocator(); 
+      for (i = 0; i < _psource->GetNumberOfPoints(); i++) {
+          _psource->GetPoints()->GetPoint(i,p);
+          tlocator->FindClosestPoint(p,q,tmp,j,k,d);
+          distance += d;
+      } 
+      tlocator->Delete();
+      tmpptarget->Delete();
+  }else{
+      distance = 0;
   }
   tmp->Delete();
-  tlocator->Delete();
   locator->Delete();
-  tmpptarget->Delete();
-  return -(distance/double(2.0*_ptarget->GetNumberOfPoints()));
+  return -(distance/double(_tmpptarget->GetNumberOfPoints()+_psource->GetNumberOfPoints()));
 #else
   return 0;
 #endif
@@ -826,7 +855,7 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 
   // Smoothness
   if (this->_Lregu > 0) {
-    similarityA += this->_Lregu * this->LandMarkPenalty();
+    similarityA += this->_Lregu * this->LandMarkPenalty(index);
   }
   if (this->_Lambda1 > 0) {
     similarityA += this->_Lambda1*this->SmoothnessPenalty(index);
@@ -848,7 +877,7 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
 
   // Smoothness
   if (this->_Lregu > 0) {
-    similarityB += this->_Lregu * this->LandMarkPenalty();
+    similarityB += this->_Lregu * this->LandMarkPenalty(index);
   }
   if (this->_Lambda1 > 0) {
     similarityB += this->_Lambda1*this->SmoothnessPenalty(index);

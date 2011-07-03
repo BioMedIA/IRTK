@@ -313,8 +313,10 @@ int main(int argc, char **argv)
 
 	if(thresholdname!=NULL)
 		threshold = new irtkGreyImage(thresholdname);
-	else
+	else{
 		cerr<<"please generate threshold using graphcut or ems or whatever"<<endl;
+        exit(1);
+    }
 
 	// If there is an region of interest, use it
 	if ((ux1 != 0) || (ux2 != uimage[0]->GetX()) ||
