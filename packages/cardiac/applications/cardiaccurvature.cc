@@ -32,7 +32,8 @@ void usage()
 
 int main(int argc, char **argv)
 {
-    int iterations,ok;
+    int i,iterations,ok;
+    double mean,std;
     vtkDecimatePro *decimate = NULL;
     vtkSmoothPolyDataFilter *smooth = NULL;
 
@@ -100,8 +101,31 @@ int main(int argc, char **argv)
         curvature->SetInputConnection(reader->GetOutputPort());
     }
 
+    // Regulate
+    vtkPolyData *model = curvature->GetOutput();
+
+    mean = 0; std = 0;
+    for(i = 0; i < model->GetNumberOfPoints(); i++){
+        mean += *(model->GetPointData()->GetScalars()->GetTuple(i));
+    }
+    mean = mean/model->GetNumberOfPoints();
+    for(i = 0; i < model->GetNumberOfPoints(); i++){
+        std += pow((*(model->GetPointData()->GetScalars()->GetTuple(i)) - mean),2);
+    }
+    std = sqrt(std/model->GetNumberOfPoints());
+    double max,min;
+    max = mean+2*std;
+    min = mean-2*std;
+    for(i = 0; i < model->GetNumberOfPoints(); i++){
+        if(*(model->GetPointData()->GetScalars()->GetTuple(i))>max)
+            model->GetPointData()->GetScalars()->SetTuple(i,&max);
+        if(*(model->GetPointData()->GetScalars()->GetTuple(i))<min)
+            model->GetPointData()->GetScalars()->SetTuple(i,&min);
+
+    }
+
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-    writer->SetInputConnection(curvature->GetOutputPort());
+    writer->SetInput(model);
     writer->SetFileName(output_name);
     writer->Write();
     writer->Delete();

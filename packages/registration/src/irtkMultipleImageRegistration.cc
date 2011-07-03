@@ -144,6 +144,10 @@ void irtkMultipleImageRegistration::Initialize()
     if(_ptarget != NULL && _psource != NULL){
         //calculate surface from polydata
         vtkDelaunay2D *delny = vtkDelaunay2D::New();
+        delny->SetInput(_ptarget);
+        delny->SetTolerance(0.00001);
+        delny->Update();
+        _ptarget->DeepCopy(delny->GetOutput());
 
         delny->SetInput(_psource);
         delny->SetTolerance(0.00001);
@@ -264,10 +268,14 @@ void irtkMultipleImageRegistration::Initialize(int level)
             for (k = 0; k < _source[n]->GetZ(); k++) {
                 for (j = 0; j < _source[n]->GetY(); j++) {
                     for (i = 0; i < _source[n]->GetX(); i++) {
-                        if (_source[n]->Get(i, j, k, t) > source_max)
-                            source_max = _source[n]->Get(i, j, k, t);
-                        if (_source[n]->Get(i, j, k, t) < source_min)
-                            source_min = _source[n]->Get(i, j, k, t);
+                        if (_source[n]->Get(i, j, k, t) > _TargetPadding) {
+                            if (_source[n]->Get(i, j, k, t) > source_max)
+                                source_max = _source[n]->Get(i, j, k, t);
+                            if (_source[n]->Get(i, j, k, t) < source_min)
+                                source_min = _source[n]->Get(i, j, k, t);
+                        }else{
+                            _source[n]->Put(i, j, k, t, _TargetPadding);
+                        }
                     }
                 }
             }

@@ -23,13 +23,12 @@ Changes   : $Author$
 #include <vtkPointLocator.h>
 #include <vtkIdList.h>
 #include <vtkLine.h>
-#include <vtkSelectEnclosedPoints.h>
 
 char *input_name = NULL, *output_name = NULL, *image_name = NULL, *count_name = NULL;
 
 void usage(){
 	cerr << "Usage: cardiacsurfacevolume [input surface] [reference image] [outputfile] " << endl;
-	cerr << "17 AHA segmentation a center line will be generated from the 17 apex and 0 basal" << endl;
+	cerr << "17 AHA segmentation a center line will be generated from the 17 apex and 0 basal, reference image is the manual segmentation, blood pool > 0" << endl;
 	exit(1);
 }
 
@@ -99,22 +98,6 @@ int main(int argc, char **argv)
 	argv++;
 	argc--;
 
-	/*while (argc > 1) {
-	ok = false;
-	if ((ok == false) && (strcmp(argv[1], "-n") == 0)) {
-	argc--;
-	argv++;
-	n = atoi(argv[1]);
-	argc--;
-	argv++;
-	ok = true;
-	}
-	if (ok == false) {
-	cerr << "Can't parse argument " << argv[1] << endl;
-	usage();
-	}
-	}*/
-
 	// Allocate memory for intensity profile
 	profile = new double[1];
 
@@ -138,6 +121,8 @@ int main(int argc, char **argv)
 	// Read image
 	irtkGreyImage image;
 	image.Read(image_name);
+    irtkGreyImage segmentation;
+    segmentation.Read(image_name);
 	image.Initialize(image.GetImageAttributes());
 
 	// Define point1 point2
@@ -216,41 +201,35 @@ int main(int argc, char **argv)
 		}			
 	}
 
-	//fillin the volume
-	vtkSelectEnclosedPoints *closeset = vtkSelectEnclosedPoints::New();
-	closeset->Initialize(model);
-	closeset->CheckSurfaceOn();
 	for(x = iregion[0]; x < iregion[3] + 1; x++){
 		for(y = iregion[1]; y < iregion[4] + 1; y++){
 			for(z = iregion[2]; z < iregion[5] + 1; z++){
 				double maxdistance = 100000;
 				point[0] = x; point[1] = y; point[2] = z;
 				image.ImageToWorld(point[0],point[1],point[2]);
-				if(closeset->IsInsideSurface(point)){
-					for (i = 0; i < model->GetNumberOfPoints(); i++) {
-						for(j = 0; j < 3; j++){
-							point1[j] = surfacepoints[i][j];
-							point2[j] = insertionpoints[i][j];
-						}
-						distance = linefunction->DistanceToLine(point,point1,point2,weight1,pinsertion);
-						for(j = 0; j < 3; j++){
-							normal[j] = pinsertion[j] - point[j];
-						}
-						weight2 = pow(normal[0],2)+pow(normal[1],2)+pow(normal[2],2);
-						if(abs(weight2 - distance) < 0.1 && distance < maxdistance){
-							maxdistance = distance;
-							narray->GetTuple(i,profile);
-							if(*profile != 0 && *profile != 17){
-								image.PutAsDouble(x,y,z,*profile);
-							}
-						}
-					}
+				if(segmentation.GetAsDouble(x,y,z) > 0){
+                    for (i = 0; i < model->GetNumberOfPoints(); i++) {
+                        for(j = 0; j < 3; j++){
+                            point1[j] = surfacepoints[i][j];
+                            point2[j] = insertionpoints[i][j];
+                        }
+                        distance = linefunction->DistanceToLine(point,point1,point2,weight1,pinsertion);
+                        for(j = 0; j < 3; j++){
+                            normal[j] = pinsertion[j] - point[j];
+                        }
+                        weight2 = pow(normal[0],2)+pow(normal[1],2)+pow(normal[2],2);
+                        if(abs(weight2 - distance) < 0.1 && distance < maxdistance){
+                            maxdistance = distance;
+                            narray->GetTuple(i,profile);
+                            if(*profile != 0 && *profile != 17){
+                                image.PutAsDouble(x,y,z,*profile);
+                            }
+                        }
+                    }
 				}
 			}
 		}
 	}
-	closeset->Complete();
-	closeset->Delete();
 
 	delete []profile;
 	linefunction->Delete();
