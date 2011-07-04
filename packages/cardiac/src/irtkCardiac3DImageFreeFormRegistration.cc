@@ -543,6 +543,37 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
   // Padding of FFD
   irtkPadding(*_threshold, 2 , _affd);
   //irtkPadding(tmp_mutarget, this->_TargetPadding, _affd, _numberOfuImages);
+
+  // Padding with landmarks
+  irtkPoint p1, p2, pt;
+  double p[3];
+  for (i = 0; i < _affd->GetX(); i++) {
+      for (j = 0; j < _affd->GetY(); j++) {
+          for (k = 0; k < _affd->GetZ(); k++) {
+              // Convert control points to index
+              n = _affd->LatticeToIndex(i, j, k);
+
+              // Calculate bounding box of control point in voxels
+              _affd->BoundingBox(n, p1, p2);
+              bool ok = false;
+              for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
+                  _ptarget->GetPoints()->GetPoint(i,p);
+                  pt._x = p[0];
+                  pt._y = p[1];
+                  pt._z = p[2];
+                  if(pt._z > p1._z && pt._z < p2._z 
+                      &&pt._y > p1._y && pt._y < p2._y 
+                      &&pt._x > p1._x && pt._x < p2._x ) {
+                          ok = true;
+                          break;
+                  }
+              }
+              if (ok == true) {
+                  _affd->PutStatus(i, j, k, _Active);
+              }
+          }
+      }
+  }
 }
 
 void irtkCardiac3DImageFreeFormRegistration::Finalize()

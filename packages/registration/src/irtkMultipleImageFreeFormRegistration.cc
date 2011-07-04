@@ -359,19 +359,11 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
   int i,k;
 #ifdef HAS_VTK
   vtkIdType j;
-  double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3];
+  double d = 0, distance = 0 , p[3], q[3];
   irtkPoint p1, p2, pt;
 
   if(index != -1) {
     _affd->BoundingBox(index, p1, p2);
-    _target[0]->WorldToImage(p1);
-    _target[0]->WorldToImage(p2);
-    dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
-    dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
-    dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
-
-    min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
-    max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
   }
 
   if (_ptarget == NULL || _psource == NULL) {
@@ -393,10 +385,9 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
           pt._x = p[0];
           pt._y = p[1];
           pt._z = p[2];
-          _target[0]->WorldToImage(pt);
-          if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
-              &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
-              &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
+          if(pt._z > p1._z && pt._z < p2._z 
+              &&pt._y > p1._y && pt._y < p2._y 
+              &&pt._x > p1._x && pt._x < p2._x ) {
                   valid = 1;
                   break;
           }
