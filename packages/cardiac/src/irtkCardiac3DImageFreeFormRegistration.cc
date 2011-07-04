@@ -554,7 +554,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
               n = _affd->LatticeToIndex(i, j, k);
 
               // Calculate bounding box of control point in voxels
-              _affd->BoundingBox(n, p1, p2);
+              _affd->BoundingBox(n, p1, p2, 1.0 / _SpeedupFactor);
               bool ok = false;
               for (l = 0; l < _ptarget->GetNumberOfPoints(); l++) {
                   _ptarget->GetPoints()->GetPoint(l,p);

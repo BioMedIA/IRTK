@@ -363,7 +363,7 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
   irtkPoint p1, p2, pt;
 
   if(index != -1) {
-    _affd->BoundingBox(index, p1, p2);
+    _affd->BoundingBox(index, p1, p2, 1.0 / _SpeedupFactor);
   }
 
   if (_ptarget == NULL || _psource == NULL) {
