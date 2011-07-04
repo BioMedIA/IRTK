@@ -31,6 +31,16 @@ void irtkNeighbourhoodOffsets::Initialize(irtkBaseImage* image, irtkConnectivity
 {
 	int xdim, ydim;
 
+	xdim = image->GetX();
+	ydim = image->GetY();
+
+	this->Initialize(xdim, ydim, connectivity);
+
+}
+
+void irtkNeighbourhoodOffsets::Initialize(int xdim, int ydim, irtkConnectivityType connectivity)
+{
+
 	switch (connectivity){
 	case CONNECTIVITY_06:
 		this->_Size = 6;
@@ -47,9 +57,6 @@ void irtkNeighbourhoodOffsets::Initialize(irtkBaseImage* image, irtkConnectivity
 	}
 
 	this->_Connectivity = connectivity;
-
-	xdim = image->GetX();
-	ydim = image->GetY();
 
   // Bare minimum, 6 connectivity.
   // Get the face neighbours.

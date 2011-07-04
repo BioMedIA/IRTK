@@ -46,6 +46,9 @@ public:
   /// Initializer with image and connectivity specified
   void Initialize(irtkBaseImage*, irtkConnectivityType);
 
+  /// Initializer with slice dimensions and connectivity specified
+  void Initialize(int, int, irtkConnectivityType);
+
   /// Default destructor
   virtual ~irtkNeighbourhoodOffsets(void);
 
