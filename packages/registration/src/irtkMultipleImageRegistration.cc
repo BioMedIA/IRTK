@@ -206,7 +206,7 @@ void irtkMultipleImageRegistration::Initialize(int level)
 
         if (_SourceBlurring[level] > 0) {
             cout << "Blurring source ... "; cout.flush();
-            irtkGaussianBlurring<irtkGreyPixel> blurring(_SourceBlurring[level]);
+            irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _TargetPadding);
             blurring.SetInput (_source[n]);
             blurring.SetOutput(_source[n]);
             blurring.Run();
@@ -237,7 +237,8 @@ void irtkMultipleImageRegistration::Initialize(int level)
             // Create resampling filter
             irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
                 _SourceResolution[level][1],
-                _SourceResolution[level][2], MIN_GREY);
+                _SourceResolution[level][2], 
+                _TargetPadding);
 
             resample.SetInput (_source[n]);
             resample.SetOutput(_source[n]);
@@ -293,7 +294,7 @@ void irtkMultipleImageRegistration::Initialize(int level)
                             if (_target[n]->Get(i, j, k, t) > _TargetPadding) {
                                 _target[n]->Put(i, j, k, t, _target[n]->Get(i, j, k, t) - target_min);
                             } else {
-                                _target[n]->Put(i, j, k, t, _TargetPadding - 1);
+                                _target[n]->Put(i, j, k, t, _TargetPadding - 10);
                             }
                         }
                     }
@@ -312,7 +313,11 @@ void irtkMultipleImageRegistration::Initialize(int level)
                         for (k = 0; k < _source[n]->GetZ(); k++) {
                             for (j = 0; j < _source[n]->GetY(); j++) {
                                 for (i = 0; i < _source[n]->GetX(); i++) {
-                                    _source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - target_min);
+                                    if (_source[n]->Get(i, j, k, t) > _TargetPadding) {
+                                        _source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - target_min);
+                                    } else {
+                                        _source[n]->Put(i, j, k, t, _TargetPadding - 10);
+                                    }
                                 }
                             }
                         }
@@ -328,16 +333,17 @@ void irtkMultipleImageRegistration::Initialize(int level)
                     for (k = 0; k < _source[n]->GetZ(); k++) {
                         for (j = 0; j < _source[n]->GetY(); j++) {
                             for (i = 0; i < _source[n]->GetX(); i++) {
-                                _source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - source_min);
+                                if (_source[n]->Get(i, j, k, t) > _TargetPadding) {
+                                    _source[n]->Put(i, j, k, t, _source[n]->Get(i, j, k, t) - source_min);
+                                } else {
+                                    _source[n]->Put(i, j, k, t, _TargetPadding - 10);
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
-        // Pad target image if necessary
-        irtkPadding(*_target[n], _TargetPadding);
 
         switch (_SimilarityMeasure) {
         case SSD:

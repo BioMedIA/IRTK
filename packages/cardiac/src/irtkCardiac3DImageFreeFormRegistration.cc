@@ -259,7 +259,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
 
       if (_SourceBlurring[level] > 0) {
           cout << "Blurring usource ... "; cout.flush();
-          irtkGaussianBlurring<irtkGreyPixel> blurring(_uSourceBlurring[level]);
+          irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_uSourceBlurring[level], _TargetPadding);
           blurring.SetInput (_usource[n]);
           blurring.SetOutput(_usource[n]);
           blurring.Run();
@@ -290,7 +290,8 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
           // Create resampling filter
           irtkResamplingWithPadding<irtkGreyPixel> resample(_uSourceResolution[level][0],
               _uSourceResolution[level][1],
-              _uSourceResolution[level][2], MIN_GREY);
+              _uSourceResolution[level][2], 
+              _TargetPadding);
 
           resample.SetInput (_usource[n]);
           resample.SetOutput(_usource[n]);
@@ -346,7 +347,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
                           if (_utarget[n]->Get(i, j, k, t) > _TargetPadding) {
                               _utarget[n]->Put(i, j, k, t, _utarget[n]->Get(i, j, k, t) - target_min);
                           } else {
-                              _utarget[n]->Put(i, j, k, t, _TargetPadding - 1);
+                              _utarget[n]->Put(i, j, k, t, _TargetPadding - 10);
                           }
                       }
                   }
@@ -364,8 +365,10 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
                   for (t = 0; t < _usource[n]->GetT(); t++) {
                       for (k = 0; k < _usource[n]->GetZ(); k++) {
                           for (j = 0; j < _usource[n]->GetY(); j++) {
-                              for (i = 0; i < _usource[n]->GetX(); i++) {
+                              if (_usource[n]->Get(i, j, k, t) > _TargetPadding) {
                                   _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - target_min);
+                              } else {
+                                  _usource[n]->Put(i, j, k, t, _TargetPadding - 10);
                               }
                           }
                       }
@@ -381,16 +384,17 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
                   for (k = 0; k < _usource[n]->GetZ(); k++) {
                       for (j = 0; j < _usource[n]->GetY(); j++) {
                           for (i = 0; i < _usource[n]->GetX(); i++) {
-                              _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - source_min);
+                              if (_usource[n]->Get(i, j, k, t) > _TargetPadding) {
+                                  _usource[n]->Put(i, j, k, t, _usource[n]->Get(i, j, k, t) - source_min);
+                              } else {
+                                  _usource[n]->Put(i, j, k, t, _TargetPadding - 10);
+                              }
                           }
                       }
                   }
               }
           }
       }
-
-      // Pad target image if necessary
-      irtkPadding(*_utarget[n], _TargetPadding);
 
       switch (_SimilarityMeasure) {
       case SSD:
@@ -814,7 +818,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
                           }
 					  }
               } else {
-                *ptr2tmp = -1;
+                *ptr2tmp = _TargetPadding;
               }
             }
             // Increment pointers to next voxel
@@ -883,7 +887,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
                           }
 					  }
               } else {
-                *ptr2utmp = -1;
+                *ptr2utmp = _TargetPadding;
               }
             }
             // Increment pointers to next voxel
@@ -1025,7 +1029,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 									}else{
 										weight = 0;
 									}
-									if (*ptr2tmp > _TargetPadding && *ptr2target > _TargetPadding && weight > 0.05) {
+									if (*ptr2tmp > _TargetPadding && weight > 0.05) {
 										tmpMetricA[n]->Delete(*ptr2target, *ptr2tmp, weight);
 										tmpMetricB[n]->Delete(*ptr2target, *ptr2tmp, weight);
 									}
@@ -1067,7 +1071,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_target[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _target[n]->GetZ() != 1 
 										&& p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
-											if (*ptr2target > _TargetPadding && weight > 0.05) {
+											if (weight > 0.05) {
 												// Add sample to metric
                                                 sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
@@ -1155,7 +1159,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
                                     }else{
                                         weight = 0;
                                     }
-									if (*ptr2utmp > _TargetPadding && (threshold > 2)) {
+									if (*ptr2utmp > _TargetPadding && threshold > 2) {
 										utmpMetricA[n]->Delete(*ptr2utarget, *ptr2utmp, 1.0 - weight);
 										utmpMetricB[n]->Delete(*ptr2utarget, *ptr2utmp, 1.0 - weight);
 									}
