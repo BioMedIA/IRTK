@@ -36,7 +36,7 @@ double combine_mysimilarity(irtkSimilarityMetric **s, double *weight, double num
 	factor = 0; combined = 0;
 
 	for (i = 0; i < number; i++){
-		if ( weight[i] != 0 ){
+		if ( weight[i] > 0 ){
 			combined += s[i]->Evaluate() * weight[i];
 			factor += weight[i];
 		}

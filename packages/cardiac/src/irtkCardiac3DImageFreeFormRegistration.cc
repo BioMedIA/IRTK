@@ -545,44 +545,48 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
   //irtkPadding(tmp_mutarget, this->_TargetPadding, _affd, _numberOfuImages);
 
   // Padding with landmarks
-  irtkPoint p1, p2, pt;
-  double p[3], min, max;
-  for (i = 0; i < _affd->GetX(); i++) {
-      for (j = 0; j < _affd->GetY(); j++) {
-          for (k = 0; k < _affd->GetZ(); k++) {
-              // Convert control points to index
-              n = _affd->LatticeToIndex(i, j, k);
+#ifdef HAS_VTK
+  if(_ptarget != NULL){
+      irtkPoint p1, p2, pt;
+      double p[3], min, max;
+      for (i = 0; i < _affd->GetX(); i++) {
+          for (j = 0; j < _affd->GetY(); j++) {
+              for (k = 0; k < _affd->GetZ(); k++) {
+                  // Convert control points to index
+                  n = _affd->LatticeToIndex(i, j, k);
 
-              // Calculate bounding box of control point in voxels
-              _affd->BoundingBox(n, p1, p2);
-              _target[0]->WorldToImage(p1);
-              _target[0]->WorldToImage(p2);
-              dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
-              dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
-              dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
+                  // Calculate bounding box of control point in voxels
+                  _affd->BoundingBox(n, p1, p2);
+                  _target[0]->WorldToImage(p1);
+                  _target[0]->WorldToImage(p2);
+                  dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
+                  dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
+                  dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
 
-              min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
-              max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
-              bool ok = false;
-              for (l = 0; l < _ptarget->GetNumberOfPoints(); l++) {
-                  _ptarget->GetPoints()->GetPoint(l,p);
-                  pt._x = p[0];
-                  pt._y = p[1];
-                  pt._z = p[2];
-                  _target[0]->WorldToImage(pt);
-                  if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
-                      &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
-                      &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
-                          ok = true;
-                          break;
+                  min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
+                  max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
+                  bool ok = false;
+                  for (l = 0; l < _ptarget->GetNumberOfPoints(); l++) {
+                      _ptarget->GetPoints()->GetPoint(l,p);
+                      pt._x = p[0];
+                      pt._y = p[1];
+                      pt._z = p[2];
+                      _target[0]->WorldToImage(pt);
+                      if(round(dz*(pt._z-p1._z))<=max && round(dz*(pt._z-p1._z))>=min
+                          &&round(dy*(pt._y-p1._y))<=max && round(dy*(pt._y-p1._y))>=min
+                          &&round(dx*(pt._x-p1._x))<=max && round(dx*(pt._x-p1._x))>=min) {
+                              ok = true;
+                              break;
+                      }
                   }
-              }
-              if (ok == true) {
-                  _affd->PutStatus(i, j, k, _Active);
+                  if (ok == true) {
+                      _affd->PutStatus(i, j, k, _Active);
+                  }
               }
           }
       }
   }
+#endif
 }
 
 void irtkCardiac3DImageFreeFormRegistration::Finalize()
@@ -678,7 +682,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty()
 					jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
 						jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
 						jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-					if(jacobian < 0.0000001) jacobian = 0.0000001;
+					if(jacobian < 0.0001) jacobian = 0.0001;
 					//jacobian = _affd->irtkTransformation::Jacobian(x, y, z);
 					//if (jacobian < 0.001)
 					//jacobian = 0.001;
@@ -736,7 +740,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty(int ind
                     jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
                         jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
                         jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-                    if(jacobian < 0.0000001) jacobian = 0.0000001;
+                    if(jacobian < 0.0001) jacobian = 0.0001;
                     // Normalize sum by number of weights
                     penalty += _comega[index]*fabs(log(jacobian));
                     count ++;
@@ -1815,17 +1819,18 @@ void irtkCardiac3DImageFreeFormRegistration::UpdateOmega ()
 					jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
 					jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
 
-				if(jacobian < 0.0000001) 
-					jacobian = 0.0000001;
+				if(jacobian < 0.0001) 
+					jacobian = 0.0001;
 
-				if(_myoprob->GetAsDouble(i,j,k) > 0){
-					_omega->PutAsDouble(i,j,k,
-						fabs(log(jacobian))
-						/(fabs(log(_myoprob->GetAsDouble(i,j,k)))+0.3)
-						);
-				}else{
-					_omega->PutAsDouble(i,j,k,fabs(log(jacobian))/100.0);
-				}
+				//if(_myoprob->GetAsDouble(i,j,k) > 0){
+					//_omega->PutAsDouble(i,j,k,
+						//fabs(log(jacobian))
+						///(fabs(log(_myoprob->GetAsDouble(i,j,k)))+0.3)
+						//);
+				//}else{
+					//_omega->PutAsDouble(i,j,k,fabs(log(jacobian))/100.0);
+				//}
+                _omega->PutAsDouble(i,j,k,fabs(log(jacobian))/10.0);
 				if(_omega->GetAsDouble(i,j,k)<0.001)
 					_omega->PutAsDouble(i,j,k,0);
 				count += _omega->GetAsDouble(i,j,k);
