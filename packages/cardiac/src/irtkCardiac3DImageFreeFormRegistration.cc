@@ -687,7 +687,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty()
 					//if (jacobian < 0.001)
 					//jacobian = 0.001;
 					// Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
-					penalty += _comega[index]*fabs(log(jacobian));
+					penalty += _comega[index]*pow(log(jacobian),2);
 				}
 			}
 		}
@@ -742,7 +742,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty(int ind
                         jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
                     if(jacobian < 0.0001) jacobian = 0.0001;
                     // Normalize sum by number of weights
-                    penalty += _comega[index]*fabs(log(jacobian));
+                    penalty += _comega[index]*pow(log(jacobian),2);
                     count ++;
                 }
             }
@@ -853,7 +853,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 				  ||( _target[n]->GetZ() != 1 
 				  && z > _source_z1[n] && z < _source_z2[n]))) {
 					  // Add sample to metric
-					  if ( weight > 0.05 ) {
+					  if ( weight > 0.01 ) {
 						  *ptr2tmp =  round(_interpolator[n]->EvaluateInside(x, y, z, t));
                           if(*ptr2tmp > _TargetPadding){
                               _metric[n]->Add(*ptr2target, *ptr2tmp, weight);
@@ -1073,7 +1073,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 									}else{
 										weight = 0;
 									}
-									if (*ptr2tmp > _TargetPadding && weight > 0.05) {
+									if (*ptr2tmp > _TargetPadding && weight > 0.01) {
 										tmpMetricA[n]->Delete(*ptr2target, *ptr2tmp, weight);
 										tmpMetricB[n]->Delete(*ptr2target, *ptr2tmp, weight);
 									}
@@ -1091,7 +1091,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_target[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _target[n]->GetZ() != 1 
 										&& p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
-											if (*ptr2target > _TargetPadding && weight > 0.05) {
+											if (*ptr2target > _TargetPadding && weight > 0.01) {
 											// Add sample to metric
                                                 sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
@@ -1115,7 +1115,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										((_target[n]->GetZ() == 1 && round(p[2]) == 0)
 										||( _target[n]->GetZ() != 1 
 										&& p[2] > _source_z1[n] && p[2] < _source_z2[n]))) {
-											if (weight > 0.05) {
+											if (weight > 0.01) {
 												// Add sample to metric
                                                 sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
@@ -1602,17 +1602,13 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateWeight (irtkRealImage *weig
 	tmpgradient.SetOutput(tmpthresholdedge);
 	tmpgradient.Run();
 
-	//tmpthresholdedge->Write("1.nii");
-
 	cout << "Blurring Edge probalility ... "; cout.flush();
 	tmpthresholdedge->GetPixelSize(&xsize, &ysize, &zsize);
-	irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(sqrt(xsize*xsize+ysize*ysize+zsize*zsize), -1);
+	irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(sqrt(xsize*xsize+ysize*ysize), -1);
 	blurring.SetInput (tmpthresholdedge);
 	blurring.SetOutput(tmpthresholdedge);
 	blurring.Run();
 	cout << "done" << endl;
-
-	//tmpthresholdedge->Write("2.nii");
 	
 	irtkGradientImage<irtkGreyPixel> edgegradient;
 	edgegradient.SetPadding(-1);
@@ -1822,17 +1818,10 @@ void irtkCardiac3DImageFreeFormRegistration::UpdateOmega ()
 				if(jacobian < 0.0001) 
 					jacobian = 0.0001;
 
-				//if(_myoprob->GetAsDouble(i,j,k) > 0){
-					//_omega->PutAsDouble(i,j,k,
-						//fabs(log(jacobian))
-						///(fabs(log(_myoprob->GetAsDouble(i,j,k)))+0.3)
-						//);
-				//}else{
-					//_omega->PutAsDouble(i,j,k,fabs(log(jacobian))/100.0);
-				//}
-                _omega->PutAsDouble(i,j,k,fabs(log(jacobian))/10.0);
-				if(_omega->GetAsDouble(i,j,k)<0.001)
-					_omega->PutAsDouble(i,j,k,0);
+				if(_myoprob->GetAsDouble(i,j,k) > 0){
+					_omega->PutAsDouble(i,j,k,
+						pow(log(jacobian),2)*_myoprob->GetAsDouble(i,j,k));
+                }
 				count += _omega->GetAsDouble(i,j,k);
 			}
 		}

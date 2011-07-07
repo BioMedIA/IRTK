@@ -144,11 +144,6 @@ void irtkMultipleImageRegistration::Initialize()
     if(_ptarget != NULL && _psource != NULL){
         //calculate surface from polydata
         vtkDelaunay2D *delny = vtkDelaunay2D::New();
-        delny->SetInput(_ptarget);
-        delny->SetTolerance(0.00001);
-        delny->Update();
-        _ptarget->DeepCopy(delny->GetOutput());
-
         delny->SetInput(_psource);
         delny->SetTolerance(0.00001);
         delny->Update();

@@ -370,8 +370,8 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
     dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
     dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
 
-    min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
-    max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
+    min = 0;
+    max = FFDLOOKUPTABLESIZE-1;
   }
 
   if (_ptarget == NULL || _psource == NULL) {
@@ -405,8 +405,6 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
       valid = 1;
   }
   if(valid == 1) {
-      vtkPolyData *tmpptarget = vtkPolyData::New();
-      tmpptarget->DeepCopy(_tmpptarget);
       for (i = 0; i < _tmpptarget->GetNumberOfPoints(); i++) {
           _tmpptarget->GetPoints()->GetPoint(i,p);
           q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
@@ -414,26 +412,15 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
           p[0] += q[0];
           p[1] += q[1];
           p[2] += q[2];
-          tmpptarget->GetPoints()->SetPoint(i,p);
           locator->FindClosestPoint(p,q,tmp,j,k,d);
           distance += d;
-      } 
-      vtkCellLocator *tlocator = vtkCellLocator::New(); 
-      tlocator->SetDataSet(tmpptarget); // data represents the surface 
-      tlocator->BuildLocator(); 
-      for (i = 0; i < _psource->GetNumberOfPoints(); i++) {
-          _psource->GetPoints()->GetPoint(i,p);
-          tlocator->FindClosestPoint(p,q,tmp,j,k,d);
-          distance += d;
-      } 
-      tlocator->Delete();
-      tmpptarget->Delete();
+      }
   }else{
       distance = 0;
   }
   tmp->Delete();
   locator->Delete();
-  return -(distance/double(_tmpptarget->GetNumberOfPoints()+_psource->GetNumberOfPoints()));
+  return -(distance/double(_tmpptarget->GetNumberOfPoints()));
 #else
   return 0;
 #endif
@@ -453,6 +440,7 @@ double irtkMultipleImageFreeFormRegistration::SmoothnessPenalty()
         y = j;
         z = k;
         _affd->LatticeToWorld(x, y, z);
+        //penalty += _mffd->Bending(x,y,z);
         penalty += _affd->Bending(x, y, z);
       }
     }
@@ -463,14 +451,18 @@ double irtkMultipleImageFreeFormRegistration::SmoothnessPenalty()
 double irtkMultipleImageFreeFormRegistration::SmoothnessPenalty(int index)
 {
   int i, j, k;
-  double x, y, z;
+  double x, y, z, penalty;
+
+  penalty = 0;
 
   _affd->IndexToLattice(index, i, j, k);
   x = i;
   y = j;
   z = k;
   _affd->LatticeToWorld(x, y, z);
-  return -_affd->Bending(x, y, z);
+  //penalty += _mffd->Bending(x,y,z);
+  penalty += _affd->Bending(x, y, z);
+  return -penalty;
 }
 
 double irtkMultipleImageFreeFormRegistration::VolumePreservationPenalty()
