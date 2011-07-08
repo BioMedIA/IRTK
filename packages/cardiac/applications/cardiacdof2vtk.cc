@@ -1,3 +1,15 @@
+/*=========================================================================
+
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2008 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
+
+=========================================================================*/
+
 #ifdef HAS_VTK
 #define Normal 0
 #define Radial 1
@@ -253,7 +265,21 @@ int main(int argc, char **argv)
 			  double magnitudev = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2]);
 			  scalarvectors->InsertNextTuple(&magnitudev);
 		  }
-	  }			
+      }else{
+          if(mode == Normal && strain == 0){
+              p2[0] = p1[0];
+              p2[1] = p1[1];
+              p2[2] = p1[2];
+              transform->Transform(p2[0], p2[1], p2[2]);
+              p2[0] -= p1[0];
+              p2[1] -= p1[1];
+              p2[2] -= p1[2];
+              points->InsertNextPoint(p1);
+              vectors->InsertNextTuple(p2);
+              double magnitudev = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2]);
+              scalarvectors->InsertNextTuple(&magnitudev);
+          }
+      }
   }
   vtkPolyData *output = vtkPolyData::New();
   output->SetPoints(points);

@@ -2033,9 +2033,9 @@ double irtkCardiac3DImageFreeFormRegistration::SmoothnessPenalty()
                 v = y;
                 w = z;
                 _threshold->WorldToImage(u,v,w);
-                if(_threshold->Get(round(u),round(v),round(w)) == 2){
+                if(_threshold->Get(round(u),round(v),round(w)) != 3){
                     count++;
-                    penalty += _mffd->Bending(x,y,z);
+                    penalty += _mffd->Bending(x, y, z);
                     penalty += _affd->Bending(x, y, z);
                 }
             }
@@ -2063,8 +2063,8 @@ double irtkCardiac3DImageFreeFormRegistration::SmoothnessPenalty(int index)
     v = y;
     w = z;
     _threshold->WorldToImage(u,v,w);
-    if(_threshold->Get(round(u),round(v),round(w)) == 2){
-        penalty += _mffd->Bending(x,y,z);
+    if(_threshold->Get(round(u),round(v),round(w)) != 3){
+        penalty += _mffd->Bending(x, y, z);
         penalty += _affd->Bending(x, y, z);
     }
     return -penalty;
