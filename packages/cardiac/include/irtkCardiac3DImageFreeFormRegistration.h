@@ -127,6 +127,12 @@ protected:
   /** Evaluates the volume preservation term. */
   virtual double VolumePreservationPenalty(int);
 
+  /** Evaluates the smoothness preservation term. */
+  virtual double SmoothnessPenalty();
+
+  /** Evaluates the smoothness term. */
+  virtual double SmoothnessPenalty(int);
+
   /** Evaluates the omega for control point. */
   virtual void EvaluateOmega();
 

@@ -89,8 +89,8 @@ void irtkBep::Bullseyeplot(){
   int i,t;
   double bep[17],count[17];
 
-  vtkDoubleArray *beparray = vtkDoubleArray::New();
-  vtkDoubleArray *dataarray = vtkDoubleArray::New();
+  vtkDoubleArray *beparray;
+  vtkDoubleArray *dataarray;
   beparray = (vtkDoubleArray*)bepsurface->GetPointData()->GetScalars();
   dataarray = (vtkDoubleArray*)datasurface->GetPointData()->GetScalars();
 
@@ -129,7 +129,7 @@ void irtkBep::Bullseyeplot(){
 	  fout << bep[i] <<" ";
   fout << endl;
   fout.close();
-
+  pointLocator->Delete();
 }
 
 irtkBep::irtkBep(){

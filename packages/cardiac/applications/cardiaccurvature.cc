@@ -17,6 +17,7 @@
 #include <vtkCurvatures.h>
 #include <vtkDecimatePro.h>
 #include <vtkSmoothPolyDataFilter.h>
+#include <vtkMath.h>
 
 char *input_name = NULL, *output_name = NULL;
 
@@ -32,10 +33,9 @@ void usage()
 
 int main(int argc, char **argv)
 {
-    int i,iterations,ok;
+    int i,j,n,iterations,ok;
     double mean,std;
     vtkDecimatePro *decimate = NULL;
-    vtkSmoothPolyDataFilter *smooth = NULL;
 
     if (argc < 3) {
         usage();
@@ -60,7 +60,6 @@ int main(int argc, char **argv)
         if ((!ok) && (strcmp(argv[1], "-smooth") == 0)) {
             argc--;
             argv++;
-            smooth = vtkSmoothPolyDataFilter::New();
             iterations = atoi(argv[1]);
             argc--;
             argv++;
@@ -78,29 +77,18 @@ int main(int argc, char **argv)
     reader->Update();
 
     vtkCurvatures *curvature = vtkCurvatures::New();
-    curvature->SetCurvatureTypeToMean();
+    curvature->SetCurvatureTypeToGaussian();
 
     // Let's go to work
     if (decimate != NULL) {
         cout << "Decimating ... \n";
         decimate->SetInputConnection(reader->GetOutputPort());
-        if (smooth != NULL) {
-            cout << "Smoothing ... \n";
-            smooth->SetInputConnection(decimate->GetOutputPort());
-            smooth->SetNumberOfIterations(iterations);
-            curvature->SetInputConnection(smooth->GetOutputPort());
-        } else {
-            curvature->SetInputConnection(decimate->GetOutputPort());
-        }
-    } else if (smooth != NULL) {
-        cout << "Smoothing ... \n";
-        smooth->SetNumberOfIterations(iterations);
-        smooth->SetInputConnection(reader->GetOutputPort());
-        curvature->SetInputConnection(smooth->GetOutputPort());
+        curvature->SetInputConnection(decimate->GetOutputPort());      
     } else {
         curvature->SetInputConnection(reader->GetOutputPort());
     }
 
+    curvature->Update();
     // Regulate
     vtkPolyData *model = curvature->GetOutput();
 
@@ -114,14 +102,54 @@ int main(int argc, char **argv)
     }
     std = sqrt(std/model->GetNumberOfPoints());
     double max,min;
-    max = mean+2*std;
-    min = mean-2*std;
+    //max = mean+2*std;
+    //min = mean-2*std;
+    max = 0.01;
+    min = -0.01;
     for(i = 0; i < model->GetNumberOfPoints(); i++){
         if(*(model->GetPointData()->GetScalars()->GetTuple(i))>max)
             model->GetPointData()->GetScalars()->SetTuple(i,&max);
         if(*(model->GetPointData()->GetScalars()->GetTuple(i))<min)
             model->GetPointData()->GetScalars()->SetTuple(i,&min);
 
+    }
+
+    // smooth
+    if(iterations > 0){
+        double p1[3],p2[3],weight;
+        vtkDoubleArray *array = (vtkDoubleArray*)model->GetPointData()->GetScalars();
+        vtkDoubleArray *narray = vtkDoubleArray::New();
+        while(iterations > 0){
+            for (i = 0; i < model->GetNumberOfPoints(); i++) {
+                model->GetPoints()->GetPoint(i,p1);
+                vtkIdList *list = vtkIdList::New();
+                //Find neighbor
+                GetConnectedVertices(model,i,list);
+                //Get number of neighbor
+                n = list->GetNumberOfIds();
+                double value, *tmp;
+                weight = 4.0;
+                value = (*(array->GetTuple(i)))*4.0;
+                for (j = 0; j < n; j++){
+                    model->GetPoints()->GetPoint(list->GetId(j),p2);
+                    double distance;
+                    distance = vtkMath::Distance2BetweenPoints(p1,p2);
+                    tmp = array->GetTuple(list->GetId(j));
+                    if(distance > 0){
+                        if(distance < 0.25)
+                            distance = 0.25;
+                        value += (*tmp)/(distance);
+                        weight += 1.0/distance;
+                    }
+                }
+                value = value / weight;
+                narray->InsertTupleValue(i, &value);
+                list->Delete();
+            }
+            iterations --;
+        }
+        array->DeepCopy(narray);
+        narray->Delete();
     }
 
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();

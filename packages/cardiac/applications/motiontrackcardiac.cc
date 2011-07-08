@@ -15,7 +15,7 @@ void usage()
 {
 	cerr << "Usage: motiontrackcardiac numberOfUntaggedImages numberOfTaggedImages [untaggedimage sequence] [taggedimage sequence] <options>" << endl;
 	cerr << "Registration using all image sequences at the same time and combine similarity measure based on spatially adaptive weight" << endl;
-    cerr << "Recommended parameter setting is Lregulation = 0.02 Lambda2 = 0.8 and Lambda1 = 0.00001, -adaptive 0.9" << endl;
+    cerr << "Recommended parameter setting is Lregulation = 0.02 Lambda2 = 0.8 and Lambda1 = 0.000001, -adaptive 0.9" << endl;
     cerr << "result is highly sensitive to parameters due to the complex nature of the algorithm" << endl;
 	cerr << "where <options> is one or more of the following:" << endl;
 	cerr << "<-threshold file>    Read segmentation from file (must option),myocardium 3" << endl;
