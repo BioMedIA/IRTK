@@ -15,7 +15,7 @@ void usage()
 {
 	cerr << "Usage: motiontrackcardiac numberOfUntaggedImages numberOfTaggedImages [untaggedimage sequence] [taggedimage sequence] <options>" << endl;
 	cerr << "Registration using all image sequences at the same time and combine similarity measure based on spatially adaptive weight" << endl;
-    cerr << "Recommended parameter setting is Lregulation = 0.02 Lambda2 = 0.8 and Lambda1 = 0.000001, -adaptive 0.9" << endl;
+    cerr << "Recommended parameter setting is Lregulation = 0.02 Lambda2 = 0.8 and Lambda1 = 0.00001, -adaptive 0.9" << endl;
     cerr << "result is highly sensitive to parameters due to the complex nature of the algorithm" << endl;
 	cerr << "where <options> is one or more of the following:" << endl;
 	cerr << "<-threshold file>    Read segmentation from file (must option),myocardium 3" << endl;
@@ -466,13 +466,17 @@ int main(int argc, char **argv)
 				cardiacregistration->irtkMultipleImageRegistration::Write(parout_name);
 			}
 
-            if (adaptive > 0) {
-                weight = cardiacregistration->GetLambda2();
+            if (adaptive > 0) {               
                 times = 0;
                 t < round(uimage[0]->GetT() / 3) ? 
                     (times = t):(times = round(uimage[0]->GetT() / 3));
                 t > round(uimage[0]->GetT()*2 / 3) ? 
                     (times = (uimage[0]->GetT() - 1 - t)):(times = times);
+                weight = cardiacregistration->GetLambda1();
+                weight = pow(adaptive,2*times)*weight;
+                cout << "current lambda1 of frame " << t << " is "<<weight<<endl;
+                cardiacregistration->SetLambda1(weight);
+                weight = cardiacregistration->GetLambda2();
                 weight = pow(adaptive,2*times)*weight;
                 cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
                 cardiacregistration->SetLambda2(weight);

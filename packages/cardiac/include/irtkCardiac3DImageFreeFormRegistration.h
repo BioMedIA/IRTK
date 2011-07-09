@@ -210,6 +210,8 @@ public:
   /// Returns the name of the class
   virtual const char *NameOfClass();
 
+  virtual SetMacro(Lambda1, double);
+  virtual GetMacro(Lambda1, double);
 
 };
 
