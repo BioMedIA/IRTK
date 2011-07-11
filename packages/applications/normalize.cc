@@ -25,18 +25,15 @@ void usage()
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-Tp value>        Target padding value" << endl;
   cerr << "<-Sp value>        Source padding value" << endl;
-  cerr << "<-equalize value targetoutput>  equalize the image's histogram and backproject" << endl;
-  cerr << "<-mask value>	  Mask out background and foreground from the images" <<endl;
+  cerr << "<-equalize paddingvalue targetoutput>  equalize the image's histogram and backproject" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i, j, k, n, ok, mask;
+  int i, j, k, n, ok;
   int target_padding, source_padding;
-  double a, b, cov, var, x_avg, y_avg,x,y,z,min,max;
-
-  mask = 0;
+  double a, b, cov, var, x_avg, y_avg,x,y,z;
 
   if(argc < 4) usage();
 
@@ -51,7 +48,7 @@ int main(int argc, char **argv)
   argc--;
   argv++;
 
-  source_padding = 0;
+  source_padding = MIN_GREY;
   target_padding = MIN_GREY;
 
   // Read image
@@ -63,10 +60,6 @@ int main(int argc, char **argv)
   cout << "Reading source image ... "; cout.flush();
   irtkRealImage source(source_name);
   cout << "done" << endl;
-  source.GetMinMaxAsDouble(&min,&max);
-
-  irtkRealImage targetback(target);
-  irtkRealImage sourceback(source);
 
   while (argc > 1) {
     ok = false;
@@ -86,21 +79,13 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
-	if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
-			argc--;
-			argv++;
-			mask = 1;
-			int n = atoi(argv[1]);
-			argc--;
-			argv++;
-			irtkSegmentationFunction cf;
-			cf.DetectBackGround(&targetback,&sourceback,n);
-			ok = true;
-	}
 	if ((ok == false) && (strcmp(argv[1], "-equalize") == 0)) {
 		argc--;
 		argv++;
 		double padding = atoi(argv[1]);
+        if(padding < 0){
+            cout << "equalize padding value < 0 are you sure about it?" << endl;
+        }
 		argc--;
 		argv++;
 		targetoutput_name = argv[1];
@@ -108,10 +93,13 @@ int main(int argc, char **argv)
 		argv++;
 		double min,max;
 		target.GetMinMaxAsDouble(&min,&max);
+        if (min < padding) min = padding;
 		irtkImageHistogram_1D<irtkRealPixel> histogram;
 		histogram.Evaluate(&target,padding);
 		histogram.Equalize(min,max);
 		histogram.BackProject(&target);
+        source.GetMinMaxAsDouble(&min,&max);
+        if (min < padding) min = padding;
 		histogram.Evaluate(&source,padding);
 		histogram.Equalize(min,max);
 		histogram.BackProject(&source);
@@ -138,11 +126,9 @@ int main(int argc, char **argv)
 			  && y >= 0 && y < target.GetY()
 			  && z >= 0 && z < target.GetZ()){
 				  if ((source(i, j, k) > source_padding) && (target(x,y,z) > target_padding)) {
-					  if(mask == 0 || (sourceback(i,j,k) == 0 && targetback(x,y,z) == 0)){
-						  n++;
-						  x_avg += source(i, j, k);
-						  y_avg += target(x, y, z);
-					  }
+                      n++;
+                      x_avg += source(i, j, k);
+                      y_avg += target(x, y, z);
 				  }
 		  }
       }
@@ -166,10 +152,8 @@ int main(int argc, char **argv)
 				  && y >= 0 && y < target.GetY()
 				  && z >= 0 && z < target.GetZ()){
 					  if ((source(i, j, k) > source_padding) && (target(x, y, z) > target_padding)) {
-						  if(mask == 0 || (sourceback(i,j,k) == 0 && targetback(x,y,z) == 0)){
 						  cov += (source(i, j, k) - x_avg) * (target(x, y, z) - y_avg);
 						  var += (source(i, j, k) - x_avg) * (source(i, j, k) - x_avg);
-						  }
 					  }
 			  }
 		  }
@@ -187,24 +171,11 @@ int main(int argc, char **argv)
     for (j = 0; j < source.GetY(); j++) {
       for (i = 0; i < source.GetX(); i++) {
         if (source(i, j, k) > source_padding) {
-			if(mask == 0 || sourceback(i,j,k) == 0){
-				source(i, j, k) = round(a + b * source(i, j, k));
-			}
+            source(i, j, k) = round(a + b * source(i, j, k));
         }
       }
     }
   }
-
-  // what to do...need to think
-  if(mask){
-  cout << "Blurring ... "; cout.flush();
-  irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(1, 1);
-  blurring.SetInput (&source);
-  blurring.SetOutput(&source);
-  blurring.Run();
-  cout << "done" << endl;
-  }
-  source.PutMinMaxAsDouble(min,max);
 
   // Write image
   source.Write(sourceoutput_name);
