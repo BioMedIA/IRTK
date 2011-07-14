@@ -15,7 +15,7 @@ void usage()
   cerr << "where <options> is one or more of the following:\numberOfImages" << endl;
   cerr << "<-parin file>        Read parameter from file" << endl;
   cerr << "<-parout file>       Write parameter to file" << endl;
-  cerr << "<-dofout file>       Write transformation to file" << endl;
+  cerr << "<-dofout folder>     Write transformations to folder" << endl;
   cerr << "<-ref file>          Reference time frame (default = first frame of image sequence)" << endl;
   cerr << "<-Rx1 value>         Region of interest in images" << endl;
   cerr << "<-Ry1 value>         Region of interest in images" << endl;
@@ -331,6 +331,11 @@ int main(int argc, char **argv)
       gaussianBlurring4D.Run();
     }
     cout << "done" << endl;
+  }
+
+  if(image[0]->GetT() == 1){
+      cerr << "image only has one frame, can't do motion track" << endl;
+      exit(1);
   }
 
   // Use identity transformation to start

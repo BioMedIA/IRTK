@@ -26,7 +26,7 @@ void usage()
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-parin file>        Read parameter from file" << endl;
   cerr << "<-parout file>       Write parameter to file" << endl;
-  cerr << "<-dofout file>       Write transformation to file" << endl;
+  cerr << "<-dofout folder>     Write transformation to folder" << endl;
   cerr << "<-ref file>          Reference time frame (default = first frame of image sequence)" << endl;
   cerr << "<-Rx1 value>         Region of interest in images" << endl;
   cerr << "<-Ry1 value>         Region of interest in images" << endl;
@@ -259,6 +259,10 @@ int main(int argc, char **argv)
   mffd = new irtkMultiLevelFreeFormTransformation;
 
   for( i = 0; i < n; i ++){
+      if(image[i]->GetT() == 1){
+        cerr << "image " << i << " only has one frame!" << endl;
+        exit(1);
+      }
 	  for (t = 1; t < image[i]->GetT(); t++) {
 
 		  // Create registration filter
