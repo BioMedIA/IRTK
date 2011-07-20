@@ -15,14 +15,14 @@ void usage()
 {
 	cerr << "Usage: motiontrackcardiac numberOfUntaggedImages numberOfTaggedImages [untaggedimage sequence] [taggedimage sequence] <options>" << endl;
 	cerr << "Registration using all image sequences at the same time and combine similarity measure based on spatially adaptive weight" << endl;
-    cerr << "Recommended parameter setting is Lregulation = 0.02 Lambda2 = 0.8 and Lambda1 = 0.00001, -adaptive 0.9" << endl;
+    cerr << "Recommended parameter setting is Lregulation = 0.02 Lambda2 = 0.8 and Lambda1 = 0.0001, -adaptive 0.9" << endl;
     cerr << "result is highly sensitive to parameters due to the complex nature of the algorithm" << endl;
 	cerr << "where <options> is one or more of the following:" << endl;
 	cerr << "<-threshold file>    Read segmentation from file (must option),myocardium 3" << endl;
 	cerr << "<-parin file>        Read parameter from file" << endl;
 	cerr << "<-parin2 file>       Read parameter from file for temporal misalignment cases" << endl;
 	cerr << "<-parout file>       Write parameter to file" << endl;
-	cerr << "<-dofout file>       Write transformation to file" << endl;
+	cerr << "<-dofout folder>     Write transformations to folder" << endl;
 	cerr << "<-ref file>          Reference time frame (default = first frame of uimage sequence)" << endl;
 	cerr << "<-Rx1 value>         Region of interest in images" << endl;
 	cerr << "<-Ry1 value>         Region of interest in images" << endl;
@@ -317,6 +317,11 @@ int main(int argc, char **argv)
 		threshold = new irtkGreyImage(thresholdname);
 	else{
 		cerr<<"please generate threshold using graphcut or ems or whatever"<<endl;
+        exit(1);
+    }
+
+    if(uimage[0]->GetT() == 1){
+        cerr << "image only has one frame, can't do motion track" << endl;
         exit(1);
     }
 
