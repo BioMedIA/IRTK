@@ -290,7 +290,7 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
 		if(ik<0) ik = 0;
 		if(ik>=image->GetZ()) ik = image->GetZ() - 1;
 		if(  image->GetAsDouble(ii,ij,ik,t)
-			 > this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity()){
+			 > this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity() - 0.1){
 				if (mffd != NULL) {
 					mffd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
 					mffd->irtkAffineTransformation::Inverse(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n]);
