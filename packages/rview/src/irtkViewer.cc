@@ -441,7 +441,7 @@ bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
 
       image->ImageToWorld(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
 	  if(  image->GetAsDouble(ii,ij,ik,t)
-		> this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity()){
+		> this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity() - 0.1){
 			if (mffd != NULL) {
 				if (_rview->_sourceTransformInvert == true) {
 					mffd->Inverse(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j], t);
