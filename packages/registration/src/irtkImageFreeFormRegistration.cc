@@ -465,9 +465,9 @@ double irtkImageFreeFormRegistration::TopologyPreservationPenalty()
   double x, y, z, jac, penalty;
 
   penalty = 0;
-  for (k = 0; k < _affd->GetZ()-1; k++) {
-    for (j = 0; j < _affd->GetY()-1; j++) {
-      for (i = 0; i < _affd->GetZ()-1; i++) {
+  for (k = -1; k < _affd->GetZ(); k++) {
+    for (j = -1; j < _affd->GetY(); j++) {
+      for (i = -1; i < _affd->GetX(); i++) {
         x = i+0.5;
         y = j+0.5;
         z = k+0.5;
