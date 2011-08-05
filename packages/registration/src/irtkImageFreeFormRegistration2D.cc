@@ -124,7 +124,7 @@ double irtkImageFreeFormRegistration2D::Evaluate()
   float *ptr;
 
   // Print debugging information
-  this->Debug("irtkImageFreeFormRegistration::Evaluate");
+  this->Debug("irtkImageFreeFormRegistration2D::Evaluate");
 
   // Initialize histogram
   _metric->Reset();

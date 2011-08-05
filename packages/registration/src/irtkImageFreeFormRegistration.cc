@@ -889,9 +889,9 @@ void irtkImageFreeFormRegistration::Write(ostream &to)
   }
   to << "Speedup factor                    = " << this->_SpeedupFactor << endl;
   if (_MFFDMode == true) {
-    to << "MFFDMode                       = True" << endl;
+    to << "MFFDMode                          = True" << endl;
   } else {
-    to << "MFFDMode                       = False" << endl;
+    to << "MFFDMode                          = False" << endl;
   }
 
   this->irtkImageRegistration::Write(to);
