@@ -31,7 +31,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-	int i, j, k, l, t , aa, bottom, frames, mask_value, landmarkson, mode, jcbian, ok;
+	int i, j, k, l, t, es, aa, bottom, frames, mask_value, landmarkson, mode, jcbian, ok;
 	double x, y, z, minvolume , volume;
 	irtkPointSet landmarks;
 
@@ -143,6 +143,7 @@ int main(int argc, char **argv)
 	else
 		volume = n;
 	minvolume = n;
+    es = 1;
 	//evaluate min using transformation
 	if ( jcbian == 0 ){
 		// Create image transformation
@@ -177,8 +178,10 @@ int main(int argc, char **argv)
 				}
 			}
 
-			if(m<minvolume)
+			if(m<minvolume){
 				minvolume = m;
+                es = t;
+            }
 		}
 		delete imagetransformation;
 		delete timage;
@@ -225,8 +228,10 @@ int main(int argc, char **argv)
 				}
 			}
 
-			if(m<minvolume)
+			if(m<minvolume){
 				minvolume = m;
+                es = t;
+            }
 
 			delete mffd1;
 
@@ -237,11 +242,10 @@ int main(int argc, char **argv)
 	if( landmarkson == 1)
 		minvolume = minvolume/0.8;
 
-
 	ofstream fout(output_name,ios::app);
 	fout << minvolume*image->GetXSize()*image->GetYSize()*image->GetZSize()/1000 << " "
 		<< volume*image->GetXSize()*image->GetYSize()*image->GetZSize()/1000 << " "
-		<< (volume - minvolume)/volume << endl;
+		<< (volume - minvolume)/volume << endl << es << endl;
 	fout.close();
 	//*image->GetXSize()*image->GetYSize()*image->GetZSize()/1000
 
