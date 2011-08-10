@@ -24,19 +24,17 @@ void usage()
 {
 	cerr << "Usage: ejecfrac [threshold] [frames] [mask-value] [output] [transformation]\n" << endl;
 	cerr << "-landmark [landmark name] landmark information"    << endl;
-	cerr << "-mode [transforamtion perfix] name"    << endl;
 	cerr << "-jacobian use jacobian to evaluate ejection fraction [default use volume]"    << endl;
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int i, j, k, l, t, es, aa, bottom, frames, mask_value, landmarkson, mode, jcbian, ok;
+	int i, j, k, l, t, es, aa, bottom, frames, mask_value, landmarkson, jcbian, ok;
 	double x, y, z, minvolume , volume;
 	irtkPointSet landmarks;
 
 	landmarkson = 0;
-	mode = 0;
 	jcbian = 0;
 
 	// Check command line
@@ -68,14 +66,6 @@ int main(int argc, char **argv)
 			argv++;
 			landmarks.ReadVTK(argv[1]);
 			landmarkson = 1;
-			argc--;
-			argv++;
-			ok = true;
-		}
-		if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
-			argc--;
-			argv++;
-			mode = atoi(argv[1]);
 			argc--;
 			argv++;
 			ok = true;
@@ -153,7 +143,7 @@ int main(int argc, char **argv)
 		irtkImageFunction *interpolator = new irtkNearestNeighborInterpolateImageFunction;
 		for (t =1; t<frames; t++){
 			char buffer[255];
-			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", trans_name, mode, t);
+			sprintf(buffer, "%s%.2d.dof.gz", trans_name, t);
 
 			irtkTransformation *transform = irtkTransformation::New(buffer);
 
@@ -190,7 +180,7 @@ int main(int argc, char **argv)
 		//transform atlas and create tatlas evaluate min using jacobian
 		for (t =1; t<frames; t++){
 			char buffer[255];
-			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", trans_name, mode, t);
+			sprintf(buffer, "%s%.2d.dof.gz", trans_name, t);
 
 			irtkTransformation *mffd1 = NULL;
 			irtkTransformation *transform = irtkTransformation::New(buffer);
@@ -247,6 +237,5 @@ int main(int argc, char **argv)
 		<< volume*image->GetXSize()*image->GetYSize()*image->GetZSize()/1000 << " "
 		<< (volume - minvolume)/volume << endl << es << endl;
 	fout.close();
-	//*image->GetXSize()*image->GetYSize()*image->GetZSize()/1000
 
 }
