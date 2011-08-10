@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 		irtkImageFunction *interpolator = new irtkNearestNeighborInterpolateImageFunction;
 		for (t =1; t<frames; t++){
 			char buffer[255];
-			sprintf(buffer, "%s\\%d_sequence_%.2d.dof.gz", trans_name, mode, t);
+			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", trans_name, mode, t);
 
 			irtkTransformation *transform = irtkTransformation::New(buffer);
 
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 		//transform atlas and create tatlas evaluate min using jacobian
 		for (t =1; t<frames; t++){
 			char buffer[255];
-			sprintf(buffer, "%s\\%d_sequence_%.2d.dof.gz", trans_name, mode, t);
+			sprintf(buffer, "%s%d_sequence_%.2d.dof.gz", trans_name, mode, t);
 
 			irtkTransformation *mffd1 = NULL;
 			irtkTransformation *transform = irtkTransformation::New(buffer);
