@@ -640,85 +640,85 @@ void irtkBSplineFreeFormTransformation3D::LocalJacobian(irtkMatrix &jac, double 
 
 void irtkBSplineFreeFormTransformation3D::JacobianDetDerivative(irtkMatrix *detdev, int x, int y, int z)
 {
-    int i;
-    double x_b,y_b,z_b,x_f,y_f,z_f,b_i,b_j,b_k;
+  int i;
+  double x_b,y_b,z_b,x_f,y_f,z_f,b_i,b_j,b_k;
 
-    switch(x){
+  switch(x) {
     case -1:
-        x_b=(1.0/6.0);
-        x_f=(0.5);
-        break;
+      x_b=(1.0/6.0);
+      x_f=(0.5);
+      break;
     case 0:
-        x_b=(2.0/3.0);
-        x_f=(0.0);
-        break;
+      x_b=(2.0/3.0);
+      x_f=(0.0);
+      break;
     case 1:
-        x_b=(1.0/6.0);
-        x_f=(-0.5);
-        break;
+      x_b=(1.0/6.0);
+      x_f=(-0.5);
+      break;
     default:
-        x_b=0.0;
-        x_f=0.0;
-        break;
-    }
+      x_b=0.0;
+      x_f=0.0;
+      break;
+  }
 
-    switch(y){
+  switch(y) {
     case -1:
-        y_b=(1.0/6.0);
-        y_f=(0.5);
-        break;
+      y_b=(1.0/6.0);
+      y_f=(0.5);
+      break;
     case 0:
-        y_b=(2.0/3.0);
-        y_f=(0.0);
-        break;
+      y_b=(2.0/3.0);
+      y_f=(0.0);
+      break;
     case 1:
-        y_b=(1.0/6.0);
-        y_f=(-0.5);
-        break;
+      y_b=(1.0/6.0);
+      y_f=(-0.5);
+      break;
     default:
-        y_b=0.0;
-        y_f=0.0;
-        break;
-    }
+      y_b=0.0;
+      y_f=0.0;
+      break;
+  }
 
-    switch(z){
+  switch(z) {
     case -1:
-        z_b=(1.0/6.0);
-        z_f=(0.5);
-        break;
+      z_b=(1.0/6.0);
+      z_f=(0.5);
+      break;
     case 0:
-        z_b=(2.0/3.0);
-        z_f=(0.0);
-        break;
+      z_b=(2.0/3.0);
+      z_f=(0.0);
+      break;
     case 1:
-        z_b=(1.0/6.0);
-        z_f=(-0.5);
-        break;
+      z_b=(1.0/6.0);
+      z_f=(-0.5);
+      break;
     default:
-        z_b=0.0;
-        z_f=0.0;
-        break;
-    }
+      z_b=0.0;
+      z_f=0.0;
+      break;
+  }
 
-    for(i = 0; i < 3; i++){
-      detdev[i].Initialize(3,3);
-    }
+  for(i = 0; i < 3; i++) {
+    detdev[i].Initialize(3,3);
+  }
 
-    b_i = x_f*y_b*z_b;
-    b_j = x_b*y_f*z_b;
-    b_k = x_b*y_b*z_f;
+  b_i = x_f*y_b*z_b;
+  b_j = x_b*y_f*z_b;
+  b_k = x_b*y_b*z_f;
 
-    for(i = 0; i < 3; i++){
-        // with respect to ui
-       detdev[i](i,0) = b_i; detdev[i](i,1) = b_j; detdev[i](i,2) = b_k;
-       detdev[i] = detdev[i] * _matW2L(0, 0, 3, 3);
-    }
+  for(i = 0; i < 3; i++) {
+    // with respect to ui
+    detdev[i](i,0) = b_i; detdev[i](i,1) = b_j; detdev[i](i,2) = b_k;
+    detdev[i] = detdev[i] * _matW2L(0, 0, 3, 3);
+  }
 
 }
 
 void irtkBSplineFreeFormTransformation3D::JacobianDOFs(double jac[3], int dof, double x, double y, double z, double)
 {
-	int i, j, k;
+  int i, j, k;
 
   // Transforms index of control point location
   this->IndexToLattice(dof, i, j, k);
@@ -729,6 +729,264 @@ void irtkBSplineFreeFormTransformation3D::JacobianDOFs(double jac[3], int dof, d
   jac[0] = this->B(x - i) * this->B(y - j) * this->B(z - k);
   jac[1] = jac[0];
   jac[2] = jac[0];
+}
+
+double irtkBSplineFreeFormTransformation3D::Bending(int i, int j, int k)
+{
+  int I, J, K;
+  double B_K, B_J, B_I, B_K_I, B_J_I, B_I_I, B_K_II, B_J_II, B_I_II, v;
+
+  // Derivatives
+  double z_kk=0, y_kk=0, x_kk=0, z_jj=0, y_jj=0, x_jj=0, z_ii=0, y_ii=0, x_ii=0;
+  double z_ij=0, y_ij=0, x_ij=0, z_ik=0, y_ik=0, x_ik=0, z_jk=0, y_jk=0, x_jk=0;
+
+  // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location i, j, k
+  double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
+  double b_i[3]  = {-0.5, 0, 0.5};
+  double b_ii[3] = {1.0, -2.0, 1.0};
+
+  for (K = k-1; K < k+2; K++) {
+    // Get B-spline basis
+    B_K    = b   [K-(k-1)];
+    B_K_I  = b_i [K-(k-1)];
+    B_K_II = b_ii[K-(k-1)];
+    for (J = j-1; J < j+2; J++) {
+      // Get B-spline basis
+      B_J    = b   [J-(j-1)];
+      B_J_I  = b_i [J-(j-1)];
+      B_J_II = b_ii[J-(j-1)];
+      for (I = i-1; I < i+2; I++) {
+        // Get B-spline basis
+        B_I    = b   [I-(i-1)];
+        B_I_I  = b_i [I-(i-1)];
+        B_I_II = b_ii[I-(i-1)];
+
+        v = B_I * B_J * B_K_II;
+        z_kk += _zdata[K][J][I] * v;
+        y_kk += _ydata[K][J][I] * v;
+        x_kk += _xdata[K][J][I] * v;
+
+        v = B_I * B_J_II * B_K;
+        z_jj += _zdata[K][J][I] * v;
+        y_jj += _ydata[K][J][I] * v;
+        x_jj += _xdata[K][J][I] * v;
+
+        v = B_I_II * B_J * B_K;
+        z_ii += _zdata[K][J][I] * v;
+        y_ii += _ydata[K][J][I] * v;
+        x_ii += _xdata[K][J][I] * v;
+
+        v = B_I_I * B_J_I * B_K;
+        z_ij += _zdata[K][J][I] * v;
+        y_ij += _ydata[K][J][I] * v;
+        x_ij += _xdata[K][J][I] * v;
+
+        v = B_I_I * B_J * B_K_I;
+        z_ik += _zdata[K][J][I] * v;
+        y_ik += _ydata[K][J][I] * v;
+        x_ik += _xdata[K][J][I] * v;
+
+        v = B_I * B_J_I * B_K_I;
+        z_jk += _zdata[K][J][I] * v;
+        y_jk += _ydata[K][J][I] * v;
+        x_jk += _xdata[K][J][I] * v;
+      }
+    }
+  }
+
+  // Compute bending
+  return (x_ii*x_ii + x_jj*x_jj + x_kk*x_kk +
+          y_ii*y_ii + y_jj*y_jj + y_kk*y_kk +
+          z_ii*z_ii + z_jj*z_jj + z_kk*z_kk +
+          2*(x_ij*x_ij + y_ij*y_ij + z_ij*z_ij +
+             x_ik*x_ik + y_ik*y_ik + z_ik*z_ik +
+             x_jk*x_jk + y_jk*y_jk + z_jk*z_jk));
+}
+
+void irtkBSplineFreeFormTransformation3D::BendingGradient(double *gradient)
+{
+  int I, J, K, index, i, j, k, n = _x*_y*_z;
+  double B_K, B_J, B_I, B_K_I, B_J_I, B_I_I, B_K_II, B_J_II, B_I_II, v, tmp[3];
+
+  // Derivatives
+  double ***z_kk = NULL;
+  z_kk = this->Allocate(z_kk, _x, _y, _z);
+  double ***y_kk = NULL;
+  y_kk = this->Allocate(y_kk, _x, _y, _z);
+  double ***x_kk = NULL;
+  x_kk = this->Allocate(x_kk, _x, _y, _z);
+  double ***z_jj = NULL;
+  z_jj = this->Allocate(z_jj, _x, _y, _z);
+  double ***y_jj = NULL;
+  y_jj = this->Allocate(y_jj, _x, _y, _z);
+  double ***x_jj = NULL;
+  x_jj = this->Allocate(x_jj, _x, _y, _z);
+  double ***z_ii = NULL;
+  z_ii = this->Allocate(z_ii, _x, _y, _z);
+  double ***y_ii = NULL;
+  y_ii = this->Allocate(y_ii, _x, _y, _z);
+  double ***x_ii = NULL;
+  x_ii = this->Allocate(x_ii, _x, _y, _z);
+  double ***z_ij = NULL;
+  z_ij = this->Allocate(z_ij, _x, _y, _z);
+  double ***y_ij = NULL;
+  y_ij = this->Allocate(y_ij, _x, _y, _z);
+  double ***x_ij = NULL;
+  x_ij = this->Allocate(x_ij, _x, _y, _z);
+  double ***z_ik = NULL;
+  z_ik = this->Allocate(z_ik, _x, _y, _z);
+  double ***y_ik = NULL;
+  y_ik = this->Allocate(y_ik, _x, _y, _z);
+  double ***x_ik = NULL;
+  x_ik = this->Allocate(x_ik, _x, _y, _z);
+  double ***z_jk = NULL;
+  z_jk = this->Allocate(z_jk, _x, _y, _z);
+  double ***y_jk = NULL;
+  y_jk = this->Allocate(y_jk, _x, _y, _z);
+  double ***x_jk = NULL;
+  x_jk = this->Allocate(x_jk, _x, _y, _z);
+
+  // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location i, j, k
+  double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
+  double b_i[3]  = {-0.5, 0, 0.5};
+  double b_ii[3] = {1.0, -2.0, 1.0};
+
+  for (k = 0; k < _z; k++) {
+    for (j = 0; j < _y; j++) {
+      for (i = 0; i < _x; i++) {
+        for (K = k-1; K < k+2; K++) {
+          // Get B-spline basis
+          B_K    = b   [K-(k-1)];
+          B_K_I  = b_i [K-(k-1)];
+          B_K_II = b_ii[K-(k-1)];
+          for (J = j-1; J < j+2; J++) {
+            // Get B-spline basis
+            B_J    = b   [J-(j-1)];
+            B_J_I  = b_i [J-(j-1)];
+            B_J_II = b_ii[J-(j-1)];
+            for (I = i-1; I < i+2; I++) {
+              // Get B-spline basis
+              B_I    = b   [I-(i-1)];
+              B_I_I  = b_i [I-(i-1)];
+              B_I_II = b_ii[I-(i-1)];
+
+              v = B_I * B_J * B_K_II;
+              z_kk[k][j][i] += _zdata[K][J][I] * v;
+              y_kk[k][j][i] += _ydata[K][J][I] * v;
+              x_kk[k][j][i] += _xdata[K][J][I] * v;
+
+              v = B_I * B_J_II * B_K;
+              z_jj[k][j][i] += _zdata[K][J][I] * v;
+              y_jj[k][j][i] += _ydata[K][J][I] * v;
+              x_jj[k][j][i] += _xdata[K][J][I] * v;
+
+              v = B_I_II * B_J * B_K;
+              z_ii[k][j][i] += _zdata[K][J][I] * v;
+              y_ii[k][j][i] += _ydata[K][J][I] * v;
+              x_ii[k][j][i] += _xdata[K][J][I] * v;
+
+              v = B_I_I * B_J_I * B_K;
+              z_ij[k][j][i] += _zdata[K][J][I] * v;
+              y_ij[k][j][i] += _ydata[K][J][I] * v;
+              x_ij[k][j][i] += _xdata[K][J][I] * v;
+
+              v = B_I_I * B_J * B_K_I;
+              z_ik[k][j][i] += _zdata[K][J][I] * v;
+              y_ik[k][j][i] += _ydata[K][J][I] * v;
+              x_ik[k][j][i] += _xdata[K][J][I] * v;
+
+              v = B_I * B_J_I * B_K_I;
+              z_jk[k][j][i] += _zdata[K][J][I] * v;
+              y_jk[k][j][i] += _ydata[K][J][I] * v;
+              x_jk[k][j][i] += _xdata[K][J][I] * v;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (k = 0; k < _z; k++) {
+    for (j = 0; j < _y; j++) {
+      for (i = 0; i < _x; i++) {
+        // Initialize tmp variables
+        tmp[0] = 0;
+        tmp[1] = 0;
+        tmp[2] = 0;
+        for (K = k-1; K < k+2; K++) {
+          // Get B-spline basis
+          B_K    = b   [K-(k-1)];
+          B_K_I  = b_i [K-(k-1)];
+          B_K_II = b_ii[K-(k-1)];
+          for (J = j-1; J < j+2; J++) {
+            // Get B-spline basis
+            B_J    = b   [J-(j-1)];
+            B_J_I  = b_i [J-(j-1)];
+            B_J_II = b_ii[J-(j-1)];
+            for (I = i-1; I < i+2; I++) {
+              // Get B-spline basis
+              B_I    = b   [I-(i-1)];
+              B_I_I  = b_i [I-(i-1)];
+              B_I_II = b_ii[I-(i-1)];
+
+              v = 2 * B_I * B_J * B_K_II;
+              tmp[2] += z_kk[K][J][I] * v;
+              tmp[1] += y_kk[K][J][I] * v;
+              tmp[0] += x_kk[K][J][I] * v;
+
+              v = 2 * B_I * B_J_II * B_K;
+              tmp[2] += z_jj[K][J][I] * v;
+              tmp[1] += y_jj[K][J][I] * v;
+              tmp[0] += x_jj[K][J][I] * v;
+
+              v = 2 * B_I_II * B_J * B_K;
+              tmp[2] += z_ii[K][J][I] * v;
+              tmp[1] += y_ii[K][J][I] * v;
+              tmp[0] += x_ii[K][J][I] * v;
+
+              v = 4 * B_I_I * B_J_I * B_K;
+              tmp[2] += z_ij[K][J][I] * v;
+              tmp[1] += y_ij[K][J][I] * v;
+              tmp[0] += x_ij[K][J][I] * v;
+
+              v = 4 * B_I_I * B_J * B_K_I;
+              tmp[2] += z_ik[K][J][I] * v;
+              tmp[1] += y_ik[K][J][I] * v;
+              tmp[0] += x_ik[K][J][I] * v;
+
+              v = 4 * B_I * B_J_I * B_K_I;
+              tmp[2] += z_jk[K][J][I] * v;
+              tmp[1] += y_jk[K][J][I] * v;
+              tmp[0] += x_jk[K][J][I] * v;
+            }
+          }
+        }
+        index = this->LatticeToIndex(i, j, k);
+        gradient[index]     = -tmp[0];
+        gradient[index+n]   = -tmp[1];
+        gradient[index+2*n] = -tmp[2];
+      }
+    }
+  }
+
+  this->Deallocate(z_kk, _x, _y, _z);
+  this->Deallocate(y_kk, _x, _y, _z);
+  this->Deallocate(x_kk, _x, _y, _z);
+  this->Deallocate(z_jj, _x, _y, _z);
+  this->Deallocate(y_jj, _x, _y, _z);
+  this->Deallocate(x_jj, _x, _y, _z);
+  this->Deallocate(z_ii, _x, _y, _z);
+  this->Deallocate(y_ii, _x, _y, _z);
+  this->Deallocate(x_ii, _x, _y, _z);
+  this->Deallocate(z_ij, _x, _y, _z);
+  this->Deallocate(y_ij, _x, _y, _z);
+  this->Deallocate(x_ij, _x, _y, _z);
+  this->Deallocate(z_ik, _x, _y, _z);
+  this->Deallocate(y_ik, _x, _y, _z);
+  this->Deallocate(x_ik, _x, _y, _z);
+  this->Deallocate(z_jk, _x, _y, _z);
+  this->Deallocate(y_jk, _x, _y, _z);
+  this->Deallocate(x_jk, _x, _y, _z);
 }
 
 double irtkBSplineFreeFormTransformation3D::Bending(double x, double y, double z)
@@ -823,7 +1081,7 @@ int irtkBSplineFreeFormTransformation3D::CheckHeader(char *name)
 
   if (!from) {
     cerr << "irtkBSplineFreeFormTransformation3D::CheckHeader: Can't open file "
-         << name << "\n";
+    << name << "\n";
     exit(1);
   }
 
@@ -1411,9 +1669,15 @@ void irtkBSplineFreeFormTransformation3D::MultiBoundingBox(irtkGreyImage *image,
   image->WorldToImage(x1, y1, z1);
   image->WorldToImage(x2, y2, z2);
 
-  if(x2<x1) {i1 = x2; x2 = x1; x1 = i1;}
-  if(y2<y1) {j1 = y2; y2 = y1; y1 = j1;}
-  if(z2<z1) {k1 = z2; z2 = z1; z1 = k1;}
+  if(x2<x1) {
+    i1 = x2; x2 = x1; x1 = i1;
+  }
+  if(y2<y1) {
+    j1 = y2; y2 = y1; y1 = j1;
+  }
+  if(z2<z1) {
+    k1 = z2; z2 = z1; z1 = k1;
+  }
 
   // Calculate bounding box in image coordinates
   i1 = (x1 < 0) ? 0 : int(x1)+1;
@@ -1624,7 +1888,7 @@ istream& irtkBSplineFreeFormTransformation3D::Import(istream& is)
     is >> no_attr;
   } else {
     cerr << "istream& operator>> irtkBSplineFreeFormTransformation3D: "
-         << "Expecting attributes " << buffer << endl;
+    << "Expecting attributes " << buffer << endl;
     exit(1);
   }
 

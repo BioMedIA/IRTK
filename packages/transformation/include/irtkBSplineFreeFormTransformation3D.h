@@ -191,8 +191,12 @@ public:
   virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
 
   /// Calculate the bending energy of the transformation
+  virtual double Bending(int i, int j, int k);
   virtual double Bending(double x, double y, double z);
   virtual double Bending(double x, double y, double z, double t);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient(double *gradient);
 
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The
