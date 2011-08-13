@@ -109,11 +109,21 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
         if (x2 > this->_input->GetX()-1) x2 = this->_input->GetX()-1;
 
         // Compute derivatives
-        dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
-
-        dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
-
-        dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
+        if (x1 != x2) {
+          dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
+        } else {
+          dx = 0;
+        }
+        if (y1 != y2) {
+          dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
+        } else {
+          dy = 0;
+        }
+        if (z1 != z2) {
+          dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
+        } else {
+          dz = 0;
+        }
 
         switch (_type) {
           case GRADIENT_X:
