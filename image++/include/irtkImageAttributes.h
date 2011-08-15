@@ -216,7 +216,9 @@ inline int irtkImageAttributes::LatticeToIndex(int i, int j, int k, int l) const
 
 inline void irtkImageAttributes::IndexToLattice(int index, int *i, int *j, int *k, int *l)
 {
-	*l = index/(_x*_y*_z);
+    if(l != NULL){
+        *l = index/(_x*_y*_z);
+    }
 	*k = index%(_x*_y*_z)/(_y*_x);
 	*j = index%(_x*_y*_z)%(_y*_x)/_x;
 	*i = index%(_x*_y*_z)%(_y*_x)%_x;

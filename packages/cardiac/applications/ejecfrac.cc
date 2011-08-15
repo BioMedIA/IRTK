@@ -22,7 +22,7 @@ char *trans_name = NULL;
 
 void usage()
 {
-	cerr << "Usage: ejecfrac [threshold] [frames] [mask-value] [output] [transformation]\n" << endl;
+	cerr << "Usage: ejecfrac [threshold] [frames] [mask-value] [output] [transformation prefix]\n" << endl;
 	cerr << "-landmark [landmark name] landmark information"    << endl;
 	cerr << "-jacobian use jacobian to evaluate ejection fraction [default use volume]"    << endl;
 	exit(1);

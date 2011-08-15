@@ -25,14 +25,13 @@ int main(int argc, char **argv)
 {
 	int i, j, k, t, time, m;
 	double x,y,z;
-	irtkImageAttributes ipt0_at;
 
 	// Determine how many volumes we have
 	t = argc-3;
 
 	if (t < 1) usage();
 
-	cout << "Making longaxis from " << t << " images" << endl;
+	cout << "Combine images from " << t << " images" << endl;
 
 	irtkGreyImage* reference = new irtkGreyImage(argv[1]);
 
@@ -49,12 +48,7 @@ int main(int argc, char **argv)
 	resampling.Run();
 	cerr << "done.."<<endl;
 
-	irtkGreyImage* input = new irtkGreyImage[t];
-
-	// Read first image
-	cout << "Reading " << argv[2] << endl;
-	input[0].Read(argv[2]);
-	ipt0_at = input[0].GetImageAttributes();     
+	irtkGreyImage* input = new irtkGreyImage[t];  
 
 	int *input_x = new int[t];
 	int *input_y = new int[t];

@@ -76,16 +76,12 @@ inline irtkHistogramSimilarityMetric::~irtkHistogramSimilarityMetric()
 
 inline void irtkHistogramSimilarityMetric::Add(int x, int y, double weight)
 {
-  //if ( y < 0 )
-  //	  int test = 1;
   _histogram->Add(x, y, weight);
 }
 
 inline void irtkHistogramSimilarityMetric::Delete(int x, int y, double weight)
 {
-  for (int i = 0; i< weight; i++){
-	_histogram->Delete(x, y);
-  }
+  _histogram->Delete(x, y, weight);
 }
 
 inline void irtkHistogramSimilarityMetric::Combine(irtkSimilarityMetric *metric)

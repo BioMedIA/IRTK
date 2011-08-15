@@ -292,6 +292,8 @@ int main(int argc, char **argv)
 	if (decimate != NULL) {
 		cout << "Decimating ... \n";
 		decimate->SetInputConnection(mcubes->GetOutputPort());
+        decimate->SetTargetReduction(0.5);
+        decimate->Update();
 		if (smooth != NULL) {
 			cout << "Smoothing ... \n";
 			smooth->SetInputConnection(decimate->GetOutputPort());
