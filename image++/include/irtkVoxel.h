@@ -39,7 +39,7 @@ template <> struct voxel_limits<char> {
 
 template <> struct voxel_limits<unsigned char> {
 
-	static double min() throw() { return static_cast<unsigned char>(0x80); }
+	static double min() throw() { return static_cast<unsigned char>(0u); }
 	static double max() throw() { return static_cast<unsigned char>(0xffu); }
 	
 };
