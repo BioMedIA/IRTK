@@ -10,7 +10,7 @@
 
 =========================================================================*/
 
-#ifdef VTK 
+#ifdef HAS_VTK
 
 #ifndef _IRTKMULTIPLEIMAGEREGISTRATION_H
 
@@ -272,4 +272,4 @@ inline void irtkMultipleImageRegistration::Debug(string message)
 
 #endif
 
-#endif // VTK 
+#endif // HAS_VTK

@@ -10,7 +10,7 @@ Changes   : $Author$
 
 =========================================================================*/
 
-#ifdef VTK
+#ifdef HAS_VTK
 
 #include <irtkRegistration.h>
 
@@ -1103,4 +1103,4 @@ void irtkMultipleImageRegistration::Write(char *filename)
     this->Write(to);
 }
 
-#endif // VTK
+#endif // HAS_VTK
