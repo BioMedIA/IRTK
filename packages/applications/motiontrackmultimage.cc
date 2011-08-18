@@ -1,3 +1,6 @@
+
+#ifdef HAS_VTK
+
 #include <irtkImage.h>
 
 #include <irtkRegistration.h>
@@ -43,12 +46,10 @@ int main(int argc, char **argv)
   irtkGreyPixel padding;
   irtkMultiLevelFreeFormTransformation *mffd;
 
-#ifdef HAS_VTK
 
   vtkPolyData **landmarks;
   vtkPolyDataReader *reader;
 
-#endif
 
   // Check command line
   if (argc < 2) {
@@ -66,12 +67,10 @@ int main(int argc, char **argv)
   }
   filenames++;
 
-#ifdef HAS_VTK
 
   landmarks = NULL;
   reader = NULL;
 
-#endif
 
   for (i = 0; i < 10; i++) {
     weight[i] = new double[numberOfImages];
@@ -276,7 +275,6 @@ int main(int argc, char **argv)
       ok = true;
     }
 
-#ifdef HAS_VTK
 
     if ((ok == false) && (strcmp(argv[1], "-landmarks") == 0)) {
       argc--;
@@ -300,7 +298,6 @@ int main(int argc, char **argv)
       ok = true;
     }
 
-#endif
 
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
@@ -405,7 +402,6 @@ int main(int argc, char **argv)
       }
     }
 
-#ifdef HAS_VTK
 
     vtkPolyData* tlandmarks = vtkPolyData::New();
     vtkPolyData* slandmarks = vtkPolyData::New();
@@ -414,18 +410,15 @@ int main(int argc, char **argv)
       slandmarks->DeepCopy(landmarks[t]);
     }
 
-#endif
 
     // Set input and output for the registration filter
     multimageregistration->SetInput(target, source, numberOfImages);
 
-#ifdef HAS_VTK
 
     if(landmarks != NULL) {
       multimageregistration->SetLandmarks(tlandmarks,slandmarks);
     }
 
-#endif
 
     multimageregistration->SetOutput(mffd);
     multimageregistration->SetDebugFlag(debug);
@@ -500,12 +493,10 @@ int main(int argc, char **argv)
     delete []target;
     delete []source;
 
-#ifdef HAS_VTK
 
     tlandmarks->Delete();
     slandmarks->Delete();
 
-#endif
 
   }
 
@@ -514,3 +505,15 @@ int main(int argc, char **argv)
   }
   delete []weight;
 }
+
+
+#else
+
+#include <irtkImage.h>
+
+int main( int argc, char *argv[] )
+{
+  cerr << argv[0] << " needs to be compiled with the VTK library " << endl;
+}
+#endif
+

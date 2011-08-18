@@ -10,6 +10,8 @@ Changes   : $Author$
 
 =========================================================================*/
 
+#ifdef VTK
+
 #include <irtkRegistration.h>
 
 #include <irtkGradientDescentConstrainedOptimizer.h>
@@ -1100,3 +1102,5 @@ void irtkMultipleImageRegistration::Write(char *filename)
 
     this->Write(to);
 }
+
+#endif // VTK

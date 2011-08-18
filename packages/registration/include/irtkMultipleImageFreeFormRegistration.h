@@ -10,6 +10,8 @@
 
 =========================================================================*/
 
+#ifdef VTK
+
 #ifndef _IRTKMULTIPLEIMAGEFREEFORMREGISTRATION_H
 
 #define _IRTKMULTIPLEIMAGEFREEFORMREGISTRATION_H
@@ -236,3 +238,4 @@ inline void irtkMultipleImageFreeFormRegistration::SetWeighting(double **weight)
 
 #endif
 
+#endif // VTK
