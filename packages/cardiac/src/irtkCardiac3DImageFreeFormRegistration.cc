@@ -954,7 +954,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 
   // Evaluate similarity measure
   double similarity = combine_mysimilarity(combine_mysimilarity(_metric,sweight,_numberOfImages)
-	  ,combine_mysimilarity(_umetric,tweight,_numberOfuImages),l1,l2);
+	  ,combine_mysimilarity(_umetric,tweight,_numberOfuImages),pow(2.0,_level)*l1,l2);
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
@@ -1286,7 +1286,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   // Evaluate similarity measure
   double similarityA =  combine_mysimilarity(combine_mysimilarity(tmpMetricA,sweight,_numberOfImages)
-	  ,combine_mysimilarity(utmpMetricA,tweight,_numberOfuImages),l1a+l1b,l2a+l2b);
+	  ,combine_mysimilarity(utmpMetricA,tweight,_numberOfuImages),pow(2.0,_level)*(l1a+l1b),l2a+l2b);
 
   // Add penalties
   _affd->Put(index, dof + step);
@@ -1310,7 +1310,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   // Evaluate similarity measure
   double similarityB = combine_mysimilarity(combine_mysimilarity(tmpMetricB,sweight,_numberOfImages)
-	  ,combine_mysimilarity(utmpMetricB,tweight,_numberOfuImages),l1a+l1b,l2a+l2b);
+	  ,combine_mysimilarity(utmpMetricB,tweight,_numberOfuImages),pow(2.0,_level)*(l1a+l1b),l2a+l2b);
 
   // Add penalties
   _affd->Put(index, dof - step);
@@ -1539,7 +1539,7 @@ void irtkCardiac3DImageFreeFormRegistration::Write(ostream &to)
 double irtkCardiac3DImageFreeFormRegistration::WeightFunction (double edge,double edgemax,double threshold){
 
 	double weight = 0;
-	weight = fabs(edge*threshold)/edgemax;
+	weight = 16.0*fabs(edge*threshold)/edgemax;
 	if(weight > 1)
 		weight = 1;
 	if(weight < 0)
@@ -1593,7 +1593,7 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateWeight (irtkRealImage *weig
 			for (j = 0; j < threshold->GetY(); j++) {
 				for (i = 0; i < threshold->GetX(); i++) {
 					if (*ptr2threshold == 3)
-						*ptr2tmp = 8;
+						*ptr2tmp = 1;
 					else
 						*ptr2tmp = 0;
 					ptr2threshold++;
@@ -1616,7 +1616,7 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateWeight (irtkRealImage *weig
 
 	cout << "Blurring Edge probalility ... "; cout.flush();
 	tmpthresholdedge->GetPixelSize(&xsize, &ysize, &zsize);
-	irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(4.0, -1);
+	irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(8.0, -1);
 	blurring.SetInput (tmpthresholdedge);
 	blurring.SetOutput(tmpthresholdedge);
 	blurring.Run();
@@ -1652,7 +1652,7 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateWeight (irtkRealImage *weig
 			}
 		}
 	}
-	blurring.SetSigma(4.0);
+	blurring.SetSigma(1.0);
 	blurring.SetInput (weight);
 	blurring.SetOutput(weight);
 	blurring.Run();
