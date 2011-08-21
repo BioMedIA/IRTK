@@ -917,6 +917,11 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
               }else{
                   weight = 0;
               }
+              //regulate weight
+              if(weight > 0){
+                  weight = weight * 10.0;
+                  if(weight < 1.0) weight = 1.0;
+              }
               _affd->LocalDisplacement(x, y, z);
               x += ptr[0];
               y += ptr[1];
@@ -1025,29 +1030,28 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
   dim = int(index / (_affd->GetX()*_affd->GetY()*_affd->GetZ()));
   l1a=l2a=l1b=l2b=0;
 
+  // Calculate bounding box of control point in world coordinates
+  _affd->BoundingBox(index, p1, p2);
+  _target[0]->WorldToImage(p1);
+  _target[0]->WorldToImage(p2);
+
+  // Calculate incremental changes in lattice coordinates when looping
+  // over target
+  dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
+  dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
+  dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
+
+  min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
+  max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
+
   for (n = 0; n < _numberOfImages; n++) {
 	  // Initialize metrics for forward and backward derivative steps
 	  tmpMetricA[n]->Reset(_metric[n]);
 	  tmpMetricB[n]->Reset(_metric[n]);
       sweight[n] = 0;
-	  
-
-    // Calculate bounding box of control point in world coordinates
-    _affd->BoundingBox(index, p1, p2);
-    _target[0]->WorldToImage(p1);
-    _target[0]->WorldToImage(p2);
 
     // Calculate bounding box of control point in image coordinates
     _affd->MultiBoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
-
-    // Calculate incremental changes in lattice coordinates when looping
-    // over target
-    dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
-    dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
-    dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
-
-	min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
-	max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
 
     // Loop over all voxels in the target (reference) volume
 	for (t = 0; t < _target[n]->GetT(); t++) {
@@ -1155,22 +1159,8 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 	  utmpMetricB[n]->Reset(_umetric[n]);
 	  tweight[n] = 0;
 
-    // Calculate bounding box of control point in world coordinates
-    _affd->BoundingBox(index, p1, p2);
-    _target[0]->WorldToImage(p1);
-    _target[0]->WorldToImage(p2);
-
     // Calculate bounding box of control point in image coordinates
     _affd->MultiBoundingBox(_utarget[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
-
-    // Calculate incremental changes in lattice coordinates when looping
-    // over target
-    dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
-    dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
-    dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
-
-	min = round((FFDLOOKUPTABLESIZE-1)*(0.5 - 0.5/_SpeedupFactor));
-	max = round((FFDLOOKUPTABLESIZE-1)*(0.5 + 0.5/_SpeedupFactor));
 
     // Loop over all voxels in the target (reference) volume
 	for (t = 0; t < _utarget[n]->GetT(); t++) {
@@ -1214,6 +1204,11 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
                                             weight = _mweight->GetAsDouble(round(wx),round(wy),round(wz));
                                     }else{
                                         weight = 0;
+                                    }
+                                    //regulate weight
+                                    if(weight > 0){
+                                        weight = weight * 10.0;
+                                        if(weight < 1.0) weight = 1.0;
                                     }
 									if (*ptr2utmp > _TargetPadding && threshold > 2) {
 										utmpMetricA[n]->Delete(*ptr2utarget, *ptr2utmp, 10.0 - weight);
