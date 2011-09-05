@@ -636,10 +636,118 @@ void irtkBSplineFreeFormTransformation4D::GlobalJacobian(irtkMatrix &jac, double
   jac(2, 2) = 1;
 }
 
-void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &, double, double, double, double)
+void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
-  cerr << "irtkBSplineFreeFormTransformation4D::LocalJacobian: Not implemented yet" << endl;
-  exit(1);
+  int i, j, k, l;
+  int floor_x, floor_y, floor_z, floor_t;
+  int I, J, K, L;
+  int IND_X, IND_Y, IND_Z, IND_T;
+
+  double frac_x, frac_y, frac_z, frac_t;
+  double coeff;
+  double B_L, B_K, B_J, B_I, B_K_I, B_J_I, B_I_I;
+
+  // The transformation maps (x, y, z, t) to (Tx, Ty, Tz)
+  // Find the partial derivatives of the transformation Tx, Ty and Tz w.r.t x, y and z
+  //     dTz/dz dTy/dz dTx/dz dTz/dy dTy/dy dTx/dy dTz/dx dTy/dx dTx/dx
+  double z_k=0, y_k=0, x_k=0, z_j=0, y_j=0, x_j=0, z_i=0, y_i=0, x_i=0;
+
+  // Partial derivatives with respect to time are not provided by this function.
+  // I.e. none of dTx/dt , dTy/dt or dTz/dt is provided (they should be zero, right?).
+
+  // Convert to lattice coordinates
+  this->WorldToLattice(x, y, z);
+  t = this->TimeToLattice(t);
+
+  // Compute derivatives
+  floor_x = (int)floor(x);
+  floor_y = (int)floor(y);
+  floor_z = (int)floor(z);
+  floor_t = (int)floor(t);
+
+  frac_x = x-floor_x;
+  frac_y = y-floor_y;
+  frac_z = z-floor_z;
+  frac_t = t-floor_t;
+
+  IND_X = round(LUTSIZE*frac_x);
+  IND_Y = round(LUTSIZE*frac_y);
+  IND_Z = round(LUTSIZE*frac_z);
+  IND_T = round(LUTSIZE*frac_t);
+
+  for (l = 0; l < 4; l++){
+  	L = l + floor_t - 1;
+
+  	if ((L >= 0) && (L < _t)){
+			B_L   = this->LookupTable[IND_T][l];
+			// We are only returning the first three columns of the
+			// Jacobian so do not need the following commented out bit
+			// (the full Jacobian is a 4x3 matrix and we return a 3x3 one)
+
+			// B_L_I = this->LookupTable_I[IND_T][l];
+
+  		for (k = 0; k < 4; k++) {
+  			K = k + floor_z - 1;
+  			if ((K >= 0) && (K < _z)) {
+  				B_K   = this->LookupTable[IND_Z][k];
+  				B_K_I = this->LookupTable_I[IND_Z][k];
+  				for (j = 0; j < 4; j++) {
+  					J = j + floor_y - 1;
+  					if ((J >= 0) && (J < _y)) {
+  						B_J   = this->LookupTable[IND_Y][j];
+  						B_J_I = this->LookupTable_I[IND_Y][j];
+  						for (i = 0; i < 4; i++) {
+  							I = i + floor_x - 1;
+  							if ((I >= 0) && (I < _x)) {
+  								B_I   = this->LookupTable[IND_X][i];
+  								B_I_I = this->LookupTable_I[IND_X][i];
+  								coeff = B_I_I * B_J * B_K * B_L;
+  								x_i += _xdata[L][K][J][I] * coeff;
+  								y_i += _ydata[L][K][J][I] * coeff;
+  								z_i += _zdata[L][K][J][I] * coeff;
+  								coeff = B_I * B_J_I * B_K * B_L;
+  								x_j += _xdata[L][K][J][I] * coeff;
+  								y_j += _ydata[L][K][J][I] * coeff;
+  								z_j += _zdata[L][K][J][I] * coeff;
+  								coeff = B_I * B_J * B_K_I * B_L;
+  								x_k += _xdata[L][K][J][I] * coeff;
+  								y_k += _ydata[L][K][J][I] * coeff;
+  								z_k += _zdata[L][K][J][I] * coeff;
+  								// We are only returning the first three columns of the
+  								// Jacobian so do not need the following
+  								//  coeff = B_I * B_J * B_K * B_L_I;
+  								// 	x_l += _xdata[L][K][J][I] * coeff;
+  								//  y_l += _ydata[L][K][J][I] * coeff;
+  								//  z_l += _zdata[L][K][J][I] * coeff;
+  							}
+  						}
+  					}
+  				}
+  			}
+  		}
+
+  	}
+  }
+
+  // First 3 columns of the Jacobian matrix form a 3 x 3 sub-matrix
+  jac.Initialize(3, 3);
+
+  // Get deformation derivatives
+  jac(0, 0) = x_i;
+  jac(1, 0) = y_i;
+  jac(2, 0) = z_i;
+  jac(0, 1) = x_j;
+  jac(1, 1) = y_j;
+  jac(2, 1) = z_j;
+  jac(0, 2) = x_k;
+  jac(1, 2) = y_k;
+  jac(2, 2) = z_k;
+
+  // Convert derivatives to world coordinates
+  jac = jac * _matW2L(0, 0, 3, 3);
+  jac(0, 0) += 1;
+  jac(1, 1) += 1;
+  jac(2, 2) += 1;
 }
 
 double irtkBSplineFreeFormTransformation4D::Bending(double, double, double, double)
