@@ -184,6 +184,9 @@ template <class VoxelType> void irtkResampling<VoxelType>::Run()
   this->Finalize();
 }
 
-template class irtkResampling<irtkBytePixel>;
-template class irtkResampling<irtkGreyPixel>;
-template class irtkResampling<irtkRealPixel>;
+template class irtkResampling<char>;
+template class irtkResampling<unsigned char>;
+template class irtkResampling<short>;
+template class irtkResampling<unsigned short>;
+template class irtkResampling<float>;
+template class irtkResampling<double>;

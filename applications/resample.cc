@@ -88,17 +88,17 @@ int main(int argc, char **argv)
       interpolator = new irtkLinearInterpolateImageFunction;
       ok = true;
     }
-	if ((ok == false) && (strcmp(argv[1], "-isotropic") == 0)) {
-		argc--;
-		argv++;
-		if (argc > 1 && argv[1][0] != '-') {
-			isotropic = atoi(argv[1]);
-			argc--;
-			argv++;
-		}else
-			isotropic = 1;
-		ok = true;
-	}
+    if ((ok == false) && (strcmp(argv[1], "-isotropic") == 0)) {
+      argc--;
+      argv++;
+      if (argc > 1 && argv[1][0] != '-') {
+        isotropic = atoi(argv[1]);
+        argc--;
+        argv++;
+      } else
+        isotropic = 1;
+      ok = true;
+    }
     if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
       argc--;
       argv++;
@@ -117,12 +117,12 @@ int main(int argc, char **argv)
       interpolator = new irtkSincInterpolateImageFunction;
       ok = true;
     }
-	if ((ok == false) && (strcmp(argv[1], "-sbased") == 0)) {
-		argc--;
-		argv++;
-		interpolator = new irtkShapeBasedInterpolateImageFunction;
-		ok = true;
-	}
+    if ((ok == false) && (strcmp(argv[1], "-sbased") == 0)) {
+      argc--;
+      argv++;
+      interpolator = new irtkShapeBasedInterpolateImageFunction;
+      ok = true;
+    }
     if ((ok == false) && (strcmp(argv[1], "-gaussian") == 0)) {
       argc--;
       argv++;
@@ -152,74 +152,87 @@ int main(int argc, char **argv)
   }
 
   // Isotropic?
-  if(isotropic){
-	  // Resample image to isotropic voxels (smallest voxel dimension)
-	  double size;
-	  image->GetPixelSize(&xsize, &ysize, &zsize);
-	  size = xsize;
-	  size = (size < ysize) ? size : ysize;
-	  size = (size < zsize) ? size : zsize;
-	  cerr << "Resampling image to isotropic voxel size (in mm): "
-		  << size << "z axis times " << isotropic << endl;
-	  xsize = size; ysize = size; zsize = size*isotropic;
-  }else{
-	  cout << "Resampling ... "; cout.flush();
+  if(isotropic) {
+    // Resample image to isotropic voxels (smallest voxel dimension)
+    double size;
+    image->GetPixelSize(&xsize, &ysize, &zsize);
+    size = xsize;
+    size = (size < ysize) ? size : ysize;
+    size = (size < zsize) ? size : zsize;
+    cerr << "Resampling image to isotropic voxel size (in mm): "
+    << size << "z axis times " << isotropic << endl;
+    xsize = size; ysize = size; zsize = size*isotropic;
+  } else {
+    cout << "Resampling ... "; cout.flush();
   }
   switch (image->GetScalarType()) {
-  case IRTK_VOXEL_UNSIGNED_SHORT: {
-	  if (padding == false){
-		  irtkResampling<irtkGreyPixel> resampling(xsize, ysize, zsize);
-		  resampling.SetInput ((irtkGreyImage*)(image));
-		  resampling.SetOutput((irtkGreyImage*)(image));
-		  resampling.SetInterpolator(interpolator);
-		  resampling.Run();
-	  }
-	  else{
-		  irtkResamplingWithPadding<irtkGreyPixel> resampling(xsize, ysize, zsize,padding_value);
-		  resampling.SetInput ((irtkGreyImage*)(image));
-		  resampling.SetOutput((irtkGreyImage*)(image));
-		  resampling.SetInterpolator(interpolator);
-		  resampling.Run();
-	  }
-	  break;
-								  }
-  case IRTK_VOXEL_SHORT: {
-	  if (padding == false){
-		  irtkResampling<irtkGreyPixel> resampling(xsize, ysize, zsize);
-		  resampling.SetInput ((irtkGreyImage*)(image));
-		  resampling.SetOutput((irtkGreyImage*)(image));
-		  resampling.SetInterpolator(interpolator);
-		  resampling.Run();
-	  }
-	  else{
-		  irtkResamplingWithPadding<irtkGreyPixel> resampling(xsize, ysize, zsize,padding_value);
-		  resampling.SetInput ((irtkGreyImage*)(image));
-		  resampling.SetOutput((irtkGreyImage*)(image));
-		  resampling.SetInterpolator(interpolator);
-		  resampling.Run();
-	  }
-	  break;
-						 }
-  case IRTK_VOXEL_FLOAT: {
-	  if (padding == false){
-		  irtkResampling<irtkRealPixel> resampling(xsize, ysize, zsize);
-		  resampling.SetInput ((irtkRealImage*)(image));
-		  resampling.SetOutput((irtkRealImage*)(image));
-		  resampling.SetInterpolator(interpolator);
-		  resampling.Run();
-	  }
-	  else{
-		  irtkResamplingWithPadding<irtkRealPixel> resampling(xsize, ysize, zsize,padding_value);
-		  resampling.SetInput ((irtkRealImage*)(image));
-		  resampling.SetOutput((irtkRealImage*)(image));
-		  resampling.SetInterpolator(interpolator);
-		  resampling.Run();
-	  }
-	  break;
-						 }
-  default:
-	  cerr << "transformation: Unknown scalar type" << endl;
-	  exit(1);
+    case IRTK_VOXEL_UNSIGNED_CHAR: {
+        if (padding == false) {
+          irtkResampling<unsigned char> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkGenericImage<unsigned char>*)(image));
+          resampling.SetOutput((irtkGenericImage<unsigned char>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        } else {
+          irtkResamplingWithPadding<unsigned char> resampling(xsize, ysize, zsize, padding_value);
+          resampling.SetInput ((irtkGenericImage<unsigned char>*)(image));
+          resampling.SetOutput((irtkGenericImage<unsigned char>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        }
+        break;
+      }
+    case IRTK_VOXEL_SHORT: {
+        if (padding == false) {
+          irtkResampling<short> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkGenericImage<short>*)(image));
+          resampling.SetOutput((irtkGenericImage<short>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        } else {
+          irtkResamplingWithPadding<short> resampling(xsize, ysize, zsize, padding_value);
+          resampling.SetInput ((irtkGenericImage<short>*)(image));
+          resampling.SetOutput((irtkGenericImage<short>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        }
+        break;
+      }
+    case IRTK_VOXEL_UNSIGNED_SHORT: {
+        if (padding == false) {
+          irtkResampling<unsigned short> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkGenericImage<unsigned short>*)(image));
+          resampling.SetOutput((irtkGenericImage<unsigned short>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        } else {
+          irtkResamplingWithPadding<unsigned short> resampling(xsize, ysize, zsize, padding_value);
+          resampling.SetInput ((irtkGenericImage<unsigned short>*)(image));
+          resampling.SetOutput((irtkGenericImage<unsigned short>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        }
+        break;
+      }
+    case IRTK_VOXEL_FLOAT: {
+        if (padding == false) {
+          irtkResampling<float> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkRealImage*)(image));
+          resampling.SetOutput((irtkRealImage*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        } else {
+          irtkResamplingWithPadding<float> resampling(xsize, ysize, zsize,padding_value);
+          resampling.SetInput ((irtkRealImage*)(image));
+          resampling.SetOutput((irtkRealImage*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        }
+        break;
+      }
+    default:
+      cerr << "transformation: Unknown scalar type" << endl;
+      exit(1);
   }
   ok = true;
   cerr << "done.."<<endl;

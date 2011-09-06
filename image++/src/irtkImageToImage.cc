@@ -214,6 +214,7 @@ template <class VoxelType> void irtkImageToImage<VoxelType>::Run()
   this->Finalize();
 }
 
+template class irtkImageToImage<char>;
 template class irtkImageToImage<unsigned char>;
 template class irtkImageToImage<short>;
 template class irtkImageToImage<unsigned short>;
