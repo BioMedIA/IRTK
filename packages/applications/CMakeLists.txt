@@ -54,6 +54,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdaverage ffdaverage.cc)
     ADD_EXECUTABLE(ffdboundary ffdboundary.cc)
     ADD_EXECUTABLE(ffdcollapse ffdcollapse.cc)
+    ADD_EXECUTABLE(ffdcompose ffdcompose.cc)
     ADD_EXECUTABLE(ffdcomposeN ffdcomposeN.cc)
     ADD_EXECUTABLE(ffdcreate ffdcreate.cc)
     ADD_EXECUTABLE(ffddecompose ffddecompose.cc)
@@ -73,7 +74,6 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(jactest jactest.cc)
     ADD_EXECUTABLE(largedeformations largedeformations.cc)
     ADD_EXECUTABLE(largedeformationsShoot largedeformationShooting.cc)
-    
     ADD_EXECUTABLE(largedeformationsTools largedeformationsTools.cc)
     ADD_EXECUTABLE(mat2dof mat2dof.cc)
     ADD_EXECUTABLE(mareg mareg.cc)
@@ -117,11 +117,11 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
 INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare demons dofcombine dofcomposeN dof2flirt 
-dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd ffdboundary ffdcollapse ffdcomposeN 
-ffdcreate ffddecompose ffdedit ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof headertool hreg 
-image2dof jacobian largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 
-motiontrackmultimage mrreg nreg nreg2 normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 
-subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg temporalextract transformation 
+dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose
+ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
+fluid headertool hreg image2dof jacobian largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack 
+motiontrack2 motiontrackmultimage mrreg nreg nreg2 normalize pareg pevaluation phreg pnreg prreg ptransformation 
+rreg rreg2 subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg temporalextract transformation 
 transformation2 trans_uncertainty volumechange vtk2ffd jactest)
 
 ENDIF (BUILD_CONDOR_EXE)
