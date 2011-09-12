@@ -37,6 +37,9 @@ int main(int argc, char **argv)
 	argv++;
 	argc--;
 
+	// Print out warning
+	cout << "Note the current implementation will ignore the global (affine) transformation component" << endl;
+
 	// Convert first transformation
   irtkMultiLevelFreeFormTransformation *mffd1 = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(t1);
   if (mffd1 == NULL){

@@ -21,16 +21,8 @@ irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation() : irtkMultiLe
 
 irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkFluidFreeFormTransformation &transformation) : irtkMultiLevelFreeFormTransformation(transformation)
 {
-  int i;
-
-  cout << "Do not use" << endl;
-
-  // Initialize local transformation
-  for (i = 0; i < transformation._NumberOfLevels; i++) {
-    _localTransformation[i] = transformation._localTransformation[i];
-  }
-
-  _NumberOfLevels = transformation._NumberOfLevels;
+  cout << "irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkFluidFreeFormTransformation &transformation): Do not use" << endl;
+  exit(1);
 }
 
 irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkRigidTransformation &transformation) : irtkMultiLevelFreeFormTransformation(transformation)

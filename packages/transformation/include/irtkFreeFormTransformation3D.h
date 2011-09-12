@@ -199,8 +199,7 @@ public:
       set of displacements and find a FFD which approximates these
       displacements. After approximatation the displacements replaced by
       the residual displacement errors at the points */
-  virtual double Approximate(double *, double *, double *,
-                             double *, double *, double *, int) = 0;
+  virtual double Approximate(const double *, const double *, const double *, double *, double *, double *, int) = 0;
 
   /** Interpolates displacements: This function takes a set of displacements
       defined at the control points and finds a FFD which interpolates these
@@ -208,7 +207,7 @@ public:
       \param dxs The x-displacements at each control point.
       \param dys The y-displacements at each control point.
       \param dzs The z-displacements at each control point. */
-  virtual void Interpolate(double* dxs, double* dys, double* dzs) = 0;
+  virtual void Interpolate(const double* dxs, const double* dys, const double* dzs) = 0;
 
   /// Inverts the transformation (abstract)
   virtual double Inverse(double &, double &, double &, double, double = 0.01);

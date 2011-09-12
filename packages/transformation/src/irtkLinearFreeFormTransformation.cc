@@ -449,7 +449,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkBSp
         v = y;
         w = z;
         // Calculate FFD
-        ffd.FFD1(u, v, w);
+        ffd.FFD3D(u, v, w);
 
         // Calculate x, y, z
         ffd.LatticeToWorld(x, y, z);
@@ -479,14 +479,13 @@ irtkLinearFreeFormTransformation::~irtkLinearFreeFormTransformation()
   _z = 0;
 }
 
-double irtkLinearFreeFormTransformation::Approximate(double *, double *, double *,
-    double *, double *, double *, int)
+double irtkLinearFreeFormTransformation::Approximate(const double *, const double *, const double *, double *, double *, double *, int)
 {
   cerr << "irtkLinearFreeFormTransformation::Approximate: Not yet implemented" << endl;
   exit(1);
 }
 
-void irtkLinearFreeFormTransformation::Interpolate(double *, double *, double *)
+void irtkLinearFreeFormTransformation::Interpolate(const double *, const double *, const double *)
 {
   cerr << "irtkLinearFreeFormTransformation::Interpolate: Not yet implemented" << endl;
   exit(1);

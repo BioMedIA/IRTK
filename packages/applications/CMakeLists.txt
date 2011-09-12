@@ -60,6 +60,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffddecompose ffddecompose.cc)
     ADD_EXECUTABLE(ffdedit ffdedit.cc)
     ADD_EXECUTABLE(ffdinfo ffdinfo.cc)
+    ADD_EXECUTABLE(ffdinvert ffdinvert.cc)
     ADD_EXECUTABLE(ffdmovie ffdmovie.cc)
     ADD_EXECUTABLE(ffdpadding ffdpadding.cc)
     ADD_EXECUTABLE(ffdsubdivide ffdsubdivide.cc)
@@ -116,13 +117,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
-INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare demons dofcombine dofcomposeN dof2flirt 
-dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose
-ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof 
-fluid headertool hreg image2dof jacobian largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack 
-motiontrack2 motiontrackmultimage mrreg nreg nreg2 normalize pareg pevaluation phreg pnreg prreg ptransformation 
-rreg rreg2 subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg temporalextract transformation 
-transformation2 trans_uncertainty volumechange vtk2ffd jactest)
+INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas compare demons dofcombine dofcomposeN dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdinvert ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof fluid headertool hreg image2dof jacobian largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 motiontrackmultimage mrreg nreg nreg2 normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg temporalextract transformation transformation2 trans_uncertainty volumechange vtk2ffd jactest)
 
 ENDIF (BUILD_CONDOR_EXE)
 

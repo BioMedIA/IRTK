@@ -83,9 +83,25 @@ protected:
   /** Convert from displacement field values to B-spline coefficient values. */
   static void ConvertToInterpolationCoefficients(double* c, int DataLength, double* z, int NbPoles, double Tolerance);
 
-  /** Computes the B-spline coefficients need to interpolate a displacement
+  /** Computes the B-spline coefficients needed to interpolate a 2D displacement
       field. */
-  void ComputeCoefficients(double* dxs, double* dys, double* dzs, irtkRealImage& xCoeffs, irtkRealImage& yCoeffs, irtkRealImage& zCoeffs);
+  void ComputeCoefficients2D(const double* dxs, const double* dys, const double* dzs, irtkGenericImage<double>& xCoeffs, irtkGenericImage<double>& yCoeffs, irtkGenericImage<double>& zCoeffs);
+
+  /** Computes the B-spline coefficients needed to interpolate a 3D displacement
+      field. */
+  void ComputeCoefficients3D(const double* dxs, const double* dys, const double* dzs, irtkGenericImage<double>& xCoeffs, irtkGenericImage<double>& yCoeffs, irtkGenericImage<double>& zCoeffs);
+
+  /** Approximate displacements in 2D: This function takes a set of points
+      and a set of displacements and find a FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual double Approximate2D(const double *, const double *, const double *, double *, double *, double *, int);
+
+  /** Approximate displacements in 3D: This function takes a set of points
+      and a set of displacements and find a FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual double Approximate3D(const double *, const double *, const double *, double *, double *, double *, int);
 
   /// Memory for lookup table for B-spline basis function values
   static    double LookupTable[FFDLOOKUPTABLESIZE][4];
@@ -97,6 +113,30 @@ protected:
   /* Memory for lookup table for second derivatives of B-spline basis
    * function values */
   static    double LookupTable_II[FFDLOOKUPTABLESIZE][4];
+
+  /// Calculates a 2D FFD (for a point in FFD coordinates)
+  virtual void FFD2D(double &, double &) const;
+
+  /// Calculates a 3D FFD (for a point in FFD coordinates)
+  virtual void FFD3D(double &, double &, double &) const;
+
+  /// Calculate the bending energy of the transformation at control points (2D)
+  virtual double Bending2D(int i, int j);
+
+  /// Calculate the bending energy of the transformation at arbitrary points  (2D)
+  virtual double Bending2D(double x, double y);
+
+  /// Calculate the bending energy of the transformation at control points (3D)
+  virtual double Bending3D(int i, int j, int k);
+
+  /// Calculate the bending energy of the transformation at arbitrary points  (3D)
+  virtual double Bending3D(double x, double y, double z);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient2D(double *gradient);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient3D(double *gradient);
 
 public:
 
@@ -132,10 +172,9 @@ public:
 
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FFD which approximates these
-      displacements. After approximatation the displacements replaced by
+      displacements. After approximation the displacements replaced by
       the residual displacement errors at the points */
-  virtual double Approximate(double *, double *, double *,
-                             double *, double *, double *, int);
+  virtual double Approximate(const double *, const double *, const double *, double *, double *, double *, int);
 
   /** Interpolates displacements: This function takes a set of displacements
       defined at the control points and finds a FFD which interpolates these
@@ -143,22 +182,13 @@ public:
       \param dxs The x-displacements at each control point.
       \param dys The y-displacements at each control point.
       \param dzs The z-displacements at each control point. */
-  virtual void Interpolate(double* dxs, double* dys, double* dzs);
+  virtual void Interpolate(const double* dxs, const double* dys, const double* dzs);
 
   /// Subdivide FFD
   virtual void Subdivide();
 
-  /// Calculates the FFD (for a point in FFD coordinates) with checks
-  virtual void FFD1(double &, double &, double &) const;
-
-  /// Calculates the FFD (for a point in FFD coordinates) without checks
-  virtual void FFD2(double &, double &, double &) const;
-
   /// Transforms a point
   virtual void Transform(double &, double &, double &, double = 0);
-
-  /// Transforms a point without checks
-  virtual void Transform2(double &, double &, double &, double = 0);
 
   /// Transforms a point using the global transformation component only
   virtual void GlobalTransform(double &, double &, double &, double = 0);
@@ -190,10 +220,11 @@ public:
   /// Calculate the Jacobian of the transformation with respect to the transformation parameters
   virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
 
-  /// Calculate the bending energy of the transformation
-  virtual double Bending(int i, int j, int k);
-  virtual double Bending(double x, double y, double z);
-  virtual double Bending(double x, double y, double z, double t);
+  /// Calculate total bending energy
+  virtual double Bending();
+
+  /// Calculate bending energy
+  virtual double Bending(double, double, double, double = 0);
 
   /// Calculate the gradient of the bending energy with respect to the parameters
   virtual void BendingGradient(double *gradient);
@@ -380,27 +411,12 @@ inline void irtkBSplineFreeFormTransformation3D::Transform(double &x, double &y,
   this->WorldToLattice(u, v, w);
 
   // Calculate FFD
-  this->FFD1(u, v, w);
-
-  // Add FFD to world coordinates
-  x += u;
-  y += v;
-  z += w;
-}
-
-inline void irtkBSplineFreeFormTransformation3D::Transform2(double &x, double &y, double &z, double)
-{
-  double u, v, w;
-
-  u = x;
-  v = y;
-  w = z;
-
-  // Convert world coordinates in to FFD coordinates
-  this->WorldToLattice(u, v, w);
-
-  // Calculate FFD
-  this->FFD2(u, v, w);
+  if (_z == 1) {
+  	this->FFD2D(u, v);
+  	w = 0;
+  } else {
+  	this->FFD3D(u, v, w);
+  }
 
   // Add FFD to world coordinates
   x += u;
@@ -437,11 +453,16 @@ inline void irtkBSplineFreeFormTransformation3D::GlobalDisplacement(double &x, d
 
 inline void irtkBSplineFreeFormTransformation3D::LocalDisplacement(double &x, double &y, double &z, double)
 {
+
   // Convert world coordinates in to FFD coordinates
   this->WorldToLattice(x, y, z);
 
   // Calculate FFD
-  this->FFD1(x, y, z);
+  if (_z == 1) {
+  	this->FFD2D(x, y);
+  } else {
+  	this->FFD3D(x, y, z);
+  }
 }
 
 inline void irtkBSplineFreeFormTransformation3D::Displacement(double &x, double &y, double &z, double)
@@ -456,7 +477,7 @@ inline const char *irtkBSplineFreeFormTransformation3D::NameOfClass()
 
 inline double irtkBSplineFreeFormTransformation3D::Bending(double x, double y, double z, double)
 {
-  return this->Bending(x, y, z);
+  return this->Bending3D(x, y, z);
 }
 
 #endif
