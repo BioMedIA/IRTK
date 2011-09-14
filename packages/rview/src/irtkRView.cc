@@ -2536,10 +2536,15 @@ void irtkRView::GetTransformationText(list<char *> &text)
         ptr = strdup("Affine transformation (12 DOF)");
       } else {
         if (strcmp(_sourceTransform->NameOfClass(),
-                   "irtkMultiLevelFreeFormTransformation4D") == 0) {
+                   "irtkFluidFreeFormTransformation") == 0) {
           ptr = strdup("Affine transformation (12 DOF)");
         } else {
-          ptr = strdup("Unknown transformation type");
+          if (strcmp(_sourceTransform->NameOfClass(),
+                     "irtkMultiLevelFreeFormTransformation4D") == 0) {
+            ptr = strdup("Affine transformation (12 DOF)");
+          } else {
+            ptr = strdup("Unknown transformation type");
+          }
         }
       }
     }
