@@ -665,7 +665,7 @@ double irtkCardiac3DImageFreeFormRegistration::VolumePreservationPenalty()
 				x = i;
 				y = j;
 				z = k;
-				index = _affd->LatticeToIndex(x,y,z);
+				index = _affd->LatticeToIndex(i,j,k);
 				if(_comega[index] > 0){
 					_affd->LatticeToWorld(x, y, z);
 					_affd->Jacobian(tmp_jac,x,y,z);
@@ -903,7 +903,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
                   && wx < _threshold->GetX() - 1
                   && wy < _threshold->GetY() - 1
                   && wz < _threshold->GetZ() - 1 ){
-                      threshold = _threshold->GetAsDouble(round(wx),round(wy),round(wz));
+                      threshold = _threshold->Get(round(wx),round(wy),round(wz));
               }else{
                   threshold = 0;
               }
@@ -1189,7 +1189,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 										&& wx < _threshold->GetX() - 1
 										&& wy < _threshold->GetY() - 1
 										&& wz < _threshold->GetZ() - 1 ){
-											threshold = _threshold->GetAsDouble(round(wx),round(wy),round(wz));
+											threshold = _threshold->Get(round(wx),round(wy),round(wz));
 									}else{
 										threshold = 0;
 									}
@@ -1534,7 +1534,7 @@ void irtkCardiac3DImageFreeFormRegistration::Write(ostream &to)
 double irtkCardiac3DImageFreeFormRegistration::WeightFunction (double edge,double edgemax,double threshold){
 
 	double weight = 0;
-	weight = 16.0*fabs(edge*threshold)/edgemax;
+	weight = 4.0*fabs(edge*threshold)/edgemax;
 	if(weight > 1)
 		weight = 1;
 	if(weight < 0)
