@@ -16,7 +16,7 @@ Changes   : $Author$
 
 void usage()
 {
-	cerr << "Usage: tracktag [inputsequence] [first landmark] [output prefix include directory] [ds(searching space)] [track 0 or center 1 or center after track 2]\n" << endl;
+	cerr << "Usage: tracktag [inputsequence] [last landmark] [output prefix include directory] [ds(searching space)] [track 0 or center 1 or center after track 2]\n" << endl;
 	exit(1);
 }
 
@@ -44,11 +44,11 @@ int main(int argc, char **argv)
 
 	irtkGreyImage* input = new irtkGreyImage[t];
 
-	// Read first landmark
-	irtkPointSet first;
+	// Read last landmark
+	irtkPointSet last;
 	irtkPointSet *rest = new irtkPointSet[t-1];
 	cout << "Reading landmark: " << argv[2] << endl;
-	first.ReadVTK(argv[2]);
+	last.ReadVTK(argv[2]);
 
 	char* filename;
 	filename = argv[3];
@@ -69,18 +69,18 @@ int main(int argc, char **argv)
 	}
 
 	cout << "Tracking tags" << endl;
-	// initialize first image.
-	input[0].Initialize(inputSeqAttributes);
+	// initialize last image.
+	input[t-1].Initialize(inputSeqAttributes);
 	for (z = 0; z < inputSeqAttributes._z; z++) {
 		for (y = 0; y < inputSeqAttributes._y; y++) {
 			for (x = 0; x < inputSeqAttributes._x; x++) {
-				input[0](x, y, z) = inputsequence(x,y,z,0);
+				input[t-1](x, y, z) = inputsequence(x,y,z,t-1);
 			}
 		}
 	}
 	if(toggle != 1){
 		irtkTagFunction *tracktag = new irtkTagFunction();
-		for (i = 1; i < t; i++) {
+		for (i = t-2; i >= 0; i--) {
 			cout << "Tracking Volume: " << i+1 << " ..." << endl;
 			input[i].Initialize(inputSeqAttributes);
 			for (z = 0; z < inputSeqAttributes._z; z++) {
@@ -91,13 +91,13 @@ int main(int argc, char **argv)
 				}
 			}			
 
-			if(i == 1){
-				tracktag->SetPointSet(first);
+			if(i == t - 2){
+				tracktag->SetPointSet(last);
 			}else{
-				tracktag->SetPointSet(rest[i-2]);
+				tracktag->SetPointSet(rest[i + 1]);
 			}
 
-			tracktag->SetInput(NULL,NULL,&input[i-1],&input[i],NULL);
+			tracktag->SetInput(NULL,NULL,&input[i+1],&input[i],NULL);
 			
 			tracktag->Track(toggle,ds);
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 			
 			cout << "Output Landmark " << i << " ..." << endl;
 			sprintf(buffer, "%s%.2d.vtk",filename,i);
-			rest[i-1].WriteVTK(buffer);
+			rest[i].WriteVTK(buffer);
 		}
 		delete tracktag;
 	}else{
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 					}
 				}
 			}
-			for (j = 0; j < first.Size(); j++){
+			for (j = 0; j < last.Size(); j++){
 				input[i].GravityCenter(rest[i-1](j),ds);
 			}
 			cout << "Output Landmark " << i << " ..." << endl;
