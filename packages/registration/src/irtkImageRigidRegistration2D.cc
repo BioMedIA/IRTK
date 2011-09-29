@@ -96,7 +96,7 @@ double irtkImageRigidRegistration2D::Evaluate()
   // Print debugging information
   this->Debug("irtkImageRigidRegistration::Evaluate");
 
-  ((irtkRigidTransformation *)_transformation)->Invert();
+  //((irtkRigidTransformation *)_transformation)->Invert();
 
   // Create iterator
   irtkHomogeneousTransformationIterator iterator((irtkHomogeneousTransformation *)_transformation);
@@ -146,8 +146,8 @@ double irtkImageRigidRegistration2D::Evaluate()
 
 #endif
 
-// Invert transformation
-  ((irtkRigidTransformation *)_transformation)->Invert();
+  // Invert transformation
+  //((irtkRigidTransformation *)_transformation)->Invert();
 
   // Evaluate similarity measure
   return _metric->Evaluate();
