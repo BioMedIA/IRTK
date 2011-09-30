@@ -415,11 +415,11 @@ int main(int argc, char **argv)
   registration->SetInput(&target, &source);
   registration->SetOutput(mffd);
 
-  // Read parameter if there any, otherwise make an intelligent guess
+  // Make an initial Guess for the parameters.
+  registration->GuessParameter();
+  // Overrride with any the user has set.
   if (parin_name != NULL) {
     registration->irtkImageRegistration::Read(parin_name);
-  } else {
-    registration->GuessParameter();
   }
 
   // Override parameter settings if necessary

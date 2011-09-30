@@ -289,11 +289,11 @@ int main(int argc, char **argv)
   registration->SetInput(&target, &source);
   registration->SetOutput(mffd1, mffd2);
 
-  // Read parameter if there any, otherwise make an intelligent guess
+  // Make an initial Guess for the parameters.
+  registration->GuessParameter();
+  // Overrride with any the user has set.
   if (parin_name != NULL) {
-  registration->Read(parin_name);
-  } else {
-    registration->GuessParameter();
+    registration->Read(parin_name);
   }
 
   // Write parameters if necessary

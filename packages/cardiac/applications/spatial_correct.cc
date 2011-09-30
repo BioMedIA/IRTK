@@ -367,11 +367,11 @@ int main(int argc, char **argv)
   registration->SetInput(&target, &source);
   registration->SetOutput(transformation);
 
-  // Read parameter if there any, otherwise make an intelligent guess
+  // Make an initial Guess for the parameters.
+  registration->GuessParameter();
+  // Overrride with any the user has set.
   if (parin_name != NULL) {
     registration->Read(parin_name);
-  } else {
-    registration->GuessParameter();
   }
 
   if (padding != MIN_GREY) {

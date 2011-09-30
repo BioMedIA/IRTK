@@ -423,11 +423,11 @@ int main(int argc, char **argv)
     multimageregistration->SetOutput(mffd);
     multimageregistration->SetDebugFlag(debug);
 
-    // Read parameter if there any, otherwise make an intelligent guess
+    // Make an initial Guess for the parameters.
+    multimageregistration->GuessParameter();
+    // Overrride with any the user has set.
     if (parin_name != NULL) {
       multimageregistration->irtkMultipleImageRegistration::Read(parin_name);
-    } else {
-      multimageregistration->GuessParameter();
     }
 
     // Override parameter settings if necessary
