@@ -1,12 +1,12 @@
 /*=========================================================================
 
-  Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id$
-  Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2009 onwards
-  Date      : $Date$
-  Version   : $Revision$
-  Changes   : $Author$
+ Library   : Image Registration Toolkit (IRTK)
+ Module    : $Id$
+ Copyright : Imperial College, Department of Computing
+             Visual Information Processing (VIP), 2009 onwards
+ Date      : $Date$
+ Version   : $Revision$
+ Changes   : $Author$
 
 =========================================================================*/
 
@@ -17,6 +17,8 @@
 #else
 #include <sys/resource.h>
 #endif
+
+#define MAX_NO_LINE_ITERATIONS 12
 
 irtkImageFreeFormRegistration2::irtkImageFreeFormRegistration2()
 {
@@ -36,8 +38,8 @@ irtkImageFreeFormRegistration2::irtkImageFreeFormRegistration2()
   _Subdivision = true;
   _Mode        = RegisterXYZ;
   _MFFDMode    = true;
-  _adjugate     = NULL;
-  _determine   = NULL;
+  _adjugate    = NULL;
+  _determinant = NULL;
 }
 
 void irtkImageFreeFormRegistration2::GuessParameter()
@@ -56,7 +58,6 @@ void irtkImageFreeFormRegistration2::GuessParameter()
 
   // Default parameters for optimization
   _SimilarityMeasure  = NMI;
-  _OptimizationMethod = GradientDescent;
   _Epsilon            = 0.0001;
 
   // Read target pixel size
@@ -106,8 +107,8 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
     _NumberOfIterations[i] = 10;
-    _NumberOfSteps[i]      = 4;
-    _LengthOfSteps[i]      = _DX / 8.0 * pow(2.0, i);
+    _MinStep[i]            = 0.01;
+    _MaxStep[i]            = 1.0;
   }
 
   // Try to guess padding by looking at voxel values in all eight corners of the volume:
@@ -138,16 +139,17 @@ void irtkImageFreeFormRegistration2::Initialize()
   // Create FFD
   if (_MFFDMode == false) {
     if (_mffd->NumberOfLevels() == 0) {
-      _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
+      _affd = new irtkBSplineFreeFormTransformation3D(*_target, this->_DX, this->_DY, this->_DZ);
     } else {
       _affd = (irtkBSplineFreeFormTransformation *)_mffd->PopLocalTransformation();
     }
   } else {
-    _affd = new irtkBSplineFreeFormTransformation(*_target, this->_DX, this->_DY, this->_DZ);
+    _affd = new irtkBSplineFreeFormTransformation3D(*_target, this->_DX, this->_DY, this->_DZ);
   }
+
   _mffd->PushLocalTransformation(_affd);
   _adjugate = new irtkMatrix[_affd->NumberOfDOFs()/3];
-  _determine = new double[_affd->NumberOfDOFs()/3];
+  _determinant = new double[_affd->NumberOfDOFs()/3];
 }
 
 void irtkImageFreeFormRegistration2::Initialize(int level)
@@ -211,7 +213,7 @@ void irtkImageFreeFormRegistration2::Finalize()
   // Finalize base class
   this->irtkImageRegistration2::Finalize();
   delete []_adjugate;
-  delete []_determine;
+  delete []_determinant;
 }
 
 void irtkImageFreeFormRegistration2::Finalize(int level)
@@ -238,235 +240,294 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
     }
   }
   delete []_adjugate;
-  delete []_determine;
+  delete []_determinant;
   _adjugate = new irtkMatrix[_affd->NumberOfDOFs()/3];
-  _determine = new double[_affd->NumberOfDOFs()/3];
+  _determinant = new double[_affd->NumberOfDOFs()/3];
 }
 
-void irtkImageFreeFormRegistration2::Update()
+void irtkImageFreeFormRegistration2::Update(bool updateGradient)
 {
-    // Print debugging information
-    this->Debug("irtkImageFreeFormRegistration2::Update()");
+  // Print debugging information
+  this->Debug("irtkImageFreeFormRegistration2::Update()");
 
-    // Finalize base class
-    this->irtkImageRegistration2::Update();
+  // Finalize base class
+  this->irtkImageRegistration2::Update(updateGradient);
 
-    if(_Lambda2 > 0){
-        int index, index2, index3 ,i,j,k;
-        double x,y,z,jacobian;
-        // Update Jacobian and jacobian determine;
-        for (index = 0; index < _affd->NumberOfDOFs()/3; index++) {
-            index2 = _affd->NumberOfDOFs()/3 + index;
-            index3 = _affd->NumberOfDOFs()/3*2 + index;
-            _affd->IndexToLattice(index,i,j,k);
-            x = i;
-            y = j;
-            z = k;
-            _affd->LatticeToWorld(x,y,z);
-            irtkMatrix jac;
-            jac.Initialize(3,3);
-            _mffd->LocalJacobian(jac,x,y,z);
-            jac.Adjugate(jacobian);
-            if(jacobian < 0.0000001) jacobian = 0.0000001;
-            _determine[index] = jacobian;
-            _adjugate[index] = jac;
-        }
+  if(_Lambda2 > 0) {
+    int index, index2, index3, i, j, k;
+    double x,y,z,jacobian;
+    // Update Jacobian and jacobian determinants;
+    for (index = 0; index < _affd->NumberOfDOFs()/3; index++) {
+      index2 = _affd->NumberOfDOFs()/3 + index;
+      index3 = _affd->NumberOfDOFs()/3*2 + index;
+      _affd->IndexToLattice(index,i,j,k);
+      x = i;
+      y = j;
+      z = k;
+      _affd->LatticeToWorld(x,y,z);
+      irtkMatrix jac;
+      jac.Initialize(3,3);
+      _mffd->LocalJacobian(jac,x,y,z);
+      jac.Adjugate(jacobian);
+      if(jacobian < 0.0000001) jacobian = 0.0000001;
+      _determinant[index] = jacobian;
+      _adjugate[index] = jac;
     }
+  }
 }
 
 double irtkImageFreeFormRegistration2::SmoothnessPenalty()
 {
-    int i, j, k;
-    double x, y, z, penalty;
-
-    penalty = 0;
-    for (k = 0; k < _affd->GetZ(); k++) {
-        for (j = 0; j < _affd->GetY(); j++) {
-            for (i = 0; i < _affd->GetX(); i++) {
-                x = i;
-                y = j;
-                z = k;
-                _affd->LatticeToWorld(x, y, z);
-                penalty += _affd->Bending(x, y, z);
-            }
-        }
-    }
-    return -penalty / _affd->NumberOfDOFs();
+  if (_affd->GetZ() == 1) {
+    return -_affd->Bending() / double(2.0*_affd->GetX()*_affd->GetY());
+  } else {
+    return -_affd->Bending() / double(3.0*_affd->GetX()*_affd->GetY()*_affd->GetZ());
+  }
 }
 
-double irtkImageFreeFormRegistration2::SmoothnessPenalty(int index)
+void irtkImageFreeFormRegistration2::SmoothnessPenaltyGradient(double *gradient)
 {
-    int i, j, k;
-    double x, y, z;
+  int i;
+  double norm;
 
-    _affd->IndexToLattice(index, i, j, k);
-    x = i;
-    y = j;
-    z = k;
-    _affd->LatticeToWorld(x, y, z);
-    return -_affd->Bending(x, y, z);
+  // Compute normalization factor
+  if (_affd->GetZ() == 1) {
+    norm = (double(_target->GetNumberOfVoxels()) / double(_affd->GetX()*_affd->GetY()));
+  } else {
+    norm = (double(_target->GetNumberOfVoxels()) / double(_affd->GetX()*_affd->GetY()*_affd->GetZ()));
+  }
+
+  // Allocate memory
+  double *tmp_gradient = new double[_affd->NumberOfDOFs()];
+
+  // Compute gradient of smoothness term
+  _affd->BendingGradient(tmp_gradient);
+
+  // Add gradient to existing gradient
+  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+    gradient[i] += this->_Lambda1 * tmp_gradient[i] * norm;
+  }
+
+  // Free memory
+  delete []tmp_gradient;
 }
 
 double irtkImageFreeFormRegistration2::VolumePreservationPenalty()
 {
-    int k;
-    double penalty, jacobian;
+  int k;
+  double penalty, jacobian;
 
-    penalty = 0;
-    for (k = 0; k < _affd->NumberOfDOFs()/3; k++) {
-        // Determinant of Jacobian of deformation derivatives
-        jacobian = _determine[k];
-        penalty += pow(log(jacobian),2);
-    }
+  penalty = 0;
+  for (k = 0; k < _affd->NumberOfDOFs()/3; k++) {
+    // Determinant of Jacobian of deformation derivatives
+    jacobian = _determinant[k];
+    penalty += pow(log(jacobian), 2.0);
+  }
 
-    // Normalize sum by number of DOFs
-    return -penalty / (double) _affd->NumberOfDOFs();
+  // Normalize sum by number of DOFs
+  return -penalty / (double) _affd->NumberOfDOFs();
 }
 
 void irtkImageFreeFormRegistration2::VolumePreservationPenalty(int index, double *drv)
 {
-    int i, j, k, l, m, n, o, i1, j1, k1, i2, j2, k2, count, index1;
-    double jacobian;
-    irtkMatrix jac,det_drv[3];
+  int i, j, k, l, m, n, o, i1, j1, k1, i2, j2, k2, count, index1;
+  double jacobian;
+  irtkMatrix jac,det_drv[3];
 
-    _affd->IndexToLattice(index, i, j, k);
-    l = i;
-    m = j;
-    n = k;
-    count = 0;
-    k1 = (k-1)>0?(k-1):0;
-    j1 = (j-1)>0?(j-1):0;
-    i1 = (i-1)>0?(i-1):0;
-    k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
-    j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
-    i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
+  _affd->IndexToLattice(index, i, j, k);
+  l = i;
+  m = j;
+  n = k;
+  count = 0;
+  k1 = (k-1)>0?(k-1):0;
+  j1 = (j-1)>0?(j-1):0;
+  i1 = (i-1)>0?(i-1):0;
+  k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
+  j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
+  i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
 
-    for(i=0;i<3;i++)
-        drv[i] = 0;
-    
-    for (k = k1; k < k2; k++) {
-        for (j = j1; j < j2; j++) {
-            for (i = i1; i < i2; i++) {
-                if(k != n || j != m || i != l){
-                index1 = _affd->LatticeToIndex(i,j,k);
-                // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
-                // Calculate jacobian
-                irtkMatrix jac = _adjugate[index1];
+  for(i=0;i<3;i++)
+    drv[i] = 0;
 
-                // find jacobian derivatives
-                jacobian = _determine[index1];
+  for (k = k1; k < k2; k++) {
+    for (j = j1; j < j2; j++) {
+      for (i = i1; i < i2; i++) {
+        if(k != n || j != m || i != l) {
+          index1 = _affd->LatticeToIndex(i,j,k);
+          // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
+          // Calculate jacobian
+          irtkMatrix jac = _adjugate[index1];
 
-                // if jacobian < 0
-                jacobian = (2.0*log(jacobian))/jacobian;
+          // find jacobian derivatives
+          jacobian = _determinant[index1];
 
-                _affd->JacobianDetDerivative(det_drv,i-l,j-m,k-n);
+          // if jacobian < 0
+          jacobian = (2.0*log(jacobian))/jacobian;
 
-                double tmpdrv[3];
+          _affd->JacobianDetDerivative(det_drv,i-l,j-m,k-n);
 
-                for(o = 0; o < 3; o++){
-                    // trace * adjugate * derivative
-                    tmpdrv[o] = jac(0,o)*det_drv[o](o,0) + jac(1,o)*det_drv[o](o,1) + jac(2,o)*det_drv[o](o,2);
-                    // * rest of the volume preservation derivative
-                    drv[o] += (jacobian*tmpdrv[o]);
-                }
-                count ++;
-                }
-            }
+          double tmpdrv[3];
+
+          for(o = 0; o < 3; o++) {
+            // trace * adjugate * derivative
+            tmpdrv[o] = jac(0,o)*det_drv[o](o,0) + jac(1,o)*det_drv[o](o,1) + jac(2,o)*det_drv[o](o,2);
+            // * rest of the volume preservation derivative
+            drv[o] += (jacobian*tmpdrv[o]);
+          }
+          count ++;
         }
+      }
     }
+  }
 
-    for(l=0;l<3;l++)
-        drv[l] = -drv[l]/count;
+  for(l=0;l<3;l++)
+    drv[l] = -drv[l]/count;
 
-    return;
+  return;
 }
 
 
 double irtkImageFreeFormRegistration2::TopologyPreservationPenalty()
 {
-    int i, j, k;
-    double x, y, z, jac, penalty;
+  int i, j, k;
+  double x, y, z, jac, penalty;
 
-    penalty = 0;
-    for (k = 0; k < _affd->GetZ()-1; k++) {
-        for (j = 0; j < _affd->GetY()-1; j++) {
-            for (i = 0; i < _affd->GetZ()-1; i++) {
-                x = i+0.5;
-                y = j+0.5;
-                z = k+0.5;
-                _affd->LatticeToWorld(x, y, z);
-                jac = _affd->irtkTransformation::Jacobian(x, y, z);
-                if (jac < 0.3) {
-                    penalty += 10*jac*jac + 0.1/(jac*jac) - 2.0;
-                }
-            }
+  penalty = 0;
+  for (k = 0; k < _affd->GetZ()-1; k++) {
+    for (j = 0; j < _affd->GetY()-1; j++) {
+      for (i = 0; i < _affd->GetZ()-1; i++) {
+        x = i+0.5;
+        y = j+0.5;
+        z = k+0.5;
+        _affd->LatticeToWorld(x, y, z);
+        jac = _affd->irtkTransformation::Jacobian(x, y, z);
+        if (jac < 0.3) {
+          penalty += 10*jac*jac + 0.1/(jac*jac) - 2.0;
         }
+      }
     }
-    return -penalty;
+  }
+  return -penalty;
 }
 
 double irtkImageFreeFormRegistration2::TopologyPreservationPenalty(int index)
 {
-    int i, j, k, l, m, n;
-    double x, y, z, jac, penalty;
+  int i, j, k, l, m, n;
+  double x, y, z, jac, penalty;
 
-    penalty = 0;
-    for (l = 0; l <= 1; l++) {
-        for (m = 0; m <= 1; m++) {
-            for (n = 0; n <= 1; n++) {
-                _affd->IndexToLattice(index, i, j, k);
-                x = i+l-0.5;
-                y = j+m-0.5;
-                z = k+n-0.5;
-                _affd->LatticeToWorld(x, y, z);
-                jac = _affd->irtkTransformation::Jacobian(x, y, z);
-                if (jac < 0.3) {
-                    penalty += 10*jac*jac + 0.1/(jac*jac) - 2.0;
-                }
-            }
+  penalty = 0;
+  for (l = 0; l <= 1; l++) {
+    for (m = 0; m <= 1; m++) {
+      for (n = 0; n <= 1; n++) {
+        _affd->IndexToLattice(index, i, j, k);
+        x = i+l-0.5;
+        y = j+m-0.5;
+        z = k+n-0.5;
+        _affd->LatticeToWorld(x, y, z);
+        jac = _affd->irtkTransformation::Jacobian(x, y, z);
+        if (jac < 0.3) {
+          penalty += 10.0*jac*jac + 0.1/(jac*jac) - 2.0;
         }
+      }
     }
-    return -penalty;
+  }
+  return -penalty;
 }
 
 double irtkImageFreeFormRegistration2::Evaluate()
 {
-    double similarity;
+  double tmp, similarity;
 
-    // Evaluate similarity
-    similarity = this->irtkImageRegistration2::Evaluate();
+  // Evaluate similarity
+  similarity = this->irtkImageRegistration2::Evaluate();
+  cout << "Similarity = " << similarity;
 
-    // Add penalty for smoothness
-    if (this->_Lambda1 > 0) {
-        similarity += this->_Lambda1*this->SmoothnessPenalty();
-    }
-    // Add penalty for volume preservation
-    if (this->_Lambda2 > 0) {
-        similarity += this->_Lambda2*this->VolumePreservationPenalty();
-    }
-    // Add penalty for topology preservation
-    if (this->_Lambda3 > 0) {
-        similarity += this->_Lambda3*this->TopologyPreservationPenalty();
-    }
+  // Add penalty for smoothness
+  if (this->_Lambda1 > 0) {
+    tmp = this->_Lambda1*this->SmoothnessPenalty();
+    cout << " \t Bending = " << tmp;
+    similarity += tmp;
+  }
+  // Add penalty for volume preservation
+  if (this->_Lambda2 > 0) {
+    similarity += this->_Lambda2*this->VolumePreservationPenalty();
+  }
+  // Add penalty for topology preservation
+  if (this->_Lambda3 > 0) {
+    similarity += this->_Lambda3*this->TopologyPreservationPenalty();
+  }
+  cout << endl;
 
-    //Return similarity measure + penalty terms
-    return similarity;
+  //Return similarity measure + penalty terms
+  return similarity;
 }
 
-double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
+void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
 {
-  double basis, pos[3], norm;
+  double basis, pos[3];
+  int i, j, i1, i2, j1, j2, k1, k2, x, y, index, index2, index3;
+
+  // Initialize gradient to zero
+  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+    gradient[i] = 0;
+  }
+
+  // Loop over control points
+  for (y = 0; y < _affd->GetY(); y++) {
+    for (x = 0; x < _affd->GetX(); x++) {
+
+      // Compute DoFs corresponding to the control point
+      index  = _affd->LatticeToIndex(x, y, 0);
+      index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+      index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
+
+      // Check if any DoF corresponding to the control point is active
+      if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
+
+        // If so, calculate bounding box of control point in image coordinates
+        _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
+
+        // Loop over all voxels in the target (reference) volume
+        for (j = j1; j <= j2; j++) {
+          for (i = i1; i <= i2; i++) {
+
+            // Check whether reference point is valid
+            if ((_target->Get(i, j, 0) >= 0) && (_transformedSource(i, j, 0) >= 0)) {
+
+              // Convert position from voxel coordinates to world coordinates
+              pos[0] = i;
+              pos[1] = j;
+              pos[2] = 0;
+              _target->ImageToWorld(pos[0], pos[1], pos[2]);
+
+              // Convert world coordinates into lattice coordinates
+              _affd->WorldToLattice(pos[0], pos[1], pos[2]);
+
+              // Compute B-spline tensor product at pos
+              basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y);
+
+              // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
+              //
+              // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
+              //
+              gradient[index]  += basis * _similarityGradient(i, j, 0, 0);
+              gradient[index2] += basis * _similarityGradient(i, j, 0, 1);
+              gradient[index3] += 0;
+            }
+
+          }
+        }
+      }
+    }
+  }
+}
+
+void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
+{
+  double basis, pos[3];
   int i, j, k, i1, i2, j1, j2, k1, k2, x, y, z, index, index2, index3;
 
-  // Compute gradient with respect to displacements
-  this->irtkImageRegistration2::EvaluateGradient(gradient);
-
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
-
-  // Initialize gradient to 0
+  // Initialize gradient to zero
   for (i = 0; i < _affd->NumberOfDOFs(); i++) {
     gradient[i] = 0;
   }
@@ -484,81 +545,114 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
         // Check if any DoF corresponding to the control point is active
         if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
-            // If so, calculate bounding box of control point in image coordinates
-            _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
+          // If so, calculate bounding box of control point in image coordinates
+          _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1);
 
-            // Loop over all voxels in the target (reference) volume
-            for (k = k1; k <= k2; k++) {
-                for (j = j1; j <= j2; j++) {
-                    for (i = i1; i <= i2; i++) {
+          // Loop over all voxels in the target (reference) volume
+          for (k = k1; k <= k2; k++) {
+            for (j = j1; j <= j2; j++) {
+              for (i = i1; i <= i2; i++) {
 
-                        // Check whether reference point is valid
-                        if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
+                // Check whether reference point is valid
+                if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
 
-                            // Convert position from voxel coordinates to world coordinates
-                            pos[0] = i;
-                            pos[1] = j;
-                            pos[2] = k;
-                            _target->ImageToWorld(pos[0], pos[1], pos[2]);
+                  // Convert position from voxel coordinates to world coordinates
+                  pos[0] = i;
+                  pos[1] = j;
+                  pos[2] = k;
+                  _target->ImageToWorld(pos[0], pos[1], pos[2]);
 
-                            // Convert world coordinates into lattice coordinates
-                            _affd->WorldToLattice(pos[0], pos[1], pos[2]);
+                  // Convert world coordinates into lattice coordinates
+                  _affd->WorldToLattice(pos[0], pos[1], pos[2]);
 
-                            // Compute B-spline tensor product at pos
-                            basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+                  // Compute B-spline tensor product at pos
+                  basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
 
-                            // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
-                            //
-                            // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
-                            //
-                            gradient[index]  += basis * _similarityGradient(i, j, k, 0);
-                            gradient[index2] += basis * _similarityGradient(i, j, k, 1);
-                            gradient[index3] += basis * _similarityGradient(i, j, k, 2);
-                        }
-                    }
+                  // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
+                  //
+                  // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
+                  //
+                  gradient[index]  += basis * _similarityGradient(i, j, k, 0);
+                  gradient[index2] += basis * _similarityGradient(i, j, k, 1);
+                  gradient[index3] += basis * _similarityGradient(i, j, k, 2);
                 }
+              }
             }
-
-            // Add penalty for smoothness
-            if (this->_Lambda1 > 0) {
-
-            }
-            // Add penalty for volume preservation
-            if (this->_Lambda2 > 0) {
-                // Get inverted jacobian
-                double det_dev[3];
-                this->VolumePreservationPenalty(index,det_dev);
-                gradient[index]  += this->_Lambda2  * det_dev[0];
-                gradient[index2] += this->_Lambda2  * det_dev[1];
-                gradient[index3] += this->_Lambda2  * det_dev[2];
-            }
-            // Add penalty for topology preservation
-            if (this->_Lambda3 > 0) {
-
-            }
+          }
         }
       }
     }
   }
+}
 
-  // Calculate norm of vector
-  norm = 0;
-  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-    norm += gradient[i] * gradient[i];
+double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
+{
+  double norm, max_length;
+  int i, x, y, z, index, index2, index3;
+  static double *g = NULL, *h = NULL, gg, dgg, gamma;
+
+  // Compute gradient with respect to displacements
+  this->irtkImageRegistration2::EvaluateGradient(gradient);
+
+  // Start timing
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+
+  if (_affd->GetZ() == 1) {
+    this->EvaluateGradient2D(gradient);
+  } else {
+    this->EvaluateGradient3D(gradient);
   }
 
-  // Normalize vector
-  norm = sqrt(norm);
-  if (norm > 0) {
+  // Update gradient
+  if (_CurrentIteration == 0) {
+    // First iteration, so let's initialize
+    if (g != NULL) delete []g;
+    g = new double [_affd->NumberOfDOFs()];
+    if (h != NULL) delete []h;
+    h = new double [_affd->NumberOfDOFs()];
     for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-      if (_affd->irtkTransformation::GetStatus(i) == _Active) {
-        gradient[i] /= norm;
-      } else {
-        gradient[i] = 0;
-      }
+      g[i] = -gradient[i];
+      h[i] = g[i];
     }
   } else {
+    // Update gradient direction to be conjugate
+    gg = 0;
+    dgg = 0;
     for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+      gg  += g[i]*h[i];
+      dgg += (gradient[i]+g[i])*gradient[i];
+    }
+    gamma = dgg/gg;
+    for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+      g[i] = -gradient[i];
+      h[i] = g[i] + gamma*h[i];
+      gradient[i] = -h[i];
+    }
+  }
+
+  if (this->_Lambda1 > 0) {
+    this->SmoothnessPenaltyGradient(gradient);
+  }
+
+  // Calculate maximum of gradient vector
+  max_length = 0;
+  for (z = 0; z < _affd->GetZ(); z++) {
+    for (y = 0; y < _affd->GetY(); y++) {
+      for (x = 0; x < _affd->GetX(); x++) {
+        index  = _affd->LatticeToIndex(x, y, z);
+        index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+        index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
+        norm = sqrt(gradient[index] * gradient[index] + gradient[index2] * gradient[index2] + gradient[index3] * gradient[index3]);
+        if (norm > max_length) max_length = norm;
+      }
+    }
+  }
+
+  // Deal with active and passive control points
+  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+    if (_affd->irtkTransformation::GetStatus(i) == _Passive) {
       gradient[i] = 0;
     }
   }
@@ -568,30 +662,30 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
   //cout << "CPU time for irtkImageFreeFormRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
-  return norm;
+  return max_length;
 }
 
 void irtkImageFreeFormRegistration2::Run()
 {
-  int i, j, k, level, update, updateGradient;
+  int i, k;
   char buffer[256];
-  double *gradient, step, delta, similarity, new_similarity, old_similarity;
+  double *gradient, delta, step, min_step, max_step, max_length, best_similarity, new_similarity, old_similarity;
 
   // Print debugging information
-  this->Debug("irtkImageRegistration2::Run");
+  this->Debug("irtkImageFreeFormRegistration2::Run");
 
   if (_source == NULL) {
-    cerr << "Registration::Run: Filter has no source input" << endl;
+    cerr << "irtkImageFreeFormRegistration2::Run: Filter has no source input" << endl;
     exit(1);
   }
 
   if (_target == NULL) {
-    cerr << "Registration::Run: Filter has no target input" << endl;
+    cerr << "irtkImageFreeFormRegistration2::Run: Filter has no target input" << endl;
     exit(1);
   }
 
   if (_transformation == NULL) {
-    cerr << "irtkImageRegistration2::Run: Filter has no transformation output" << endl;
+    cerr << "irtkImageFreeFormRegistration2::Run: Filter has no transformation output" << endl;
     exit(1);
   }
 
@@ -599,106 +693,88 @@ void irtkImageFreeFormRegistration2::Run()
   this->Initialize();
 
   // Loop over levels
-  for (level = _NumberOfLevels-1; level >= 0; level--) {
+  for (_CurrentLevel = _NumberOfLevels-1; _CurrentLevel >= 0; _CurrentLevel--) {
 
     // Initial step size
-    step = _LengthOfSteps[level];
+    min_step = _MinStep[_CurrentLevel];
+    max_step = _MaxStep[_CurrentLevel];
 
     // Print resolution level
-    cout << "Resolution level no. " << level+1 << " (step sizes ";
-    cout << step << " to " << step / pow(2.0, static_cast<double>(_NumberOfSteps[level]-1)) << ")\n";
-
-    // Initial Delta
-    delta = _Delta[level];
-    cout << "Delta: " << delta << " to ";
-    cout << delta / pow(2.0, static_cast<double>(_NumberOfSteps[level]-1)) << "\n";
+    cout << "Resolution level no. " << _CurrentLevel+1 << " (step sizes " << min_step << " to " << max_step  << ")\n";
 
     // Initialize for this level
-    this->Initialize(level);
+    this->Initialize(_CurrentLevel);
 
     // Save pre-processed images if we are debugging
-    sprintf(buffer, "source_%d.nii.gz", level);
+    sprintf(buffer, "source_%d.nii.gz", _CurrentLevel);
     if (_DebugFlag == true) _source->Write(buffer);
-    sprintf(buffer, "target_%d.nii.gz", level);
+    sprintf(buffer, "target_%d.nii.gz", _CurrentLevel);
     if (_DebugFlag == true) _target->Write(buffer);
 
     // Allocate memory for gradient vector
     gradient = new double[_affd->NumberOfDOFs()];
 
-    // Update image
-    update = true;
-
-    // Update gradient
-    updateGradient = true;
-
     // Run the registration filter at this resolution
-    for (i = 0; i < _NumberOfSteps[level]; i++) {
-      for (j = 0; j < _NumberOfIterations[level]; j++) {
+    _CurrentIteration = 0;
+    while (_CurrentIteration < _NumberOfIterations[_CurrentLevel]) {
+      cout << "Iteration = " << _CurrentIteration + 1 << " (out of " << _NumberOfIterations[_CurrentLevel] << ")"<< endl;
 
-        cout << "Iteration = " << j + 1 << " (out of " << _NumberOfIterations[level];
-        cout << "), step size = " << step << endl;
+      // Update source image
+      this->Update(true);
 
-        // Update source image
-        if (update == true) {
-          this->Update();
-          update = false;
+      // Compute current metric value
+      best_similarity = old_similarity = this->Evaluate();
+      cout << "Current best metric value is " << best_similarity << endl;
+
+      // Compute gradient of similarity metric. The function EvaluateGradient() returns the maximum control point length in the gradient
+      max_length = this->EvaluateGradient(gradient);
+
+      // Step along gradient direction until no further improvement is necessary
+      i = 0;
+      delta = 0;
+      step = max_step;
+      do {
+        double current = step / max_length;
+
+        // Move along gradient direction
+        for (k = 0; k < _affd->NumberOfDOFs(); k++) {
+          _affd->Put(k, _affd->Get(k) + current * gradient[k]);
         }
 
-        // Compute current metric value
-        old_similarity = new_similarity = similarity = this->Evaluate();
-        cout << "Current metric value is " << similarity << endl;
+        // We have just changed the transformation parameters, so we need to update
+        this->Update(false);
 
-        // Compute gradient of similarity metric
-        if (updateGradient == true) {
-          this->EvaluateGradient(gradient);
-          updateGradient = false;
-        }
+        // Compute new similarity
+        new_similarity = this->Evaluate();
 
-        // Step along gradient direction until no further improvement is necessary
-        do {
-          new_similarity = similarity;
-          for (k = 0; k < _affd->NumberOfDOFs(); k++) {
-            _affd->Put(k, _affd->Get(k) + step * gradient[k]);
-          }
+        if (new_similarity > best_similarity + _Epsilon) {
+          cout << "New metric value is " << new_similarity << "; step = " << step << endl;
+          best_similarity = new_similarity;
+          delta += step;
+          step = step * 1.1;
+          if (step > max_step) step = max_step;
 
-          // We have just changed the transformation parameters, so definitely need to update
-          this->Update();
-          update = false;
-
-          // Compute new similarity
-          similarity = this->Evaluate();
-
-          if (similarity > new_similarity + _Epsilon) {
-            cout << "New metric value is " << similarity << endl;
-            updateGradient = true;
-          } else {
-            // Last step was no improvement, so back track
-            for (k = 0; k < _affd->NumberOfDOFs(); k++) {
-              _affd->Put(k, _affd->Get(k) - step * gradient[k]);
-            }
-            update = true;
-          }
-        } while (similarity > new_similarity + _Epsilon);
-
-        // Check whether we made any improvement or not
-        if (new_similarity - old_similarity > _Epsilon) {
-          sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == true) _affd->irtkTransformation::Write(buffer);
         } else {
-          sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == true) _affd->irtkTransformation::Write(buffer);
-          break;
+          // Last step was no improvement, so back track
+          cout << "Rejected metric value is " << new_similarity << "; step = " << step << endl;
+          for (k = 0; k < _affd->NumberOfDOFs(); k++) {
+            _affd->Put(k, _affd->Get(k) - current * gradient[k]);
+          }
+          step = step * 0.5;
         }
-      }
-      step = step / 2;
-      delta = delta / 2.0;
+        i++;
+        _CurrentIteration++;
+      } while ((i < MAX_NO_LINE_ITERATIONS) && (step > min_step));
+
+      // Check for convergence
+      if (delta == 0) break;
     }
 
     // Delete gradient
     delete gradient;
 
     // Do the final cleaning up for this level
-    this->Finalize(level);
+    this->Finalize(_CurrentLevel);
   }
 
   // Do the final cleaning up for all levels
@@ -726,19 +802,19 @@ bool irtkImageFreeFormRegistration2::Read(char *buffer1, char *buffer2, int &lev
     ok = true;
   }
   if (strstr(buffer1, "MFFDMode") != NULL) {
-      if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
-          this->_MFFDMode = false;
-          cout << "MFFDMode is ... false" << endl;
+    if ((strcmp(buffer2, "False") == 0) || (strcmp(buffer2, "No") == 0)) {
+      this->_MFFDMode = false;
+      cout << "MFFDMode is ... false" << endl;
+    } else {
+      if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
+        this->_MFFDMode = true;
+        cout << "MFFDMode is ... true" << endl;
       } else {
-          if ((strcmp(buffer2, "True") == 0) || (strcmp(buffer2, "Yes") == 0)) {
-              this->_MFFDMode = true;
-              cout << "MFFDMode is ... true" << endl;
-          } else {
-              cerr << "Can't read boolean value = " << buffer2 << endl;
-              exit(1);
-          }
+        cerr << "Can't read boolean value = " << buffer2 << endl;
+        exit(1);
       }
-      ok = true;
+    }
+    ok = true;
   }
   if (strstr(buffer1, "Control point spacing in X") != NULL) {
     this->_DX = atof(buffer2);
@@ -793,9 +869,9 @@ void irtkImageFreeFormRegistration2::Write(ostream &to)
     to << "Subdivision                       = False" << endl;
   }
   if (_MFFDMode == true) {
-      to << "MFFDMode                       = True" << endl;
+    to << "MFFDMode                          = True" << endl;
   } else {
-      to << "MFFDMode                       = False" << endl;
+    to << "MFFDMode                          = False" << endl;
   }
 
   this->irtkImageRegistration2::Write(to);

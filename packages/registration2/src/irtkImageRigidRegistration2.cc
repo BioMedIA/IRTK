@@ -74,8 +74,8 @@ void irtkImageRigidRegistration2::GuessParameter()
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
     _NumberOfIterations[i] = 20;
-    _NumberOfSteps[i]      = 4;
-    _LengthOfSteps[i]      = 2 * pow(2.0, i);
+    _MinStep[i]            = 0.01;
+    _MaxStep[i]            = 1.0;
   }
 
   // Try to guess padding by looking at voxel values in all eight corners of the volume:
@@ -92,41 +92,20 @@ void irtkImageRigidRegistration2::GuessParameter()
   }
 }
 
-void irtkImageRigidRegistration2::Initialize()
+void irtkImageRigidRegistration2::UpdateSource()
 {
-  // Call base class
-  this->irtkImageRegistration2::Initialize();
-
-  // Invert rigid transformation (to be backwards compatible)
-  ((irtkRigidTransformation *)_transformation)->Invert();
-  ((irtkRigidTransformation *)_transformation)->UpdateParameter();
-}
-
-void irtkImageRigidRegistration2::Finalize()
-{
-  // Call base class
-  this->irtkImageRegistration2::Finalize();
-
-  // Invert rigid transformation (to be backwards compatible)
-  ((irtkRigidTransformation *)_transformation)->Invert();
-  ((irtkRigidTransformation *)_transformation)->UpdateParameter();
-}
-
-void irtkImageRigidRegistration2::Update()
-{
-  int i, j, k, t;
+  double t1, t2, u1, u2, v1, v2;
+  int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
   short *ptr2target;
+  short *ptr2source;
   double *ptr2result;
 
   // Start timing
   clock_t start, end;
   double cpu_time_used;
   start = clock();
-
-  // Invert transformation
-  ((irtkRigidTransformation *)_transformation)->Invert();
 
   // Create iterator
   irtkHomogeneousTransformationIterator
@@ -139,11 +118,59 @@ void irtkImageRigidRegistration2::Update()
   ptr2target = _target->GetPointerToVoxels();
   ptr2result = _transformedSource.GetPointerToVoxels();
 
-  for (t = 0; t < _target->GetT(); t++) {
+  // Calculate offsets for fast pixel access
+  offset1 = 0;
+  offset2 = 1;
+  offset3 = this->_source->GetX();
+  offset4 = this->_source->GetX()+1;
+  offset5 = this->_source->GetX()*this->_source->GetY();
+  offset6 = this->_source->GetX()*this->_source->GetY()+1;
+  offset7 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX();
+  offset8 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX()+1;
 
-    // Initialize iterator
-    iterator.Initialize(_target, _source);
+  // Initialize iterator
+  iterator.Initialize(_target, _source);
 
+  if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
+
+    // Loop over all voxels in the target (reference) volume
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        // Check whether reference point is valid
+        if (*ptr2target >= 0) {
+          // Check whether transformed point is inside source volume
+          if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
+              (iterator._y > _source_y1) && (iterator._y < _source_y2)) {
+            // Calculated integer coordinates
+            a  = int(iterator._x);
+            b  = int(iterator._y);
+
+            // Calculated fractional coordinates
+            t1 = iterator._x - a;
+            u1 = iterator._y - b;
+            t2 = 1 - t1;
+            u2 = 1 - u1;
+
+            // Linear interpolation in source image
+            ptr2source  = _source->GetPointerToVoxels(a, b, 0);
+            *ptr2result = 1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
+          } else {
+            *ptr2result = -1;
+          }
+          iterator.NextX();
+        } else {
+          // Advance iterator by offset
+          iterator.NextX(*ptr2target * -1);
+          i          -= (*ptr2target) + 1;
+          ptr2result -= (*ptr2target) + 1;
+          ptr2target -= (*ptr2target) + 1;
+        }
+        ptr2target++;
+        ptr2result++;
+      }
+      iterator.NextY();
+    }
+  } else {
     // Loop over all voxels in the target (reference) volume
     for (k = 0; k < _target->GetZ(); k++) {
       for (j = 0; j < _target->GetY(); j++) {
@@ -154,8 +181,25 @@ void irtkImageRigidRegistration2::Update()
             if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
                 (iterator._y > _source_y1) && (iterator._y < _source_y2) &&
                 (iterator._z > _source_z1) && (iterator._z < _source_z2)) {
-              // Add sample to metric
-              *ptr2result = _interpolator->EvaluateInside(iterator._x, iterator._y, iterator._z, t);
+              // Calculated integer coordinates
+              a  = int(iterator._x);
+              b  = int(iterator._y);
+              c  = int(iterator._z);
+
+              // Calculated fractional coordinates
+              t1 = iterator._x - a;
+              u1 = iterator._y - b;
+              v1 = iterator._z - c;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
+              v2 = 1 - v1;
+
+              // Linear interpolation in source image
+              ptr2source  = _source->GetPointerToVoxels(a, b, c);
+              *ptr2result = (t1 * (u2 * (v2 * ptr2source[offset2] + v1 * ptr2source[offset6]) +
+                                   u1 * (v2 * ptr2source[offset4] + v1 * ptr2source[offset8])) +
+                             t2 * (u2 * (v2 * ptr2source[offset1] + v1 * ptr2source[offset5]) +
+                                   u1 * (v2 * ptr2source[offset3] + v1 * ptr2source[offset7])));
             } else {
               *ptr2result = -1;
             }
@@ -176,14 +220,187 @@ void irtkImageRigidRegistration2::Update()
     }
   }
 
-  // Invert transformation
-  ((irtkRigidTransformation *)_transformation)->Invert();
+  // Stop timing
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  //cout << "CPU time for irtkImageRigidRegistration2::Update() = " << cpu_time_used << endl;
+}
 
-  // Compute gradient of source image
-  irtkGradientImageFilter<double> gradient(irtkGradientImageFilter<double>::GRADIENT_VECTOR);
-  gradient.SetInput (&_transformedSource);
-  gradient.SetOutput(&_transformedSourceGradient);
-  gradient.Run();
+void irtkImageRigidRegistration2::UpdateSourceAndGradient()
+{
+  double t1, t2, u1, u2, v1, v2;
+  int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
+
+  // Pointer to reference data
+  short *ptr2target;
+  short *ptr2source;
+  double *ptr2result;
+  double *ptr2gradX;
+  double *ptr2gradY;
+  double *ptr2gradZ;
+  double *ptr;
+
+  // Start timing
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+
+  // Create iterator
+  irtkHomogeneousTransformationIterator
+  iterator((irtkHomogeneousTransformation *)_transformation);
+
+  // Generate transformed tmp image
+  _transformedSource = *_target;
+
+  // Pointer to voxels in images
+  ptr2target = _target->GetPointerToVoxels();
+  ptr2result = _transformedSource.GetPointerToVoxels();
+  ptr2gradX  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 0);
+  ptr2gradY  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 1);
+  ptr2gradZ  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 2);
+
+  // Calculate offsets for fast pixel access
+  offset1 = 0;
+  offset2 = 1;
+  offset3 = this->_source->GetX();
+  offset4 = this->_source->GetX()+1;
+  offset5 = this->_source->GetX()*this->_source->GetY();
+  offset6 = this->_source->GetX()*this->_source->GetY()+1;
+  offset7 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX();
+  offset8 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX()+1;
+
+  // Initialize iterator
+  iterator.Initialize(_target, _source);
+
+  if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
+
+    // Loop over all voxels in the target (reference) volume
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        // Check whether reference point is valid
+        if (*ptr2target >= 0) {
+          // Check whether transformed point is inside source volume
+          if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
+              (iterator._y > _source_y1) && (iterator._y < _source_y2)) {
+            // Calculated integer coordinates
+            a  = int(iterator._x);
+            b  = int(iterator._y);
+
+            // Calculated fractional coordinates
+            t1 = iterator._x - a;
+            u1 = iterator._y - b;
+            t2 = 1 - t1;
+            u2 = 1 - u1;
+
+            // Linear interpolation in source image
+            ptr2source  = _source->GetPointerToVoxels(a, b, 0);
+            *ptr2result = 1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
+
+            // Linear interpolation in gradient image
+            ptr = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
+            *ptr2gradX = t1 * (u2 * ptr[offset2] + u1 * ptr[offset4]) + t2 * (u2 * ptr[offset1] + u1 * ptr[offset3]);
+            ptr = _sourceGradient.GetPointerToVoxels(a, b, 0, 1);
+            *ptr2gradY = t1 * (u2 * ptr[offset2] + u1 * ptr[offset4]) + t2 * (u2 * ptr[offset1] + u1 * ptr[offset3]);
+
+          } else {
+            *ptr2result = -1;
+            *ptr2gradX  = 0;
+            *ptr2gradY  = 0;
+          }
+          iterator.NextX();
+        } else {
+          // Advance iterator by offset
+          iterator.NextX(*ptr2target * -1);
+          i          -= (*ptr2target) + 1;
+          ptr2result -= (*ptr2target) + 1;
+          ptr2gradX  -= (*ptr2target) + 1;
+          ptr2gradY  -= (*ptr2target) + 1;
+          ptr2target -= (*ptr2target) + 1;
+        }
+        ptr2target++;
+        ptr2result++;
+        ptr2gradX++;
+        ptr2gradY++;
+      }
+      iterator.NextY();
+    }
+  } else {
+    // Loop over all voxels in the target (reference) volume
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          // Check whether reference point is valid
+          if (*ptr2target >= 0) {
+            // Check whether transformed point is inside source volume
+            if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
+                (iterator._y > _source_y1) && (iterator._y < _source_y2) &&
+                (iterator._z > _source_z1) && (iterator._z < _source_z2)) {
+              // Calculated integer coordinates
+              a  = int(iterator._x);
+              b  = int(iterator._y);
+              c  = int(iterator._z);
+
+              // Calculated fractional coordinates
+              t1 = iterator._x - a;
+              u1 = iterator._y - b;
+              v1 = iterator._z - c;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
+              v2 = 1 - v1;
+
+              // Linear interpolation in source image
+              ptr2source  = _source->GetPointerToVoxels(a, b, c);
+              *ptr2result = (t1 * (u2 * (v2 * ptr2source[offset2] + v1 * ptr2source[offset6]) +
+                                   u1 * (v2 * ptr2source[offset4] + v1 * ptr2source[offset8])) +
+                             t2 * (u2 * (v2 * ptr2source[offset1] + v1 * ptr2source[offset5]) +
+                                   u1 * (v2 * ptr2source[offset3] + v1 * ptr2source[offset7])));
+
+
+              // Linear interpolation in gradient image
+              ptr = _sourceGradient.GetPointerToVoxels(a, b, c, 0);
+              *ptr2gradX = (t1 * (u2 * (v2 * ptr[offset2] + v1 * ptr[offset6]) +
+                                  u1 * (v2 * ptr[offset4] + v1 * ptr[offset8])) +
+                            t2 * (u2 * (v2 * ptr[offset1] + v1 * ptr[offset5]) +
+                                  u1 * (v2 * ptr[offset3] + v1 * ptr[offset7])));
+              ptr = _sourceGradient.GetPointerToVoxels(a, b, c, 1);
+              *ptr2gradY = (t1 * (u2 * (v2 * ptr[offset2] + v1 * ptr[offset6]) +
+                                  u1 * (v2 * ptr[offset4] + v1 * ptr[offset8])) +
+                            t2 * (u2 * (v2 * ptr[offset1] + v1 * ptr[offset5]) +
+                                  u1 * (v2 * ptr[offset3] + v1 * ptr[offset7])));
+              ptr = _sourceGradient.GetPointerToVoxels(a, b, c, 2);
+              *ptr2gradZ = (t1 * (u2 * (v2 * ptr[offset2] + v1 * ptr[offset6]) +
+                                  u1 * (v2 * ptr[offset4] + v1 * ptr[offset8])) +
+                            t2 * (u2 * (v2 * ptr[offset1] + v1 * ptr[offset5]) +
+                                  u1 * (v2 * ptr[offset3] + v1 * ptr[offset7])));
+
+            } else {
+              *ptr2result = -1;
+              *ptr2gradX  = 0;
+              *ptr2gradY  = 0;
+              *ptr2gradZ  = 0;
+            }
+            iterator.NextX();
+          } else {
+            // Advance iterator by offset
+            iterator.NextX(*ptr2target * -1);
+            i          -= (*ptr2target) + 1;
+            ptr2result -= (*ptr2target) + 1;
+            ptr2gradX  -= (*ptr2target) + 1;
+            ptr2gradY  -= (*ptr2target) + 1;
+            ptr2gradZ  -= (*ptr2target) + 1;
+            ptr2target -= (*ptr2target) + 1;
+          }
+          ptr2target++;
+          ptr2result++;
+          ptr2gradX++;
+          ptr2gradY++;
+          ptr2gradZ++;
+        }
+        iterator.NextY();
+      }
+      iterator.NextZ();
+    }
+  }
 
   // Stop timing
   end = clock();
@@ -193,8 +410,8 @@ void irtkImageRigidRegistration2::Update()
 
 double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
 {
-  int i, j, k, l;
-  double x, y, z, jac [3], norm;
+  int i, j, k, l, n;
+  double x, y, z, jac[3], norm;
 
   // Pointer to reference data
   short *ptr2target;
@@ -210,7 +427,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
 
   // Convert this gradient into gradient with respect to parameters
   for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
-  	gradient[i] = 0;
+    gradient[i] = 0;
   }
 
   // Pointer to voxels in images
@@ -221,6 +438,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   ptr2gradZ  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 2);
 
   // Loop over images
+  n = 0;
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
@@ -236,10 +454,11 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
           // Convert this gradient into gradient with respect to parameters (note that the sign of the gradient is changed here)
           for (l = 0; l < _transformation->NumberOfDOFs(); l++) {
 
-          	// Compute derivatives with respect to DOF
+            // Compute derivatives with respect to DOF
             _transformation->JacobianDOFs(jac, l, x, y, z);
-            gradient[l] -= jac[0] * *ptr2gradX + jac[1] * *ptr2gradY + jac[2] * *ptr2gradZ;
+            gradient[l] += jac[0] * *ptr2gradX + jac[1] * *ptr2gradY + jac[2] * *ptr2gradZ;
           }
+          n++;
         }
         ptr2gradX++;
         ptr2gradY++;
@@ -250,21 +469,26 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
     }
   }
 
-  // Calculate norm of vector
+  // Calculate norm of gradient vector
   norm = 0;
   for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
     norm += gradient[i] * gradient[i];
   }
-
-  // Normalize vector
   norm = sqrt(norm);
+
+
+  // Normalize gradient
   if (norm > 0) {
     for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
-    	gradient[i] /= norm;
+      if (_transformation->irtkTransformation::GetStatus(i) == _Passive) {
+        gradient[i] = 0;
+      } else {
+        gradient[i] /= norm;
+      }
     }
   } else {
     for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
-    	gradient[i] = 0;
+      gradient[i] = 0;
     }
   }
 
@@ -273,6 +497,6 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
   //cout << "CPU time for irtkImageRigidRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
-  return norm;
+  return 0;
 }
 

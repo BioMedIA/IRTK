@@ -24,7 +24,40 @@
 #include <sys/resource.h>
 #endif
 
+#define MAX_NO_LINE_ITERATIONS 20
+
 extern irtkGreyImage *tmp_target, *tmp_source;
+
+inline double GetBasisSplineValue(double x)
+{
+  x = fabs(x);
+  double value = 0.0;
+  if (x < 2.0) {
+    if (x < 1.0) {
+      value = (double)(2.0f/3.0f + (0.5f*x-1.0)*x*x);
+    } else {
+      x -= 2.0f;
+      value = -x*x*x/6.0f;
+    }
+  }
+  return value;
+}
+
+inline double GetBasisSplineDerivativeValue(double x)
+{
+  double y = fabs(x);
+  double value = 0.0;
+  if(y < 2.0) {
+    if(y < 1.0) {
+      value = (double)((1.5*y-2.0)*x);
+    }  else {
+      y -= 2.0;
+      value = -0.5 * y * y;
+      if(x < 0.0) value =-value;
+    }
+  }
+  return value;
+}
 
 irtkImageRegistration2::irtkImageRegistration2()
 {
@@ -45,9 +78,8 @@ irtkImageRegistration2::irtkImageRegistration2()
 
     // Default parameters for optimization
     _NumberOfIterations[i] = 20;
-    _NumberOfSteps[i]      = 5;
-    _LengthOfSteps[i]      = 2;
-    _Delta[i]              = 0;
+    _MinStep[i]            = 0.01;
+    _MaxStep[i]            = 1;
   }
 
   // Default parameters for registration
@@ -94,10 +126,8 @@ void irtkImageRegistration2::Initialize()
 
 void irtkImageRegistration2::Initialize(int level)
 {
-  int i, j, k, t;
   double dx, dy, dz, temp;
-  irtkGreyPixel target_min, target_max, target_nbins;
-  irtkGreyPixel source_min, source_max, source_nbins;
+  int i, j, k, t, target_nbins, source_nbins;
 
   // Copy source and target to temp space
   tmp_target = new irtkGreyImage(*_target);
@@ -159,17 +189,17 @@ void irtkImageRegistration2::Initialize(int level)
   }
 
   // Find out the min and max values in target image, ignoring padding
-  target_max = MIN_GREY;
-  target_min = MAX_GREY;
+  _target_max = MIN_GREY;
+  _target_min = MAX_GREY;
   for (t = 0; t < _target->GetT(); t++) {
     for (k = 0; k < _target->GetZ(); k++) {
       for (j = 0; j < _target->GetY(); j++) {
         for (i = 0; i < _target->GetX(); i++) {
           if (_target->Get(i, j, k, t) > _TargetPadding) {
-            if (_target->Get(i, j, k, t) > target_max)
-              target_max = _target->Get(i, j, k, t);
-            if (_target->Get(i, j, k, t) < target_min)
-              target_min = _target->Get(i, j, k, t);
+            if (_target->Get(i, j, k, t) > _target_max)
+              _target_max = _target->Get(i, j, k, t);
+            if (_target->Get(i, j, k, t) < _target_min)
+              _target_min = _target->Get(i, j, k, t);
           } else {
             _target->Put(i, j, k, t, _TargetPadding);
           }
@@ -178,24 +208,24 @@ void irtkImageRegistration2::Initialize(int level)
     }
   }
 
-  // Find out the min and max values in source image, ignoring padding
-  source_max = MIN_GREY;
-  source_min = MAX_GREY;
+  // Find out the min and max values in source image
+  _source_max = MIN_GREY;
+  _source_min = MAX_GREY;
   for (t = 0; t < _source->GetT(); t++) {
     for (k = 0; k < _source->GetZ(); k++) {
       for (j = 0; j < _source->GetY(); j++) {
         for (i = 0; i < _source->GetX(); i++) {
-          if (_source->Get(i, j, k, t) > source_max)
-            source_max = _source->Get(i, j, k, t);
-          if (_source->Get(i, j, k, t) < source_min)
-            source_min = _source->Get(i, j, k, t);
+          if (_source->Get(i, j, k, t) > _source_max)
+            _source_max = _source->Get(i, j, k, t);
+          if (_source->Get(i, j, k, t) < _source_min)
+            _source_min = _source->Get(i, j, k, t);
         }
       }
     }
   }
 
   // Check whether dynamic range of data is not to large
-  if (target_max - target_min > MAX_GREY) {
+  if (_target_max - _target_min > MAX_GREY) {
     cerr << this->NameOfClass()
     << "::Initialize: Dynamic range of target is too large" << endl;
     exit(1);
@@ -205,7 +235,7 @@ void irtkImageRegistration2::Initialize(int level)
         for (j = 0; j < _target->GetY(); j++) {
           for (i = 0; i < _target->GetX(); i++) {
             if (_target->Get(i, j, k, t) > _TargetPadding) {
-              _target->Put(i, j, k, t, _target->Get(i, j, k, t) - target_min);
+              _target->Put(i, j, k, t, _target->Get(i, j, k, t) - _target_min);
             } else {
               _target->Put(i, j, k, t, -1);
             }
@@ -215,8 +245,12 @@ void irtkImageRegistration2::Initialize(int level)
     }
   }
 
+  // Compute the maximum possible difference across target and source
+  _maxDiff = (_target_min - _source_max) * (_target_min - _source_max) > (_target_max - _source_min) * (_target_max - _source_min) ?
+             (_target_min - _source_max) * (_target_min - _source_max) : (_target_max - _source_min) * (_target_max - _source_min);
+
   if (_SimilarityMeasure == SSD) {
-    if (source_max - target_min > MAX_GREY) {
+    if (_source_max - _target_min > MAX_GREY) {
       cerr << this->NameOfClass()
       << "::Initialize: Dynamic range of source is too large" << endl;
       exit(1);
@@ -225,14 +259,14 @@ void irtkImageRegistration2::Initialize(int level)
         for (k = 0; k < _source->GetZ(); k++) {
           for (j = 0; j < _source->GetY(); j++) {
             for (i = 0; i < _source->GetX(); i++) {
-              _source->Put(i, j, k, t, _source->Get(i, j, k, t) - target_min);
+              _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _target_min);
             }
           }
         }
       }
     }
   } else {
-    if (source_max - source_min > MAX_GREY) {
+    if (_source_max - _source_min > MAX_GREY) {
       cerr << this->NameOfClass()
       << "::Initialize: Dynamic range of source is too large" << endl;
       exit(1);
@@ -241,7 +275,7 @@ void irtkImageRegistration2::Initialize(int level)
         for (k = 0; k < _source->GetZ(); k++) {
           for (j = 0; j < _source->GetY(); j++) {
             for (i = 0; i < _source->GetX(); i++) {
-              _source->Put(i, j, k, t, _source->Get(i, j, k, t) - source_min);
+              _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _source_min);
             }
           }
         }
@@ -260,8 +294,8 @@ void irtkImageRegistration2::Initialize(int level)
     case MI:
     case NMI:
       // Rescale images by an integer factor if necessary
-      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins, target_min, target_max);
-      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins, source_min, source_max);
+      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins, _target_min, _target_max);
+      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins, _source_min, _source_max);
       _histogram = new irtkHistogram_2D<double>(target_nbins, source_nbins);
       break;
     default:
@@ -269,8 +303,21 @@ void irtkImageRegistration2::Initialize(int level)
       exit(1);
   }
 
-  // Set up gradient of similarity metric
+  // Compute spatial gradient of source image
+  irtkGradientImageFilter<double> gradient(irtkGradientImageFilter<double>::GRADIENT_VECTOR);
+  irtkGenericImage<double> tmp = *_source;
+  gradient.SetInput (&tmp);
+  gradient.SetOutput(&_sourceGradient);
+  gradient.Run();
+
+  // Determine attributes of source image
   irtkImageAttributes attr = _target->GetImageAttributes();
+
+  // Set up gradient of source image (transformed)
+  attr._t = 3;
+  _transformedSourceGradient.Initialize(attr);
+
+  // Set up gradient of similarity metric
   attr._t = 3;
   _similarityGradient.Initialize(attr);
 
@@ -288,16 +335,15 @@ void irtkImageRegistration2::Initialize(int level)
   // Print some debugging information
   cout << "Target image (reference)" << endl;
   _target->Print();
-  cout << "Range is from " << target_min << " to " << target_max << endl;
+  cout << "Range is from " << _target_min << " to " << _target_max << endl;
 
   cout << "Source image (transform)" << endl;
   _source->Print();
-  cout << "Range is from " << source_min << " to " << source_max << endl;
+  cout << "Range is from " << _source_min << " to " << _source_max << endl;
 
   // Print initial transformation
   cout << "Initial transformation for level = " << level+1 << endl;;
   _transformation->Print();
-
 }
 
 void irtkImageRegistration2::Finalize()
@@ -322,81 +368,280 @@ void irtkImageRegistration2::Finalize(int level)
   }
 }
 
-void irtkImageRegistration2::Update()
+void irtkImageRegistration2::UpdateSource()
+{
+  short *ptr1;
+  double x, y, z, t1, t2, u1, u2, v1, v2;
+  int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
+
+  // Generate transformed tmp image
+  _transformedSource = *_target;
+
+  // Calculate offsets for fast pixel access
+  offset1 = 0;
+  offset2 = 1;
+  offset3 = this->_source->GetX();
+  offset4 = this->_source->GetX()+1;
+  offset5 = this->_source->GetX()*this->_source->GetY();
+  offset6 = this->_source->GetX()*this->_source->GetY()+1;
+  offset7 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX();
+  offset8 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX()+1;
+
+  if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        if (_target->Get(i, j, 0) >= 0) {
+          x = i;
+          y = j;
+          z = 0;
+          _target->ImageToWorld(x, y, z);
+          _transformation->Transform(x, y, z);
+          _source->WorldToImage(x, y, z);
+
+          // Check whether transformed point is inside volume
+          if ((x > 0) && (x < _source->GetX()-1) &&
+              (y > 0) && (y < _source->GetY()-1)) {
+
+            // Calculated integer coordinates
+            a  = int(x);
+            b  = int(y);
+
+            // Calculated fractional coordinates
+            t1 = x - a;
+            u1 = y - b;
+            t2 = 1 - t1;
+            u2 = 1 - u1;
+
+            // Linear interpolation in source image
+            ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+            _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+          } else {
+            _transformedSource(i, j, 0) = -1;
+          }
+        } else {
+          _transformedSource(i, j, 0) = -1;
+        }
+      }
+    }
+  } else {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          if (_target->Get(i, j, k) >= 0) {
+            x = i;
+            y = j;
+            z = k;
+            _target->ImageToWorld(x, y, z);
+            _transformation->Transform(x, y, z);
+            _source->WorldToImage(x, y, z);
+
+            // Check whether transformed point is inside volume
+            if ((x > 0) && (x < _source->GetX()-1) &&
+                (y > 0) && (y < _source->GetY()-1) &&
+                (z > 0) && (z < _source->GetZ()-1)) {
+              // Calculated integer coordinates
+              a  = int(x);
+              b  = int(y);
+              c  = int(z);
+
+              // Calculated fractional coordinates
+              t1 = x - a;
+              u1 = y - b;
+              v1 = z - c;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
+              v2 = 1 - v1;
+
+              // Linear interpolation in source image
+              ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+              _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
+                                                   u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
+                                             t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
+                                                   u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+            } else {
+              _transformedSource(i, j, k) = -1;
+            }
+          } else {
+            _transformedSource(i, j, k) = -1;
+          }
+        }
+      }
+    }
+  }
+}
+
+void irtkImageRegistration2::UpdateSourceAndGradient()
+{
+  short *ptr1;
+  double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
+  int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
+
+  // Generate transformed tmp image
+  _transformedSource = *_target;
+
+  // Calculate offsets for fast pixel access
+  offset1 = 0;
+  offset2 = 1;
+  offset3 = this->_source->GetX();
+  offset4 = this->_source->GetX()+1;
+  offset5 = this->_source->GetX()*this->_source->GetY();
+  offset6 = this->_source->GetX()*this->_source->GetY()+1;
+  offset7 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX();
+  offset8 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX()+1;
+
+  if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        if (_target->Get(i, j, 0) >= 0) {
+          x = i;
+          y = j;
+          z = 0;
+          _target->ImageToWorld(x, y, z);
+          _transformation->Transform(x, y, z);
+          _source->WorldToImage(x, y, z);
+
+          // Check whether transformed point is inside volume
+          if ((x > 0) && (x < _source->GetX()-1) &&
+              (y > 0) && (y < _source->GetY()-1)) {
+
+            // Calculated integer coordinates
+            a  = int(x);
+            b  = int(y);
+
+            // Calculated fractional coordinates
+            t1 = x - a;
+            u1 = y - b;
+            t2 = 1 - t1;
+            u2 = 1 - u1;
+
+            // Linear interpolation in source image
+            ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+            _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+
+            // Linear interpolation in gradient image
+            ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
+            _transformedSourceGradient(i, j, 0, 0) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+            ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 1);
+            _transformedSourceGradient(i, j, 0, 1) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+          } else {
+            _transformedSource(i, j, 0) = -1;
+            _transformedSourceGradient(i, j, 0, 0) = 0;
+            _transformedSourceGradient(i, j, 0, 1) = 0;
+          }
+        } else {
+          _transformedSource(i, j, 0) = -1;
+          _transformedSourceGradient(i, j, 0, 0) = 0;
+          _transformedSourceGradient(i, j, 0, 1) = 0;
+
+        }
+      }
+    }
+  } else {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          if (_target->Get(i, j, k) >= 0) {
+            x = i;
+            y = j;
+            z = k;
+            _target->ImageToWorld(x, y, z);
+            _transformation->Transform(x, y, z);
+            _source->WorldToImage(x, y, z);
+
+            // Check whether transformed point is inside volume
+            if ((x > 0) && (x < _source->GetX()-1) &&
+                (y > 0) && (y < _source->GetY()-1) &&
+                (z > 0) && (z < _source->GetZ()-1)) {
+              // Calculated integer coordinates
+              a  = int(x);
+              b  = int(y);
+              c  = int(z);
+
+              // Calculated fractional coordinates
+              t1 = x - a;
+              u1 = y - b;
+              v1 = z - c;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
+              v2 = 1 - v1;
+
+              // Linear interpolation in source image
+              ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+              _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
+                                                   u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
+                                             t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
+                                                   u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+
+              // Linear interpolation in gradient image
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 0);
+              _transformedSourceGradient(i, j, k, 0) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                  u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                  t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                        u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 1);
+              _transformedSourceGradient(i, j, k, 1) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                  u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                  t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                        u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 2);
+              _transformedSourceGradient(i, j, k, 2) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                  u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                  t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                        u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+            } else {
+              _transformedSource(i, j, k) = -1;
+              _transformedSourceGradient(i, j, k, 0) = 0;
+              _transformedSourceGradient(i, j, k, 1) = 0;
+              _transformedSourceGradient(i, j, k, 2) = 0;
+            }
+          } else {
+            _transformedSource(i, j, k) = -1;
+            _transformedSourceGradient(i, j, k, 0) = 0;
+            _transformedSourceGradient(i, j, k, 1) = 0;
+            _transformedSourceGradient(i, j, k, 2) = 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+void irtkImageRegistration2::Update(bool updateGradient)
 {
   // Start timing
   clock_t start, end;
   double cpu_time_used;
   start = clock();
 
-  // Image transformation
-  irtkImageTransformation _imagetransformation;
-
-  // Generate transformed tmp image
-  _transformedSource = *_target;
-
-  /*
-  _imagetransformation.SetInput (_source, _transformation);
-  _imagetransformation.SetOutput(&_transformedSource);
-  _imagetransformation.PutInterpolator(_interpolator);
-  _imagetransformation.PutSourcePaddingValue(-1);
-
-  // Update source image
-  _imagetransformation.Run();
-  */
-
-  int i, j, k;
-  double x, y, z;
-  for (k = 0; k < _target->GetZ(); k++) {
-    for (j = 0; j < _target->GetY(); j++) {
-      for (i = 0; i < _target->GetX(); i++) {
-        x = i;
-        y = j;
-        z = k;
-        _target->ImageToWorld(x, y, z);
-        _transformation->Transform(x, y, z);
-        _source->WorldToImage(x, y, z);
-        // Check whether transformed point is inside volume
-        if ((x > _source_x1) && (x < _source_x2) &&
-            (y > _source_y1) && (y < _source_y2) &&
-            (z > _source_z1) && (z < _source_z2)) {
-          _transformedSource(i, j, k) = round(_interpolator->EvaluateInside(x, y, z, 0));
-        } else {
-        	_transformedSource(i, j, k) = -1;
-        }
-      }
-    }
+  // Update
+  if (updateGradient == true) {
+    this->UpdateSourceAndGradient();
+  } else {
+    this->UpdateSource();
   }
-
-  // Compute gradient of source image
-  irtkGradientImageFilter<double> gradient(irtkGradientImageFilter<double>::GRADIENT_VECTOR);
-  gradient.SetInput (&_transformedSource);
-  gradient.SetOutput(&_transformedSourceGradient);
-  gradient.Run();
 
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //cout << "CPU time for irtkImageRegistration2::Update() = " << cpu_time_used << endl;
-
+  //  cout << "CPU time for irtkImageRegistration2::Update() = " << cpu_time_used << endl;
 }
 
 void irtkImageRegistration2::Run()
 {
-  int i, j, k, level, update, updateGradient;
+  int i, k;
   char buffer[256];
-  double *gradient, step, delta, similarity, new_similarity, old_similarity;
+  double *gradient, delta, step, min_step, max_step, best_similarity, new_similarity, old_similarity;
 
   // Print debugging information
   this->Debug("irtkImageRegistration2::Run");
 
   if (_source == NULL) {
-    cerr << "Registration::Run: Filter has no source input" << endl;
+    cerr << "irtkImageRegistration2::Run: Filter has no source input" << endl;
     exit(1);
   }
 
   if (_target == NULL) {
-    cerr << "Registration::Run: Filter has no target input" << endl;
+    cerr << "irtkImageRegistration2::Run: Filter has no target input" << endl;
     exit(1);
   }
 
@@ -409,108 +654,88 @@ void irtkImageRegistration2::Run()
   this->Initialize();
 
   // Loop over levels
-  for (level = _NumberOfLevels-1; level >= 0; level--) {
+  for (_CurrentLevel = _NumberOfLevels-1; _CurrentLevel >= 0; _CurrentLevel--) {
 
     // Initial step size
-    step = _LengthOfSteps[level];
+    min_step = _MinStep[_CurrentLevel];
+    max_step = _MaxStep[_CurrentLevel];
 
     // Print resolution level
-    cout << "Resolution level no. " << level+1 << " (step sizes ";
-    cout << step << " to " << step / pow(2.0, static_cast<double>(_NumberOfSteps[level]-1)) << ")\n";
-
-    // Initial Delta
-    delta = _Delta[level];
-    cout << "Delta: " << delta << " to ";
-    cout << delta / pow(2.0, static_cast<double>(_NumberOfSteps[level]-1)) << "\n";
+    cout << "Resolution level no. " << _CurrentLevel+1 << " (step sizes " << min_step << " to " << max_step  << ")\n";
 
     // Initialize for this level
-    this->Initialize(level);
+    this->Initialize(_CurrentLevel);
 
     // Save pre-processed images if we are debugging
-    sprintf(buffer, "source_%d.nii.gz", level);
+    sprintf(buffer, "source_%d.nii.gz", _CurrentLevel);
     if (_DebugFlag == true) _source->Write(buffer);
-    sprintf(buffer, "target_%d.nii.gz", level);
+    sprintf(buffer, "target_%d.nii.gz", _CurrentLevel);
     if (_DebugFlag == true) _target->Write(buffer);
 
     // Allocate memory for gradient vector
     gradient = new double[_transformation->NumberOfDOFs()];
 
-    // Update image
-    update = true;
-
-    // Update gradient
-    updateGradient = true;
-
     // Run the registration filter at this resolution
-    for (i = 0; i < _NumberOfSteps[level]; i++) {
-      for (j = 0; j < _NumberOfIterations[level]; j++) {
+    _CurrentIteration = 0;
+    while (_CurrentIteration < _NumberOfIterations[_CurrentLevel]) {
+      cout << "Iteration = " << _CurrentIteration + 1 << " (out of " << _NumberOfIterations[_CurrentLevel] << ")"<< endl;
 
-        cout << "Iteration = " << j + 1 << " (out of " << _NumberOfIterations[level];
-        cout << "), step size = " << step << endl;
+      // Update source image
+      this->Update(true);
 
-        // Update source image
-        if (update == true) {
-          this->Update();
-          update = false;
+      // Compute current metric value
+      best_similarity = old_similarity = this->Evaluate();
+      cout << "Current best metric value is " << best_similarity << endl;
+
+      // Compute gradient of similarity metric
+      this->EvaluateGradient(gradient);
+
+      // Step along gradient direction until no further improvement is necessary
+      i = 0;
+      delta = 0;
+      step = max_step;
+      do {
+        double current = step;
+
+        // Move along gradient direction
+        for (k = 0; k < _transformation->NumberOfDOFs(); k++) {
+          _transformation->Put(k, _transformation->Get(k) + current * gradient[k]);
         }
 
-        // Compute current metric value
-        old_similarity = new_similarity = similarity = this->Evaluate();
-        cout << "Current metric value is " << similarity << endl;
+        // We have just changed the transformation parameters, so we need to update
+        this->Update(false);
 
-        // Compute gradient of similarity metric
-        if (updateGradient == true) {
-          this->EvaluateGradient(gradient);
-          updateGradient = false;
-        }
+        // Compute new similarity
+        new_similarity = this->Evaluate();
 
-        // Step along gradient direction until no further improvement is necessary
-        do {
-          new_similarity = similarity;
-          for (k = 0; k < _transformation->NumberOfDOFs(); k++) {
-            _transformation->Put(k, _transformation->Get(k) + step * gradient[k]);
-          }
+        if (new_similarity > best_similarity + _Epsilon) {
+          cout << "New metric value is " << new_similarity << "; step = " << step << endl;
+          best_similarity = new_similarity;
+          delta += step;
+          step = step * 1.1;
+          if (step > max_step) step = max_step;
 
-          // We have just changed the transformation parameters, so definitely need to update
-          this->Update();
-          update = false;
-
-          // Compute new similarity
-          similarity = this->Evaluate();
-
-          if (similarity > new_similarity + _Epsilon) {
-            // Last step was no improvement, so back track
-            cout << "New metric value is " << similarity << endl;
-            _transformation->Print();
-            updateGradient = true;
-          } else {
-            // Last step was no improvement, so back track
-            for (k = 0; k < _transformation->NumberOfDOFs(); k++) {
-              _transformation->Put(k, _transformation->Get(k) - step * gradient[k]);
-            }
-            update = true;
-          }
-        } while (similarity > new_similarity + _Epsilon);
-
-        // Check whether we made any improvement or not
-        if (new_similarity - old_similarity > _Epsilon) {
-          sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == true) _transformation->Write(buffer);
         } else {
-          sprintf(buffer, "log_%.3d_%.3d_%.3d.dof", level, i+1, j+1);
-          if (_DebugFlag == true) _transformation->Write(buffer);
-          break;
+          // Last step was no improvement, so back track
+          cout << "Rejected metric value is " << new_similarity << "; step = " << step << endl;
+          for (k = 0; k < _transformation->NumberOfDOFs(); k++) {
+            _transformation->Put(k, _transformation->Get(k) - current * gradient[k]);
+          }
+          step = step * 0.5;
         }
-      }
-      step = step / 2;
-      delta = delta / 2.0;
+        i++;
+        _CurrentIteration++;
+      } while ((i < MAX_NO_LINE_ITERATIONS) && (step > min_step));
+
+      // Check for convergence
+      if (delta == 0) break;
     }
 
     // Delete gradient
     delete gradient;
 
     // Do the final cleaning up for this level
-    this->Finalize(level);
+    this->Finalize(_CurrentLevel);
   }
 
   // Do the final cleaning up for all levels
@@ -520,7 +745,7 @@ void irtkImageRegistration2::Run()
 double irtkImageRegistration2::EvaluateSSD()
 {
   int i, n;
-  double ssd;
+  double norm, ssd;
 
   // Print debugging information
   this->Debug("irtkImageRegistration2::EvaluateSSD");
@@ -543,9 +768,12 @@ double irtkImageRegistration2::EvaluateSSD()
     ptr2source++;
   }
 
-  // Evaluate similarity measure
-  if (n > 0) {
-    return -ssd / (double)n;
+  // Normalize similarity measure by number of voxels and maximum SSD
+  norm = 1.0 / ((double)n * (double)_maxDiff);
+
+  // Return similarity measure
+  if (norm > 0) {
+    return -ssd * norm;
   } else {
     cerr << "irtkImageRegistration2::EvaluateSSD: No samples available" << endl;
     return 0;
@@ -623,7 +851,7 @@ void irtkImageRegistration2::EvaluateGradientSSD()
   int i, j, k;
 
   // Print debugging information
-  this->Debug("irtkImageRigidRegistration2::EvaluateGradient");
+  this->Debug("irtkImageRegistration2::EvaluateGradient");
 
   // Pointer to voxels in images
   short  *ptr2target = _target->GetPointerToVoxels();
@@ -634,7 +862,7 @@ void irtkImageRegistration2::EvaluateGradientSSD()
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
         if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
-          ssd = (*ptr2target - *ptr2source);
+          ssd = 2 * (*ptr2target - *ptr2source) / _maxDiff;
           _similarityGradient(i, j, k, 0) = ssd * _transformedSourceGradient(i, j, k, 0);
           _similarityGradient(i, j, k, 1) = ssd * _transformedSourceGradient(i, j, k, 1);
           _similarityGradient(i, j, k, 2) = ssd * _transformedSourceGradient(i, j, k, 2);
@@ -919,38 +1147,28 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
     }
     ok = true;
   }
-  if (strstr(buffer1, "No. of steps") != NULL) {
+  if (strstr(buffer1, "Maximum length of steps") != NULL) {
     if (level == -1) {
       for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
-        this->_NumberOfSteps[i] = atoi(buffer2);
+        this->_MaxStep[i] = atof(buffer2);
       }
     } else {
-      this->_NumberOfSteps[level] = atoi(buffer2);
+      this->_MaxStep[level] = atof(buffer2);
     }
     ok = true;
   }
-  if (strstr(buffer1, "Length of steps") != NULL) {
+  if (strstr(buffer1, "Minimum length of steps") != NULL) {
     if (level == -1) {
       for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
-        this->_LengthOfSteps[i] = pow(2.0, double(i)) * atof(buffer2);
+        this->_MinStep[i] = atof(buffer2);
       }
     } else {
-      this->_LengthOfSteps[level] = atof(buffer2);
+      this->_MinStep[level] = atof(buffer2);
     }
     ok = true;
   }
   if (strstr(buffer1, "Epsilon") != NULL) {
     this->_Epsilon = atof(buffer2);
-    ok = true;
-  }
-  if (strstr(buffer1, "Delta") != NULL) {
-    if (level == -1) {
-      for (i = 0; i < MAX_NO_RESOLUTIONS; i++) {
-        this->_Delta[i] = pow(2.0, double(i)) * atof(buffer2);
-      }
-    } else {
-      this->_Delta[level] = atof(buffer2);
-    }
     ok = true;
   }
   if (strstr(buffer1, "Padding value") != NULL) {
@@ -1111,8 +1329,8 @@ void irtkImageRegistration2::Write(ostream &to)
       to << "Interpolation mode                = Gaussian" << endl;
       break;
     default:
-    	cerr << "irtkImageRegistration2::Write: Interpolation mode not supported" << endl;
-    	exit(1);
+      cerr << "irtkImageRegistration2::Write: Interpolation mode not supported" << endl;
+      exit(1);
   }
 
   for (i = 0; i < this->_NumberOfLevels; i++) {
@@ -1123,9 +1341,8 @@ void irtkImageRegistration2::Write(ostream &to)
     to << "Source blurring (in mm)           = " << this->_SourceBlurring[i] << endl;
     to << "Source resolution (in mm)         = " << this->_SourceResolution[i][0] << " " << this->_SourceResolution[i][1] << " " << this->_SourceResolution[i][2] << endl;
     to << "No. of iterations                 = " << this->_NumberOfIterations[i] << endl;
-    to << "No. of steps                      = " << this->_NumberOfSteps[i] << endl;
-    to << "Length of steps                   = " << this->_LengthOfSteps[i] << endl;
-    to << "Delta                             = " << this->_Delta[i] << endl;
+    to << "Minimum length of steps           = " << this->_MinStep[i] << endl;
+    to << "Maximum length of steps           = " << this->_MaxStep[i] << endl;
   }
 }
 

@@ -34,11 +34,11 @@ protected:
   /// Pointer to the global transformation which is constant
   irtkMultiLevelFreeFormTransformation *_mffd;
 
-  /// Pointer to Adjugate jacobian matrix
+  /// Pointer to adjugate Jacobian matrix
   irtkMatrix *_adjugate;
 
-  /// Pointer to jacobian determine
-  double *_determine;
+  /// Pointer to Jacobian determinant
+  double *_determinant;
 
   /// Smoothness parameter for non-rigid registration
   double _Lambda1;
@@ -80,13 +80,13 @@ protected:
   virtual void Finalize(int);
 
   /// Update state of the registration based on current transformation estimate
-  virtual void Update();
+  virtual void Update(bool);
 
     /** Evaluates the smoothness preservation term. */
   virtual double SmoothnessPenalty();
 
-  /** Evaluates the smoothness term. */
-  virtual double SmoothnessPenalty(int);
+  /** Evaluates the gradient of the smoothness term. */
+  virtual void SmoothnessPenaltyGradient(double *);
 
   /** Evaluates the volume preservation term. */
   virtual double VolumePreservationPenalty();
@@ -106,6 +106,12 @@ protected:
    *  of the similarity measure using Similarity().
    */
   virtual double Evaluate();
+
+  /// Evaluate the gradient of the similarity measure for the current transformation for 2D images
+  virtual void EvaluateGradient2D(double *);
+
+  /// Evaluate the gradient of the similarity measure for the current transformation for 3D images
+  virtual void EvaluateGradient3D(double *);
 
   /// Evaluate the gradient of the similarity measure for the current transformation.
   virtual double EvaluateGradient(double *);

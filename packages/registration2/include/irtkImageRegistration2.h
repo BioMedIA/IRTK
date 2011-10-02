@@ -14,37 +14,6 @@
 
 #define _IRTKIMAGEREGISTRATION2_H
 
-inline double GetBasisSplineValue(double x)
-{
-  x = fabs(x);
-  double value = 0.0;
-  if (x < 2.0) {
-    if (x < 1.0) {
-      value = (double)(2.0f/3.0f + (0.5f*x-1.0)*x*x);
-    } else {
-      x -= 2.0f;
-      value = -x*x*x/6.0f;
-    }
-  }
-  return value;
-}
-
-inline double GetBasisSplineDerivativeValue(double ori)
-{
-  double x = fabs(ori);
-  double value = 0.0;
-  if(x < 2.0) {
-    if(x < 1.0) {
-      value = (double)((1.5f*x-2.0)*ori);
-    }  else {
-      x -=2.0f;
-      value = -0.5f * x * x;
-      if(ori<0.0f) value =-value;
-    }
-  }
-  return value;
-}
-
 /**
  * Generic for image registration based on voxel similarity measures.
  *
@@ -79,20 +48,23 @@ protected:
    */
   irtkGenericImage<short> *_source;
 
-  /// Transformation
-  irtkTransformation *_transformation;
-
   /** Current estimate of the source image transformed back into the target
    *  coordinate system. This is updated every time the Update function is
    *  called.
    */
   irtkGenericImage<double> _transformedSource;
 
+  /// Gradient of the original source
+  irtkGenericImage<double> _sourceGradient;
+
   /// Gradient of the transformed source
   irtkGenericImage<double> _transformedSourceGradient;
 
   /// Gradient of the similarity metric
   irtkGenericImage<double> _similarityGradient;
+
+  /// Transformation
+  irtkTransformation *_transformation;
 
   /// 2D histogram (this is not used for all similarity metrics)
   irtkHistogram_2D<double> *_histogram;
@@ -112,11 +84,11 @@ protected:
   /// Resolution of source image (in mm)
   double _SourceResolution[MAX_NO_RESOLUTIONS][3];
 
-  /// Number of step sizes
-  int    _NumberOfSteps[MAX_NO_RESOLUTIONS];
+  /// Minimum length of steps
+  double _MinStep[MAX_NO_RESOLUTIONS];
 
-  /// Length of steps
-  double _LengthOfSteps[MAX_NO_RESOLUTIONS];
+  /// Maximum length of steps
+  double _MaxStep[MAX_NO_RESOLUTIONS];
 
   /// Max. number of iterations per step size
   int    _NumberOfIterations[MAX_NO_RESOLUTIONS];
@@ -142,11 +114,19 @@ protected:
   /// Convergence parameter for optimization based on change in similarity.
   double _Epsilon;
 
-  /// Convergence parameter for optimization based on change in the transformation.
-  double _Delta[MAX_NO_RESOLUTIONS];
-
   /// Debugging flag
   int    _DebugFlag;
+
+  /// Current min and max voxel values
+  int _target_min, _target_max;
+  int _source_min, _source_max;
+  int _maxDiff;
+
+  /// Current level in the multi-resolution pyramid
+  int _CurrentLevel;
+
+  /// Current iteration during the optimization
+  int _CurrentIteration;
 
   /// Source image domain which can be interpolated fast
   double _source_x1, _source_y1, _source_z1;
@@ -165,7 +145,13 @@ protected:
   virtual void Finalize(int);
 
   /// Update state of the registration based on current transformation estimate
-  virtual void Update();
+  virtual void Update(bool);
+
+  /// Update state of the registration based on current transformation estimate (source image)
+  virtual void UpdateSource();
+
+  /// Update state of the registration based on current transformation estimate (source image and source image gradient)
+  virtual void UpdateSourceAndGradient();
 
   /// Evaluate similarity measure: SSD
   virtual double EvaluateSSD();

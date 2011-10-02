@@ -28,14 +28,11 @@ class irtkImageRigidRegistration2 : public irtkImageRegistration2
 
 protected:
 
-  /// Initial set up for the registration
-  virtual void Initialize();
+  /// Update state of the registration based on current transformation estimate (source image)
+  virtual void UpdateSource();
 
-  /// Final set up for the registration
-  virtual void Finalize();
-
-  /// Update state of the registration based on current transformation estimate
-  virtual void Update();
+  /// Update state of the registration based on current transformation estimate (source image and source image gradient)
+  virtual void UpdateSourceAndGradient();
 
   /// Evaluate the gradient of the similarity measure for the current transformation.
   virtual double EvaluateGradient(double *);
