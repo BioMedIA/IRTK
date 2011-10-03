@@ -300,6 +300,11 @@ void irtkImageFreeFormRegistration2::SmoothnessPenaltyGradient(double *gradient)
   // Allocate memory
   double *tmp_gradient = new double[_affd->NumberOfDOFs()];
 
+	// and initialize memory (thanks to Stefan for his bug fix)
+  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+    tmp_gradient[i] = 0.0;
+  }
+
   // Compute gradient of smoothness term
   _affd->BendingGradient(tmp_gradient);
 
