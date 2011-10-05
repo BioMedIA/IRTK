@@ -642,7 +642,7 @@ double irtkMultipleImageFreeFormRegistration::Evaluate()
         for (j = 0; j < _target[n]->GetY(); j++) {
           for (i = 0; i < _target[n]->GetX(); i++) {
             // Check whether reference point is valid
-            if (*ptr2target >= 0) {
+            if (*ptr2target > _TargetPadding) {
               x = i;
               y = j;
               z = k;
@@ -660,13 +660,15 @@ double irtkMultipleImageFreeFormRegistration::Evaluate()
                        && z > _source_z1[n] && z < _source_z2[n]))) {
                 // Add sample to metric
                 *ptr2tmp =  round(_interpolator[n]->EvaluateInside(x, y, z, t));
-                _metric[n]->Add(*ptr2target, *ptr2tmp);
+                if(*ptr2tmp > _TargetPadding){
+                    _metric[n]->Add(*ptr2target, *ptr2tmp);
+                }
                 if(_weight == NULL)
                   sweight[n]++;
                 else
                   sweight[n] += _weight[_level][n];
               } else {
-                *ptr2tmp = -1;
+                *ptr2tmp = _TargetPadding;
               }
             }
             // Increment pointers to next voxel
@@ -712,7 +714,7 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
   irtkPoint p1, p2;
   double bi, bj, bk, dx, dy, dz, p[3],x,y,z;
   int i, j, k, i1, i2, j1, j2, k1, k2, dim, t, n,min,max;
-  irtkGreyPixel *ptr2target, *ptr2tmp;
+  irtkGreyPixel *ptr2target, *ptr2tmp,sample;
   irtkSimilarityMetric **tmpMetricA, **tmpMetricB;
   double *weight = new double[_numberOfImages];
 
@@ -736,16 +738,16 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
   // Calculate whether this DOF corresponds to x, y or z-displacement
   dim = int(index / (_affd->GetX()*_affd->GetY()*_affd->GetZ()));
 
+  // Calculate bounding box of control point in world coordinates
+  _affd->BoundingBox(index, p1, p2);
+  _target[0]->WorldToImage(p1);
+  _target[0]->WorldToImage(p2);
+
   for (n = 0; n < _numberOfImages; n++) {
     // Initialize metrics for forward and backward derivative steps
     tmpMetricA[n]->Reset(_metric[n]);
     tmpMetricB[n]->Reset(_metric[n]);
     weight[n] = 0;
-
-    // Calculate bounding box of control point in world coordinates
-    _affd->BoundingBox(index, p1, p2);
-    _target[0]->WorldToImage(p1);
-    _target[0]->WorldToImage(p2);
 
     // Calculate bounding box of control point in image coordinates
     _affd->MultiBoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
@@ -775,10 +777,10 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
               if(round(dy*(y-p1._y))<=max && round(dy*(y-p1._y))>=min) {
                 bj = bk * _localLookupTable[round(dy*(y-p1._y))];
                 // Check whether reference point is valid
-                if (*ptr2target >= 0 && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
+                if (*ptr2target > _TargetPadding && round(dx*(x-p1._x))<=max && round(dx*(x-p1._x))>=min) {
                   bi = bj * _localLookupTable[round(dx*(x-p1._x))];
                   // Delete old samples from both metrics
-                  if (*ptr2tmp != -1) {
+                  if (*ptr2tmp > _TargetPadding) {
                     tmpMetricA[n]->Delete(*ptr2target, *ptr2tmp);
                     tmpMetricB[n]->Delete(*ptr2target, *ptr2tmp);
                   }
@@ -803,7 +805,10 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
                       weight[n]++;
                     else
                       weight[n] += _weight[_level][n];
-                    tmpMetricA[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
+                    sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
+                    if(sample > _TargetPadding){
+                        tmpMetricA[n]->Add(*ptr2target, sample);
+                    }
                   }
 
                   p[0] = ptr[0];
@@ -826,7 +831,10 @@ double irtkMultipleImageFreeFormRegistration::EvaluateDerivative(int index, doub
                       weight[n]++;
                     else
                       weight[n] += _weight[_level][n];
-                    tmpMetricB[n]->Add(*ptr2target, round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t)));
+                    sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
+                    if(sample > _TargetPadding){
+                        tmpMetricB[n]->Add(*ptr2target, sample);
+                    }
                   }
                 }
               }
