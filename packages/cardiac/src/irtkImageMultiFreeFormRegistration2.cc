@@ -20,6 +20,8 @@
 #include <sys/resource.h>
 #endif
 
+#define MAX_NO_LINE_ITERATIONS 12
+
 irtkGreyImage *tmp_segmentation;
 
 irtkImageMultiFreeFormRegistration2::irtkImageMultiFreeFormRegistration2()
@@ -176,8 +178,8 @@ void irtkImageMultiFreeFormRegistration2::GuessParameter()
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
     _NumberOfIterations[i] = 10;
-    _NumberOfSteps[i]      = 4;
-    _LengthOfSteps[i]      = _DX / 8.0 * pow(2.0, i);
+    _MinStep[i]            = 0.01;
+    _MaxStep[i]            = 1.0;
   }
 
   // Try to guess padding by looking at voxel values in all eight corners of the volume:
@@ -657,7 +659,7 @@ void irtkImageMultiFreeFormRegistration2::Run()
 {
   int i, j, k, l, level, update, updateGradient;
   char buffer[256];
-  double **gradient, step, delta, similarity, new_similarity, old_similarity;
+  double **gradient, delta, step, min_step, max_step, max_length, best_similarity, new_similarity, old_similarity;
 
   // Print debugging information
   this->Debug("irtkImageRegistration2::Run");
@@ -683,126 +685,119 @@ void irtkImageMultiFreeFormRegistration2::Run()
   this->Initialize();
 
   // Loop over levels
-  for (level = _NumberOfLevels-1; level >= 0; level--) {
+  for (_CurrentLevel = _NumberOfLevels-1; _CurrentLevel >= 0; _CurrentLevel--) {
 
-    // Initial step size
-    step = _LengthOfSteps[level];
+      // Initial step size
+      min_step = _MinStep[_CurrentLevel];
+      max_step = _MaxStep[_CurrentLevel];
 
-    // Print resolution level
-    cout << "Resolution level no. " << level+1 << " (step sizes ";
-    cout << step << " to " << step / pow(2.0, static_cast<double>(_NumberOfSteps[level]-1)) << ")\n";
+      // Print resolution level
+      cout << "Resolution level no. " << _CurrentLevel+1 << " (step sizes " << min_step << " to " << max_step  << ")\n";
 
-    // Initial Delta
-    delta = _Delta[level];
-    cout << "Delta: " << delta << " to ";
-    cout << delta / pow(2.0, static_cast<double>(_NumberOfSteps[level]-1)) << "\n";
+      // Initialize for this level
+      this->Initialize(_CurrentLevel);
 
-    // Initialize for this level
-    this->Initialize(level);
+      // Save pre-processed images if we are debugging
+      sprintf(buffer, "source_%d.nii.gz", _CurrentLevel);
+      if (_DebugFlag == true) _source->Write(buffer);
+      sprintf(buffer, "target_%d.nii.gz", _CurrentLevel);
+      if (_DebugFlag == true) _target->Write(buffer);
 
-    // Save pre-processed images if we are debugging
-    sprintf(buffer, "source_%d.nii.gz", level);
-    if (_DebugFlag == true) _source->Write(buffer);
-    sprintf(buffer, "target_%d.nii.gz", level);
-    if (_DebugFlag == true) _target->Write(buffer);
+      // Allocate memory for gradient vector
+      for(l = 0; l < _NumberOfLabels; l++){
+          // Allocate memory for gradient vector
+          gradient[l] = new double[_affd[l]->NumberOfDOFs()];
+      }
 
-    for(l = 0; l < _NumberOfLabels; l++){
-        // Allocate memory for gradient vector
-        gradient[l] = new double[_affd[l]->NumberOfDOFs()];
-    }
+      // Update image
+      update = true;
 
-    // Update image
-    update = true;
+      // Update gradient
+      updateGradient = true;
 
-    // Update gradient
-    updateGradient = true;
+      // Run the registration filter at this resolution
+      _CurrentIteration = 0;
+      while (_CurrentIteration < _NumberOfIterations[_CurrentLevel]) {
+          cout << "Iteration = " << _CurrentIteration + 1 << " (out of " << _NumberOfIterations[_CurrentLevel] << ")"<< endl;
 
-    // Run the registration filter at this resolution
-    for (i = 0; i < _NumberOfSteps[level]; i++) {
-      for (j = 0; j < _NumberOfIterations[level]; j++) {
-
-        cout << "Iteration = " << j + 1 << " (out of " << _NumberOfIterations[level];
-        cout << "), step size = " << step << endl;
-
-        // Update source image
-        if (update == true) {
-          this->Update();
-          update = false;
-        }
-
-        // Compute current metric value
-        old_similarity = new_similarity = similarity = this->Evaluate();
-        cout << "Current metric value is " << similarity << endl;
-
-        // Compute gradient of similarity metric
-        if (updateGradient == true) {
-            // Evaluate similarity gradient
-            this->irtkImageRegistration2::EvaluateGradient(gradient[0]);
-            for(l = 0; l < _NumberOfLabels; l++){
-                this->EvaluateGradient(l,gradient[l]);
-            }
-          updateGradient = false;
-        }
-
-        // Step along gradient direction until no further improvement is necessary
-        do {
-          new_similarity = similarity;
-          for(l = 0; l < _NumberOfLabels; l++){
-          for (k = 0; k < _affd[l]->NumberOfDOFs(); k++) {
-            _affd[l]->Put(k, _affd[l]->Get(k) + step * gradient[l][k]);
-          }
+          // Update source image
+          if (update == true) {
+              this->Update();
+              update = false;
           }
 
-          // We have just changed the transformation parameters, so definitely need to update
-          this->Update();
-          update = false;
+          // Compute current metric value
+          best_similarity = old_similarity = this->Evaluate();
+          cout << "Current best metric value is " << best_similarity << endl;
 
-          // Compute new similarity
-          similarity = this->Evaluate();
+          // Compute gradient of similarity metric. The function EvaluateGradient() returns the maximum control point length in the gradient
+          if (updateGradient == true) {
+              // Evaluate similarity gradient
+              this->irtkImageRegistration2::EvaluateGradient(gradient[0]);
+              max_length = 0;
+              double tmp;
+              for(l = 0; l < _NumberOfLabels; l++){
+                  tmp = this->EvaluateGradient(l,gradient[l]);
+                  tmp > max_length ? max_length = tmp : max_length = max_length;
+              }
+              updateGradient = false;
+          }
 
-          if (similarity > new_similarity + _Epsilon) {
-            cout << "New metric value is " << similarity << endl;
-            updateGradient = true;
-          } else {
-            // Last step was no improvement, so back track
+          // Step along gradient direction until no further improvement is necessary
+          i = 0;
+          delta = 0;
+          step = max_step;
+          do {
+              double current = step / max_length;
+
+              // Move along gradient direction
               for(l = 0; l < _NumberOfLabels; l++){
                   for (k = 0; k < _affd[l]->NumberOfDOFs(); k++) {
-                      _affd[l]->Put(k, _affd[l]->Get(k) - step * gradient[l][k]);
+                      _affd[l]->Put(k, _affd[l]->Get(k) + current * gradient[l][k]);
                   }
               }
-            update = true;
-          }
-        } while (similarity > new_similarity + _Epsilon);
 
-        // Check whether we made any improvement or not
-        if (new_similarity - old_similarity > _Epsilon) {
-            if (_DebugFlag == true) 
-            {for(l = 0; l < _NumberOfLabels; l++){
-                sprintf(buffer, "log_%.3d_%.3d_%.3d%d.dof", level, i+1, j+1, l);
-            _affd[l]->irtkTransformation::Write(buffer);
-            }
-            }
-        } else {
-            if (_DebugFlag == true) 
-            {for(l = 0; l < _NumberOfLabels; l++){
-                sprintf(buffer, "log_%.3d_%.3d_%.3d%d.dof", level, i+1, j+1, l);
-            _affd[l]->irtkTransformation::Write(buffer);
-            }
-            }
-            break;
-        }
+              // We have just changed the transformation parameters, so we need to update
+              // Update source image
+              if (update == true) {
+                  this->Update();
+                  update = false;
+              }
+
+              // Compute new similarity
+              new_similarity = this->Evaluate();
+
+              if (new_similarity > best_similarity + _Epsilon) {
+                  cout << "New metric value is " << new_similarity << "; step = " << step << endl;
+                  best_similarity = new_similarity;
+                  delta += step;
+                  step = step * 1.1;
+                  if (step > max_step) step = max_step;
+
+              } else {
+                  // Last step was no improvement, so back track
+                  cout << "Rejected metric value is " << new_similarity << "; step = " << step << endl;
+                  for(l = 0; l < _NumberOfLabels; l++){
+                      for (k = 0; k < _affd[l]->NumberOfDOFs(); k++) {
+                          _affd[l]->Put(k, _affd[l]->Get(k) - current * gradient[l][k]);
+                      }
+                  }
+                  update = true;
+                  step = step * 0.5;
+              }
+              i++;
+              _CurrentIteration++;
+          } while ((i < MAX_NO_LINE_ITERATIONS) && (step > min_step));
+
+          // Check for convergence
+          if (delta == 0) break;
       }
-      step = step / 2;
-      delta = delta / 2.0;
-    }
 
-    // Delete gradient
-    for(l = 0; l < _NumberOfLabels; l++){
-        delete []gradient[l];
-    }
+      // Delete gradient
+      delete gradient;
 
-    // Do the final cleaning up for this level
-    this->Finalize(level);
+      // Do the final cleaning up for this level
+      this->Finalize(_CurrentLevel);
   }
 
   delete []gradient;
