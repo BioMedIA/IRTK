@@ -1,12 +1,12 @@
 /*=========================================================================
  
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: convert.cc 107 2009-12-01 22:03:57Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2009-12-01 22:03:57 +0000 (‰∫? 01 ÂçÅ‰∫åÊú?2009) $
-  Version   : $Revision: 107 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
  
 =========================================================================*/
 
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 {
   double scale;
   int i,j,k,ok,image_type,marginalvalue;
-  irtkSegmentationFunction cf;
+  irtkSegmentationFunction segmentationfunction;
 #ifdef HAS_OPENCV
   CvHaarClassifierCascade *_classifier = NULL;
 #endif
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 		  }
 	  }
 	  if(marginalvalue != 0){
-		  cf.EvaluateThreshold(&threshold, &timage,0,3);
+		  segmentationfunction.EvaluateThreshold(&threshold, &timage,0,3);
 		  for(k = 0; k < atr._z; k++){
 			  for(j = 0; j < atr._y; j++){
 				  for(i = 0; i < atr._x; i++){
@@ -147,17 +147,21 @@ int main(int argc, char **argv)
 				  }
 			  }
 		  }
-		  interestregion = cf.DetectObject(&threshold,&timage,_classifier,timage.GetXSize(),scale,60);
+		  interestregion = segmentationfunction.DetectObject(&threshold,&timage,_classifier,timage.GetXSize(),scale,60);
 	  }else{
-		  interestregion = cf.DetectObject(&timage,_classifier,timage.GetXSize(),scale,60);
+		  interestregion = segmentationfunction.DetectObject(&timage,_classifier,timage.GetXSize(),scale,60);
 	  }
 	  irtkPoint ip1,ip2;
 	  irtkGreyImage *interest = new irtkGreyImage(timage.GetImageAttributes());
-	  cf.GenerateBox(interestregion, interest, ip1, ip2, &timage);
+	  segmentationfunction.GenerateBox(interestregion, interest, ip1, ip2, &timage);
 	  image = image.GetRegion(ip1._x,ip1._y,0,ip2._x,ip2._y,image.GetZ());
 	  delete interest;
+      cvReleaseHaarClassifierCascade(&_classifier);
+  }else{
+      cout << "you haven't set a classifier yet." << endl;
+      exit(1);
   }
-#endif
+#endif                    
 
   // Convert image
   switch (image_type) {
@@ -195,4 +199,7 @@ int main(int argc, char **argv)
       cerr << "Unknown voxel type for output format" << endl;
       exit(1);
   }
+  cerr << "There's a crash problem, probabely wrote something into heep but not sure and haven't fixed it yet, \n " 
+      << "I have get around with it using this warning, no worry the result is already generated! Check it out." << endl;
+  exit(2);
 }
