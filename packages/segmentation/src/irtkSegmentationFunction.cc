@@ -35,7 +35,6 @@ irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *
 {
 
   int i,k;
-  //irtkPoint* heart_center = new irtkPoint[4];
   irtkAffineTransformation transformation;
   if(classifier == NULL) {
     cout << "No Classifier given"<<endl;
@@ -44,7 +43,6 @@ irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *
     cout << "Evaluating Object Center"<<endl;
     irtkImageToOpenCv<irtkGreyPixel> itocg;
     irtkImageToOpenCv<irtkRealPixel> itocr;
-    //target->GetMinMax(&min,&max);
     double scale = oxsize/target->GetXSize();
     irtkAffineTransformation tmptransformation[20];
     //create mem storage for detection
@@ -60,11 +58,8 @@ irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *
     IplImage* small_img = cvCreateImage( cvSize( cvRound (pimage->width/scale),
                                          cvRound (pimage->height/scale)),
                                          IPL_DEPTH_8U, 1 );
-    IplImage* small_ths = cvCreateImage( cvSize( cvRound (pths->width/scale),
-                                         cvRound (pths->height/scale)),
-                                         IPL_DEPTH_8U, 1 );
     CvPoint center;
-    CvRect* r;
+    CvRect* r = NULL;
     CvPoint textcenter;
     int count = 0;
     // find center of z axis
@@ -73,40 +68,16 @@ irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *
       itocg.SetInput(target);
       itocg.SetOutput(pimage);
       itocg.Run(k);
-      /*for (j = 0; j < target->GetY(); j++) {
-      for (i = 0; i < target->GetX(); i++) {
-      //input[i](x, y, z) = inputsequence(x,y,z,i);
-      int tmp = (target->GetAsDouble(i,j,k,0) * 256 /max);
-      pimage->imageData[j*pimage->widthStep + i] = tmp;
-    }
-    }*/
-      //threshold->Write("threshold.gipl");
       //write pixel
       itocr.SetInput(threshold);
       itocr.SetOutput(pths);
       itocr.Run(k);
-      /*for (j = 0; j < threshold->GetY(); j++) {
-      for (i = 0; i < threshold->GetX(); i++) {
-      //input[i](x, y, z) = inputsequence(x,y,z,i);
-      int tmp = threshold->GetAsDouble(i,j,k,0);
-      pths->imageData[j*pths->widthStep + i] = tmp;
-    }
-    }*/
-
-      //cvCvtColor( pimage, gray, CV_BGR2GRAY );
-      //cvResize( gray, small_img, CV_INTER_LINEAR );
       cvResize( pimage, small_img, CV_INTER_LINEAR );
-      //cvSaveImage("pths.jpg",pths);
-      cvResize( pths, small_ths, CV_INTER_LINEAR );
       cvEqualizeHist( small_img, small_img );
-      //cvSaveImage("small_img.jpg",small_img);
-      //cvSaveImage("small_ths.jpg",small_ths);
 
       //detect interest region using modified haar detect object function
-      CvSeq* heart = cvTHaarDetectObjects( small_img, small_ths, classifier, storage,
+      CvSeq* heart = cvHaarDetectObjects( small_img, classifier, storage,
                                            1.05, 2, 0, cvSize(size,size) );//1 not canny 0 canny
-      //CvSeq* heart = cvHaarDetectObjects( small_img, classifier, storage,
-      //               1.1, 2, 1, cvSize(50,50) );
 
       cout << "Evaluation Slice "<< k <<" Done"<<endl;
 
@@ -115,153 +86,61 @@ irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *
       if ( i > 1) {
         cout <<"multipule objects detected, we know this is wrong."<<endl;
         for( i = 0; i < heart->total; i++ ) {
-          count++;
-          r = (CvRect*)cvGetSeqElem( heart, i );
-          center.x = cvRound((r->x + r->width*0.5)*scale);
-          center.y = cvRound((r->y + r->height*0.5)*scale);
-          //textcenter.x = center.x - 10;
-          //textcenter.y = center.y + 10;
-          //int  radius = cvRound((r->width + r->height)*0.25*scale);
-          //cvCircle( pimage, center, radius, CV_RGB(200,200,200), 3, 8, 0 );
-          //sprintf(numberbuff, "%d",i);
-          //cvPutText( pimage, numberbuff, textcenter, &font, CV_RGB(200,200,200));
-          //this is for test only
-          cout << "Object Center Location: " << center.x << " " << center.y << endl;
-          cout << "Object Box Scale: " << r->width*scale << " " << r->height*scale << endl;
-          tmptransformation[count-1].Put(0,center.x);
-          tmptransformation[count-1].Put(1,center.y);
-          tmptransformation[count-1].Put(6,r->width*target->GetXSize()*scale);
-          tmptransformation[count-1].Put(7,r->height*target->GetYSize()*scale);
+            r = (CvRect*)cvGetSeqElem( heart, i );
+            center.x = cvRound((r->x + r->width*0.5)*scale);
+            center.y = cvRound((r->y + r->height*0.5)*scale);
+            if(cvRound(pths->imageData[center.y*pths->widthStep + center.x]) > 0){
+                count++;
+                cout << "Object Center Location: " << center.x << " " << center.y << endl;
+                cout << "Object Box Scale: " << r->width*scale << " " << r->height*scale << endl;
+                tmptransformation[count-1].Put(0,center.x);
+                tmptransformation[count-1].Put(1,center.y);
+                tmptransformation[count-1].Put(6,r->width);
+                tmptransformation[count-1].Put(7,r->height);
+            }
           if (count >= 20)
             break;
           //the above is for test only
         }
-        /*
-        i = heart->total;
-        while(i < 0 || i >= heart->total){
-        cvNamedWindow( "result", 1 );
-        cvShowImage( "result", pimage );
-        cout<<"Please press enter to close the window \nand select the correct one by entering the number: ";
-        cvWaitKey();
-        cvDestroyWindow("result");
-        cin>>i;
-      }
-        count++;
-        */
-        //delete []numberbuff;
       } else if(i==1) {
         i = 0;
-        count++;
-        //this is for test only
         r = (CvRect*)cvGetSeqElem( heart, i );
         center.x = cvRound((r->x + r->width*0.5)*scale);
         center.y = cvRound((r->y + r->height*0.5)*scale);
-        cout << "Object Center Location: " << center.x << " " << center.y << endl;
-        cout << "Object Box Scale: " << r->width*scale << " " << r->height*scale << endl;
-        tmptransformation[count-1].Put(0,center.x);
-        tmptransformation[count-1].Put(1,center.y);
-        tmptransformation[count-1].Put(6,r->width*target->GetXSize()*scale);
-        tmptransformation[count-1].Put(7,r->height*target->GetYSize()*scale);
+        if(cvRound(pths->imageData[center.y*pths->widthStep + center.x]) > 0){
+            count++;
+            cout << "Object Center Location: " << center.x << " " << center.y << endl;
+            cout << "Object Box Scale: " << r->width*scale << " " << r->height*scale << endl;
+            tmptransformation[count-1].Put(0,center.x);
+            tmptransformation[count-1].Put(1,center.y);
+            tmptransformation[count-1].Put(6,r->width);
+            tmptransformation[count-1].Put(7,r->height);
+        }
         if (count >= 20)
           break;
-        //the above is for test only
       } else {
         cerr <<"no object detected, this is wrong!"<<endl;
         continue;
       }
       if (count >= 20)
         break;
-      /*r = (CvRect*)cvGetSeqElem( heart, i );
-      center.x = cvRound((r->x + r->width*0.5)*scale);
-      center.y = cvRound((r->y + r->height*0.5)*scale);
-      cout << "Evaluation Done"<<endl;
-      cout << "Heart Center Location: "<< count << " " << center.x << " " << center.y << endl;
-      cout << "Heart Box Scale: " << r->width << " " << r->height << endl;
-      tmptransformation[count-1].Put(0,center.x);
-      tmptransformation[count-1].Put(1,center.y);
-      tmptransformation[count-1].Put(6,r->width*target->GetXSize());
-      tmptransformation[count-1].Put(7,r->height*target->GetYSize());*/
-
     }
     if (count == 0) {
       cerr <<"no object detected at all, this is really wrong!"<<endl;
-      cout <<"Sorry but Please select the interest region by draging the mouse"<<endl;
-      r = (CvRect*)cvAlloc(sizeof(CvRect));
-      CvFont font;
-      cvInitFont( &font, CV_FONT_VECTOR0,0.3, 0.3);
-      char numberbuff[255];
-      //create pimage
-      itocg.Run(k);
-      /*for (j = 0; j < target->GetY(); j++) {
-      for (i = 0; i < target->GetX(); i++) {
-      int tmp = (target->GetAsDouble(i,j,k-1,0) * 256 /max);
-      pimage->imageData[j*pimage->widthStep + i] = tmp;
-    }
-    }*/
-
-      cvNamedWindow( "result", 1 );
-      //create event
-      cvSetMouseCallback( "result", on_mouse, r);
-      while(!count) {
-        itocg.Run(k);
-        /*
-        for (j = 0; j < target->GetY(); j++) {
-        for (i = 0; i < target->GetX(); i++) {
-        int tmp = (target->GetAsDouble(i,j,k-1,0) * 256 /max);
-        pimage->imageData[j*pimage->widthStep + i] = tmp;
-      }
-      }*/
-        sprintf(numberbuff, "Drag mouse to select region");
-        textcenter.x = 10;
-        textcenter.y = pimage->height - 40;
-        cvPutText( pimage, numberbuff, textcenter, &font, CV_RGB(200,200,200));
-
-        sprintf(numberbuff, "Press enter to continue");
-        textcenter.x = 10;
-        textcenter.y = pimage->height - 20;
-        cvPutText( pimage, numberbuff, textcenter, &font, CV_RGB(200,200,200));
-
-        cvShowImage( "result", pimage );
-        //hint
-        cvWaitKey();
-        itocg.Run(k);
-        /*for (j = 0; j < target->GetY(); j++) {
-        for (i = 0; i < target->GetX(); i++) {
-        int tmp = (target->GetAsDouble(i,j,k-1,0) * 256 /max);
-        pimage->imageData[j*pimage->widthStep + i] = tmp;
-      }
-      }*/
-        //final check
-        center.x = cvRound((r->x + r->width*0.5));
-        center.y = cvRound((r->y + r->height*0.5));
-        CvPoint p1= cvPoint(r->x,r->y);
-        CvPoint p2= cvPoint(r->x+r->width,r->y+r->height);
-        cvRectangle( pimage, p1, p2, CV_RGB(200,200,200), 3, 8, 0 );
-        sprintf(numberbuff, "Enter 1 to confirm else to repick");
-        textcenter.x = 10;
-        textcenter.y = r->height + r->y + 10;
-        cvPutText( pimage, numberbuff, textcenter, &font, CV_RGB(200,200,200));
-        cvShowImage( "result", pimage );
-        count = ((char)cvWaitKey() == '1');
-      }
-      cout << "Object Center Location: " << center.x << " " << center.y << endl;
-      cout << "Object Box Scale: " << r->width << " " << r->height << endl;
-      transformation.Put(0,center.x);
-      transformation.Put(1,center.y);
+      transformation.Put(0,0);
+      transformation.Put(1,0);
       //let the bounding box larger
-      transformation.Put(6,r->width*target->GetXSize()*1.1);
-      transformation.Put(7,r->height*target->GetYSize()*1.1);
-      cvFree(&r);
+      transformation.Put(6,0);
+      transformation.Put(7,0);
     } else if(count == 1) {
       cerr<<"only one object detected in three slice, doubt the accuracy!"<<endl;
       transformation.Put(0,tmptransformation[0].Get(0));
       transformation.Put(1,tmptransformation[0].Get(1));
       //let the bounding box larger
-      transformation.Put(6,tmptransformation[0].Get(6)*1.1);
-      transformation.Put(7,tmptransformation[0].Get(7)*1.1);
+      transformation.Put(6,tmptransformation[0].Get(6));
+      transformation.Put(7,tmptransformation[0].Get(7));
     } else {
       cout<<"multiple objects detected combining..."<<endl;
-      //find outlayer and kill them first
 
       //now combine
       while(count > 2) {
@@ -295,18 +174,59 @@ irtkAffineTransformation irtkSegmentationFunction::DetectObject (irtkRealImage *
       transformation.Put(1,(tmptransformation[0].Get(1)+tmptransformation[1].Get(1))/2);
       //let the bounding box larger
       transformation.Put(6,(tmptransformation[0].Get(6)>tmptransformation[1].Get(6)
-                            ?tmptransformation[0].Get(6):tmptransformation[1].Get(6)) * fscale);
+                            ?tmptransformation[0].Get(6):tmptransformation[1].Get(6)));
       transformation.Put(7,(tmptransformation[0].Get(7)>tmptransformation[1].Get(7)
-                            ?tmptransformation[0].Get(7):tmptransformation[1].Get(7)) * fscale);
-      cout << "Final Evaluation Done"<<endl;
-      cout << "Object Center Location generated from "<< count << " instances:" << endl;
-      cout << "Object Box Center & Scale: " << transformation.Get(0) << " " << transformation.Get(1) <<" "<< transformation.Get(6) << "mm " << transformation.Get(7) << "mm"<< endl;
+                            ?tmptransformation[0].Get(7):tmptransformation[1].Get(7)));
     }
+    r = (CvRect*)cvAlloc(sizeof(CvRect));
+    CvFont font;
+    cvInitFont( &font, CV_FONT_VECTOR0,0.3, 0.3);
+    char numberbuff[255];
+    //create pimage
+    cvNamedWindow( "result", 1 );
+    //create event
+    cvSetMouseCallback( "result", on_mouse, r);
+    //intialize p1 p2
+    CvPoint p1= cvPoint(transformation.Get(0) - 0.5*transformation.Get(6)
+        ,transformation.Get(1) - 0.5*transformation.Get(7));
+    CvPoint p2= cvPoint(transformation.Get(0) + 0.5*transformation.Get(6)
+        ,transformation.Get(1) + 0.5*transformation.Get(7));
+
+    count = 0;
+    while(!count) {
+        itocg.Run(k);
+        cvRectangle( pimage, p1, p2, CV_RGB(200,200,200), 3, 8, 0 );
+        sprintf(numberbuff, "press 1 confirm, Drag mouse to select new region!");
+        textcenter.x = 10;
+        textcenter.y = pimage->height - 40;
+        cvPutText( pimage, numberbuff, textcenter, &font, CV_RGB(200,200,200));
+        sprintf(numberbuff, "Press enter to continue");
+        textcenter.x = 10;
+        textcenter.y = pimage->height - 20;
+        cvPutText( pimage, numberbuff, textcenter, &font, CV_RGB(200,200,200));
+        cvShowImage( "result", pimage );
+        count = ((char)cvWaitKey() == '1');
+        //final check
+        center.x = cvRound((r->x + r->width*0.5));
+        center.y = cvRound((r->y + r->height*0.5));        
+        p1= cvPoint(r->x,r->y);
+        p2= cvPoint(r->x+r->width,r->y+r->height);
+    }
+
+    cvDestroyWindow("result");
+
+    cout << "Object Center Location: " << center.x << " " << center.y << endl;
+    cout << "Object Box Scale: " << r->width << " " << r->height << endl;
+    transformation.Put(0,center.x);
+    transformation.Put(1,center.y);
+    //let the bounding box larger
+    transformation.Put(6,r->width*target->GetXSize()*fscale);
+    transformation.Put(7,r->height*target->GetYSize()*fscale);
+    cvFree(&r);
     // release images
     cvReleaseImage(&pimage);
     cvReleaseImage(&pths);
     cvReleaseImage(&small_img);
-    cvReleaseImage(&small_ths);
     cvReleaseMemStorage(&storage);
   }
   return transformation;
