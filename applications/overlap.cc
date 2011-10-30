@@ -16,8 +16,6 @@
 
 #include <irtkHistogram.h>
 
-#include <irtkTransformation.h>
-
 // Default filenames
 char *source_name = NULL, *target_name = NULL;
 

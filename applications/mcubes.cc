@@ -92,6 +92,11 @@ int main(int argc, char **argv)
 	irtkRealImage image;
 	image.Read(input_name);
 
+     if(image.GetT() > 1){
+         cerr << "Mcubes can not handle images with more than one frame." << endl;
+         exit(1);
+     }
+
 	// Set up marching cubes filter
 	vtkMarchingCubes *mcubes = vtkMarchingCubes::New();
 	mcubes->SetValue(0, threshold);
