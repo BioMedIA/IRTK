@@ -23,6 +23,8 @@ void usage()
 
 int main(int argc, char **argv)
 {
+	int i;
+
 	if (argc != 4){
 		usage();
 	}
@@ -68,7 +70,7 @@ int main(int argc, char **argv)
 
 	// Create fluid free-form deformation
 	irtkFluidFreeFormTransformation *t = new irtkFluidFreeFormTransformation();
-	while (mffd1->NumberOfLevels() > 0) t->PushLocalTransformation(mffd1->PopLocalTransformation());
+	for (i = 0; i < mffd1->NumberOfLevels(); i++) t->PushLocalTransformation(mffd1->GetLocalTransformation(i));
 	t->PushLocalTransformation(mffd2->PopLocalTransformation());
 
 	// Write local transformation
