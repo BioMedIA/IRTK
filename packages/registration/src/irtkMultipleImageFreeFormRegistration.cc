@@ -409,11 +409,7 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
   if(valid == 1) {
       for (i = 0; i < _tmpptarget->GetNumberOfPoints(); i++) {
           _tmpptarget->GetPoints()->GetPoint(i,p);
-          q[0] = p[0]; q[1] = p[1]; q[2] = p[2];
-          _affd->LocalDisplacement(q[0],q[1],q[2]);
-          p[0] += q[0];
-          p[1] += q[1];
-          p[2] += q[2];
+          _affd->Transform(p[0],p[1],p[2]);
           locator->FindClosestPoint(p,q,tmp,j,k,d);
           distance += d;
       }
