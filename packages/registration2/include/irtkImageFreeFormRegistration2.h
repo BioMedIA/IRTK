@@ -92,7 +92,7 @@ protected:
   virtual double VolumePreservationPenalty();
 
   /** Evaluates the volume preservation term. */
-  virtual void VolumePreservationPenalty(int,double*);
+  virtual void VolumePreservationPenalty(double*);
 
   /** Evaluates the topology preservation term. */
   virtual double TopologyPreservationPenalty();
