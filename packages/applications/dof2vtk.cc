@@ -120,11 +120,7 @@ int main(int argc, char **argv)
 		  irtkImageAttributes tmpatr;
 		  image.PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
 		  image.PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
-		  //image.PutOrigin(tmpatr._xorigin + (image.GetX() - 1)/2.0
-			  //,tmpatr._yorigin + (image.GetY() - 1)/2.0,
-			  //tmpatr._zorigin + (image.GetZ() - 1)/2.0);
-		  //image.PutPixelSize(tmpatr._dx,tmpatr._dy,tmpatr._dz);
-	  }
+      }
 
 	  if(isotropic == 1){
 		  // Resample image to isotropic voxels (smalles voxel dimension)
@@ -228,7 +224,7 @@ int main(int argc, char **argv)
   writer->SetInput(grid);
   writer->SetFileName(output_name);
   writer->SetFileTypeToBinary();
-  writer->SetVectorsName("vectors");
+  writer->SetVectorsName("deformation vectors");
   writer->Update();
 
 }
