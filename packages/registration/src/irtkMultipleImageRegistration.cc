@@ -20,12 +20,6 @@ Changes   : $Author$
 
 #include <irtkGaussianBlurring.h>
 
-#ifdef HAS_VTK
-
-#include <vtkDecimatePro.h>
-
-#endif
-
 #define HISTORY
 
 #ifdef HISTORY
@@ -87,6 +81,7 @@ irtkMultipleImageRegistration::irtkMultipleImageRegistration()
     // Set inputs
     _target = NULL;
     _source = NULL;
+    _locator = NULL;
 
 #ifdef HAS_VTK
 
@@ -151,6 +146,10 @@ void irtkMultipleImageRegistration::Initialize()
         delny->Update();
         _psource->DeepCopy(delny->GetOutput());
         delny->Delete();
+
+        _locator = new irtkLocator;
+        _locator->SelectLocatorType(0);
+        _locator->SetDataSet(_psource); // data represents the surface  
     }
 
 #endif
@@ -474,6 +473,13 @@ void irtkMultipleImageRegistration::Finalize()
     delete []_source_y2;
     delete []_source_z2;
     delete []_interpolator;
+
+#ifdef HAS_VTK
+    if(_ptarget != NULL && _psource != NULL){
+        delete _locator;
+    }
+
+#endif
 }
 
 void irtkMultipleImageRegistration::Finalize(int level)
@@ -616,25 +622,22 @@ double irtkMultipleImageRegistration::LandMarkPenalty ()
 #ifdef HAS_VTK
 
     int i,k;
-    vtkIdType j;
     double d = 0,distance = 0, p[3],q[3];
 
     if (_ptarget == NULL || _psource == NULL){
         return 0;
     }
-    vtkCellLocator *locator = vtkCellLocator::New(); 
-    locator->SetDataSet(_psource); // data represents the surface 
-    locator->SetNumberOfCellsPerBucket(1); 
-    locator->BuildLocator(); 
-    locator->Update(); 
 
     for (i = 0; i < _ptarget->GetNumberOfPoints(); i++) {
         _ptarget->GetPoints()->GetPoint(i,p);
         _transformation->Transform(p[0],p[1],p[2]);
-        locator->FindClosestPoint(p,q,j,k,d);
+        q[0] = p[0]; q[1] = p[1]; q[2] = p[2]; 
+        _locator->FindClosestPoint (q);
+        d = sqrt((p[0] - q[0]) * (p[0] - q[0]) +
+            (p[1] - q[1]) * (p[1] - q[1]) +
+            (p[2] - q[2]) * (p[2] - q[2]));
         distance += d;
     }
-    locator->Delete();
     return -(distance/double(_ptarget->GetNumberOfPoints()));
 
 #else

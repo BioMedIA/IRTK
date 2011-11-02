@@ -360,9 +360,10 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
 {
   int i,k;
 #ifdef HAS_VTK
-  vtkIdType j;
-  double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3];
+  double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3], count;
   irtkPoint p1, p2, pt;
+
+  count = _tmpptarget->GetNumberOfPoints();
 
   if(index != -1) {
     _affd->BoundingBox(index, p1, p2);
@@ -381,12 +382,6 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
   } else if(_ptarget->GetNumberOfPoints() == 0 || _psource->GetNumberOfPoints() == 0) {
       return 0;
   }
-
-  vtkCellLocator *locator = vtkCellLocator::New(); 
-  locator->SetDataSet(_psource); // data represents the surface 
-  locator->BuildLocator(); 
-
-  vtkGenericCell *tmp = vtkGenericCell::New();
 
   int valid = 0;
   if(index != -1) {
@@ -410,15 +405,17 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
       for (i = 0; i < _tmpptarget->GetNumberOfPoints(); i++) {
           _tmpptarget->GetPoints()->GetPoint(i,p);
           _affd->Transform(p[0],p[1],p[2]);
-          locator->FindClosestPoint(p,q,tmp,j,k,d);
-          distance += d;
+          q[0] = p[0]; q[1] = p[1]; q[2] = p[2]; 
+          _locator->FindClosestPoint (q);
+          d = sqrt((p[0] - q[0]) * (p[0] - q[0]) +
+              (p[1] - q[1]) * (p[1] - q[1]) +
+              (p[2] - q[2]) * (p[2] - q[2]));
+          distance += d/count;
       }
   }else{
       distance = 0;
   }
-  tmp->Delete();
-  locator->Delete();
-  return -(distance/double(_tmpptarget->GetNumberOfPoints()));
+  return -distance;
 #else
   return 0;
 #endif

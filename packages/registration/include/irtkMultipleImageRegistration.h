@@ -10,13 +10,13 @@
 
 =========================================================================*/
 
+#include <irtkLocator.h>
+
 #ifdef HAS_VTK
 
 #ifndef _IRTKMULTIPLEIMAGEREGISTRATION_H
 
 #define _IRTKMULTIPLEIMAGEREGISTRATION_H
-
-class irtkEMClassification;
 
 #ifdef HAS_TBB
 
@@ -88,6 +88,9 @@ protected:
 
   /// Optimizer
   irtkOptimizer *_optimizer;
+
+  /// Locator
+  irtkLocator *_locator;
 
   /// Blurring of target image (in mm)
   double _TargetBlurring[MAX_NO_RESOLUTIONS];
