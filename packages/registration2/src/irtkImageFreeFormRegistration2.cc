@@ -300,7 +300,7 @@ void irtkImageFreeFormRegistration2::SmoothnessPenaltyGradient(double *gradient)
   // Allocate memory
   double *tmp_gradient = new double[_affd->NumberOfDOFs()];
 
-	// and initialize memory (thanks to Stefan for his bug fix)
+  // and initialize memory (thanks to Stefan for his bug fix)
   for (i = 0; i < _affd->NumberOfDOFs(); i++) {
     tmp_gradient[i] = 0.0;
   }
@@ -333,132 +333,83 @@ double irtkImageFreeFormRegistration2::VolumePreservationPenalty()
   return -penalty / (double) _affd->NumberOfDOFs();
 }
 
-void irtkImageFreeFormRegistration2::VolumePreservationPenalty(double *gradient)
+void irtkImageFreeFormRegistration2::VolumePreservationPenaltyGradient(double *gradient)
 {
   int i, j, k, l, m, n, o, i1, j1, k1, i2, j2, k2, x, y, z, count, index, index1, index2, index3;
   double jacobian, drv[3];
-  irtkMatrix jac,det_drv[3];
+  irtkMatrix jac, det_drv[3];
 
   // Loop over control points
   for (z = 0; z < _affd->GetZ(); z++) {
-      for (y = 0; y < _affd->GetY(); y++) {
-          for (x = 0; x < _affd->GetX(); x++) {
+    for (y = 0; y < _affd->GetY(); y++) {
+      for (x = 0; x < _affd->GetX(); x++) {
 
-              // Compute DoFs corresponding to the control point
-              index  = _affd->LatticeToIndex(x, y, z);
-              index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
-              index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
+        // Compute DoFs corresponding to the control point
+        index  = _affd->LatticeToIndex(x, y, z);
+        index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+        index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
 
-              // Check if any DoF corresponding to the control point is active
-              if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
+        // Check if any DoF corresponding to the control point is active
+        if ((_affd->irtkTransformation::GetStatus(index)  == _Active) ||
+        		(_affd->irtkTransformation::GetStatus(index2) == _Active) ||
+        		(_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
+          _affd->IndexToLattice(index, i, j, k);
+          l = i;
+          m = j;
+          n = k;
+          count = 0;
+          k1 = (k-1) > 0 ? (k-1) : 0;
+          j1 = (j-1) > 0 ? (j-1) : 0;
+          i1 = (i-1) > 0 ? (i-1) : 0;
+          k2 = (k+2) < _affd->GetZ() ? (k+2) : _affd->GetZ();
+          j2 = (j+2) < _affd->GetY() ? (j+2) : _affd->GetY();
+          i2 = (i+2) < _affd->GetX() ? (i+2) : _affd->GetX();
 
-                  _affd->IndexToLattice(index, i, j, k);
-                  l = i;
-                  m = j;
-                  n = k;
-                  count = 0;
-                  k1 = (k-1)>0?(k-1):0;
-                  j1 = (j-1)>0?(j-1):0;
-                  i1 = (i-1)>0?(i-1):0;
-                  k2 = (k+2) < _affd->GetZ()? (k+2) : _affd->GetZ();
-                  j2 = (j+2) < _affd->GetY()? (j+2) : _affd->GetY();
-                  i2 = (i+2) < _affd->GetX()? (i+2) : _affd->GetX();
+          for (i = 0; i < 3; i++) drv[i] = 0;
 
-                  for(i=0;i<3;i++)
-                      drv[i] = 0;
+          for (k = k1; k < k2; k++) {
+            for (j = j1; j < j2; j++) {
+              for (i = i1; i < i2; i++) {
+                if(k != n || j != m || i != l) {
+                  index1 = _affd->LatticeToIndex(i,j,k);
+                  // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
+                  // Calculate jacobian
+                  irtkMatrix jac = _adjugate[index1];
 
-                  for (k = k1; k < k2; k++) {
-                      for (j = j1; j < j2; j++) {
-                          for (i = i1; i < i2; i++) {
-                              if(k != n || j != m || i != l) {
-                                  index1 = _affd->LatticeToIndex(i,j,k);
-                                  // Torsten Rohlfing et al. MICCAI'01 (w/o scaling correction):
-                                  // Calculate jacobian
-                                  irtkMatrix jac = _adjugate[index1];
+                  // find jacobian derivatives
+                  jacobian = _determinant[index1];
 
-                                  // find jacobian derivatives
-                                  jacobian = _determinant[index1];
+                  // if jacobian < 0
+                  jacobian = (2.0*log(jacobian))/jacobian;
 
-                                  // if jacobian < 0
-                                  jacobian = (2.0*log(jacobian))/jacobian;
+                  _affd->JacobianDetDerivative(det_drv,i-l,j-m,k-n);
 
-                                  _affd->JacobianDetDerivative(det_drv,i-l,j-m,k-n);
+                  double tmpdrv[3];
 
-                                  double tmpdrv[3];
-
-                                  for(o = 0; o < 3; o++) {
-                                      // trace * adjugate * derivative
-                                      tmpdrv[o] = jac(0,o)*det_drv[o](o,0) + jac(1,o)*det_drv[o](o,1) + jac(2,o)*det_drv[o](o,2);
-                                      // * rest of the volume preservation derivative
-                                      drv[o] += (jacobian*tmpdrv[o]);
-                                  }
-                                  count ++;
-                              }
-                          }
-                      }
+                  for(o = 0; o < 3; o++) {
+                    // trace * adjugate * derivative
+                    tmpdrv[o] = jac(0,o)*det_drv[o](o,0) + jac(1,o)*det_drv[o](o,1) + jac(2,o)*det_drv[o](o,2);
+                    // * rest of the volume preservation derivative
+                    drv[o] += (jacobian*tmpdrv[o]);
                   }
-
-                  for(l=0;l<3;l++)
-                      drv[l] = -drv[l]/count;
-
-                  gradient[index]  += this->_Lambda2  * drv[0];
-                  gradient[index2] += this->_Lambda2  * drv[1];
-                  gradient[index3] += this->_Lambda2  * drv[2];
+                  count ++;
+                }
               }
+            }
           }
+
+          for (l = 0; l < 3; l++) drv[l] = -drv[l]/count;
+
+          gradient[index]  += this->_Lambda2  * drv[0];
+          gradient[index2] += this->_Lambda2  * drv[1];
+          gradient[index3] += this->_Lambda2  * drv[2];
+        }
       }
+    }
   }
 
   return;
-}
-
-
-double irtkImageFreeFormRegistration2::TopologyPreservationPenalty()
-{
-  int i, j, k;
-  double x, y, z, jac, penalty;
-
-  penalty = 0;
-  for (k = 0; k < _affd->GetZ()-1; k++) {
-    for (j = 0; j < _affd->GetY()-1; j++) {
-      for (i = 0; i < _affd->GetZ()-1; i++) {
-        x = i+0.5;
-        y = j+0.5;
-        z = k+0.5;
-        _affd->LatticeToWorld(x, y, z);
-        jac = _affd->irtkTransformation::Jacobian(x, y, z);
-        if (jac < 0.3) {
-          penalty += 10*jac*jac + 0.1/(jac*jac) - 2.0;
-        }
-      }
-    }
-  }
-  return -penalty;
-}
-
-double irtkImageFreeFormRegistration2::TopologyPreservationPenalty(int index)
-{
-  int i, j, k, l, m, n;
-  double x, y, z, jac, penalty;
-
-  penalty = 0;
-  for (l = 0; l <= 1; l++) {
-    for (m = 0; m <= 1; m++) {
-      for (n = 0; n <= 1; n++) {
-        _affd->IndexToLattice(index, i, j, k);
-        x = i+l-0.5;
-        y = j+m-0.5;
-        z = k+n-0.5;
-        _affd->LatticeToWorld(x, y, z);
-        jac = _affd->irtkTransformation::Jacobian(x, y, z);
-        if (jac < 0.3) {
-          penalty += 10.0*jac*jac + 0.1/(jac*jac) - 2.0;
-        }
-      }
-    }
-  }
-  return -penalty;
 }
 
 double irtkImageFreeFormRegistration2::Evaluate()
@@ -479,10 +430,6 @@ double irtkImageFreeFormRegistration2::Evaluate()
     tmp = this->_Lambda2*this->VolumePreservationPenalty();
     cout << "\t Volume = " << tmp;
     similarity += tmp;
-  }
-  // Add penalty for topology preservation
-  if (this->_Lambda3 > 0) {
-    similarity += this->_Lambda3*this->TopologyPreservationPenalty();
   }
   cout << endl;
 
@@ -664,8 +611,8 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     this->SmoothnessPenaltyGradient(gradient);
   }
 
-  if (this->_Lambda2 > 0){
-    this->VolumePreservationPenalty(gradient);
+  if (this->_Lambda2 > 0) {
+    this->VolumePreservationPenaltyGradient(gradient);
   }
 
   // Calculate maximum of gradient vector
