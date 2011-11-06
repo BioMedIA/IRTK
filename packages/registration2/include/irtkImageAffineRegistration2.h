@@ -26,11 +26,6 @@
 class irtkImageAffineRegistration2 : public irtkImageRigidRegistration2
 {
 
-protected:
-
-  /// Evaluate the gradient of the similarity measure for the current transformation.
-  virtual double EvaluateGradient(double *);
-
 public:
 
   /** Sets the output for the registration filter. The output must be a rigid

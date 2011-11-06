@@ -37,7 +37,7 @@ void irtkImageRigidRegistration2::GuessParameter()
   _NumberOfBins       = 64;
 
   // Default parameters for optimization
-  _Epsilon            = 0.0001;
+  _Epsilon            = 0;
 
   // Read target pixel size
   _target->GetPixelSize(&xsize, &ysize, &zsize);
@@ -73,7 +73,7 @@ void irtkImageRigidRegistration2::GuessParameter()
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
-    _NumberOfIterations[i] = 20;
+    _NumberOfIterations[i] = 200;
     _MinStep[i]            = 0.01;
     _MaxStep[i]            = 1.0;
   }
@@ -410,8 +410,9 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
 
 double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
 {
-  int i, j, k, l, n;
-  double x, y, z, jac[3], norm;
+  int i, j, k, l;
+  double x, y, z, jac[3], norm, max_length;
+  static double *g = NULL, *h = NULL, gg, dgg, gamma;
 
   // Pointer to reference data
   short *ptr2target;
@@ -438,7 +439,6 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   ptr2gradZ  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 2);
 
   // Loop over images
-  n = 0;
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
@@ -451,14 +451,13 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
           // Convert voxel coordinate to world coordinate
           _target->ImageToWorld(x, y, z);
 
-          // Convert this gradient into gradient with respect to parameters (note that the sign of the gradient is changed here)
+          // Convert this gradient into gradient with respect to parameters
           for (l = 0; l < _transformation->NumberOfDOFs(); l++) {
 
             // Compute derivatives with respect to DOF
             _transformation->JacobianDOFs(jac, l, x, y, z);
             gradient[l] += jac[0] * *ptr2gradX + jac[1] * *ptr2gradY + jac[2] * *ptr2gradZ;
           }
-          n++;
         }
         ptr2gradX++;
         ptr2gradY++;
@@ -469,25 +468,43 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
     }
   }
 
-  // Calculate norm of gradient vector
-  norm = 0;
-  for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
-    norm += gradient[i] * gradient[i];
-  }
-  norm = sqrt(norm);
-
-
-  // Normalize gradient
-  if (norm > 0) {
+  // Update gradient
+  if (_CurrentIteration == 0) {
+    // First iteration, so let's initialize
+    if (g != NULL) delete []g;
+    g = new double [_transformation->NumberOfDOFs()];
+    if (h != NULL) delete []h;
+    h = new double [_transformation->NumberOfDOFs()];
     for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
-      if (_transformation->irtkTransformation::GetStatus(i) == _Passive) {
-        gradient[i] = 0;
-      } else {
-        gradient[i] /= norm;
-      }
+      g[i] = -gradient[i];
+      h[i] = g[i];
     }
   } else {
+    // Update gradient direction to be conjugate
+    gg = 0;
+    dgg = 0;
     for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
+      gg  += g[i]*h[i];
+      dgg += (gradient[i]+g[i])*gradient[i];
+    }
+    gamma = dgg/gg;
+    for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
+      g[i] = -gradient[i];
+      h[i] = g[i] + gamma*h[i];
+      gradient[i] = -h[i];
+    }
+  }
+
+  // Calculate maximum of gradient vector
+  max_length = 0;
+  for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
+    norm = sqrt(gradient[i] * gradient[i]);
+    if (norm > max_length) max_length = norm;
+  }
+
+  // Deal with active and passive DOFs
+  for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
+    if (_transformation->irtkTransformation::GetStatus(i) == _Passive) {
       gradient[i] = 0;
     }
   }
@@ -497,6 +514,6 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
   //cout << "CPU time for irtkImageRigidRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
-  return 0;
+  return max_length;
 }
 

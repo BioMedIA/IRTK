@@ -630,7 +630,7 @@ void irtkImageRegistration2::Run()
 {
   int i, k;
   char buffer[256];
-  double *gradient, delta, step, min_step, max_step, best_similarity, new_similarity, old_similarity;
+  double *gradient, delta, step, min_step, max_step, max_length, best_similarity, new_similarity, old_similarity;
 
   // Print debugging information
   this->Debug("irtkImageRegistration2::Run");
@@ -688,14 +688,14 @@ void irtkImageRegistration2::Run()
       cout << "Current best metric value is " << best_similarity << endl;
 
       // Compute gradient of similarity metric
-      this->EvaluateGradient(gradient);
+      max_length = this->EvaluateGradient(gradient);
 
       // Step along gradient direction until no further improvement is necessary
       i = 0;
       delta = 0;
       step = max_step;
       do {
-        double current = step;
+        double current = step / max_length;
 
         // Move along gradient direction
         for (k = 0; k < _transformation->NumberOfDOFs(); k++) {
@@ -1006,7 +1006,7 @@ double irtkImageRegistration2::EvaluateGradient(double *)
   }
 
   // Extract matrix for reorientation of gradient
-  irtkMatrix m = _target->GetImageToWorldMatrix();
+  irtkMatrix m = _source->GetImageToWorldMatrix();
 
   // Pointer to voxels in images
   short  *ptr2target = _target->GetPointerToVoxels();
