@@ -139,7 +139,29 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkBas
   _y = round((y2 - y1) / dy) + 1;
   if (z2 > z1) {
     _z = round((z2 - z1) / dz) + 1;
+    // Check if spacing is too large in any direction
+    if (_x < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
+      exit(1);
+    }
+    if (_y < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
+      exit(1);
+    }
+    if (_z < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the z-direction too large" << endl;
+      exit(1);
+    }
   } else {
+    // Check if spacing is too large in any direction
+    if (_x < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
+      exit(1);
+    }
+    if (_y < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
+      exit(1);
+    }
     _z = 1;
   }
 
@@ -234,7 +256,29 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(double 
   _y = round((y2 - y1) / dy) + 1;
   if (z2 > z1) {
     _z = round((z2 - z1) / dz) + 1;
+    // Check if spacing is too large in any direction
+    if (_x < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
+      exit(1);
+    }
+    if (_y < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
+      exit(1);
+    }
+    if (_z < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the z-direction too large" << endl;
+      exit(1);
+    }
   } else {
+    // Check if spacing is too large in any direction
+    if (_x < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
+      exit(1);
+    }
+    if (_y < 2) {
+      cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
+      exit(1);
+    }
     _z = 1;
   }
 
