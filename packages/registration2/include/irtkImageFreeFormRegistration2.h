@@ -91,14 +91,8 @@ protected:
   /** Evaluates the volume preservation term. */
   virtual double VolumePreservationPenalty();
 
-  /** Evaluates the volume preservation term. */
-  virtual void VolumePreservationPenalty(double*);
-
-  /** Evaluates the topology preservation term. */
-  virtual double TopologyPreservationPenalty();
-
-  /** Evaluates the topology preservation term. */
-  virtual double TopologyPreservationPenalty(int);
+  /** Evaluates the gradient of the volume preservation term. */
+  virtual void VolumePreservationPenaltyGradient(double *);
 
   /** Evaluates the registration. This function evaluates the registration by
    *  looping over the target image and interpolating the transformed source
