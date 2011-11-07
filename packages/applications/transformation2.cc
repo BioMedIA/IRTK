@@ -11,6 +11,8 @@
 =========================================================================*/
 
 #include <irtkImage.h>
+#include <irtkFileToImage.h>
+#include <irtkRegionFilter.h>
 
 #include <irtkTransformation.h>
 
@@ -49,6 +51,13 @@ void usage()
   cerr << "<-bspline>         B-spline interpolation" << endl;
   cerr << "<-cspline>         Cubic spline interpolation" << endl;
   cerr << "<-sinc>            Sinc interpolation" << endl;
+  cerr << "<-matchInputType>  Make the output data type (short, float, etc.)" << endl;
+  cerr << "                   the same as that of the input image regardless" << endl;
+  cerr << "                   of the data type of the target (if specified)." << endl;
+  cerr << endl;
+
+  PrintVersion(cerr, "$Revision$");
+
   exit(1);
 }
 
@@ -60,9 +69,13 @@ int main(int argc, char **argv)
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
   irtkTransformation *transformation1 = NULL;
   irtkTransformation *transformation2 = NULL;
-  irtkGreyImage *source = NULL;
-  irtkGreyImage *target = NULL;
+  irtkImage *source = NULL;
+  irtkImage *target = NULL;
   irtkImageFunction *interpolator = NULL;
+  bool matchSourceType;
+
+  int targetType = -1;
+  int sourceType = -1;
 
   // Check command line
   if (argc < 3) {
@@ -79,7 +92,9 @@ int main(int argc, char **argv)
 
   // Read image
   cout << "Reading image ... "; cout.flush();
-  source = new irtkGreyImage(input_name);
+  source = irtkImage::New(input_name);
+  irtkFileToImage *inputReader = irtkFileToImage::New(input_name);
+  sourceType = inputReader->GetDataType();
   cout << "done" << endl;
 
   // Fix ROI
@@ -100,6 +115,7 @@ int main(int argc, char **argv)
   invert = false;
   source_padding = 0;
   target_padding = MIN_GREY;
+  matchSourceType = false;
 
   while (argc > 1) {
     ok = false;
@@ -317,6 +333,12 @@ int main(int argc, char **argv)
       interpolator = new irtkSincInterpolateImageFunction;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-matchInputType") == 0)){
+      argc--;
+      argv++;
+      matchSourceType = true;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -330,7 +352,24 @@ int main(int argc, char **argv)
 
   // If there is no target image use copy of source image as target image
   if (target == NULL) {
-    target = new irtkGreyImage(*source);
+    target = irtkImage::New(source);
+  }else{
+    irtkImageAttributes atr = target->GetImageAttributes();
+    atr._t = source->GetT();
+    target->Initialize(atr);
+
+    if (matchSourceType){
+      // Deallocate the target data that was read in.
+      target->Clear();
+      // Read the source data into the target so that the data type matches.
+      target = irtkImage::New(input_name);
+      // Override with the geometry of the target.
+      target->Initialize(atr);
+    } else if (sourceType != targetType){
+      // Target image was specified but has different type.
+      cerr << "\nWarning! source and target image have different data types:" << endl;
+      cerr << "Converting data from " << DataTypeName(sourceType) << " to " << DataTypeName(targetType) << ".\n" << endl;
+    }
   }
 
   // Compute region of interest for target image
@@ -351,18 +390,24 @@ int main(int argc, char **argv)
 
   // If there is an region of interest for the target image, use it
   if ((target_x1 != 0) || (target_x2 != target->GetX()) ||
-      (target_y1 != 0) || (target_y2 != target->GetY()) ||
-      (target_z1 != 0) || (target_z2 != target->GetZ())) {
-    *target = target->GetRegion(target_x1, target_y1, target_z1,
-                                target_x2, target_y2, target_z2);
+    (target_y1 != 0) || (target_y2 != target->GetY()) ||
+    (target_z1 != 0) || (target_z2 != target->GetZ())) {
+      irtkRegionFilter *region = new irtkRegionFilter;
+      region->SetInput (target);
+      region->SetOutput(target);
+      region->PutRegion(target_x1, target_y1, target_z1, 0, target_x2, target_y2, target_z2, 1);
+      region->Run();
   }
 
   // If there is an region of interest for the source image, use it
   if ((source_x1 != 0) || (source_x2 != source->GetX()) ||
-      (source_y1 != 0) || (source_y2 != source->GetY()) ||
-      (source_z1 != 0) || (source_z2 != source->GetZ())) {
-    *source = source->GetRegion(source_x1, source_y1, source_z1,
-                                source_x2, source_y2, source_z2);
+    (source_y1 != 0) || (source_y2 != source->GetY()) ||
+    (source_z1 != 0) || (source_z2 != source->GetZ())) {
+      irtkRegionFilter *region = new irtkRegionFilter;
+      region->SetInput (source);
+      region->SetOutput(source);
+      region->PutRegion(source_x1, source_y1, source_z1, 0, source_x2, source_y2, source_z2, 1);
+      region->Run();
   }
 
   if (dof1_name != NULL) {
