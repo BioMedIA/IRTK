@@ -85,7 +85,7 @@ public:
   irtkColorRGBA *lookupTable;
 
   /// Constructor
-  irtkLookupTable(int = 0, int = 1);
+  irtkLookupTable(int = 0, int = 10000);
 
   /// Destructor
   ~irtkLookupTable();
