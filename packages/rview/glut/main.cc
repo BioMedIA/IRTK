@@ -353,6 +353,7 @@ int main(int argc, char** argv)
     if ((ok == false) && (strcmp(argv[1], "-cursor") == 0)) {
       argc--;
       argv++;
+      rview->DisplayAxisLabelsOff();
       rview->DisplayCursorOff();
       ok = true;
     }
