@@ -35,6 +35,7 @@ private:
 
 protected:
 
+
   /// Input image for filter
   irtkGenericImage<VoxelType> *_input;
 

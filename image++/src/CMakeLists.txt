@@ -20,6 +20,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkFileGIPLToImage.h
 ../include/irtkFileNIFTIToImage.h
 ../include/irtkFilePGMToImage.h
+../include/irtkFileOpenCVToImage.h
 ../include/irtkFileToImage.h
 ../include/irtkFileVTKToImage.h
 ../include/irtkGaussianBlurring.h
@@ -101,6 +102,7 @@ irtkFileANALYZEToImage.cc
 irtkFileNIFTIToImage.cc
 irtkFileGIPLToImage.cc
 irtkFilePGMToImage.cc
+irtkFileOpenCVToImage.cc
 irtkFileToImage.cc
 irtkFileVTKToImage.cc
 irtkGaussianBlurring.cc

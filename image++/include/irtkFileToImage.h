@@ -121,6 +121,9 @@ public:
 #ifdef HAS_NIFTI
 #include <irtkFileNIFTIToImage.h>
 #endif
+#ifdef HAS_OPENCV
+#include <irtkFileOpenCVToImage.h>
+#endif
 #include <irtkFileANALYZEToImage.h>
 
 #endif

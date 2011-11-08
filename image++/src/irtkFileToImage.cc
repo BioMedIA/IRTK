@@ -82,6 +82,14 @@ irtkFileToImage *irtkFileToImage::New(const char *imagename)
     return reader;
   }
 
+#ifdef HAS_OPENCV
+  if (irtkFileOpenCVToImage::CheckHeader(imagename)) {
+      reader = new irtkFileOpenCVToImage;
+      reader->SetInput(imagename);
+      return reader;
+  }
+#endif
+
   // Check for error
   if (reader == NULL) {
     cerr << "irtkFileToImage::New: Unknown file format " << imagename
