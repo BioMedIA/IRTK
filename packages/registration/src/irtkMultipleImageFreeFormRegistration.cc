@@ -363,24 +363,24 @@ double irtkMultipleImageFreeFormRegistration::LandMarkPenalty(int index)
   double dx = 0, dy = 0, dz = 0, min, max, d = 0, distance = 0 , p[3], q[3], count;
   irtkPoint p1, p2, pt;
 
-  count = _tmpptarget->GetNumberOfPoints();
-
-  if(index != -1) {
-    _affd->BoundingBox(index, p1, p2);
-    _target[0]->WorldToImage(p1);
-    _target[0]->WorldToImage(p2);
-    dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
-    dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
-    dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
-
-    min = 0;
-    max = FFDLOOKUPTABLESIZE-1;
-  }
-
   if (_ptarget == NULL || _psource == NULL) {
       return 0;
   } else if(_ptarget->GetNumberOfPoints() == 0 || _psource->GetNumberOfPoints() == 0) {
       return 0;
+  }
+
+  count = _tmpptarget->GetNumberOfPoints();
+
+  if(index != -1) {
+      _affd->BoundingBox(index, p1, p2);
+      _target[0]->WorldToImage(p1);
+      _target[0]->WorldToImage(p2);
+      dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
+      dy = (FFDLOOKUPTABLESIZE-1)/(p2._y-p1._y);
+      dz = (FFDLOOKUPTABLESIZE-1)/(p2._z-p1._z);
+
+      min = 0;
+      max = FFDLOOKUPTABLESIZE-1;
   }
 
   int valid = 0;
