@@ -763,8 +763,9 @@ void irtkImageFreeFormRegistration2::Run()
           step = step * 0.5;
         }
         i++;
-        _CurrentIteration++;
       } while ((i < MAX_NO_LINE_ITERATIONS) && (step > min_step));
+
+      _CurrentIteration++;
 
       // Check for convergence
       if (delta == 0) break;

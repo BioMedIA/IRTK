@@ -73,7 +73,7 @@ void irtkImageRigidRegistration2::GuessParameter()
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
-    _NumberOfIterations[i] = 200;
+    _NumberOfIterations[i] = 40;
     _MinStep[i]            = 0.01;
     _MaxStep[i]            = 1.0;
   }

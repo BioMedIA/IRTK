@@ -724,8 +724,8 @@ void irtkImageRegistration2::Run()
           step = step * 0.5;
         }
         i++;
-        _CurrentIteration++;
       } while ((i < MAX_NO_LINE_ITERATIONS) && (step > min_step));
+      _CurrentIteration++;
 
       // Check for convergence
       if (delta == 0) break;
@@ -887,6 +887,7 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   // Recompute joint histogram
   for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
     for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
+
       logJointHistogram.Add(i, j, _histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }

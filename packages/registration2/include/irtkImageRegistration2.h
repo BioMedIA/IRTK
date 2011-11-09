@@ -248,5 +248,6 @@ inline void irtkImageRegistration2::Debug(string message)
 #include <irtkImageRigidRegistration2.h>
 #include <irtkImageAffineRegistration2.h>
 #include <irtkImageFreeFormRegistration2.h>
+#include <irtkDiscontinueFreeFormRegistration.h>
 
 #endif
