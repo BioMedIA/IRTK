@@ -70,13 +70,21 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   _TargetBlurring[0]      = GuessResolution(xsize, ysize, zsize) / 2.0;
   _TargetResolution[0][0] = GuessResolution(xsize, ysize, zsize);
   _TargetResolution[0][1] = GuessResolution(xsize, ysize, zsize);
-  _TargetResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  if (_target->GetZ() > 1) {
+    _TargetResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  } else {
+    _TargetResolution[0][2] = zsize;
+  }
 
   for (i = 1; i < _NumberOfLevels; i++) {
     _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
     _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
     _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
-    _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+    if (_target->GetZ() > 1) {
+      _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+    } else {
+      _TargetResolution[i][2] = zsize;
+    }
   }
 
   // Read source pixel size
@@ -86,27 +94,39 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   _SourceBlurring[0]      = GuessResolution(xsize, ysize, zsize) / 2.0;
   _SourceResolution[0][0] = GuessResolution(xsize, ysize, zsize);
   _SourceResolution[0][1] = GuessResolution(xsize, ysize, zsize);
-  _SourceResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  if (_source->GetZ() > 1) {
+    _SourceResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  } else {
+    _SourceResolution[0][2] = zsize;
+  }
 
   for (i = 1; i < _NumberOfLevels; i++) {
     _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
     _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
     _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
-    _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+    if (_source->GetZ() > 1) {
+      _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+    } else {
+      _SourceResolution[i][2] = zsize;
+    }
   }
 
   // Default parameters for non-rigid registration
   _Lambda1            = 0; //recommended value 0.0001
   _Lambda2            = 0; //recommended value 1
   _Lambda3            = 0;
-  _DX                 =_target->GetX() * spacing / 10.0;
-  _DY                 =_target->GetX() * spacing / 10.0;
-  _DZ                 =_target->GetX() * spacing / 10.0;
+  _DX                 = _target->GetX() * spacing / 10.0;
+  _DY                 = _target->GetY() * spacing / 10.0;
+  if (_target->GetZ() > 1) {
+    _DZ               = _target->GetZ() * spacing / 10.0;
+  } else {
+    _DZ               = 1;
+  }
   _Subdivision        = true;
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
-    _NumberOfIterations[i] = 10;
+    _NumberOfIterations[i] = 200;
     _MinStep[i]            = 0.01;
     _MaxStep[i]            = 1.0;
   }
@@ -351,8 +371,8 @@ void irtkImageFreeFormRegistration2::VolumePreservationPenaltyGradient(double *g
 
         // Check if any DoF corresponding to the control point is active
         if ((_affd->irtkTransformation::GetStatus(index)  == _Active) ||
-        		(_affd->irtkTransformation::GetStatus(index2) == _Active) ||
-        		(_affd->irtkTransformation::GetStatus(index3) == _Active)) {
+            (_affd->irtkTransformation::GetStatus(index2) == _Active) ||
+            (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
           _affd->IndexToLattice(index, i, j, k);
           l = i;
@@ -418,20 +438,21 @@ double irtkImageFreeFormRegistration2::Evaluate()
 
   // Evaluate similarity
   similarity = this->irtkImageRegistration2::Evaluate();
+  cout << "Similarity = " << similarity << "\t";
 
   // Add penalty for smoothness
   if (this->_Lambda1 > 0) {
     tmp = this->_Lambda1*this->SmoothnessPenalty();
-    cout << "\t Bending = " << tmp;
+    cout << "Bending = " << tmp << "\t";
     similarity += tmp;
   }
   // Add penalty for volume preservation
   if (this->_Lambda2 > 0) {
     tmp = this->_Lambda2*this->VolumePreservationPenalty();
-    cout << "\t Volume = " << tmp;
+    cout << "Volume = " << tmp;
     similarity += tmp;
   }
-  cout << endl;
+  if ((this->_Lambda1 > 0) || (this->_Lambda2 > 0)) cout << endl;
 
   //Return similarity measure + penalty terms
   return similarity;
@@ -703,7 +724,7 @@ void irtkImageFreeFormRegistration2::Run()
 
       // Compute current metric value
       best_similarity = old_similarity = this->Evaluate();
-      cout << "Current best metric value is " << best_similarity << endl;
+      cout << "Current objective function value is " << best_similarity << endl;
 
       // Compute gradient of similarity metric. The function EvaluateGradient() returns the maximum control point length in the gradient
       max_length = this->EvaluateGradient(gradient);
@@ -727,7 +748,7 @@ void irtkImageFreeFormRegistration2::Run()
         new_similarity = this->Evaluate();
 
         if (new_similarity > best_similarity + _Epsilon) {
-          cout << "New metric value is " << new_similarity << "; step = " << step << endl;
+          cout << "New objective value function is " << new_similarity << "; step = " << step << endl;
           best_similarity = new_similarity;
           delta += step;
           step = step * 1.1;
@@ -735,7 +756,7 @@ void irtkImageFreeFormRegistration2::Run()
 
         } else {
           // Last step was no improvement, so back track
-          cout << "Rejected metric value is " << new_similarity << "; step = " << step << endl;
+          cout << "Rejected objective function value is " << new_similarity << "; step = " << step << endl;
           for (k = 0; k < _affd->NumberOfDOFs(); k++) {
             _affd->Put(k, _affd->Get(k) - current * gradient[k]);
           }
