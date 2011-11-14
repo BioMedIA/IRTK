@@ -27,9 +27,10 @@ void usage()
 	cerr << "<-orientation x1 x2 x3   y1 y2 y3  z1 z2 z3> \t Image orientation\n";
 	cerr << "<-origin      x  y  z>                       \t Image origin (in mm)\n";
 	cerr << "<-torigin     t>                             \t Image origin (in ms)\n";
-	cerr << "<-dofin       dof>                           \t Change header from transformation\n";
 	cerr << "<-outputheader matrixfilename>               \t Output header in matrix\n";
 	cerr << "<-target      image>                         \t Copy header from target image\n\n";
+	cerr << "<-dofin       transformation>                \t Apply transformation to axis, spacing and origin information in the" << endl;
+	cerr << "	                                            \t header. Transformation may be rigid or affine and with no shearing.\n";
 	exit(1);
 }
 
@@ -37,7 +38,6 @@ int main(int argc, char **argv)
 {
 	int i, ok;
 	double xsize, ysize, zsize, tsize, xaxis[3], yaxis[3], zaxis[3], origin[4];
-	double sx, sy, sz, tansxy, tansxz, tansyz;
 	irtkTransformation *transformation = NULL;
 
 	if (argc < 3) {
@@ -190,145 +190,78 @@ int main(int argc, char **argv)
 
 	// Transform header
 	if (dof_name != NULL) {
+
 		// Read transformation
 		transformation = irtkTransformation::New(dof_name);
-		irtkMatrix itmat(4, 4);
-		irtkMatrix tmp1(4, 4);
-		irtkMatrix tmp2(4, 4);
-		irtkMatrix transfMat;
 
-		itmat = image->GetImageToWorldMatrix();
-
-		if (strcmp(transformation->NameOfClass(), "irtkRigidTransformation") == 0) {
-			irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
-
-			transfMat = rigidTransf->GetMatrix();
-			transfMat = transfMat * itmat;
-			//Scale
-			irtkMatrix copy(4, 4);
-			copy = transfMat;
-
-			// Get scale manipulating the columns of the upper left 3x3
-			// sub-matrix.
-			irtkVector col_0, col_1, col_2;
-			col_0.Initialize(3);
-			col_1.Initialize(3);
-			col_2.Initialize(3);
-			for (i = 0; i < 3; ++i) {
-				col_0(i) = copy(i, 0);
-				col_1(i) = copy(i, 1);
-				col_2(i) = copy(i, 2);
-			}
-
-			// Compute X scale factor and normalize first col.
-			sx = col_0.Norm();
-			col_0 /= sx;
-
-			// Actually, tansxy and col_1 are still to large by a factor of sy.
-			// Now, compute Y scale and normalize 2nd col and rescale tansxy.
-			sy = col_1.Norm();
-			col_1  /= sy;
-
-			// Actually, tansxz, tansyz and col_2 are still to large by a factor of
-			// sz.  Next, get Z scale, normalize 3rd col and scale tansxz and tansyz.
-			sz = col_2.Norm();
-			col_2  /= sz;
-
-			// At this point, the columns are orthonormal.  Check for a coordinate
-			// system flip.  If the determinant is -1, then negate the matrix and the
-			// scaling factors.
-			/*irtkVector col_1_x_col_2;
-			col_1_x_col_2.Initialize(3);
-			col_1_x_col_2 = col_1.CrossProduct(col_2);
-
-			if (col_0.ScalarProduct(col_1_x_col_2) < 0) {
-				sx *= -1;
-				sy *= -1;
-				sz *= -1;
-				col_0 *= -1;
-				col_1 *= -1;
-				col_2 *= -1;
-			}*/
-
-			xaxis[0] = col_0(0); xaxis[1] = col_0(1); xaxis[2] = col_0(2);
-			yaxis[0] = col_1(0); yaxis[1] = col_1(1); yaxis[2] = col_1(2);
-			zaxis[0] = col_2(0); zaxis[1] = col_2(1); zaxis[2] = col_2(2);
-
-			//Rotation
-			image->PutOrientation(xaxis, yaxis, zaxis);
-			//Translation
-			image->GetOrigin(origin[0], origin[1], origin[2]);
-			rigidTransf->Transform(origin[0], origin[1], origin[2]);
-			image->PutOrigin(origin[0], origin[1], origin[2]);
-		} else if (strcmp(transformation->NameOfClass(), "irtkAffineTransformation") == 0) {
+		if (strcmp(transformation->NameOfClass(), "irtkAffineTransformation") == 0) {
 			irtkAffineTransformation *affineTransf = dynamic_cast<irtkAffineTransformation*> (transformation);
 
-			transfMat = affineTransf->GetMatrix();
-			transfMat = transfMat * itmat;
-			//Scale
-			irtkMatrix copy(4, 4);
-			copy = transfMat;
-
-			// Get scale and shear by manipulating the columns of the upper left 3x3
-			// sub-matrix.
-			irtkVector col_0, col_1, col_2;
-			col_0.Initialize(3);
-			col_1.Initialize(3);
-			col_2.Initialize(3);
-			for (i = 0; i < 3; ++i) {
-				col_0(i) = copy(i, 0);
-				col_1(i) = copy(i, 1);
-				col_2(i) = copy(i, 2);
+			if (fabs(affineTransf->GetShearXY()) +
+					fabs(affineTransf->GetShearXZ()) +
+					fabs(affineTransf->GetShearYZ()) > 0.001){
+				cerr << "Affine transformation provided contains shearing : Cannot be used to modify header" << endl;
+				exit(1);
 			}
-
-			// Compute X scale factor and normalize first col.
-			sx = col_0.Norm();
-			col_0 /= sx;
-
-			// Compute XY shear factor and make 2nd col orthogonal to 1st.
-			tansxy = col_0.ScalarProduct(col_1);
-			col_1 = col_1 - col_0 * tansxy;
-
-			// Actually, tansxy and col_1 are still to large by a factor of sy.
-			// Now, compute Y scale and normalize 2nd col and rescale tansxy.
-			sy = col_1.Norm();
-			col_1  /= sy;
-			tansxy /= sy;
-
-			// Compute XZ and YZ shears, orthogonalize 3rd col
-			tansxz = col_0.ScalarProduct(col_2);
-			col_2 = col_2 - col_0 * tansxz;
-
-			tansyz = col_1.ScalarProduct(col_2);
-			col_2 = col_2 - col_1 * tansyz;
-
-			// Actually, tansxz, tansyz and col_2 are still to large by a factor of
-			// sz.  Next, get Z scale, normalize 3rd col and scale tansxz and tansyz.
-			sz = col_2.Norm();
-			col_2  /= sz;
-			tansxz /= sz;
-			tansyz /= sz;
-
-			xaxis[0] = col_0(0); xaxis[1] = col_0(1); xaxis[2] = col_0(2);
-			yaxis[0] = col_1(0); yaxis[1] = col_1(1); yaxis[2] = col_1(2);
-			zaxis[0] = col_2(0); zaxis[1] = col_2(1); zaxis[2] = col_2(2);
-
-			//Scale
-			image->GetPixelSize(&xsize, &ysize, &zsize);
-			image->PutPixelSize(xsize*sx, ysize*sy, zsize*sz);
-			//Rotation
-			image->PutOrientation(xaxis, yaxis, zaxis);
-			//Translation
-			image->GetOrigin(origin[0], origin[1], origin[2]);
-			affineTransf->Transform(origin[0], origin[1], origin[2]);
-			image->PutOrigin(origin[0], origin[1], origin[2]);
-		} else {
-			cerr<<"header tool can't parse more than affine transformation"<<endl;
+		} else if (strcmp(transformation->NameOfClass(), "irtkRigidTransformation") != 0) {
+			cerr<<"header tool: Can only modify header with a rigid or a no-shear affine transformation"<<endl;
 			exit(1);
 		}
 
+		irtkImageAttributes attr = image->GetImageAttributes();
 
+		// Origin:
 
+		transformation->Transform(attr._xorigin, attr._yorigin, attr._zorigin);
+
+		// Grid spacings:
+
+		irtkVector v(3);
+		irtkVector u(3);
+
+		// Zero vector.
+		u.Initialize(3);
+		transformation->Transform(u(0), u(1), u(2));
+
+		for (i = 0; i < 3; i++){
+			v(i) = attr._xaxis[i];
+		}
+		transformation->Transform(v(0), v(1), v(2));
+		v = v - u;
+		attr._dx = attr._dx * v.Norm();
+
+		for (i = 0; i < 3; i++){
+			v(i) = attr._yaxis[i];
+		}
+		transformation->Transform(v(0), v(1), v(2));
+		v = v - u;
+		attr._dy = attr._dy * v.Norm();
+
+		for (i = 0; i < 3; i++){
+			v(i) = attr._zaxis[i];
+		}
+		transformation->Transform(v(0), v(1), v(2));
+		v = v - u;
+		attr._dz = attr._dz * v.Norm();
+
+		// Axes:
+
+		// Isolate rotation part of transformation.
+		irtkRigidTransformation rotation;
+		for (i = 3; i < 6; i++){
+			rotation.Put(i, transformation->Get(i));
+		}
+
+		rotation.Transform(attr._xaxis[0], attr._xaxis[1], attr._xaxis[2]);
+		rotation.Transform(attr._yaxis[0], attr._yaxis[1], attr._yaxis[2]);
+		rotation.Transform(attr._zaxis[0], attr._zaxis[1], attr._zaxis[2]);
+
+		// Grid size:
+
+		// Remains the same so no need to do anything.
+
+		// Update image attributes
+		image->PutImageAttributes(attr);
 	}
 
 	image->Write(output_name);
@@ -336,17 +269,6 @@ int main(int argc, char **argv)
 	if(output_header != NULL){
 		irtkMatrix header(4,4);
 		header = image->GetImageToWorldMatrix();
-		//irtkImageAttributes attr = image->GetImageAttributes();
-		//header.Ident();
-		//header(0, 0) = attr._xaxis[0];
-		//header(1, 0) = attr._xaxis[1];
-		//header(2, 0) = attr._xaxis[2];
-		//header(0, 1) = attr._yaxis[0];
-		//header(1, 1) = attr._yaxis[1];
-		//header(2, 1) = attr._yaxis[2];
-		//header(0, 2) = attr._zaxis[0];
-		//header(1, 2) = attr._zaxis[1];
-		//header(2, 2) = attr._zaxis[2];
 		header.Write(output_header);
 	}
 
