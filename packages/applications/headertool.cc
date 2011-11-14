@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Library   : Image Registration Toolkit (IRTK)
-Module    : $Id: headertool.cc 235 2010-10-18 09:25:20Z dr $
+Module    : $Id$
 Copyright : Imperial College, Department of Computing
 Visual Information Processing (VIP), 2008 onwards
-Date      : $Date: 2010-10-18 10:25:20 +0100 (一, 18 十月 2010) $
-Version   : $Revision: 235 $
-Changes   : $Author: dr $
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
 =========================================================================*/
 
