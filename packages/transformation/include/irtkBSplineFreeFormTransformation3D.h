@@ -103,6 +103,18 @@ protected:
       the residual displacement errors at the points */
   virtual double Approximate3D(const double *, const double *, const double *, double *, double *, double *, int);
 
+  /** Approximate displacements in 2D: This function takes a set of points
+      and a set of displacements and find a new FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual void ApproximateAsNew2D(const double *, const double *, const double *, double *, double *, double *, int);
+
+  /** Approximate displacements in 3D: This function takes a set of points
+      and a set of displacements and find a new FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual void ApproximateAsNew3D(const double *, const double *, const double *, double *, double *, double *, int);
+
   /// Memory for lookup table for B-spline basis function values
   static    double LookupTable[FFDLOOKUPTABLESIZE][4];
 
@@ -175,6 +187,12 @@ public:
       displacements. After approximation the displacements replaced by
       the residual displacement errors at the points */
   virtual double Approximate(const double *, const double *, const double *, double *, double *, double *, int);
+
+  /** Approximate displacements: This function takes a set of points and a
+      set of displacements and find a !new! FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual void ApproximateAsNew(const double *, const double *, const double *, double *, double *, double *, int);
 
   /** Interpolates displacements: This function takes a set of displacements
       defined at the control points and finds a FFD which interpolates these

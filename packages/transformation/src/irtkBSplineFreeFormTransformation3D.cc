@@ -137,8 +137,8 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkBas
   // Initialize control point dimensions
   _x = round((x2 - x1) / dx) + 1;
   _y = round((y2 - y1) / dy) + 1;
-  if (z2 > z1) {
-    _z = round((z2 - z1) / dz) + 1;
+  _z = round((z2 - z1) / dz) + 1;
+  if (image.GetZ() > 1) {
     // Check if spacing is too large in any direction
     if (_x < 2) {
       cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
@@ -168,7 +168,7 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkBas
   // Initialize control point spacing
   _dx = (x2 - x1) / (_x - 1);
   _dy = (y2 - y1) / (_y - 1);
-  if (z2 > z1) {
+  if (image.GetZ() > 1) {
     _dz = (z2 - z1) / (_z - 1);
   } else {
     _dz = 1;
@@ -492,7 +492,7 @@ void irtkBSplineFreeFormTransformation3D::FFD3D(double &x, double &y, double &z)
 
   double *xdata, *ydata, *zdata;
   double s, t, u, B_J, B_K, xi, yi, zi, xii, yii, zii;
-  int i, j, k, l, m, n, S, T, U;
+  int i, j, k, l, m, n, o, S, T, U;
 
   // Now calculate the real stuff
   l = (int)floor(x);
@@ -520,46 +520,39 @@ void irtkBSplineFreeFormTransformation3D::FFD3D(double &x, double &y, double &z)
     zi = 0;
     for (j = 0; j < 4; j++) {
       B_J = this->LookupTable[T][j];
+      xii = 0; yii = 0; zii = 0;
+      for ( o = 0; o < 4; o++){
+          // Inner most loop unrolled starts here
+          if(*xdata != 0.0)
+              xii  += *xdata * this->LookupTable[S][o];
+          xdata++;
 
-      // Inner most loop unrolled starts here
-      xii  = *xdata * this->LookupTable[S][0];
-      xdata++;
-      xii += *xdata * this->LookupTable[S][1];
-      xdata++;
-      xii += *xdata * this->LookupTable[S][2];
-      xdata++;
-      xii += *xdata * this->LookupTable[S][3];
-      xdata++;
+          if(*ydata != 0.0)
+              yii  += *ydata * this->LookupTable[S][o];
+          ydata++;
 
-      yii  = *ydata * this->LookupTable[S][0];
-      ydata++;
-      yii += *ydata * this->LookupTable[S][1];
-      ydata++;
-      yii += *ydata * this->LookupTable[S][2];
-      ydata++;
-      yii += *ydata * this->LookupTable[S][3];
-      ydata++;
-
-      zii  = *zdata * this->LookupTable[S][0];
-      zdata++;
-      zii += *zdata * this->LookupTable[S][1];
-      zdata++;
-      zii += *zdata * this->LookupTable[S][2];
-      zdata++;
-      zii += *zdata * this->LookupTable[S][3];
-      zdata++;
+          if(*zdata != 0.0)
+              zii  += *zdata * this->LookupTable[S][o];
+          zdata++;
+      }
       // Inner most loop unrolled stops here
 
-      xi += xii * B_J;
-      yi += yii * B_J;
-      zi += zii * B_J;
+      if(xii != 0.0)
+          xi += xii * B_J;
+      if(yii != 0.0)
+          yi += yii * B_J;
+      if(zii != 0.0)
+          zi += zii * B_J;
       xdata += _x + 4;
       ydata += _x + 4;
       zdata += _x + 4;
     }
-    x += xi * B_K;
-    y += yi * B_K;
-    z += zi * B_K;
+    if(xi != 0.0)
+        x += xi * B_K;
+    if(yi != 0.0)
+        y += yi * B_K;
+    if(zi != 0.0)
+        z += zi * B_K;
     xdata += i;
     ydata += i;
     zdata += i;
@@ -1339,6 +1332,217 @@ int irtkBSplineFreeFormTransformation3D::CheckHeader(char *name)
   }
 
   return true;
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateAsNew2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+{
+    int i, j, l, m, I, J, S, T, index;
+    double s, t, x, y, z, B_I, B_J, basis, basis2, phi, norm;
+
+    // Allocate memory
+    double ***dx = NULL;
+    double ***dy = NULL;
+    double ***ds = NULL;
+    dx = Allocate(dx, _x, _y, _z);
+    dy = Allocate(dy, _x, _y, _z);
+    ds = Allocate(ds, _x, _y, _z);
+
+    // Initialize data structures
+    for (j = -2; j < _y+2; j++) {
+        for (i = -2; i < _x+2; i++) {
+            dx[0][j][i] = 0;
+            dy[0][j][i] = 0;
+            ds[0][j][i] = 0;
+        }
+    }
+
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        s = x-l;
+        t = y-m;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        norm = 0;
+        for (j = 0; j < 4; j++) {
+            B_J = this->LookupTable[T][j];
+            for (i = 0; i < 4; i++) {
+                B_I = B_J * this->LookupTable[S][i];
+                norm += B_I * B_I;
+            }
+        }
+        for (j = 0; j < 4; j++) {
+            B_J = this->LookupTable[T][j];
+            J = j + m - 1;
+            if ((J >= -2) && (J < _y+2)) {
+                for (i = 0; i < 4; i++) {
+                    B_I = B_J * this->LookupTable[S][i];
+                    I = i + l - 1;
+                    if ((I >= -2) && (I < _x+2)) {
+                        basis = B_I / norm;
+                        basis2 = B_I * B_I;
+                        phi = x2[index] * basis;
+                        dx[0][J][I] += basis2 * phi;
+                        phi = y2[index] * basis;
+                        dy[0][J][I] += basis2 * phi;
+                        ds[0][J][I] += basis2;
+                    }
+                }
+            }
+        }
+    }
+
+    // Final loop: Calculate new control points
+    for (j = -2; j < _y+2; j++) {
+        for (i = -2; i < _x+2; i++) {
+            if (ds[0][j][i] > 0) {
+                _xdata[0][j][i] = dx[0][j][i] / ds[0][j][i];
+                _ydata[0][j][i] = dy[0][j][i] / ds[0][j][i];
+            }
+        }
+    }
+
+    // Calculate residual error
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->LocalDisplacement(x, y, z);
+        x2[index] -= x;
+        y2[index] -= y;
+        z2[index] -= z;
+    }
+
+    // Deallocate memory
+    Deallocate(dx, _x, _y, _z);
+    Deallocate(dy, _x, _y, _z);
+    Deallocate(ds, _x, _y, _z);
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateAsNew3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+{
+    int i, j, k, l, m, n, I, J, K, S, T, U, index;
+    double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, phi, norm;
+
+    // Allocate memory
+    double ***dx = NULL;
+    double ***dy = NULL;
+    double ***dz = NULL;
+    double ***ds = NULL;
+    dx = Allocate(dx, _x, _y, _z);
+    dy = Allocate(dy, _x, _y, _z);
+    dz = Allocate(dz, _x, _y, _z);
+    ds = Allocate(ds, _x, _y, _z);
+
+    // Initialize data structures
+    for (k = -2; k < _z+2; k++) {
+        for (j = -2; j < _y+2; j++) {
+            for (i = -2; i < _x+2; i++) {
+                dx[k][j][i] = 0;
+                dy[k][j][i] = 0;
+                dz[k][j][i] = 0;
+                ds[k][j][i] = 0;
+            }
+        }
+    }
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        n = (int)floor(z);
+        s = x-l;
+        t = y-m;
+        u = z-n;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        U = round(LUTSIZE*u);
+        norm = 0;
+        for (k = 0; k < 4; k++) {
+            B_K = this->LookupTable[U][k];
+            for (j = 0; j < 4; j++) {
+                B_J = B_K * this->LookupTable[T][j];
+                for (i = 0; i < 4; i++) {
+                    B_I = B_J * this->LookupTable[S][i];
+                    norm += B_I * B_I;
+                }
+            }
+        }
+        for (k = 0; k < 4; k++) {
+            B_K = this->LookupTable[U][k];
+            K = k + n - 1;
+            if ((K >= 0) && (K < _z+2)) {
+                for (j = 0; j < 4; j++) {
+                    B_J = B_K * this->LookupTable[T][j];
+                    J = j + m - 1;
+                    if ((J >= -2) && (J < _y+2)) {
+                        for (i = 0; i < 4; i++) {
+                            B_I = B_J * this->LookupTable[S][i];
+                            I = i + l - 1;
+                            if ((I >= -2) && (I < _x+2)) {
+                                basis = B_I / norm;
+                                basis2 = B_I * B_I;
+                                phi = x2[index] * basis;
+                                dx[K][J][I] += basis2 * phi;
+                                phi = y2[index] * basis;
+                                dy[K][J][I] += basis2 * phi;
+                                phi = z2[index] * basis;
+                                dz[K][J][I] += basis2 * phi;
+                                ds[K][J][I] += basis2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Final loop: Calculate new control points
+    for (k = -2; k < _z+2; k++) {
+        for (j = -2; j < _y+2; j++) {
+            for (i = -2; i < _x+2; i++) {
+                if (ds[k][j][i] > 0) {
+                    _xdata[k][j][i] = dx[k][j][i] / ds[k][j][i];
+                    _ydata[k][j][i] = dy[k][j][i] / ds[k][j][i];
+                    _zdata[k][j][i] = dz[k][j][i] / ds[k][j][i];
+                }
+            }
+        }
+    }
+
+    // Calculate residual error
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->LocalDisplacement(x, y, z);
+        x2[index] -= x;
+        y2[index] -= y;
+        z2[index] -= z;
+    }
+
+    // Deallocate memory
+    Deallocate(dx, _x, _y, _z);
+    Deallocate(dy, _x, _y, _z);
+    Deallocate(dz, _x, _y, _z);
+    Deallocate(ds, _x, _y, _z);
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateAsNew(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+{
+    if (_z == 1) {
+        ApproximateAsNew2D(x1, y1, z1, x2, y2, z2, no);
+    } else {
+        ApproximateAsNew3D(x1, y1, z1, x2, y2, z2, no);
+    }
 }
 
 double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
