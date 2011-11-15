@@ -34,7 +34,7 @@ template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D
   int i;
 
   if (nbins < 1) {
-    cerr << "irtkHistogram_1D<HistogramType>::irtkHistogram_1D: Should have at least one bin";
+    cerr << "irtkHistogram_1D<HistogramType>::irtkHistogram_1D: Should have at least one bin" << endl;
     exit(1);
   }
   _min   = 0;
@@ -58,7 +58,7 @@ template <class HistogramType> irtkHistogram_1D<HistogramType>::irtkHistogram_1D
   _width = (_max - _min) / (double)_nbins;
   _nsamp = 0;
   if (_nbins < 1) {
-    cerr << "irtkHistogram_1D<HistogramType>::irtkHistogram_1D: Should have at least one bin";
+    cerr << "irtkHistogram_1D<HistogramType>::irtkHistogram_1D: Should have at least one bin << endl";
     exit(1);
   }
   if (_nbins > 0) _bins  = new HistogramType[_nbins];

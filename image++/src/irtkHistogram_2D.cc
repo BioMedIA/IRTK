@@ -28,7 +28,7 @@ template <class HistogramType> irtkHistogram_2D<HistogramType>::irtkHistogram_2D
   _nbins_y = h._nbins_y;
   _nsamp   = h._nsamp;
   if ((_nbins_x < 1) || (_nbins_y < 1)) {
-    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin" << endl;
     exit(1);
   }
   _bins  = Allocate(_bins, _nbins_x, _nbins_y);
@@ -44,7 +44,7 @@ template <class HistogramType> irtkHistogram_2D<HistogramType>::irtkHistogram_2D
   int i, j;
 
   if ((nbins_x < 1) || (nbins_y < 1)) {
-    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin" << endl;
     exit(1);
   }
   _min_x   = 0;
@@ -79,7 +79,7 @@ template <class HistogramType> irtkHistogram_2D<HistogramType>::irtkHistogram_2D
   _width_y = (_max_y - _min_y) / (double)_nbins_y;
   _nsamp = 0;
   if ((_nbins_x < 1) || (_nbins_y < 1)) {
-    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin";
+    cerr << "irtkHistogram_2D<HistogramType>::irtkHistogram_2D: Should have at least one bin << endl";
     exit(1);
   }
   _bins  = Allocate(_bins, _nbins_x, _nbins_y);
