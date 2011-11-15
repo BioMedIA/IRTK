@@ -10,9 +10,9 @@
 
 =========================================================================*/
 
-#ifndef _IRTKDISCONTINUEFREEFORMREGISTRATION_H
+#ifndef _IRTKDISCONTINUOUSFREEFORMREGISTRATION_H
 
-#define _IRTKDISCONTINUEFREEFORMREGISTRATION_H
+#define _IRTKDISCONTINUOUSFREEFORMREGISTRATION_H
 
 /**
  * Filter for non-rigid registration based on voxel similarity measures.
@@ -23,7 +23,7 @@
  *
  */
 
-class irtkDiscontinueFreeFormRegistration : public irtkImageRegistration2
+class irtkDiscontinuousFreeFormRegistration : public irtkImageRegistration2
 {
 
 protected:
@@ -122,9 +122,9 @@ protected:
 public:
 
   /// Constructor
-  irtkDiscontinueFreeFormRegistration();
+  irtkDiscontinuousFreeFormRegistration();
 
-  ~irtkDiscontinueFreeFormRegistration();
+  ~irtkDiscontinuousFreeFormRegistration();
 
   /// Set output for the registration filter
   virtual void SetOutput(irtkTransformation *);
@@ -153,7 +153,7 @@ public:
 
 };
 
-inline void irtkDiscontinueFreeFormRegistration::SetOutput(irtkTransformation *transformation)
+inline void irtkDiscontinuousFreeFormRegistration::SetOutput(irtkTransformation *transformation)
 {
   // Print debugging information
   this->Debug("irtkImageFreeFormRegistration::SetOutput");
@@ -167,12 +167,12 @@ inline void irtkDiscontinueFreeFormRegistration::SetOutput(irtkTransformation *t
   _transformation = transformation;
 }
 
-inline const char *irtkDiscontinueFreeFormRegistration::NameOfClass()
+inline const char *irtkDiscontinuousFreeFormRegistration::NameOfClass()
 {
   return "irtkFreeFormRegistration";
 }
 
-inline void irtkDiscontinueFreeFormRegistration::Print()
+inline void irtkDiscontinuousFreeFormRegistration::Print()
 {}
 
 #endif

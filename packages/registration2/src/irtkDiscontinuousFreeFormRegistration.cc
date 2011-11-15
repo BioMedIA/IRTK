@@ -20,10 +20,10 @@
 
 #define MAX_NO_LINE_ITERATIONS 12
 
-irtkDiscontinueFreeFormRegistration::irtkDiscontinueFreeFormRegistration()
+irtkDiscontinuousFreeFormRegistration::irtkDiscontinuousFreeFormRegistration()
 {
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::irtkDiscontinueFreeFormRegistration");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::irtkDiscontinuousFreeFormRegistration");
 
   // Default optimization
   _OptimizationMethod = GradientDescent;
@@ -44,19 +44,19 @@ irtkDiscontinueFreeFormRegistration::irtkDiscontinueFreeFormRegistration()
   _compressrate = 0.5;
 }
 
-irtkDiscontinueFreeFormRegistration::~irtkDiscontinueFreeFormRegistration()
+irtkDiscontinuousFreeFormRegistration::~irtkDiscontinuousFreeFormRegistration()
 {
   delete _bssm;
 }
 
-void irtkDiscontinueFreeFormRegistration::GuessParameter()
+void irtkDiscontinuousFreeFormRegistration::GuessParameter()
 {
   int i;
   double xsize, ysize, zsize, spacing;
   irtkGreyPixel min,max;
 
   if ((_target == NULL) || (_source == NULL)) {
-    cerr << "irtkDiscontinueFreeFormRegistration::GuessParameter: Target and source image not found" << endl;
+    cerr << "irtkDiscontinuousFreeFormRegistration::GuessParameter: Target and source image not found" << endl;
     exit(1);
   }
 
@@ -137,11 +137,11 @@ void irtkDiscontinueFreeFormRegistration::GuessParameter()
   }
 }
 
-void irtkDiscontinueFreeFormRegistration::Initialize()
+void irtkDiscontinuousFreeFormRegistration::Initialize()
 {
     int i,j,k;
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::Initialize");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::Initialize");
 
   // Initialize base class
   this->irtkImageRegistration2::Initialize();
@@ -219,12 +219,12 @@ void irtkDiscontinueFreeFormRegistration::Initialize()
   _sparsityindex = new double[_NumberOfModels];
 }
 
-void irtkDiscontinueFreeFormRegistration::Initialize(int level)
+void irtkDiscontinuousFreeFormRegistration::Initialize(int level)
 {
   int i, j, k;
 
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::Initialize(int)");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::Initialize(int)");
 
   // Initialize base class
   this->irtkImageRegistration2::Initialize(level);
@@ -237,10 +237,10 @@ void irtkDiscontinueFreeFormRegistration::Initialize(int level)
 
 }
 
-void irtkDiscontinueFreeFormRegistration::Finalize()
+void irtkDiscontinuousFreeFormRegistration::Finalize()
 {
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::Finalize");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::Finalize");
 
   // Finalize base class
   this->irtkImageRegistration2::Finalize();
@@ -248,10 +248,10 @@ void irtkDiscontinueFreeFormRegistration::Finalize()
   delete []_sparsityindex;
 }
 
-void irtkDiscontinueFreeFormRegistration::Finalize(int level)
+void irtkDiscontinuousFreeFormRegistration::Finalize(int level)
 {
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::Finalize(int)");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::Finalize(int)");
 
   // Finalize base class
   this->irtkImageRegistration2::Finalize(level);
@@ -262,11 +262,11 @@ void irtkDiscontinueFreeFormRegistration::Finalize(int level)
   }
 }
 
-void irtkDiscontinueFreeFormRegistration::UpdateVolume(bool affdchange)
+void irtkDiscontinuousFreeFormRegistration::UpdateVolume(bool affdchange)
 {
     if(_Lambda1 > 0) {
         // Print debugging information
-        this->Debug("irtkDiscontinueFreeFormRegistration::UpdateVolume(bool affdchange)");
+        this->Debug("irtkDiscontinuousFreeFormRegistration::UpdateVolume(bool affdchange)");
         if(affdchange){
             if(_adjugate != NULL) delete []_adjugate;
             if(_determinant != NULL) delete []_determinant;
@@ -296,17 +296,17 @@ void irtkDiscontinueFreeFormRegistration::UpdateVolume(bool affdchange)
     }
 }
 
-void irtkDiscontinueFreeFormRegistration::Update(bool updateGradient)
+void irtkDiscontinuousFreeFormRegistration::Update(bool updateGradient)
 {
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::Update()");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::Update()");
 
   // Finalize base class
   this->irtkImageRegistration2::Update(updateGradient);
 
 }
 
-double irtkDiscontinueFreeFormRegistration::VolumePreservationPenalty()
+double irtkDiscontinuousFreeFormRegistration::VolumePreservationPenalty()
 {
   int k;
   double penalty, jacobian;
@@ -322,7 +322,7 @@ double irtkDiscontinueFreeFormRegistration::VolumePreservationPenalty()
   return -penalty / (double) _affd->NumberOfDOFs();
 }
 
-void irtkDiscontinueFreeFormRegistration::VolumePreservationPenaltyGradient()
+void irtkDiscontinuousFreeFormRegistration::VolumePreservationPenaltyGradient()
 {
   int i, j, k, l, m, n, o, i1, j1, k1, i2, j2, k2, x, y, z, count, index, index1, index2, index3;
   double jacobian, drv[3];
@@ -402,7 +402,7 @@ void irtkDiscontinueFreeFormRegistration::VolumePreservationPenaltyGradient()
   return;
 }
 
-double irtkDiscontinueFreeFormRegistration::Evaluate()
+double irtkDiscontinuousFreeFormRegistration::Evaluate()
 {
   double tmp, similarity;
 
@@ -421,7 +421,7 @@ double irtkDiscontinueFreeFormRegistration::Evaluate()
   return similarity;
 }
 
-void irtkDiscontinueFreeFormRegistration::ChooseLevel()
+void irtkDiscontinuousFreeFormRegistration::ChooseLevel()
 {
    int i,index;
    double maxsparsity;
@@ -457,9 +457,9 @@ void irtkDiscontinueFreeFormRegistration::ChooseLevel()
        cout << "Chosen level based on sparsity is: " << _currentffdlevel << " compress rate is: " << 1 - _compressrate << endl;
 }
 
-void irtkDiscontinueFreeFormRegistration::DomainDecomposition()
+void irtkDiscontinuousFreeFormRegistration::DomainDecomposition()
 {
-    this->Debug("irtkDiscontinueFreeFormRegistration::DomainDecomposition()");
+    this->Debug("irtkDiscontinuousFreeFormRegistration::DomainDecomposition()");
 
     int i,j,k,t,index,index1,index2,index3;
     double max_x,max_y,max_z,cthresholdx,cthresholdy,cthresholdz;
@@ -699,7 +699,7 @@ void irtkDiscontinueFreeFormRegistration::DomainDecomposition()
         _similarityGradient.Write("similaritygradient2.nii.gz");
 }
 
-void irtkDiscontinueFreeFormRegistration::EvaluateGradient2D()
+void irtkDiscontinuousFreeFormRegistration::EvaluateGradient2D()
 {
   double basis, pos[3];
   int i, j, i1, i2, j1, j2, k1, k2, x, y, index, index2, index3;
@@ -759,7 +759,7 @@ void irtkDiscontinueFreeFormRegistration::EvaluateGradient2D()
   }
 }
 
-void irtkDiscontinueFreeFormRegistration::EvaluateGradient3D()
+void irtkDiscontinuousFreeFormRegistration::EvaluateGradient3D()
 {
   double basis, pos[3];
   int i, j, k, i1, i2, j1, j2, k1, k2, x, y, z, index, index2, index3;
@@ -822,7 +822,7 @@ void irtkDiscontinueFreeFormRegistration::EvaluateGradient3D()
   }
 }
 
-double irtkDiscontinueFreeFormRegistration::EvaluateGradient(double *gradient)
+double irtkDiscontinuousFreeFormRegistration::EvaluateGradient(double *gradient)
 {
   double norm, max_length;
   int i, x, y, z, index, index2, index3;
@@ -905,27 +905,27 @@ double irtkDiscontinueFreeFormRegistration::EvaluateGradient(double *gradient)
   return max_length;
 }
 
-void irtkDiscontinueFreeFormRegistration::Run()
+void irtkDiscontinuousFreeFormRegistration::Run()
 {
   int i, k;
   char buffer[256];
   double gradient, delta, step, min_step, max_step, max_length, best_similarity, new_similarity, old_similarity;
 
   // Print debugging information
-  this->Debug("irtkDiscontinueFreeFormRegistration::Run");
+  this->Debug("irtkDiscontinuousFreeFormRegistration::Run");
 
   if (_source == NULL) {
-    cerr << "irtkDiscontinueFreeFormRegistration::Run: Filter has no source input" << endl;
+    cerr << "irtkDiscontinuousFreeFormRegistration::Run: Filter has no source input" << endl;
     exit(1);
   }
 
   if (_target == NULL) {
-    cerr << "irtkDiscontinueFreeFormRegistration::Run: Filter has no target input" << endl;
+    cerr << "irtkDiscontinuousFreeFormRegistration::Run: Filter has no target input" << endl;
     exit(1);
   }
 
   if (_transformation == NULL) {
-    cerr << "irtkDiscontinueFreeFormRegistration::Run: Filter has no transformation output" << endl;
+    cerr << "irtkDiscontinuousFreeFormRegistration::Run: Filter has no transformation output" << endl;
     exit(1);
   }
 
@@ -1033,7 +1033,7 @@ void irtkDiscontinueFreeFormRegistration::Run()
   this->Finalize();
 }
 
-bool irtkDiscontinueFreeFormRegistration::Read(char *buffer1, char *buffer2, int &level)
+bool irtkDiscontinuousFreeFormRegistration::Read(char *buffer1, char *buffer2, int &level)
 {
   int ok = false;
 
@@ -1050,7 +1050,7 @@ bool irtkDiscontinueFreeFormRegistration::Read(char *buffer1, char *buffer2, int
   }
 }
 
-void irtkDiscontinueFreeFormRegistration::Write(ostream &to)
+void irtkDiscontinuousFreeFormRegistration::Write(ostream &to)
 {
   to << "\n#\n# Sparse non-rigid registration parameters\n#\n\n";
   to << "Volume preserve                     = " << this->_Lambda1 << endl;
