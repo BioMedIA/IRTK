@@ -221,7 +221,6 @@ void irtkDiscontinuousFreeFormRegistration::Initialize()
 
 void irtkDiscontinuousFreeFormRegistration::Initialize(int level)
 {
-  int i, j, k;
 
   // Print debugging information
   this->Debug("irtkDiscontinuousFreeFormRegistration::Initialize(int)");
@@ -473,7 +472,7 @@ void irtkDiscontinuousFreeFormRegistration::DomainDecomposition()
     double *y_dis;
     double *z_dis;
 
-    double energyl1[3],sum_cofx,sum_cofy,sum_cofz;
+    double energyl1[3];
 
     //debug
     if (_DebugFlag == true)
