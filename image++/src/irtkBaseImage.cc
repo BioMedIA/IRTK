@@ -110,6 +110,12 @@ void irtkBaseImage::UpdateMatrix()
   _matI2W = tmp3 * (_matI2W * (tmp2 * tmp1));
 
   // Update world to image coordinate system matrix
+
+  // _matW2I is the inverse of the above matrix _matI2W but we can calculate
+  // it exactly because we know analytic expressions for the individual matrices
+  // that form its product.  For example, the rotation part inverse below is
+  // the transpose of the one above as they are orthogonal matrices.
+
   _matW2I.Ident();
   _matW2I(0, 0) = _attr._xaxis[0];
   _matW2I(0, 1) = _attr._xaxis[1];
