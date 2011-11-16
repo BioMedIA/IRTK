@@ -16,41 +16,45 @@ Changes   : $Author$
 
 #include <irtkTransformation.h>
 
-char *input_name = NULL, *output_name = NULL, *dof_name  = NULL, *output_header = NULL;
+char *input_name = NULL, *output_name = NULL, *dof_name  = NULL, *output_matrix_name = NULL;
 
 void usage()
 {
-	cerr << "Usage: headertool [in] [out] <options>\n" << endl;
-	cerr << "where <options> can be one or more of the following:\n";
-	cerr << "<-size        dx dy dz>                      \t Voxel size   (in mm)\n";
-	cerr << "<-tsize       dt>                            \t Voxel size   (in ms)\n";
-	cerr << "<-orientation x1 x2 x3   y1 y2 y3  z1 z2 z3> \t Image orientation\n";
-	cerr << "<-origin      x  y  z>                       \t Image origin (in mm)\n";
-	cerr << "<-torigin     t>                             \t Image origin (in ms)\n";
-	cerr << "<-outputheader matrixfilename>               \t Output header in matrix\n";
-	cerr << "<-target      image>                         \t Copy header from target image\n\n";
-    cerr << "<-rmatr>									  \t Remove orientation and origon information\n";
-    cerr << "<-ref image>								  \t Copy reference's coordinate system (orientation and origin)\n";
-    cerr << "<-reforigin image>						      \t Copy reference's origin\n";
-    cerr << "<-dofin       transformation>                \t Apply transformation to axis, spacing and origin information in the" << endl;
-	cerr << "	                                            \t header. Transformation may be rigid or affine and with no shearing.\n";
+	cerr << "Usage: headertool [in] [out] <options>" << endl;
+	cerr << "where <options> can be one or more of the following:" << endl;
+
+	cerr << "<-size        dx dy dz>                         Voxel size   (in mm)" << endl;
+	cerr << "<-tsize       dt>                               Voxel size   (in ms)" << endl;
+	cerr << "<-orientation x1 x2 x3   y1 y2 y3  z1 z2 z3>    Image orientation" << endl;
+	cerr << "<-origin      x  y  z>                          Image origin (in mm)" << endl;
+	cerr << "<-torigin     t>                                Image origin (in ms)" << endl;
+	cerr << " " << endl;
+	cerr << "<-target                image>                  Copy target image's orientation, origin and pixel size" << endl;
+	cerr << "<-targetOriginAndOrient image>                  Copy target image's orientation and origin)" << endl;
+	cerr << "<-targetOrigin          image>                  Copy target image's origin only" << endl;
+	cerr << " " << endl;
+	cerr << "<-writeMatrix           filename>               Save image to world matrix to a file" << endl;
+	cerr << "<-reset>                                        Reset orientation and origin information to default values" << endl;
+	cerr << " " << endl;
+	cerr << "<-dofin                 transformation>         Apply transformation to axis, spacing and origin information in the" << endl;
+	cerr << "                                                header. Transformation may be rigid or affine and with no shearing." << endl;
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int i, ok, rmatr, refon,refoon;
+	int i, ok, resetAttributes, useRefImageOriginAndOrientation, useRefImageOrigin;
 	double xsize, ysize, zsize, tsize, xaxis[3], yaxis[3], zaxis[3], origin[4];
 	irtkTransformation *transformation = NULL;
-    irtkImageAttributes refatr;
+	irtkImageAttributes refImageAttr;
 
 	if (argc < 3) {
 		usage();
 	}
 
-    rmatr  = 0;
-    refon = 0;
-    refoon = 0;
+	resetAttributes  = 0;
+	useRefImageOriginAndOrientation = 0;
+	useRefImageOrigin = 0;
 
 	// Parse filenames
 	input_name  = argv[1];
@@ -74,10 +78,10 @@ int main(int argc, char **argv)
 			argv++;
 			ok = true;
 		}
-		if ((ok == false) && (strcmp(argv[1], "-outputheader") == 0)) {
+		if ((ok == false) && (strcmp(argv[1], "-writeMatrix") == 0)) {
 			argc--;
 			argv++;
-			output_header = argv[1];
+			output_matrix_name = argv[1];
 			argc--;
 			argv++;
 			ok = true;
@@ -96,32 +100,32 @@ int main(int argc, char **argv)
 			image->PutOrigin(origin[0], origin[1], origin[2]);
 			ok = true;
 		}
-        if ((ok == false) && strcmp(argv[1], "-rmatr") == 0) {
-            argc--;
-            argv++;
-            rmatr = 1;
-            ok = true;
-        } 
-        if ((ok == false) && strcmp(argv[1], "-ref") == 0) {
-            argc--;
-            argv++;
-            refon = 1;
-            ok = true;
-            irtkGreyImage ref(argv[1]);
-            refatr = ref.GetImageAttributes();
-            argc--;
-            argv++;
-        } 
-        if ((ok == false) && strcmp(argv[1], "-reforigin") == 0) {
-            argc--;
-            argv++;
-            refoon = 1;
-            ok = true;
-            irtkGreyImage ref(argv[1]);
-            refatr = ref.GetImageAttributes();
-            argc--;
-            argv++;
-        } 
+		if ((ok == false) && strcmp(argv[1], "-reset") == 0) {
+			argc--;
+			argv++;
+			resetAttributes = 1;
+			ok = true;
+		}
+		if ((ok == false) && strcmp(argv[1], "-targetOriginAndOrient") == 0) {
+			argc--;
+			argv++;
+			useRefImageOriginAndOrientation = 1;
+			ok = true;
+			irtkGreyImage ref(argv[1]);
+			refImageAttr = ref.GetImageAttributes();
+			argc--;
+			argv++;
+		}
+		if ((ok == false) && strcmp(argv[1], "-targetOrigin") == 0) {
+			argc--;
+			argv++;
+			useRefImageOrigin = 1;
+			ok = true;
+			irtkGreyImage ref(argv[1]);
+			refImageAttr = ref.GetImageAttributes();
+			argc--;
+			argv++;
+		}
 		if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
 			argc--;
 			argv++;
@@ -295,41 +299,41 @@ int main(int argc, char **argv)
 		// Remains the same so no need to do anything.
 
 		// Update image attributes
-        image->PutOrientation(attr._xaxis,attr._yaxis,attr._zaxis);
-        image->PutOrigin(attr._xorigin,attr._yorigin,attr._zorigin);
-        image->PutPixelSize(attr._dx,attr._dy,attr._dz);
+		image->PutOrientation(attr._xaxis,attr._yaxis,attr._zaxis);
+		image->PutOrigin(attr._xorigin,attr._yorigin,attr._zorigin);
+		image->PutPixelSize(attr._dx,attr._dy,attr._dz);
 
-        delete transformation;
+		delete transformation;
 	}
 
-    // Remove Attributes
-    if (rmatr == 1) {
-        irtkImageAttributes tmpatr;
-        image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
-        image->PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
-    }
+	// Remove Attributes
+	if (resetAttributes == 1) {
+		irtkImageAttributes tmpatr;
+		image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+		image->PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
+	}
 
-    // use reference image's setting
-    if (refon == 1) {
-        image->PutOrientation(refatr._xaxis,refatr._yaxis,refatr._zaxis);
-        image->PutOrigin(refatr._xorigin,refatr._yorigin,refatr._zorigin);
-    }
+	// use reference image's setting
+	if (useRefImageOriginAndOrientation == 1) {
+		image->PutOrientation(refImageAttr._xaxis,refImageAttr._yaxis,refImageAttr._zaxis);
+		image->PutOrigin(refImageAttr._xorigin,refImageAttr._yorigin,refImageAttr._zorigin);
+	}
 
-    // use reference image's setting
-    if (refoon == 1) {
-        image->PutOrigin(refatr._xorigin,refatr._yorigin,refatr._zorigin);
-    }
+	// use reference image's setting
+	if (useRefImageOrigin == 1) {
+		image->PutOrigin(refImageAttr._xorigin,refImageAttr._yorigin,refImageAttr._zorigin);
+	}
 
 	image->Write(output_name);
 
-	if(output_header != NULL){
+	if(output_matrix_name != NULL){
 		irtkMatrix header(4,4);
 		header = image->GetImageToWorldMatrix();
-		header.Write(output_header);
+		header.Write(output_matrix_name);
 	}
 
-    delete image;
-    delete reader;
+	delete image;
+	delete reader;
 
 	return 0;
 }
