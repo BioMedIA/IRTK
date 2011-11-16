@@ -9,31 +9,33 @@
   Changes   : $Author$
 
 =========================================================================*/
+
 #include <irtkImage.h>
+
 #include <irtkFileToImage.h>
 
 char *input_name = NULL, *output_name = NULL;
 
-char **reflect_list = NULL;
-
 void usage()
 {
-  cerr << "Usage: reflect [in] [out] [reflection_1] <reflection_2> .. <reflection_n>" << endl;
-  cerr << "Where the reflections are chosen from:" << endl;
-  cerr << " " << endl;
-  cerr << "        -x -y -z -xy -xz -yz" << endl;
-  cerr << " " << endl;
-  cerr << "The reflections are processed in the order given." << endl;
-
+  cerr << "Usage: reflect [in] [out]" << endl;
+  cerr << "<-x/-y/-z>                                 \t Reflect the x/y/z-direction\n\n";
+  cerr << "<-rx/-ry/-rz>                              \t Revert the x/y/z-direction\n\n";
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i, count;
-  irtkBaseImage *image;
+  int ok, x, y, z, revert_x, revert_y, revert_z;
 
-  if (argc < 4){
+  revert_x = false;
+  revert_y = false;
+  revert_z = false;
+  x = false;
+  y = false;
+  z = false;
+
+  if (argc < 4) {
     usage();
   }
 
@@ -44,51 +46,85 @@ int main(int argc, char **argv)
   argc--;
   argv++;
 
-  count = argc - 1;
-  reflect_list = new char *[count];
-  for (i = 0; i < count; ++i){
-    reflect_list[i] = argv[1];
-    argc--;
-    argv++;
-  }
-
-  // Read input
   irtkFileToImage *reader = irtkFileToImage::New(input_name);
-  image = reader->GetOutput();
+  irtkBaseImage *image = reader->GetOutput();
 
-  for (i = 0; i < count; ++i){
-    if (strcmp("-x", reflect_list[i]) == 0){
-      image->ReflectX();
-    }
-
-    if (strcmp("-y", reflect_list[i]) == 0){
-     image->ReflectY();
-    }
-
-    if (strcmp("-z", reflect_list[i]) == 0){
-        image->ReflectZ();
-    }
-
-    if (strcmp("-xy", reflect_list[i]) == 0 ||
-        strcmp("-yx", reflect_list[i]) == 0){
-      image->FlipXY();
-    }
-
-    if (strcmp("-xz", reflect_list[i]) == 0 ||
-        strcmp("-zx", reflect_list[i]) == 0){
-      image->FlipXZ();
-    }
-
-    if (strcmp("-yz", reflect_list[i]) == 0 ||
-        strcmp("-zy", reflect_list[i]) == 0){
-      image->FlipYZ();
-    }
+  while (argc > 1) {
+      ok = false;
+      if (strcmp(argv[1], "-x") == 0) {
+          x = true;
+          argc--;
+          argv++;
+          ok = true;
+      } else if (strcmp(argv[1], "-y") == 0) {
+          y = true;
+          argc--;
+          argv++;
+          ok = true;
+      } else if (strcmp(argv[1], "-z") == 0) {
+          z = true;
+          argc--;
+          argv++;
+          ok = true;
+      } else if (strcmp(argv[1], "-rx") == 0) {
+          revert_x = true;
+          argc--;
+          argv++;
+          ok = true;
+      } else if (strcmp(argv[1], "-ry") == 0) {
+          revert_y = true;
+          argc--;
+          argv++;
+          ok = true;
+      } else if (strcmp(argv[1], "-rz") == 0) {
+          revert_z = true;
+          argc--;
+          argv++;
+          ok = true;
+      } else if (!ok) {
+          cerr << "Invalid option : " << argv[1] << endl;
+          exit(1);
+      }
   }
+
+  if(x) image->ReflectX();
+  if(y) image->ReflectY();
+  if(z) image->ReflectZ();
+
+  if (revert_x) {
+      irtkImageAttributes tmpatr;
+      tmpatr = image->GetImageAttributes();
+      tmpatr._xaxis[0] = -tmpatr._xaxis[0];
+      tmpatr._xaxis[1] = -tmpatr._xaxis[1];
+      tmpatr._xaxis[2] = -tmpatr._xaxis[2];
+      image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+  }
+
+  if (revert_y) {
+      irtkImageAttributes tmpatr;
+      tmpatr = image->GetImageAttributes();
+      tmpatr._yaxis[0] = -tmpatr._yaxis[0];
+      tmpatr._yaxis[1] = -tmpatr._yaxis[1];
+      tmpatr._yaxis[2] = -tmpatr._yaxis[2];
+      image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+  }
+
+  if (revert_z) {
+      irtkImageAttributes tmpatr;
+      tmpatr = image->GetImageAttributes();
+      tmpatr._zaxis[0] = -tmpatr._zaxis[0];
+      tmpatr._zaxis[1] = -tmpatr._zaxis[1];
+      tmpatr._zaxis[2] = -tmpatr._zaxis[2];
+      image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
+  }
+
 
   // Write region
   image->Write(output_name);
 
-  delete [] reflect_list;
+  // Be nice
+  delete image;
+  delete reader;
 
   return 0;
 }

@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Library   : Image Registration Toolkit (IRTK)
-Module    : $Id: makesequence.cc 32 2009-03-26 18:01:30Z lrisser $
+Module    : $Id$
 Copyright : Imperial College, Department of Computing
 Visual Information Processing (VIP), 2008 onwards
-Date      : $Date: 2009-03-26 18:01:30 +0000 (�? 26 三月 2009) $
-Version   : $Revision: 32 $
-Changes   : $Author: lrisser $
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
 =========================================================================*/
 
@@ -71,12 +71,6 @@ int main(int argc, char **argv)
 		input_y[i] = input[i].GetY() - 1;
 		input_z[i] = input[i].GetZ() - 1;
 	}
-	//irtkGreyImage output(input[0].GetImageAttributes());              //removed (2/2)
-
-	//reference->Write("d:\\reference.gipl");
-	//input[0].Write("d:\\0.gipl");
-	//input[1].Write("d:\\1.gipl");
-	//input[2].Write("d:\\2.gipl");
 
 
 	cout << "Inserting volumes into sequence" << endl;
