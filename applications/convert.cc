@@ -16,24 +16,27 @@ char *input_name = NULL, *output_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: convert [in] [out] <options>\n\n";
-  cerr << "where <options> can be one or more of the following:\n";
-  cerr << "<-char|uchar|short|ushort|float|double>    Output voxel type\n";
-  cerr << "<-minmax value value>                      Output min and max intensity\n";
-  cerr << "<-x/-y/-z>                                 Flip the image in the x/y/z-direction\n";
-  cerr << "<-rx/-ry/-rz>                              Revert the x/y/z-direction\n\n";
-  cerr << "<-rmatr>									                  Remove orientation and origon information\n";
-  cerr << "<-swapxy>								                  Swap x y axis\n";
-  cerr << "<-swapzt>								                  Swap z t axis\n";
-  cerr << "<-ref image>								                Copy reference's coordinate system\n";
-  cerr << "<-reforigin image>						              Copy reference's origin\n";
-  cerr << "<-second image>							              Convert two images into one image\n";
-  cerr << "Please note that IRTK will flip Analyze in the y-direction when the image \n";
-  cerr << "is read and written (for historical reasons). This means that the coordinate \n";
-  cerr << "system which IRTK uses for Analyze images is different from that used by other \n";
-  cerr << "software Image Registration Toolkit (IRTK) such as SPM or FSL. Please use the NIFTI file format \n";
-  cerr << "instead (preferred option) or use the -y flag before converting from or to\n";
-  cerr << "Analyze file format.\n";
+  cerr << "Usage: convert [in] [out] <options>" << endl;
+  cerr << "where <options> can be one or more of the following:" << endl << endl;
+
+  cerr << "<-char|uchar|short|ushort|float|double>    Output voxel type" << endl;
+  cerr << "<-minmax value value>                      Output min and max intensity" << endl << endl;
+
+  cerr << "<-x/-y/-z>                                 Flip the image in the x/y/z-direction" << endl;
+  cerr << "<-rx/-ry/-rz>                              Revert the x/y/z-direction" << endl;
+  cerr << "<-rmatr>                                   Remove orientation and origin information" << endl;
+  cerr << "<-swapxy>                                  Swap x y axis" << endl;
+  cerr << "<-swapzt>                                  Swap z t axis" << endl;
+  cerr << "<-ref image>                               Copy reference's coordinate system" << endl;
+  cerr << "<-reforigin image>                         Copy reference's origin" << endl;
+  cerr << "<-second image>                            Convert two images into one image" << endl << endl;
+
+  cerr << "Please note that IRTK will flip Analyze in the y-direction when the image " << endl;
+  cerr << "is read and written (for historical reasons). This means that the coordinate " << endl;
+  cerr << "system which IRTK uses for Analyze images is different from that used by other " << endl;
+  cerr << "software Image Registration Toolkit (IRTK) such as SPM or FSL. Please use the NIFTI file format " << endl;
+  cerr << "instead (preferred option) or use the -y flag before converting from or to" << endl;
+  cerr << "Analyze file format." << endl << endl;
   exit(1);
 }
 
