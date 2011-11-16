@@ -11,6 +11,7 @@
 =========================================================================*/
 
 #include <irtkImage.h>
+#include <irtkFileToImage.h>
 
 #include <irtkGaussianBlurring.h>
 
@@ -31,7 +32,6 @@ int main(int argc, char **argv)
 {
   int ok, blur4D;
   double sigma;
-  irtkGreyImage input;
 
   if (argc < 4) {
     usage();
@@ -71,24 +71,57 @@ int main(int argc, char **argv)
     }
   }
 
-  // Read input
-  input.Read(input_name);
+  // Determine data type.
+  irtkFileToImage *reader = irtkFileToImage::New(input_name);
+  int dataType = reader->GetDataType();
 
   // Blur image
-  if (blur4D == true) {
-    irtkGaussianBlurring4D<irtkGreyPixel> gaussianBlurring4D(sigma);
-    gaussianBlurring4D.SetInput (&input);
-    gaussianBlurring4D.SetOutput(&input);
-    gaussianBlurring4D.Run();
-  } else {
-    irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(sigma);
-    gaussianBlurring.SetInput (&input);
-    gaussianBlurring.SetOutput(&input);
-    gaussianBlurring.Run();
+  if (dataType >= IRTK_VOXEL_CHAR && dataType <= IRTK_VOXEL_UNSIGNED_INT)
+  {
+  	// Read input
+  	irtkGreyImage input;
+  	input.Read(input_name);
+
+  	if (blur4D == true) {
+  		irtkGaussianBlurring4D<irtkGreyPixel> gaussianBlurring4D(sigma);
+  		gaussianBlurring4D.SetInput (&input);
+  		gaussianBlurring4D.SetOutput(&input);
+  		gaussianBlurring4D.Run();
+  	} else {
+  		irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(sigma);
+  		gaussianBlurring.SetInput (&input);
+  		gaussianBlurring.SetOutput(&input);
+  		gaussianBlurring.Run();
+  	}
+  	// Write image
+  	input.Write(output_name);
+  }
+  else if (dataType >= IRTK_VOXEL_FLOAT && dataType <= IRTK_VOXEL_DOUBLE)
+  {
+  	// Read input
+  	irtkRealImage input;
+  	input.Read(input_name);
+
+  	if (blur4D == true) {
+  		irtkGaussianBlurring4D<irtkRealPixel> gaussianBlurring4D(sigma);
+  		gaussianBlurring4D.SetInput (&input);
+  		gaussianBlurring4D.SetOutput(&input);
+  		gaussianBlurring4D.Run();
+  	} else {
+  		irtkGaussianBlurring<irtkRealPixel> gaussianBlurring(sigma);
+  		gaussianBlurring.SetInput (&input);
+  		gaussianBlurring.SetOutput(&input);
+  		gaussianBlurring.Run();
+  	}
+  	// Write image
+  	input.Write(output_name);
+  }
+  else
+  {
+  	cout << "blur: Unknown data type, quitting." << endl;
+  	exit(1);
   }
 
-  // Write image
-  input.Write(output_name);
 
   return 0;
 }
