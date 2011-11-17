@@ -18,22 +18,21 @@ char *input_name = NULL, *output_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: reflect [in] [out]" << endl;
-  cerr << "<-x/-y/-z>                                 \t Reflect the x/y/z-direction\n\n";
-  cerr << "<-rx/-ry/-rz>                              \t Revert the x/y/z-direction\n\n";
+  cerr << " Usage: reflect [in] [out] [reflection_1] <reflection_2> .. <reflection_n>" << endl;
+  cerr << " " << endl;
+  cerr << " Apply a sequence of one or more spatial reflections to an image." << endl;
+  cerr << " Where the reflections are chosen from:" << endl;
+  cerr << " " << endl;
+  cerr << "        -x -y -z -xy -xz -yz" << endl;
+  cerr << " " << endl;
+  cerr << " The reflections are processed in the order given" << endl;
+  cerr << " and changing the order can change the result. " << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int ok, x, y, z, revert_x, revert_y, revert_z;
-
-  revert_x = false;
-  revert_y = false;
-  revert_z = false;
-  x = false;
-  y = false;
-  z = false;
+  int ok;
 
   if (argc < 4) {
     usage();
@@ -51,75 +50,51 @@ int main(int argc, char **argv)
 
   while (argc > 1) {
       ok = false;
-      if (strcmp(argv[1], "-x") == 0) {
-          x = true;
+
+      if ((ok == false) && (strcmp(argv[1], "-x") == 0)) {
           argc--;
           argv++;
+          image->ReflectX();
           ok = true;
-      } else if (strcmp(argv[1], "-y") == 0) {
-          y = true;
+      }
+      if ((ok == false) && (strcmp(argv[1], "-y") == 0)) {
           argc--;
           argv++;
+          image->ReflectY();
           ok = true;
-      } else if (strcmp(argv[1], "-z") == 0) {
-          z = true;
+      }
+      if ((ok == false) && (strcmp(argv[1], "-z") == 0)) {
           argc--;
           argv++;
+          image->ReflectZ();
           ok = true;
-      } else if (strcmp(argv[1], "-rx") == 0) {
-          revert_x = true;
+      }
+      if ((ok == false) && ((strcmp(argv[1], "-xy") == 0) || (strcmp(argv[1], "-yx") == 0))) {
           argc--;
           argv++;
+          image->FlipXY(0);
           ok = true;
-      } else if (strcmp(argv[1], "-ry") == 0) {
-          revert_y = true;
+      }
+      if ((ok == false) && ((strcmp(argv[1], "-xz") == 0) || (strcmp(argv[1], "-zx") == 0))) {
           argc--;
           argv++;
+          image->FlipXZ(0);
           ok = true;
-      } else if (strcmp(argv[1], "-rz") == 0) {
-          revert_z = true;
+      }
+      if ((ok == false) && ((strcmp(argv[1], "-yz") == 0) || (strcmp(argv[1], "-zy") == 0))) {
           argc--;
           argv++;
+          image->FlipYZ(0);
           ok = true;
-      } else if (!ok) {
-          cerr << "Invalid option : " << argv[1] << endl;
-          exit(1);
+      }
+
+      if (ok == false) {
+  			cout << "Can't parse argument: " << argv[1] << endl;
+  			usage();
       }
   }
 
-  if(x) image->ReflectX();
-  if(y) image->ReflectY();
-  if(z) image->ReflectZ();
-
-  if (revert_x) {
-      irtkImageAttributes tmpatr;
-      tmpatr = image->GetImageAttributes();
-      tmpatr._xaxis[0] = -tmpatr._xaxis[0];
-      tmpatr._xaxis[1] = -tmpatr._xaxis[1];
-      tmpatr._xaxis[2] = -tmpatr._xaxis[2];
-      image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
-  }
-
-  if (revert_y) {
-      irtkImageAttributes tmpatr;
-      tmpatr = image->GetImageAttributes();
-      tmpatr._yaxis[0] = -tmpatr._yaxis[0];
-      tmpatr._yaxis[1] = -tmpatr._yaxis[1];
-      tmpatr._yaxis[2] = -tmpatr._yaxis[2];
-      image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
-  }
-
-  if (revert_z) {
-      irtkImageAttributes tmpatr;
-      tmpatr = image->GetImageAttributes();
-      tmpatr._zaxis[0] = -tmpatr._zaxis[0];
-      tmpatr._zaxis[1] = -tmpatr._zaxis[1];
-      tmpatr._zaxis[2] = -tmpatr._zaxis[2];
-      image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
-  }
-
-
-  // Write region
+  // Write image
   image->Write(output_name);
 
   // Be nice
