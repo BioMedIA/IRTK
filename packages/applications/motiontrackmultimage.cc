@@ -447,16 +447,20 @@ int main(int argc, char **argv)
 
     multimageregistration->SetWeighting(weight);
 
-    if (adaptive > 0) {
-      double weight = multimageregistration->GetLambda2();
-      int times;
-      t < round(image[0]->GetT() / 3) ?
-      times = t: times = round(image[0]->GetT() / 3);
-      t > round(image[0]->GetT()*2 / 3) ?
-      times = (image[0]->GetT() - 1 - t):times = times;
-      weight = pow(adaptive,2*times)*weight;
-      cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
-      multimageregistration->SetLambda2(weight);
+    if (adaptive > 0) {               
+        int times = 0;
+        t < round(image[0]->GetT() / 3) ? 
+            (times = t):(times = round(image[0]->GetT() / 3));
+        t > round(image[0]->GetT()*2 / 3) ? 
+            (times = (image[0]->GetT() - 1 - t)):(times = times);
+        double weight = multimageregistration->GetLambda1();
+        weight = pow(adaptive,2*times)*weight;
+        cout << "current lambda1 of frame " << t << " is "<<weight<<endl;
+        multimageregistration->SetLambda1(weight);
+        weight = multimageregistration->GetLambda2();
+        weight = pow(adaptive,2*times)*weight;
+        cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
+        multimageregistration->SetLambda2(weight);
     }
 
     // Run registration filter
