@@ -29,15 +29,18 @@ void usage()
 	cerr << "<-origin      x  y  z>                          Image spatial origin (in mm)" << endl;
 	cerr << "<-timeOrigin  t>                                Image temporal origin (in ms)" << endl;
 	cerr << " " << endl;
-	cerr << "<-target                image>                  Copy target image's orientation, origin and pixel size" << endl;
-	cerr << "<-targetOriginAndOrient image>                  Copy target image's orientation and origin)" << endl;
-	cerr << "<-targetOrigin          image>                  Copy target image's origin only" << endl;
+	cerr << "<-target                image>  Copy target image orientation, origin and pixel" << endl;
+	cerr << "                                spacing" << endl;
+	cerr << "<-targetOriginAndOrient image>  Copy target image orientation and origin)" << endl;
+	cerr << "<-targetOrigin          image>  Copy target image origin only" << endl;
 	cerr << " " << endl;
-	cerr << "<-writeMatrix           filename>               Save the image to world matrix to a file" << endl;
-	cerr << "<-reset>                                        Reset origin and axis orientation to default values" << endl;
+	cerr << "<-writeMatrix           file>   Save the image to world matrix to a file" << endl;
+	cerr << "<-reset>                        Reset origin and axis orientation to default " << endl;
+	cerr << "                                values" << endl;
 	cerr << " " << endl;
-	cerr << "<-dofin                 transformation>         Apply transformation to axis, spacing and origin information in the" << endl;
-	cerr << "                                                header. Transformation may only be rigid or affine (no shearing)." << endl;
+	cerr << "<-dofin                 file>   Apply transformation to axis, spacing and origin" << endl;
+	cerr << "                                information in the header. Transformation may " << endl;
+	cerr << "                                only be rigid or affine (no shearing)." << endl;
 	exit(1);
 }
 
