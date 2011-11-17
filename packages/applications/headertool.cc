@@ -26,24 +26,24 @@ void usage()
 	cerr << "<-size        dx dy dz>                         Voxel size   (in mm)" << endl;
 	cerr << "<-tsize       dt>                               Voxel size   (in ms)" << endl;
 	cerr << "<-orientation x1 x2 x3   y1 y2 y3  z1 z2 z3>    Image orientation" << endl;
-	cerr << "<-origin      x  y  z>                          Image origin (in mm)" << endl;
-	cerr << "<-torigin     t>                                Image origin (in ms)" << endl;
+	cerr << "<-origin      x  y  z>                          Image spatial origin (in mm)" << endl;
+	cerr << "<-timeOrigin  t>                                Image temporal origin (in ms)" << endl;
 	cerr << " " << endl;
 	cerr << "<-target                image>                  Copy target image's orientation, origin and pixel size" << endl;
 	cerr << "<-targetOriginAndOrient image>                  Copy target image's orientation and origin)" << endl;
 	cerr << "<-targetOrigin          image>                  Copy target image's origin only" << endl;
 	cerr << " " << endl;
-	cerr << "<-writeMatrix           filename>               Save image to world matrix to a file" << endl;
-	cerr << "<-reset>                                        Reset orientation and origin information to default values" << endl;
+	cerr << "<-writeMatrix           filename>               Save the image to world matrix to a file" << endl;
+	cerr << "<-reset>                                        Reset origin and axis orientation to default values" << endl;
 	cerr << " " << endl;
 	cerr << "<-dofin                 transformation>         Apply transformation to axis, spacing and origin information in the" << endl;
-	cerr << "                                                header. Transformation may be rigid or affine and with no shearing." << endl;
+	cerr << "                                                header. Transformation may only be rigid or affine (no shearing)." << endl;
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int i, ok, resetAttributes, useRefImageOriginAndOrientation, useRefImageOrigin;
+	int i, ok;
 	double xsize, ysize, zsize, tsize, xaxis[3], yaxis[3], zaxis[3], origin[4];
 	irtkTransformation *transformation = NULL;
 	irtkImageAttributes refImageAttr;
@@ -51,10 +51,6 @@ int main(int argc, char **argv)
 	if (argc < 3) {
 		usage();
 	}
-
-	resetAttributes  = 0;
-	useRefImageOriginAndOrientation = 0;
-	useRefImageOrigin = 0;
 
 	// Parse filenames
 	input_name  = argv[1];
@@ -84,6 +80,11 @@ int main(int argc, char **argv)
 			output_matrix_name = argv[1];
 			argc--;
 			argv++;
+
+			// Write out matrix
+			irtkMatrix header(4,4);
+			header = image->GetImageToWorldMatrix();
+			header.Write(output_matrix_name);
 			ok = true;
 		}
 		if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
 			irtkGreyImage target(argv[1]);
 			argc--;
 			argv++;
+
+			// Take pixel size, axis orientation and spatial origin from target.
 			target.GetPixelSize(&xsize, &ysize, &zsize);
 			image->PutPixelSize(xsize, ysize, zsize);
 			target.GetOrientation(xaxis, yaxis, zaxis);
@@ -100,31 +103,41 @@ int main(int argc, char **argv)
 			image->PutOrigin(origin[0], origin[1], origin[2]);
 			ok = true;
 		}
-		if ((ok == false) && strcmp(argv[1], "-reset") == 0) {
-			argc--;
-			argv++;
-			resetAttributes = 1;
-			ok = true;
-		}
 		if ((ok == false) && strcmp(argv[1], "-targetOriginAndOrient") == 0) {
 			argc--;
 			argv++;
-			useRefImageOriginAndOrientation = 1;
-			ok = true;
-			irtkGreyImage ref(argv[1]);
-			refImageAttr = ref.GetImageAttributes();
+			irtkGreyImage target(argv[1]);
 			argc--;
 			argv++;
+
+			// Take axis orientation and spatial origin from target.
+			target.GetOrientation(xaxis, yaxis, zaxis);
+			image->PutOrientation(xaxis, yaxis, zaxis);
+			target.GetOrigin(origin[0], origin[1], origin[2]);
+			image->PutOrigin(origin[0], origin[1], origin[2]);
+			ok = true;
 		}
 		if ((ok == false) && strcmp(argv[1], "-targetOrigin") == 0) {
 			argc--;
 			argv++;
-			useRefImageOrigin = 1;
-			ok = true;
-			irtkGreyImage ref(argv[1]);
-			refImageAttr = ref.GetImageAttributes();
+			irtkGreyImage target(argv[1]);
 			argc--;
 			argv++;
+
+			// Take spatial origin from target.
+			target.GetOrigin(origin[0], origin[1], origin[2]);
+			image->PutOrigin(origin[0], origin[1], origin[2]);
+			ok = true;
+		}
+		if ((ok == false) && strcmp(argv[1], "-reset") == 0) {
+			argc--;
+			argv++;
+
+			// Reset axis and spatial origin attributes
+			irtkImageAttributes defaultAttr;
+			image->PutOrientation(defaultAttr._xaxis,defaultAttr._yaxis,defaultAttr._zaxis);
+			image->PutOrigin(defaultAttr._xorigin,defaultAttr._yorigin,defaultAttr._zorigin);
+			ok = true;
 		}
 		if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
 			argc--;
@@ -207,17 +220,16 @@ int main(int argc, char **argv)
 			// Set origin
 			image->PutOrigin(origin[0], origin[1], origin[2]);
 		}
-		if ((ok == false) && (strcmp(argv[1], "-torigin") == 0)) {
+		if ((ok == false) && (strcmp(argv[1], "-timeOrigin") == 0)) {
 			argc--;
 			argv++;
 			origin[3] = atof(argv[1]);
 			argc--;
 			argv++;
-			ok = true;
-
-			// Set origin
+			// Set temporal origin
 			image->GetOrigin(origin[0], origin[1], origin[2]);
 			image->PutOrigin(origin[0], origin[1], origin[2], origin[3]);
+			ok = true;
 		}
 
 		if (ok == false) {
@@ -226,7 +238,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Transform header
+
+	// Applying a transformation to the header information
 	if (dof_name != NULL) {
 
 		// Read transformation
@@ -306,31 +319,9 @@ int main(int argc, char **argv)
 		delete transformation;
 	}
 
-	// Remove Attributes
-	if (resetAttributes == 1) {
-		irtkImageAttributes tmpatr;
-		image->PutOrientation(tmpatr._xaxis,tmpatr._yaxis,tmpatr._zaxis);
-		image->PutOrigin(tmpatr._xorigin,tmpatr._yorigin,tmpatr._zorigin);
-	}
-
-	// use reference image's setting
-	if (useRefImageOriginAndOrientation == 1) {
-		image->PutOrientation(refImageAttr._xaxis,refImageAttr._yaxis,refImageAttr._zaxis);
-		image->PutOrigin(refImageAttr._xorigin,refImageAttr._yorigin,refImageAttr._zorigin);
-	}
-
-	// use reference image's setting
-	if (useRefImageOrigin == 1) {
-		image->PutOrigin(refImageAttr._xorigin,refImageAttr._yorigin,refImageAttr._zorigin);
-	}
 
 	image->Write(output_name);
 
-	if(output_matrix_name != NULL){
-		irtkMatrix header(4,4);
-		header = image->GetImageToWorldMatrix();
-		header.Write(output_matrix_name);
-	}
 
 	delete image;
 	delete reader;
