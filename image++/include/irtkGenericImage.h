@@ -207,17 +207,17 @@ public:
   /// Reflect image around z
   void ReflectZ();
   /// Flip x and y axis
-  void FlipXY();
+  void FlipXY(int);
   /// Flip x and z axis
-  void FlipXZ();
+  void FlipXZ(int);
   /// Flip y and z axis
-  void FlipYZ();
+  void FlipYZ(int);
   /// Flip x and t axis
-  void FlipXT();
+  void FlipXT(int);
   /// Flip y and t axis
-  void FlipYT();
+  void FlipYT(int);
   /// Flip z and t axis
-  void FlipZT();
+  void FlipZT(int);
 
   //
   // Conversions from and to VTK

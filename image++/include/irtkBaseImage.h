@@ -212,22 +212,22 @@ public:
   virtual void ReflectZ() = 0;
 
   /// Flip x and y axis
-  virtual void FlipXY() = 0;
+  virtual void FlipXY(int) = 0;
 
   /// Flip x and z axis
-  virtual void FlipXZ() = 0;
+  virtual void FlipXZ(int) = 0;
 
   /// Flip y and z axis
-  virtual void FlipYZ() = 0;
+  virtual void FlipYZ(int) = 0;
 
   /// Flip x and t axis
-  virtual void FlipXT() = 0;
+  virtual void FlipXT(int) = 0;
 
   /// Flip y and t axis
-  virtual void FlipYT() = 0;
+  virtual void FlipYT(int) = 0;
 
   /// Flip z and t axis
-  virtual void FlipZT() = 0;
+  virtual void FlipZT(int) = 0;
 
   /// Read file and construct image
   static irtkBaseImage *New(const char *);

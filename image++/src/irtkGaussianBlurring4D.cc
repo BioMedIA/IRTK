@@ -68,7 +68,7 @@ template <class VoxelType> void irtkGaussianBlurring4D<VoxelType>::Run()
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
-  this->_output->FlipXY();
+  this->_output->FlipXY(1);
 
   // Create scalar function which corresponds to a 1D Gaussian function in Y
   irtkScalarGaussian gaussianY(this->_Sigma/ysize, 1, 1, 0, 0, 0);
@@ -91,7 +91,7 @@ template <class VoxelType> void irtkGaussianBlurring4D<VoxelType>::Run()
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
-  this->_output->FlipXZ();
+  this->_output->FlipXZ(1);
 
   if (this->_output->GetX() != 1) {
     // Create scalar function which corresponds to a 1D Gaussian function in Z
@@ -116,7 +116,7 @@ template <class VoxelType> void irtkGaussianBlurring4D<VoxelType>::Run()
   }
 
   // Flip x and t axis of image
-  this->_output->FlipXT();
+  this->_output->FlipXT(1);
 
   // Create scalar function which corresponds to a 1D Gaussian function in T
   irtkScalarGaussian gaussianT(this->_Sigma/tsize, 1, 1, 0, 0, 0);
@@ -139,9 +139,9 @@ template <class VoxelType> void irtkGaussianBlurring4D<VoxelType>::Run()
   convolutionT.irtkImageToImage<VoxelType>::Run();
 
   // Flip image back, first t and z axis, then x and z axis and finally x and y axis
-  this->_output->FlipXT();
-  this->_output->FlipXZ();
-  this->_output->FlipXY();
+  this->_output->FlipXT(1);
+  this->_output->FlipXZ(1);
+  this->_output->FlipXY(1);
 
   // Do the final cleaning up
   this->Finalize();

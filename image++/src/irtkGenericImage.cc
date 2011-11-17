@@ -972,7 +972,7 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::ReflectZ()
   }
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXY()
+template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXY(int modifyOrigin)
 {
   int i, j, k, m;
   VoxelType ****matrix = NULL;
@@ -1002,15 +1002,17 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXY()
   // Swap voxel dimensions
   swap(_attr._dx, _attr._dy);
 
-  // Swap voxel dimensions
-  swap(_attr._xorigin, _attr._yorigin);
+  if (modifyOrigin > 0){
+  	// Swap origin coordinates
+  	swap(_attr._xorigin, _attr._yorigin);
+  }
 
   // Update transformation matrix
   this->UpdateMatrix();
 
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXZ()
+template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXZ(int modifyOrigin)
 {
   int i, j, k, l;
   VoxelType ****matrix = NULL;
@@ -1040,14 +1042,16 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXZ()
   // Swap voxel dimensions
   swap(_attr._dx, _attr._dz);
 
-  // Swap voxel dimensions
-  swap(_attr._xorigin, _attr._zorigin);
+  if (modifyOrigin > 0){
+  	// Swap origin coordinates
+  	swap(_attr._xorigin, _attr._zorigin);
+  }
 
   // Update transformation matrix
   this->UpdateMatrix();
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYZ()
+template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYZ(int modifyOrigin)
 {
   int i, j, k, l;
   VoxelType ****matrix = NULL;
@@ -1077,14 +1081,16 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYZ()
   // Swap voxel dimensions
   swap(_attr._dy, _attr._dz);
 
-  // Swap voxel dimensions
-  swap(_attr._yorigin, _attr._zorigin);
+  if (modifyOrigin > 0){
+  	// Swap origin coordinates
+  	swap(_attr._yorigin, _attr._zorigin);
+  }
 
   // Update transformation matrix
   this->UpdateMatrix();
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXT()
+template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXT(int modifyOrigin)
 {
   int i, j, k, m;
   VoxelType ****matrix = NULL;
@@ -1114,15 +1120,17 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipXT()
   // Swap voxel dimensions
   swap(_attr._dx, _attr._dt);
 
-  // Swap voxel dimensions
-  swap(_attr._xorigin, _attr._torigin);
+  if (modifyOrigin > 0){
+  	// Swap origin coordinates
+  	swap(_attr._xorigin, _attr._torigin);
+  }
 
   // Update transformation matrix
   this->UpdateMatrix();
 
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYT()
+template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYT(int modifyOrigin)
 {
   int i, j, k, m;
   VoxelType ****matrix = NULL;
@@ -1152,15 +1160,17 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipYT()
   // Swap voxel dimensions
   swap(_attr._dy, _attr._dt);
 
-  // Swap voxel dimensions
-  swap(_attr._yorigin, _attr._torigin);
+  if (modifyOrigin > 0){
+  	// Swap origin coordinates
+  	swap(_attr._yorigin, _attr._torigin);
+  }
 
   // Update transformation matrix
   this->UpdateMatrix();
 
 }
 
-template <class VoxelType> void irtkGenericImage<VoxelType>::FlipZT()
+template <class VoxelType> void irtkGenericImage<VoxelType>::FlipZT(int modifyOrigin)
 {
   int i, j, k, m;
   VoxelType ****matrix = NULL;
@@ -1190,8 +1200,10 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::FlipZT()
   // Swap voxel dimensions
   swap(_attr._dz, _attr._dt);
 
-  // Swap voxel dimensions
-  swap(_attr._zorigin, _attr._torigin);
+  if (modifyOrigin > 0){
+  	// Swap origin coordinates
+  	swap(_attr._zorigin, _attr._torigin);
+  }
 
   // Update transformation matrix
   this->UpdateMatrix();

@@ -228,9 +228,9 @@ void irtkBaseImage::Print()
   // Print origin
   cout << "Image origin is " << _attr._xorigin << " " << _attr._yorigin << " " << _attr._zorigin << " " << _attr._torigin << endl;
   // Print x-axis
-  cout << "X-axis is " << _attr._xaxis[0] << " " << _attr._xaxis[1] << " " << _attr._xaxis[2] << endl;
-  // Print x-axis
-  cout << "Y-axis is " << _attr._yaxis[0] << " " << _attr._yaxis[1] << " " << _attr._yaxis[2] << endl;
-  // Print x-axis
-  cout << "Z-axis is " << _attr._zaxis[0] << " " << _attr._zaxis[1] << " " << _attr._zaxis[2] << endl;
+  printf("X-axis is % 0.2f % 0.2f % 0.2f\n", _attr._xaxis[0], _attr._xaxis[1], _attr._xaxis[2]);
+  // Print y-axis
+  printf("Y-axis is % 0.2f % 0.2f % 0.2f\n", _attr._yaxis[0], _attr._yaxis[1], _attr._yaxis[2]);
+  // Print z-axis
+  printf("Z-axis is % 0.2f % 0.2f % 0.2f\n", _attr._zaxis[0], _attr._zaxis[1], _attr._zaxis[2]);
 }

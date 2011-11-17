@@ -64,7 +64,7 @@ template <class VoxelType> void irtkGaussianBlurringWithPadding<VoxelType>::Run(
   convolutionX.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and y axis of image
-  this->_output->FlipXY();
+  this->_output->FlipXY(1);
 
   // Create scalar function which corresponds to a 1D Gaussian function in Y
   irtkScalarGaussian gaussianY(this->_Sigma/ysize, 1, 1, 0, 0, 0);
@@ -87,7 +87,7 @@ template <class VoxelType> void irtkGaussianBlurringWithPadding<VoxelType>::Run(
   convolutionY.irtkImageToImage<VoxelType>::Run();
 
   // Flip x and z axis of image
-  this->_output->FlipXZ();
+  this->_output->FlipXZ(1);
 
   if (this->_output->GetX() != 1) {
     // Create scalar function which corresponds to a 1D Gaussian function in Z
@@ -112,8 +112,8 @@ template <class VoxelType> void irtkGaussianBlurringWithPadding<VoxelType>::Run(
   }
 
   // Flip image back, first x and z axis, then x and y axis
-  this->_output->FlipXZ();
-  this->_output->FlipXY();
+  this->_output->FlipXZ(1);
+  this->_output->FlipXY(1);
 
   // Do the final cleaning up
   this->Finalize();
