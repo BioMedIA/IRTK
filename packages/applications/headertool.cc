@@ -41,6 +41,11 @@ void usage()
 	cerr << "<-dofin                 file>   Apply transformation to axis, spacing and origin" << endl;
 	cerr << "                                information in the header. Transformation may " << endl;
 	cerr << "                                only be rigid or affine (no shearing)." << endl;
+	cerr << "<-swapxy>                       Swap the x and y axis vectors. " << endl;
+	cerr << "<-swapxz>                       Swap the x and z axis vectors. " << endl;
+	cerr << "<-swapyz>                       Swap the y and z axis vectors." << endl;
+	cerr << " " << endl;
+
 	exit(1);
 }
 
@@ -234,7 +239,30 @@ int main(int argc, char **argv)
 			image->PutOrigin(origin[0], origin[1], origin[2], origin[3]);
 			ok = true;
 		}
-
+		if ((ok == false) && ((strcmp(argv[1], "-swapxy") == 0) || (strcmp(argv[1], "-swapyx")) == 0)) {
+			argc--;
+			argv++;
+			// Swap axes:
+			image->GetOrientation(xaxis, yaxis, zaxis);
+			image->PutOrientation(yaxis, xaxis, zaxis);
+			ok = true;
+		}
+		if ((ok == false) && ((strcmp(argv[1], "-swapxz") == 0) || (strcmp(argv[1], "-swapzx")) == 0)) {
+			argc--;
+			argv++;
+			// Swap axes:
+			image->GetOrientation(xaxis, yaxis, zaxis);
+			image->PutOrientation(zaxis, yaxis, xaxis);
+			ok = true;
+		}
+		if ((ok == false) && ((strcmp(argv[1], "-swapyz") == 0) || (strcmp(argv[1], "-swapzy")) == 0)) {
+			argc--;
+			argv++;
+			// Swap axes:
+			image->GetOrientation(xaxis, yaxis, zaxis);
+			image->PutOrientation(xaxis, zaxis, yaxis);
+			ok = true;
+		}
 		if (ok == false) {
 			cout << "Can't parse argument: " << argv[1] << endl;
 			usage();
