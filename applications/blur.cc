@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 
   // Determine data type.
   irtkFileToImage *reader = irtkFileToImage::New(input_name);
+  irtkBaseImage *memorycleaner = reader->GetOutput();
   int dataType = reader->GetDataType();
 
   // Blur image
@@ -122,6 +123,9 @@ int main(int argc, char **argv)
   	exit(1);
   }
 
+  //clean memory
+  delete memorycleaner;
+  delete reader;
 
   return 0;
 }

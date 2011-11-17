@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	}
 
 
-	cout << "Inserting volumes into sequence" << endl;
+	cout << "Inserting volumes into single volume" << endl;
 	// Setup the interpolator
 	// Compute domain on which the linear interpolation is defined
 	irtkRealPixel* ptr2tmp = NULL;
