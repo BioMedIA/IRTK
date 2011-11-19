@@ -14,40 +14,40 @@
 
 double combine_mysimilarity(double sv1, double sv2, double p1, double p2)
 {
-	double combined;
+  double combined;
 
-	double factor;
+  double factor;
 
-	factor = p1 + p2;
+  factor = p1 + p2;
 
-	if(factor > 0)
-		combined = (sv1*p1 + sv2*p2)/factor;
-	else
-		combined = 0;
+  if(factor > 0)
+    combined = (sv1*p1 + sv2*p2)/factor;
+  else
+    combined = 0;
 
-	return combined;
+  return combined;
 }
 
 double combine_mysimilarity(irtkSimilarityMetric **s, double *weight, double number)
 {
-	double combined, factor;
-	int i;
+  double combined, factor;
+  int i;
 
-	factor = 0; combined = 0;
+  factor = 0; combined = 0;
 
-	for (i = 0; i < number; i++){
-		if ( weight[i] > 0 ){
-			combined += s[i]->Evaluate() * weight[i];
-			factor += weight[i];
-		}
-	}
+  for (i = 0; i < number; i++) {
+    if ( weight[i] > 0 ) {
+      combined += s[i]->Evaluate() * weight[i];
+      factor += weight[i];
+    }
+  }
 
-	if(factor > 0)
-		combined = combined/factor;
-	else
-		combined = 0;
+  if(factor > 0)
+    combined = combined/factor;
+  else
+    combined = 0;
 
-	return combined;
+  return combined;
 }
 
 void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding)
@@ -73,12 +73,12 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding)
       }
     }
   }
-
+  cout << n << " " << m << endl;
   if (n > 0) {
 
     // Print some padding information
     cout << "Padding value = " << padding << endl;
-    cout << "Padding ratio = " << double(100*n)/double(m+n) << " %" << endl;
+    cout << "Padding ratio = " << 100*double(n)/(double(m)+double(n)) << " %" << endl;
 
     // Calculate distances
     for (t = 0; t < image.GetT(); t++) {
@@ -150,23 +150,23 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTrans
         // Convert control points to index
         index = ffd->LatticeToIndex(i, j, k);
 
-		ok = false;
+        ok = false;
 
-		for (n = 0; n < numberOfImages; n++){
-			// Calculate bounding box of control point in voxels
-			ffd->BoundingBox(image[n], index, x1, y1, z1, x2, y2, z2);
-			for (t = 0; t < image[n]->GetT(); t++) {
-				for (z = z1; z <= z2; z++) {
-					for (y = y1; y <= y2; y++) {
-						for (x = x1; x <= x2; x++) {
-							if (image[n]->GetAsDouble(x, y, z, t) > padding) {
-								ok = true;
-							}
-						}
-					}
-				}
-			}
-		}
+        for (n = 0; n < numberOfImages; n++) {
+          // Calculate bounding box of control point in voxels
+          ffd->BoundingBox(image[n], index, x1, y1, z1, x2, y2, z2);
+          for (t = 0; t < image[n]->GetT(); t++) {
+            for (z = z1; z <= z2; z++) {
+              for (y = y1; y <= y2; y++) {
+                for (x = x1; x <= x2; x++) {
+                  if (image[n]->GetAsDouble(x, y, z, t) > padding) {
+                    ok = true;
+                  }
+                }
+              }
+            }
+          }
+        }
         if (ok == false) {
           ffd->PutStatus(i, j, k, _Passive);
         }
@@ -177,8 +177,8 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTrans
 
 double GuessResolution(double xsize, double ysize, double zsize)
 {
-  if ((xsize <= ysize) && (xsize <= zsize)) return xsize;
-  if ((ysize <= xsize) && (ysize <= zsize)) return ysize;
+  if ((xsize >= ysize) && (xsize >= zsize)) return xsize;
+  if ((ysize >= xsize) && (ysize >= zsize)) return ysize;
   return zsize;
 }
 
@@ -226,7 +226,7 @@ int irtkCalculateNumberOfBins(irtkGreyImage *image, int maxbin, int min, int max
 
     // Print out number of bins
     cout << "Using " << nbins << " out of " << maxbin << " bin(s) with width "
-         << width << endl;
+    << width << endl;
   } else {
     // Print out number of bins
     cout << "Using " << nbins << " bin(s) with width " 	 << width << endl;
