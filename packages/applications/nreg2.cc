@@ -51,13 +51,15 @@ void usage()
   cerr << "                     must have the same dimensions as the target." << endl;
   cerr << "                     Voxels in the mask with zero or less are " << endl;
   cerr << "                     padded in the target." << endl;
+  cerr << "<-mask_dilation n>   Dilate mask n times before using it" << endl;
+
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
   double spacing;
-  int ok, padding;
+  int ok, padding, mask_dilation = 0;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
 
@@ -335,6 +337,14 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-mask_dilation") == 0)) {
+      argc--;
+      argv++;
+      mask_dilation = atoi(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -343,6 +353,8 @@ int main(int argc, char **argv)
 
   // Is there a mask to use?
   if (mask_name != NULL) {
+    int voxels, i;
+    irtkGreyPixel *ptr2target, *ptr2mask;
     irtkGreyImage mask(mask_name);
 
     if (mask.GetX() != target.GetX() ||
@@ -352,8 +364,17 @@ int main(int argc, char **argv)
       exit(1);
     }
 
-    irtkGreyPixel *ptr2target, *ptr2mask;
-    int voxels, i;
+    if (mask_dilation > 0) {
+      irtkDilation<irtkGreyPixel> dilation;
+    	dilation.SetConnectivity(CONNECTIVITY_26);
+      dilation.SetInput(&mask);
+      dilation.SetOutput(&mask);
+      cout << "Dilating mask ... ";
+      cout.flush();
+      for (i = 0; i < mask_dilation; i++) dilation.Run();
+      cout << "done" << endl;
+
+    }
 
     voxels     = target.GetNumberOfVoxels();
     ptr2target = target.GetPointerToVoxels();

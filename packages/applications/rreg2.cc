@@ -16,6 +16,7 @@
 char *source_name = NULL, *target_name = NULL;
 char *dofin_name  = NULL, *dofout_name = NULL;
 char *parin_name  = NULL, *parout_name = NULL;
+char *mask_name = NULL;
 
 void usage()
 {
@@ -47,6 +48,12 @@ void usage()
   cerr << "<-center>            Center voxel grids onto image origins" << endl;
   cerr << "                     before running registration." << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
+  cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
+  cerr << "                     must have the same dimensions as the target." << endl;
+  cerr << "                     Voxels in the mask with zero or less are " << endl;
+  cerr << "                     padded in the target." << endl;
+  cerr << "<-mask_dilation n>   Dilate mask n times before using it" << endl;
+
   exit(1);
 }
 
@@ -57,7 +64,7 @@ int main(int argc, char **argv)
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
   double tox, toy, toz, sox, soy, soz;
   tox = toy = toz = sox = soy = soz = 0.0;
-  int centerImages = false;
+  int centerImages = false, mask_dilation = 0;
   irtkMatrix tmat(4, 4);
   irtkMatrix smat(4, 4);
   irtkMatrix tempMat, transfMat;
@@ -327,9 +334,63 @@ int main(int argc, char **argv)
       centerImages = true;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
+      argc--;
+      argv++;
+      mask_name = argv[1];
+      argc--;
+      argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-mask_dilation") == 0)) {
+      argc--;
+      argv++;
+      mask_dilation = atoi(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
+    }
+  }
+
+  // Is there a mask to use?
+  if (mask_name != NULL) {
+    int voxels, i;
+    irtkGreyPixel *ptr2target, *ptr2mask;
+    irtkGreyImage mask(mask_name);
+
+    if (mask.GetX() != target.GetX() ||
+        mask.GetY() != target.GetY() ||
+        mask.GetZ() != target.GetZ()) {
+      cerr << "Mask given does not match target dimensions." << endl;
+      exit(1);
+    }
+
+    if (mask_dilation > 0) {
+      irtkDilation<irtkGreyPixel> dilation;
+    	dilation.SetConnectivity(CONNECTIVITY_26);
+      dilation.SetInput(&mask);
+      dilation.SetOutput(&mask);
+      cout << "Dilating mask ... ";
+      cout.flush();
+      for (i = 0; i < mask_dilation; i++) dilation.Run();
+      cout << "done" << endl;
+
+    }
+
+    voxels     = target.GetNumberOfVoxels();
+    ptr2target = target.GetPointerToVoxels();
+    ptr2mask   = mask.GetPointerToVoxels();
+
+    for (i = 0; i < voxels; ++i) {
+      if (*ptr2mask <= 0) {
+        *ptr2target = padding;
+      }
+      ++ptr2mask;
+      ++ptr2target;
     }
   }
 
