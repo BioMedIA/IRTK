@@ -25,6 +25,8 @@ void usage()
   cerr << "where <options> are one or more of the following:\n";
   cerr << "\t<-3D>              3D blurring (default)\n";
   cerr << "\t<-4D>              4D blurring\n";
+  cerr << "\t<-short>           Set data type of output to short integers." << endl;
+  cerr << "\t<-float>           Set data type of output to floating point." << endl;
   exit(1);
 }
 
@@ -48,6 +50,11 @@ int main(int argc, char **argv)
   argc--;
   argv++;
 
+  // Determine input image data type.
+  irtkFileToImage *reader = irtkFileToImage::New(input_name);
+  irtkBaseImage *memorycleaner = reader->GetOutput();
+  int dataType = reader->GetDataType();
+
   // Default
   blur4D = false;
 
@@ -65,16 +72,25 @@ int main(int argc, char **argv)
       blur4D = true;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-short") == 0)) {
+      argc--;
+      argv++;
+      // Possible override of input image data type.
+      dataType = IRTK_VOXEL_INT;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-float") == 0)) {
+      argc--;
+      argv++;
+      // Possible override of input image data type.
+      dataType = IRTK_VOXEL_FLOAT;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Unknown option: " << argv[1] << endl;
       usage();
     }
   }
-
-  // Determine data type.
-  irtkFileToImage *reader = irtkFileToImage::New(input_name);
-  irtkBaseImage *memorycleaner = reader->GetOutput();
-  int dataType = reader->GetDataType();
 
   // Blur image
   if (dataType >= IRTK_VOXEL_CHAR && dataType <= IRTK_VOXEL_UNSIGNED_INT)
