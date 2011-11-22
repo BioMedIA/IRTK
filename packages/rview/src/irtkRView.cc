@@ -150,6 +150,7 @@ irtkRView::irtkRView(int x, int y)
   _DisplayObject = false;
   _DisplayObjectWarp = false;
   _DisplayObjectGrid = false;
+  _ObjectMovie = false;
 #endif
 
   // Allocate memory for source and target image
@@ -541,8 +542,18 @@ void irtkRView::Draw()
 #ifdef HAS_VTK
     // Draw  object if needed
     if (_DisplayObject == true) {
-      _viewer[k]->DrawObject(_Object, _targetImageOutput[k],
-                             _DisplayObjectWarp, _DisplayObjectGrid);
+        if(_ObjectMovie == true){
+            int _objectFrame = 0;
+            if(_targetFrame > _NoOfObjects - 1){
+                _objectFrame = _NoOfObjects - 1;
+            }else{
+                _objectFrame = _targetFrame;
+            }
+            _viewer[k]->DrawObject(_Object[_objectFrame], _targetImageOutput[k]);
+        }else{
+          _viewer[k]->DrawObject(_Object, _targetImageOutput[k],
+                             _DisplayObjectWarp, _DisplayObjectGrid, _sourceTransform);
+        }
     }
 #endif
 
@@ -1910,7 +1921,7 @@ void irtkRView::WriteSourceLandmarks(char *name)
 }
 
 #ifdef HAS_VTK
-void irtkRView::ReadObject(char *name)
+void irtkRView::ReadObject(const char *name)
 {
   if (_NoOfObjects >= MAX_NUMBER_OF_OBJECTS) {
     cerr << "irtkRView::ReadObject(): maximum number of objects reached!\n";
@@ -1930,6 +1941,19 @@ void irtkRView::ReadObject(char *name)
   // Be good
   data_reader->Delete();
 }
+
+void irtkRView::RemoveObject()
+{
+    int i;
+
+    for (i = 0; i < MAX_NUMBER_OF_OBJECTS; i++) {
+        if (_Object[i] != NULL) _Object[i]->Delete();
+        _Object[i] = NULL;
+    }
+
+    _NoOfObjects = 0;
+}
+
 #endif
 
 void irtkRView::Reset()

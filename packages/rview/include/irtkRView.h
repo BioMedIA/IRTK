@@ -100,7 +100,7 @@ typedef enum { RegionGrowing2D, RegionGrowing3D } irtkRegionGrowingMode;
 
 #define MAX_SEGMENTS 256
 
-#define MAX_NUMBER_OF_OBJECTS 20
+#define MAX_NUMBER_OF_OBJECTS 40
 
 #include <irtkSegmentTable.h>
 
@@ -201,6 +201,9 @@ protected:
 
   /// Object (surface or mesh)
   vtkPointSet *_Object[MAX_NUMBER_OF_OBJECTS];
+
+  /// Flag for display object as a movie
+  int _ObjectMovie;
 
 #endif
 
@@ -490,10 +493,22 @@ public:
 
 #ifdef HAS_VTK
   /// Read object
-  virtual void ReadObject(char *);
+  virtual void ReadObject(const char *);
+
+  /// Remove object
+  virtual void RemoveObject();
 
   /// Return object
   virtual vtkPointSet *GetObject(int);
+
+  /// Turn display of object movie
+  void ObjectMovieOn();
+
+  /// Turn display of object movie
+  void ObjectMovieOff();
+
+  /// Return display of object movie
+  int GetObjectMovie();
 #endif
 
   /// Get width of registration viewer (in pixels)
@@ -1361,9 +1376,24 @@ inline vtkPointSet *irtkRView::GetObject(int i)
   return _Object[i];
 }
 
+inline void irtkRView::ObjectMovieOn()
+{
+    _ObjectMovie = true;
+}
+
+inline void irtkRView::ObjectMovieOff()
+{
+    _ObjectMovie = false;
+}
+
+inline int irtkRView::GetObjectMovie()
+{
+    return _ObjectMovie;
+}
+
 inline void irtkRView::DisplayObjectOn()
 {
-  _DisplayObject = true;
+    _DisplayObject = true;
 }
 
 inline void irtkRView::DisplayObjectOff()

@@ -19,6 +19,8 @@ private:
 /// Widget for display control of landmarks
 Fl_Button *viewLandmarks;
 
+Fl_Button *refineTags;
+
 Fl_Check_Button *viewTagGrid;
 
 /// Widgets for landmark browsing
@@ -32,6 +34,14 @@ Fl_Button *viewROI;
 static void cb_viewROI(Fl_Button*, void*);
 static void cb_trackTAG(Fl_Button*, void*);
 static void cb_viewTagGrid(Fl_Button*, void*);
+#ifdef HAS_VTK
+Fl_Check_Button *viewObjectMovie;
+Fl_Button *warpObject;
+static void cb_viewObjectMovie(Fl_Button*, void*);
+static void cb_loadObject(Fl_Button*, void*);
+static void cb_warpObject(Fl_Button*, void*);
+static void cb_removeObject(Fl_Button*, void*);
+#endif
 static void cb_addLandmark(Fl_Button*, void*);
 static void cb_deleteLandmark(Fl_Button*, void*);
 static void cb_toggleLandmark(Fl_Input*, void*);

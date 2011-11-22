@@ -289,7 +289,7 @@ bool irtkViewer::Update1(irtkGreyImage *image, irtkTransformation *transformatio
 		if(ij>=image->GetY()) ij = image->GetY() - 1;
 		if(ik<0) ik = 0;
 		if(ik>=image->GetZ()) ik = image->GetZ() - 1;
-		if(  image->GetAsDouble(ii,ij,ik,t)
+		if(  image->GetAsDouble(ii,ij,ik,0)
 			 > this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity() - 0.1){
 				if (mffd != NULL) {
 					mffd->Transform(_AfterX[m][n], _AfterY[m][n], _AfterZ[m][n], t);
@@ -440,7 +440,7 @@ bool irtkViewer::Update2(irtkGreyImage *image, irtkTransformation *transformatio
 	  if(ij>=image->GetY()) ij = image->GetY() - 1;
 
       image->ImageToWorld(_AfterX[i][j], _AfterY[i][j], _AfterZ[i][j]);
-	  if(  image->GetAsDouble(ii,ij,ik,t)
+	  if(  image->GetAsDouble(ii,ij,ik,0)
 		> this->_rview->GetSourceLookupTable()->GetMinDisplayIntensity() - 0.1){
 			if (mffd != NULL) {
 				if (_rview->_sourceTransformInvert == true) {
@@ -798,7 +798,8 @@ void irtkViewer::DrawROI(irtkGreyImage *image,
 
 void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
                             int _DisplayObjectWarp,
-                            int _DisplayObjectGrid)
+                            int _DisplayObjectGrid,
+                            irtkTransformation *transformation)
 {
   int i;
 
@@ -821,11 +822,11 @@ void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
         break;
     }
 
-    this->DrawObject(object[i], image, _DisplayObjectWarp, _DisplayObjectGrid);
+    this->DrawObject(object[i], image, _DisplayObjectWarp, _DisplayObjectGrid, transformation);
   }
 }
 
-void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int, int)
+void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int warp, int grid, irtkTransformation *transformation)
 {
   int i, j;
   double p1[3], p2[3], p3[3], v1[3], v2[3], point[3], normal[3];
@@ -875,6 +876,11 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int, int)
 
         // Get point from cell
         cutter->GetOutput()->GetPoints()->GetPoint(ids->GetId(j), point);
+
+        // Transform the point if warp is on
+        if(warp && transformation != NULL){
+            transformation->Transform(point[0], point[1], point[2]);
+        }
 
         // Get point in image coordinates
         image->WorldToImage(point[0], point[1], point[2]);

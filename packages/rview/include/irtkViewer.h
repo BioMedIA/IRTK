@@ -73,10 +73,10 @@ public:
 
 #ifdef HAS_VTK
   /// Draw multiple objects
-  void DrawObject(vtkPointSet **, irtkGreyImage *, int = false, int = false);
+  void DrawObject(vtkPointSet **, irtkGreyImage *, int = false, int = false, irtkTransformation* = NULL);
 
   /// Draw object
-  void DrawObject(vtkPointSet *, irtkGreyImage *, int = false, int = false);
+  void DrawObject(vtkPointSet *, irtkGreyImage *, int = false, int = false, irtkTransformation* = NULL);
 #endif
 
   /// Draw information about L/R, A/P, S/I on the viewer

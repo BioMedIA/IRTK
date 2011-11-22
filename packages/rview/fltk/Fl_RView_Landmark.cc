@@ -24,6 +24,8 @@
 
 // Bitmaps
 #include <bitmaps/landmarks.xbm>
+#include <bitmaps/fileopen.xpm>
+#include <bitmaps/filesave.xpm>
 
 extern Fl_RViewUI  *rviewUI;
 extern Fl_RView    *viewer;
@@ -493,6 +495,59 @@ void Fl_RViewUI::cb_viewTagGrid(Fl_Button* o, void*)
   rview->Update();
   viewer->redraw();
 }
+#ifdef HAS_VTK
+void Fl_RViewUI::cb_viewObjectMovie(Fl_Button* o, void*)
+{
+    if (o->value() == 0) rview->ObjectMovieOff();
+    if (o->value() == 1) rview->ObjectMovieOn();
+    rview->Update();
+    viewer->redraw();
+}
+
+void Fl_RViewUI::cb_warpObject(Fl_Button* o, void*)
+{
+    if (o->value() == 0) rview->DisplayObjectWarpOff();
+    if (o->value() == 1) rview->DisplayObjectWarpOn();
+    rview->Update();
+    viewer->redraw();
+}
+
+void Fl_RViewUI::cb_loadObject(Fl_Button* o, void*)
+{
+    // Create the file chooser, and show it
+    Fl_File_Chooser chooser(NULL,                        // directory
+        "*.{vtk}",                        // filter
+        Fl_File_Chooser::MULTI,     // chooser type
+        "Load objects");        // title
+    chooser.show();
+
+    while(chooser.shown())
+    { Fl::wait(); }
+
+    if ( chooser.value() == NULL )
+    { return; }
+
+    if ( chooser.count() >= 1 ) {
+        for ( int t=1; t<=chooser.count(); t++ ) {
+            const char *filename = chooser.value(t);
+            if (filename != NULL) {
+                rview->ReadObject(filename);
+            }
+        }
+        rview->DisplayObjectOn();
+        rview->Update();
+        viewer->redraw();
+    }
+}
+
+void Fl_RViewUI::cb_removeObject(Fl_Button* o, void*)
+{
+    rview->RemoveObject();
+    rview->DisplayObjectOff();
+    rview->Update();
+    viewer->redraw();
+}
+#endif
 
 void Fl_RViewUI::ShowObjectControlWindow()
 {
@@ -535,7 +590,12 @@ void Fl_RViewUI::ShowObjectControlWindow()
 void Fl_RViewUI::UpdateObjectControlWindow()
 {
   rviewUI->viewLandmarks->value(rview->GetDisplayLandmarks());
+  rviewUI->refineTags->value(rview->GetTrackTAG());
   rviewUI->viewTagGrid->value(rview->GetViewTAG());
+#ifdef HAS_VTK
+  rviewUI->viewObjectMovie->value(rview->GetObjectMovie());
+  rviewUI->warpObject->value(rview->GetDisplayObjectWarp());
+#endif
 }
 
 void Fl_RViewUI::InitializeObjectControlWindow()
@@ -611,16 +671,48 @@ void Fl_RViewUI::InitializeObjectControlWindow()
       Fl_Button* o = new Fl_Button(211, 520, 52, 52, "ROI");
       o->callback((Fl_Callback*)cb_viewROI);
       o->type(FL_TOGGLE_BUTTON);
+      o->value(0);
     }
 	{
-      Fl_Button* o = new Fl_Button(297, 520, 52, 52, "TAG");
+      Fl_Button* o = refineTags = new Fl_Button(297, 520, 52, 52, "TAG");
       o->callback((Fl_Callback*)cb_trackTAG);
+      o->tooltip("Semi-auto track of tag");
       o->type(FL_TOGGLE_BUTTON);
     }
 	{
-      Fl_Check_Button *o  = viewTagGrid = new Fl_Check_Button(39, 580, 60, 20, "Tag grid");
+      Fl_Check_Button *o  = viewTagGrid = new Fl_Check_Button(39, 580, 100, 20, "Tag grid");
       o->callback((Fl_Callback*)cb_viewTagGrid);
     }
+#ifdef HAS_VTK
+    {
+        Fl_Check_Button *o  = viewObjectMovie = new Fl_Check_Button(39, 620, 120, 20, "Object movie");
+        o->callback((Fl_Callback*)cb_viewObjectMovie);
+    }
+    {
+        Fl_Simple_Group *o = new Fl_Simple_Group(160, 575, 155, 70, "Object");
+        {
+            Fl_Button* o = new Fl_Button(15+160, 15+585, 32, 32);
+            o->box(FL_NO_BOX);
+            o->callback((Fl_Callback*)cb_loadObject);
+            o->tooltip("Load objects");
+            Fl_Pixmap *p = new Fl_Pixmap(fileopen_xpm);
+            p->label(o);
+        }
+        {
+            Fl_Button* o = warpObject = new Fl_Button(60+160, 15+585, 32, 32, "Wrp");
+            o->callback((Fl_Callback*)cb_warpObject);
+            o->type(FL_TOGGLE_BUTTON);
+            o->tooltip("Warp object with transformation");
+        }
+        {
+            Fl_Button* o = new Fl_Button(110+160, 15+585, 32, 32, "Del");
+            o->type(FL_BUTTON1);
+            o->callback((Fl_Callback*)cb_removeObject);
+            o->tooltip("Remove objects");
+        }
+        o->end();
+    }
+#endif
     o->end(); // End of object display controls
   }
 }
