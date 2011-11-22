@@ -203,7 +203,7 @@ double irtkImageFreeFormRegistration2D::EvaluateDerivative(int index, double ste
   _target->WorldToImage(p2);
 
   // Calculate bounding box of control point in image coordinates
-  _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, this->_SpeedupFactor);
+  _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
   // Calculate incremental changes in lattice coordinates when looping
   // over target
