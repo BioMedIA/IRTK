@@ -782,17 +782,29 @@ void Fl_RViewUI::UpdateImageControlWindow()
 
   // Set up correct min and max values for time frames
   targetFrame->minimum(0);
-  targetFrame->maximum(rview->GetTarget()->GetT()-1);
-  if(rview->GetTargetFrame() < rview->GetTarget()->GetT())
+  if(rview->GetTarget()->GetT() > 0)
+      targetFrame->maximum(rview->GetTarget()->GetT()-1);
+  else
+      targetFrame->maximum(0);
+  if(rview->GetTargetFrame() < rview->GetTarget()->GetT()
+      && rview->GetTargetFrame() > -1)
       targetFrame->value(rview->GetTargetFrame());
-  else
+  else{
       targetFrame->value(0);
+      rview->SetTargetFrame(0);
+  }
   sourceFrame->minimum(0);
-  sourceFrame->maximum(rview->GetSource()->GetT()-1);
-  if(rview->GetSourceFrame() < rview->GetSource()->GetT())
-      sourceFrame->value(rview->GetSourceFrame());
+  if(rview->GetSource()->GetT() > 0)
+      sourceFrame->maximum(rview->GetSource()->GetT()-1);
   else
+      sourceFrame->maximum(0);
+  if(rview->GetSourceFrame() < rview->GetSource()->GetT()
+      && rview->GetSourceFrame() > -1)
+      sourceFrame->value(rview->GetSourceFrame());
+  else{
       sourceFrame->value(0);
+      rview->SetSourceFrame(0);
+  }
 }
 
 void Fl_RViewUI::InitializeImageControlWindow()
