@@ -102,10 +102,10 @@ void Fl_RViewUI::cb_loadTarget(Fl_Button *, void *)
   char *filename = fl_file_chooser("Load target image", "*.{gipl,gipl.Z,hdr,hdr.gz,nii,nii.gz}", "");
   if (filename != NULL) {
     rview->ReadTarget(filename);
-    rview->Update();
-    viewer->redraw();
     rviewUI->update();
     rviewUI->filename_target->value(filename);
+    rview->Update();
+    viewer->redraw();
   }
 }
 
@@ -114,10 +114,10 @@ void Fl_RViewUI::cb_loadSource(Fl_Button *, void *)
   char *filename = fl_file_chooser("Load source image", "*.{gipl,gipl.Z,hdr,hdr.gz,nii,nii.gz}", "");
   if (filename != NULL) {
     rview->ReadSource(filename);
-    rview->Update();
-    viewer->redraw();
     rviewUI->update();
     rviewUI->filename_source->value(filename);
+    rview->Update();
+    viewer->redraw();
   }
 }
 
@@ -783,10 +783,16 @@ void Fl_RViewUI::UpdateImageControlWindow()
   // Set up correct min and max values for time frames
   targetFrame->minimum(0);
   targetFrame->maximum(rview->GetTarget()->GetT()-1);
-  targetFrame->value(rview->GetTargetFrame());
+  if(rview->GetTargetFrame() < rview->GetTarget()->GetT())
+      targetFrame->value(rview->GetTargetFrame());
+  else
+      targetFrame->value(0);
   sourceFrame->minimum(0);
   sourceFrame->maximum(rview->GetSource()->GetT()-1);
-  sourceFrame->value(rview->GetSourceFrame());
+  if(rview->GetSourceFrame() < rview->GetSource()->GetT())
+      sourceFrame->value(rview->GetSourceFrame());
+  else
+      sourceFrame->value(0);
 }
 
 void Fl_RViewUI::InitializeImageControlWindow()

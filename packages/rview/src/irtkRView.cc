@@ -2412,7 +2412,8 @@ void irtkRView::GetInfoText(char *buffer1, char *buffer2, char *buffer3,
   j = round(v);
   k = round(w);
   if ((i >= 0) && (i < _targetImage->GetX()) && (j >= 0) && (j
-      < _targetImage->GetY()) && (k >= 0) && (k < _targetImage->GetZ())) {
+      < _targetImage->GetY()) && (k >= 0) && (k < _targetImage->GetZ())
+      && (_targetFrame >= 0) && (_targetFrame < _targetImage->GetT())) {
     sprintf(buffer1, "% d % d % d", i, j, k);
     sprintf(buffer2, "% .1f % .1f % .1f", point._x, point._y, point._z);
     sprintf(buffer3, "% .2f", _targetImage->GetAsDouble(i, j, k, _targetFrame));
@@ -2431,7 +2432,8 @@ void irtkRView::GetInfoText(char *buffer1, char *buffer2, char *buffer3,
   j = round(v);
   k = round(w);
   if ((i >= 0) && (i < _sourceImage->GetX()) && (j >= 0) && (j
-      < _sourceImage->GetY()) && (k >= 0) && (k < _sourceImage->GetZ())) {
+      < _sourceImage->GetY()) && (k >= 0) && (k < _sourceImage->GetZ())
+      && (_sourceFrame >= 0) && (_sourceFrame < _sourceImage->GetT())) {
     sprintf(buffer4, "% .2f", _sourceImage->GetAsDouble(i, j, k, _sourceFrame));
   } else {
     sprintf(buffer4, " ");
@@ -2748,6 +2750,10 @@ void irtkRView::SetSourceFrame(int t)
 {
   int i;
   double xorigin, yorigin, zorigin, torigin;
+
+  if(t >= _sourceImage->GetT()){
+      t = _sourceImage->GetT() - 1;
+  }
 
   // Update source frame
   _sourceFrame = t;
