@@ -374,6 +374,13 @@ void irtkImageRegistration2::UpdateSource()
   double x, y, z, t1, t2, u1, u2, v1, v2;
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
+#ifdef USE_TIMING
+  // Start timing
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+#endif
+
   // Generate transformed tmp image
   _transformedSource = *_target;
 
@@ -468,6 +475,14 @@ void irtkImageRegistration2::UpdateSource()
       }
     }
   }
+
+#ifdef USE_TIMING
+  // Stop timing
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  cout << "CPU time for irtkImageRegistration2::UpdateSource() = " << cpu_time_used << endl;
+#endif
+
 }
 
 void irtkImageRegistration2::UpdateSourceAndGradient()
@@ -475,6 +490,13 @@ void irtkImageRegistration2::UpdateSourceAndGradient()
   short *ptr1;
   double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
+
+#ifdef USE_TIMING
+  // Start timing
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+#endif
 
   // Generate transformed tmp image
   _transformedSource = *_target;
@@ -604,26 +626,24 @@ void irtkImageRegistration2::UpdateSourceAndGradient()
       }
     }
   }
+
+#ifdef USE_TIMING
+  // Stop timing
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  cout << "CPU time for irtkImageRegistration2::UpdateSourceAndGradient() = " << cpu_time_used << endl;
+#endif
+
 }
 
 void irtkImageRegistration2::Update(bool updateGradient)
 {
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
-
   // Update
   if (updateGradient == true) {
     this->UpdateSourceAndGradient();
   } else {
     this->UpdateSource();
   }
-
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //  cout << "CPU time for irtkImageRegistration2::Update() = " << cpu_time_used << endl;
 }
 
 void irtkImageRegistration2::Run()
@@ -839,7 +859,7 @@ double irtkImageRegistration2::Evaluate()
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //cout << "CPU time for irtkImageRegistration2::Evaluate() = " << cpu_time_used << endl;
+  cout << "CPU time for irtkImageRegistration2::Evaluate() = " << cpu_time_used << endl;
 
   // Evaluate similarity measure
   return metric;
@@ -1061,6 +1081,7 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
     }
     ok = true;
   }
+
   // Target resolution
   if (strstr(buffer1, "Target resolution (in mm)") != NULL) {
     _target->GetPixelSize(&dx, &dy, &dz);
@@ -1090,6 +1111,7 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
     }
     ok = true;
   }
+
   // Source blurring
   if (strstr(buffer1, "Source blurring (in mm)") != NULL) {
     if (level == -1) {
