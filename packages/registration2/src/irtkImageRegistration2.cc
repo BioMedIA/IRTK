@@ -834,10 +834,12 @@ double irtkImageRegistration2::Evaluate()
 {
   double metric;
 
+#ifdef USE_TIMING
   // Start timing
   clock_t start, end;
   double cpu_time_used;
   start = clock();
+#endif
 
   // Print debugging information
   this->Debug("irtkImageRegistration2::Evaluate");
@@ -856,10 +858,12 @@ double irtkImageRegistration2::Evaluate()
       exit(1);
   }
 
+#ifdef USE_TIMING
   // Stop timing
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
   cout << "CPU time for irtkImageRegistration2::Evaluate() = " << cpu_time_used << endl;
+#endif
 
   // Evaluate similarity measure
   return metric;
