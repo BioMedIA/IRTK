@@ -1,18 +1,24 @@
 /*=========================================================================
 
-=========================================================================*/
-
-/*=========================================================================
-
- Find the City Block (Manhattan, L1) distance for all object voxels in an
- image from the boundary. Object voxels have a value greater than zero and
- background voxels are the rest.  The distance map is initialised to zero.
- In each iteration, the distance map is incremented by 1 for all object
- voxels. The border voxels are removed and the the next iteration starts.
- If any dimension is a singleton, a 2D version is applied.
- PA, 2011 07 04
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2008 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
+
+
+// Find the City Block (Manhattan, L1) distance for all object voxels in an
+// image from the boundary. Object voxels have a value greater than zero and
+// background voxels are the rest.  The distance map is initialised to zero.
+// In each iteration, the distance map is incremented by 1 for all object
+// voxels. The border voxels are removed and the the next iteration starts.
+// If any dimension is a singleton, a 2D version is applied.
+// PA, 2011 07 04
+
 
 #ifndef _IRTKCITYBLOCKDISTANCETRANSFORM_H
 
