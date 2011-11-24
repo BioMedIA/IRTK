@@ -1,5 +1,6 @@
 SET(CONTRIB_SRCS 
 irtkArith.cc
+irtkCityBlockDistanceTransform.cc
 irtkEigenAnalysis.cc
 irtkEuclideanDistanceTransform.cc
 irtkMatrix3x3.cc
