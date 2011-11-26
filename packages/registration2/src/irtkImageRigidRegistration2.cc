@@ -37,7 +37,8 @@ void irtkImageRigidRegistration2::GuessParameter()
   _NumberOfBins       = 64;
 
   // Default parameters for optimization
-  _Epsilon            = 0;
+  _SimilarityMeasure  = NMI;
+  _Epsilon            = 0.0001;
 
   // Read target pixel size
   _target->GetPixelSize(&xsize, &ysize, &zsize);
@@ -46,13 +47,21 @@ void irtkImageRigidRegistration2::GuessParameter()
   _TargetBlurring[0]      = GuessResolution(xsize, ysize, zsize) / 2.0;
   _TargetResolution[0][0] = GuessResolution(xsize, ysize, zsize);
   _TargetResolution[0][1] = GuessResolution(xsize, ysize, zsize);
-  _TargetResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  if (_target->GetZ() > 1) {
+    _TargetResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  } else {
+    _TargetResolution[0][2] = xsize;
+  }
 
   for (i = 1; i < _NumberOfLevels; i++) {
     _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
     _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
     _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
-    _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+    if (_target->GetZ() > 1) {
+      _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+    } else {
+      _TargetResolution[i][2] = xsize;
+    }
   }
 
   // Read source pixel size
@@ -62,13 +71,21 @@ void irtkImageRigidRegistration2::GuessParameter()
   _SourceBlurring[0]      = GuessResolution(xsize, ysize, zsize) / 2.0;
   _SourceResolution[0][0] = GuessResolution(xsize, ysize, zsize);
   _SourceResolution[0][1] = GuessResolution(xsize, ysize, zsize);
-  _SourceResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  if (_source->GetZ() > 1) {
+    _SourceResolution[0][2] = GuessResolution(xsize, ysize, zsize);
+  } else {
+    _SourceResolution[0][2] = xsize;
+  }
 
   for (i = 1; i < _NumberOfLevels; i++) {
     _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
     _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
     _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
-    _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+    if (_source->GetZ() > 1) {
+      _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+    } else {
+      _SourceResolution[i][2] = xsize;
+    }
   }
 
   // Remaining parameters

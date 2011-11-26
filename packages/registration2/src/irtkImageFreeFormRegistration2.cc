@@ -97,7 +97,7 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   if (_source->GetZ() > 1) {
     _SourceResolution[0][2] = GuessResolution(xsize, ysize, zsize);
   } else {
-    _SourceResolution[0][2] = zsize;
+    _SourceResolution[0][2] = xsize;
   }
 
   for (i = 1; i < _NumberOfLevels; i++) {
@@ -107,7 +107,7 @@ void irtkImageFreeFormRegistration2::GuessParameter()
     if (_source->GetZ() > 1) {
       _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
     } else {
-      _SourceResolution[i][2] = zsize;
+      _SourceResolution[i][2] = xsize;
     }
   }
 
