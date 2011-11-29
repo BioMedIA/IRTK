@@ -332,6 +332,17 @@ void irtkImageRegistration2::Initialize(int level)
   _interpolator->Inside(_source_x1, _source_y1, _source_z1,
                         _source_x2, _source_y2, _source_z2);
 
+  // Setup the interpolator
+  _interpolatorGradient = irtkInterpolateImageFunction::New(_InterpolationMode, &_sourceGradient);
+
+  // Setup interpolation for the source image
+  _interpolatorGradient->SetInput(&_sourceGradient);
+  _interpolatorGradient->Initialize();
+
+  // Calculate the source image domain in which we can interpolate
+  _interpolatorGradient->Inside(_source_x1, _source_y1, _source_z1,
+                                _source_x2, _source_y2, _source_z2);
+
   // Print some debugging information
   cout << "Target image (reference)" << endl;
   _target->Print();
@@ -362,6 +373,7 @@ void irtkImageRegistration2::Finalize(int level)
   delete tmp_target;
   delete tmp_source;
   delete _interpolator;
+  delete _interpolatorGradient;
   if (_histogram != NULL) {
     delete _histogram;
     _histogram = NULL;
@@ -409,19 +421,24 @@ void irtkImageRegistration2::UpdateSource()
           if ((x > 0) && (x < _source->GetX()-1) &&
               (y > 0) && (y < _source->GetY()-1)) {
 
-            // Calculated integer coordinates
-            a  = int(x);
-            b  = int(y);
+            if (_InterpolationMode == Interpolation_Linear) {
+              // Calculated integer coordinates
+              a  = int(x);
+              b  = int(y);
 
-            // Calculated fractional coordinates
-            t1 = x - a;
-            u1 = y - b;
-            t2 = 1 - t1;
-            u2 = 1 - u1;
+              // Calculated fractional coordinates
+              t1 = x - a;
+              u1 = y - b;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
 
-            // Linear interpolation in source image
-            ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
-            _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+              // Linear interpolation in source image
+              ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+              _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+            } else {
+              // Interpolation in source image
+              _transformedSource(i, j, 0) = _interpolator->Evaluate(x, y, 0);
+            }
           } else {
             _transformedSource(i, j, 0) = -1;
           }
@@ -446,25 +463,31 @@ void irtkImageRegistration2::UpdateSource()
             if ((x > 0) && (x < _source->GetX()-1) &&
                 (y > 0) && (y < _source->GetY()-1) &&
                 (z > 0) && (z < _source->GetZ()-1)) {
-              // Calculated integer coordinates
-              a  = int(x);
-              b  = int(y);
-              c  = int(z);
+              if (_InterpolationMode == Interpolation_Linear) {
 
-              // Calculated fractional coordinates
-              t1 = x - a;
-              u1 = y - b;
-              v1 = z - c;
-              t2 = 1 - t1;
-              u2 = 1 - u1;
-              v2 = 1 - v1;
+                // Calculated integer coordinates
+                a  = int(x);
+                b  = int(y);
+                c  = int(z);
 
-              // Linear interpolation in source image
-              ptr1 = (short *)_source->GetScalarPointer(a, b, c);
-              _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
-                                                   u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
-                                             t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
-                                                   u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+                // Calculated fractional coordinates
+                t1 = x - a;
+                u1 = y - b;
+                v1 = z - c;
+                t2 = 1 - t1;
+                u2 = 1 - u1;
+                v2 = 1 - v1;
+
+                // Linear interpolation in source image
+                ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+                _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
+                                                     u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
+                                               t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
+                                                     u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+              } else {
+                // Interpolation in source image
+               _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
+              }
             } else {
               _transformedSource(i, j, k) = -1;
             }
@@ -526,25 +549,35 @@ void irtkImageRegistration2::UpdateSourceAndGradient()
           if ((x > 0) && (x < _source->GetX()-1) &&
               (y > 0) && (y < _source->GetY()-1)) {
 
-            // Calculated integer coordinates
-            a  = int(x);
-            b  = int(y);
+            if (_InterpolationMode == Interpolation_Linear) {
+              // Calculated integer coordinates
+              a  = int(x);
+              b  = int(y);
 
-            // Calculated fractional coordinates
-            t1 = x - a;
-            u1 = y - b;
-            t2 = 1 - t1;
-            u2 = 1 - u1;
+              // Calculated fractional coordinates
+              t1 = x - a;
+              u1 = y - b;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
 
-            // Linear interpolation in source image
-            ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
-            _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+              // Linear interpolation in source image
+              ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+              _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
 
-            // Linear interpolation in gradient image
-            ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
-            _transformedSourceGradient(i, j, 0, 0) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
-            ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 1);
-            _transformedSourceGradient(i, j, 0, 1) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+              // Linear interpolation in gradient image
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
+              _transformedSourceGradient(i, j, 0, 0) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 1);
+              _transformedSourceGradient(i, j, 0, 1) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+
+            } else {
+              // Interpolation in source image
+              _transformedSource(i, j, 0) = _interpolator->Evaluate(x, y, 0);
+
+              // Interpolation in gradient image
+              _transformedSourceGradient(i, j, 0, 0) = _interpolatorGradient->Evaluate(x, y, 0, 0);
+              _transformedSourceGradient(i, j, 0, 1) = _interpolatorGradient->Evaluate(x, y, 0, 1);
+            }
           } else {
             _transformedSource(i, j, 0) = -1;
             _transformedSourceGradient(i, j, 0, 0) = 0;
@@ -574,42 +607,54 @@ void irtkImageRegistration2::UpdateSourceAndGradient()
             if ((x > 0) && (x < _source->GetX()-1) &&
                 (y > 0) && (y < _source->GetY()-1) &&
                 (z > 0) && (z < _source->GetZ()-1)) {
-              // Calculated integer coordinates
-              a  = int(x);
-              b  = int(y);
-              c  = int(z);
 
-              // Calculated fractional coordinates
-              t1 = x - a;
-              u1 = y - b;
-              v1 = z - c;
-              t2 = 1 - t1;
-              u2 = 1 - u1;
-              v2 = 1 - v1;
+              if (_InterpolationMode == Interpolation_Linear) {
+                // Calculated integer coordinates
+                a  = int(x);
+                b  = int(y);
+                c  = int(z);
 
-              // Linear interpolation in source image
-              ptr1 = (short *)_source->GetScalarPointer(a, b, c);
-              _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
-                                                   u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
-                                             t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
-                                                   u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+                // Calculated fractional coordinates
+                t1 = x - a;
+                u1 = y - b;
+                v1 = z - c;
+                t2 = 1 - t1;
+                u2 = 1 - u1;
+                v2 = 1 - v1;
 
-              // Linear interpolation in gradient image
-              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 0);
-              _transformedSourceGradient(i, j, k, 0) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
-                  u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
-                  t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
-                        u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
-              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 1);
-              _transformedSourceGradient(i, j, k, 1) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
-                  u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
-                  t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
-                        u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
-              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 2);
-              _transformedSourceGradient(i, j, k, 2) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
-                  u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
-                  t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
-                        u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+                // Linear interpolation in source image
+                ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+                _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
+                                                     u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
+                                               t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
+                                                     u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+
+                // Linear interpolation in gradient image
+                ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 0);
+                _transformedSourceGradient(i, j, k, 0) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                    u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                    t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                          u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+                ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 1);
+                _transformedSourceGradient(i, j, k, 1) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                    u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                    t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                          u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+                ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 2);
+                _transformedSourceGradient(i, j, k, 2) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                    u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                    t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                          u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+
+              } else {
+                // Interpolation in source image
+                _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
+
+                // Interpolation in gradient image
+                _transformedSourceGradient(i, j, x, 0) = _interpolatorGradient->Evaluate(x, y, z, 0);
+                _transformedSourceGradient(i, j, y, 1) = _interpolatorGradient->Evaluate(x, y, z, 1);
+                _transformedSourceGradient(i, j, z, 2) = _interpolatorGradient->Evaluate(x, y, z, 2);
+              }
             } else {
               _transformedSource(i, j, k) = -1;
               _transformedSourceGradient(i, j, k, 0) = 0;

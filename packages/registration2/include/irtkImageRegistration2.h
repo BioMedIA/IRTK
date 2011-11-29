@@ -69,8 +69,11 @@ protected:
   /// 2D histogram (this is not used for all similarity metrics)
   irtkHistogram_2D<double> *_histogram;
 
-  /// Interpolator
+  /// Interpolator for source image
   irtkInterpolateImageFunction *_interpolator;
+
+  /// Interpolator for source image gradient
+  irtkInterpolateImageFunction *_interpolatorGradient;
 
   /// Blurring of target image (in mm)
   double _TargetBlurring[MAX_NO_RESOLUTIONS];
