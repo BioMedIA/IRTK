@@ -214,17 +214,49 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case IRTK_VOXEL_FLOAT: {
+    case IRTK_VOXEL_INT: {
         if (padding == false) {
-          irtkResampling<float> resampling(xsize, ysize, zsize);
-          resampling.SetInput ((irtkRealImage*)(image));
-          resampling.SetOutput((irtkRealImage*)(image));
+          irtkResampling<int> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkGenericImage<int>*)(image));
+          resampling.SetOutput((irtkGenericImage<int>*)(image));
           resampling.SetInterpolator(interpolator);
           resampling.Run();
         } else {
-          irtkResamplingWithPadding<float> resampling(xsize, ysize, zsize,padding_value);
-          resampling.SetInput ((irtkRealImage*)(image));
-          resampling.SetOutput((irtkRealImage*)(image));
+          irtkResamplingWithPadding<int> resampling(xsize, ysize, zsize, padding_value);
+          resampling.SetInput ((irtkGenericImage<int>*)(image));
+          resampling.SetOutput((irtkGenericImage<int>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        }
+        break;
+      }
+    case IRTK_VOXEL_FLOAT: {
+        if (padding == false) {
+          irtkResampling<float> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkGenericImage<float>*)(image));
+          resampling.SetOutput((irtkGenericImage<float>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        } else {
+          irtkResamplingWithPadding<float> resampling(xsize, ysize, zsize, padding_value);
+          resampling.SetInput ((irtkGenericImage<float>*)(image));
+          resampling.SetOutput((irtkGenericImage<float>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        }
+        break;
+      }
+    case IRTK_VOXEL_DOUBLE: {
+        if (padding == false) {
+          irtkResampling<double> resampling(xsize, ysize, zsize);
+          resampling.SetInput ((irtkGenericImage<double>*)(image));
+          resampling.SetOutput((irtkGenericImage<double>*)(image));
+          resampling.SetInterpolator(interpolator);
+          resampling.Run();
+        } else {
+          irtkResamplingWithPadding<double> resampling(xsize, ysize, zsize, padding_value);
+          resampling.SetInput ((irtkGenericImage<double>*)(image));
+          resampling.SetOutput((irtkGenericImage<double>*)(image));
           resampling.SetInterpolator(interpolator);
           resampling.Run();
         }

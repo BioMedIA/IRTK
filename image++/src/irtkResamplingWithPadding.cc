@@ -436,5 +436,6 @@ template class irtkResamplingWithPadding<char>;
 template class irtkResamplingWithPadding<unsigned char>;
 template class irtkResamplingWithPadding<short>;
 template class irtkResamplingWithPadding<unsigned short>;
+template class irtkResamplingWithPadding<int>;
 template class irtkResamplingWithPadding<float>;
 template class irtkResamplingWithPadding<double>;

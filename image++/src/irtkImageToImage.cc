@@ -218,5 +218,6 @@ template class irtkImageToImage<char>;
 template class irtkImageToImage<unsigned char>;
 template class irtkImageToImage<short>;
 template class irtkImageToImage<unsigned short>;
+template class irtkImageToImage<int>;
 template class irtkImageToImage<float>;
 template class irtkImageToImage<double>;

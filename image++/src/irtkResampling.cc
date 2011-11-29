@@ -188,5 +188,6 @@ template class irtkResampling<char>;
 template class irtkResampling<unsigned char>;
 template class irtkResampling<short>;
 template class irtkResampling<unsigned short>;
+template class irtkResampling<int>;
 template class irtkResampling<float>;
 template class irtkResampling<double>;
