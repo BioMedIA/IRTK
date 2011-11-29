@@ -523,36 +523,27 @@ void irtkBSplineFreeFormTransformation3D::FFD3D(double &x, double &y, double &z)
       xii = 0; yii = 0; zii = 0;
       for ( o = 0; o < 4; o++){
           // Inner most loop unrolled starts here
-          if(*xdata != 0.0)
-              xii  += *xdata * this->LookupTable[S][o];
+          xii  += *xdata * this->LookupTable[S][o];
           xdata++;
 
-          if(*ydata != 0.0)
-              yii  += *ydata * this->LookupTable[S][o];
+          yii  += *ydata * this->LookupTable[S][o];
           ydata++;
 
-          if(*zdata != 0.0)
-              zii  += *zdata * this->LookupTable[S][o];
+          zii  += *zdata * this->LookupTable[S][o];
           zdata++;
       }
       // Inner most loop unrolled stops here
 
-      if(xii != 0.0)
-          xi += xii * B_J;
-      if(yii != 0.0)
-          yi += yii * B_J;
-      if(zii != 0.0)
-          zi += zii * B_J;
+      xi += xii * B_J;
+      yi += yii * B_J;
+      zi += zii * B_J;
       xdata += _x + 4;
       ydata += _x + 4;
       zdata += _x + 4;
     }
-    if(xi != 0.0)
-        x += xi * B_K;
-    if(yi != 0.0)
-        y += yi * B_K;
-    if(zi != 0.0)
-        z += zi * B_K;
+    x += xi * B_K;
+    y += yi * B_K;
+    z += zi * B_K;
     xdata += i;
     ydata += i;
     zdata += i;
