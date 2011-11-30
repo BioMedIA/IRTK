@@ -128,7 +128,69 @@ double ***irtkFreeFormTransformation3D::Allocate(double ***data, int x, int y, i
   return data;
 }
 
+irtkVector3D<double> ***irtkFreeFormTransformation3D::Allocate(irtkVector3D<double> ***data, int x, int y, int z)
+{
+  int i, j, k;
+
+  if ((x == 0) || (y == 0) || (z == 0)) {
+    return NULL;
+  }
+
+  if ((data = new irtkVector3D<double> **[z+8]) == NULL) {
+    cerr << "Allocate: malloc failed for " << x << " x " << y << " x ";
+    cerr << z << "\n";
+    exit(1);
+  }
+  data += 4;
+
+  if ((data[-4] = new irtkVector3D<double> *[(z+8)*(y+8)]) == NULL) {
+    cerr << "Allocate: malloc failed for " << x << " x " << y << " x ";
+    cerr << z << "\n";
+    exit(1);
+  }
+  data[-4] += 4;
+
+  for (i = -3; i < z+4; i++) {
+    data[i] = data[i-1] + (y+8);
+  }
+
+  if ((data[-4][-4] = new irtkVector3D<double>[(z+8)*(y+8)*(x+8)]) == NULL) {
+    cerr << "Allocate: malloc failed for " << x << " x " << y << " x ";
+    cerr << z << "\n";
+    exit(1);
+  }
+  data[-4][-4] += 4;
+
+  for (i = -4; i < z+4; i++) {
+    for (j = -4; j < y+4; j++) {
+      data[i][j] = data[-4][-4] + ((i+4)*(y+8)+(j+4))*(x+8);
+    }
+  }
+
+  for (i = -4; i < z+4; i++) {
+    for (j = -4; j < y+4; j++) {
+      for (k = -4; k < x+4; k++) {
+        data[i][j][k]._x = 0;
+        data[i][j][k]._y = 0;
+        data[i][j][k]._z = 0;
+      }
+    }
+  }
+
+  return data;
+}
+
 double ***irtkFreeFormTransformation3D::Deallocate(double ***data, int, int, int)
+{
+  if (data != NULL) {
+    delete [](data[-4][-4]-4);
+    delete [](data[-4]-4);
+    delete [](data-4);
+  }
+  return NULL;
+}
+
+irtkVector3D<double> ***irtkFreeFormTransformation3D::Deallocate(irtkVector3D<double> ***data, int, int, int)
 {
   if (data != NULL) {
     delete [](data[-4][-4]-4);
@@ -145,9 +207,9 @@ bool irtkFreeFormTransformation3D::IsIdentity()
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        if (_xdata[k][j][i] != 0) return false;
-        if (_ydata[k][j][i] != 0) return false;
-        if (_zdata[k][j][i] != 0) return false;
+        if (_data[k][j][i]._x != 0) return false;
+        if (_data[k][j][i]._y != 0) return false;
+        if (_data[k][j][i]._z != 0) return false;
       }
     }
   }

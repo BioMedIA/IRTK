@@ -294,10 +294,8 @@ irtkCifstream& irtkEigenFreeFormTransformation::Import(irtkCifstream& from)
     exit(1);
   }
 
-// Free memory if necessary
-  _xdata = Deallocate(_xdata, _x, _y, _z);
-  _ydata = Deallocate(_ydata, _x, _y, _z);
-  _zdata = Deallocate(_zdata, _x, _y, _z);
+  // Free memory if necessary
+  _data = this->Deallocate(_data, _x, _y, _z);
   delete []_status;
 
   // Read no of control points
@@ -320,17 +318,15 @@ irtkCifstream& irtkEigenFreeFormTransformation::Import(irtkCifstream& from)
   from.ReadAsDouble(&_origin._z, 1);
 
   // Initialize control points
-  _xdata = Allocate(_xdata, _x, _y, _z);
-  _ydata = Allocate(_ydata, _x, _y, _z);
-  _zdata = Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize control points
   for (i = -2; i < _x+2; i++) {
     for (j = -2; j < _y+2; j++) {
       for (k = -2; k < _z+2; k++) {
-        _xdata[k][j][i] = 0;
-        _ydata[k][j][i] = 0;
-        _zdata[k][j][i] = 0;
+        _data[k][j][i]._x = 0;
+        _data[k][j][i]._y = 0;
+        _data[k][j][i]._z = 0;
       }
     }
   }
@@ -346,9 +342,9 @@ irtkCifstream& irtkEigenFreeFormTransformation::Import(irtkCifstream& from)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        _xdata[k][j][i] = data[index];
-        _ydata[k][j][i] = data[index+1];
-        _zdata[k][j][i] = data[index+2];
+        _data[k][j][i]._x = data[index];
+        _data[k][j][i]._y = data[index+1];
+        _data[k][j][i]._z = data[index+2];
         index += 3;
       }
     }
@@ -410,9 +406,9 @@ irtkCofstream& irtkEigenFreeFormTransformation::Export(irtkCofstream& to)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        _xdata[k][j][i] = data[index];
-        _ydata[k][j][i] = data[index+1];
-        _zdata[k][j][i] = data[index+2];
+        _data[k][j][i]._x = data[index];
+        _data[k][j][i]._y = data[index+1];
+        _data[k][j][i]._z = data[index+2];
         index += 3;
       }
     }

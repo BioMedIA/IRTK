@@ -66,20 +66,20 @@ protected:
   /// Transformation matrix from world coordinates to lattice coordinates
   irtkMatrix _matW2L;
 
-  /// Displacement in the x-direction at the control points (in mm)
-  double ***_xdata;
-
-  /// Displacement in the y-direction at the control points (in mm)
-  double ***_ydata;
-
-  /// Displacement in the z-direction at the control points (in mm)
-  double ***_zdata;
+  /// Displacement at the control points (in mm)
+  irtkVector3D<double> ***_data;
 
   /// Allocate memory for control points
   static double ***Allocate  (double ***, int, int, int);
 
   /// Deallocate memory for control points
   static double ***Deallocate(double ***, int, int, int);
+
+  /// Allocate memory for control points
+  static irtkVector3D<double> ***Allocate  (irtkVector3D<double> ***, int, int, int);
+
+  /// Deallocate memory for control points
+  static irtkVector3D<double> ***Deallocate(irtkVector3D<double> ***, int, int, int);
 
   /// Update transformation matrix
   virtual void UpdateMatrix();
@@ -252,20 +252,20 @@ inline double irtkFreeFormTransformation3D::Get(int index) const
     i = index/(_y*_z);
     j = index%(_y*_z)/_z;
     k = index%(_y*_z)%_z;
-    return _xdata[k][j][i];
+    return _data[k][j][i]._x;
   } else {
     if (index < 2*_x*_y*_z) {
       index -= _x*_y*_z;
       i = index/(_y*_z);
       j = index%(_y*_z)/_z;
       k = index%(_y*_z)%_z;
-      return _ydata[k][j][i];
+      return _data[k][j][i]._y;
     } else {
       index -= 2*_x*_y*_z;
       i = index/(_y*_z);
       j = index%(_y*_z)/_z;
       k = index%(_y*_z)%_z;
-      return _zdata[k][j][i];
+      return _data[k][j][i]._z;
     }
   }
 }
@@ -276,9 +276,9 @@ inline void irtkFreeFormTransformation3D::Get(int i, int j, int k, double &x, do
     cerr << "irtkFreeFormTransformation3D::Get: No such dof" << endl;
     exit(1);
   }
-  x = _xdata[k][j][i];
-  y = _ydata[k][j][i];
-  z = _zdata[k][j][i];
+  x = _data[k][j][i]._x;
+  y = _data[k][j][i]._y;
+  z = _data[k][j][i]._z;
 }
 
 inline void irtkFreeFormTransformation3D::Put(int index, double x)
@@ -294,20 +294,20 @@ inline void irtkFreeFormTransformation3D::Put(int index, double x)
     i = index/(_y*_z);
     j = index%(_y*_z)/_z;
     k = index%(_y*_z)%_z;
-    _xdata[k][j][i] = x;
+    _data[k][j][i]._x = x;
   } else {
     if (index < 2*_x*_y*_z) {
       index -= _x*_y*_z;
       i = index/(_y*_z);
       j = index%(_y*_z)/_z;
       k = index%(_y*_z)%_z;
-      _ydata[k][j][i] = x;
+      _data[k][j][i]._y = x;
     } else {
       index -= 2*_x*_y*_z;
       i = index/(_y*_z);
       j = index%(_y*_z)/_z;
       k = index%(_y*_z)%_z;
-      _zdata[k][j][i] = x;
+      _data[k][j][i]._z = x;
     }
   }
 }
@@ -318,9 +318,9 @@ inline void irtkFreeFormTransformation3D::Put(int i, int j, int k, double x, dou
     cerr << "irtkFreeFormTransformation3D::Put: No such dof" << endl;
     exit(1);
   }
-  _xdata[k][j][i] = x;
-  _ydata[k][j][i] = y;
-  _zdata[k][j][i] = z;
+  _data[k][j][i]._x = x;
+  _data[k][j][i]._y = y;
+  _data[k][j][i]._z = z;
 }
 
 inline void irtkFreeFormTransformation3D::GetSpacing(double &dx, double &dy, double &dz) const

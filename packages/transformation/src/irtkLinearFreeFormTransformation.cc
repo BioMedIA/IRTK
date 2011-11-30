@@ -56,9 +56,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation()
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -139,9 +137,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(irtkBaseImage
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -230,9 +226,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(irtkGenericIm
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -320,9 +314,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(double x1, do
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -380,15 +372,13 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkLin
   this->UpdateMatrix();
 
   // Initialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
   for (k = -4; k < _z+4; k++) {
     for (j = -4; j < _y+4; j++) {
       for (i = -4; i < _x+4; i++) {
-        _xdata[k][j][i] = ffd._xdata[k][j][i];
-        _ydata[k][j][i] = ffd._ydata[k][j][i];
-        _zdata[k][j][i] = ffd._zdata[k][j][i];
+        _data[k][j][i]._x = ffd._data[k][j][i]._x;
+        _data[k][j][i]._y = ffd._data[k][j][i]._y;
+        _data[k][j][i]._z = ffd._data[k][j][i]._z;
       }
     }
   }
@@ -436,9 +426,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkBSp
   this->UpdateMatrix();
 
   // Initialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
   for (k = -4; k < _z+4; k++) {
     for (j = -4; j < _y+4; j++) {
       for (i = -4; i < _x+4; i++) {
@@ -453,9 +441,9 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkBSp
 
         // Calculate x, y, z
         ffd.LatticeToWorld(x, y, z);
-        _xdata[k][j][i] = x + u;
-        _ydata[k][j][i] = y + v;
-        _zdata[k][j][i] = z + w;
+        _data[k][j][i]._x = x + u;
+        _data[k][j][i]._y = y + v;
+        _data[k][j][i]._z = z + w;
       }
     }
   }
@@ -470,9 +458,7 @@ irtkLinearFreeFormTransformation::irtkLinearFreeFormTransformation(const irtkBSp
 irtkLinearFreeFormTransformation::~irtkLinearFreeFormTransformation()
 {
   // Free memory for control points if necessary
-  if (_xdata != NULL) _xdata = this->Deallocate(_xdata, _x, _y, _z);
-  if (_ydata != NULL) _ydata = this->Deallocate(_ydata, _x, _y, _z);
-  if (_zdata != NULL) _zdata = this->Deallocate(_zdata, _x, _y, _z);
+  if (_data != NULL) _data = this->Deallocate(_data, _x, _y, _z);
 
   _x = 0;
   _y = 0;
@@ -524,23 +510,23 @@ void irtkLinearFreeFormTransformation::FFD1(double &x, double &y, double &z) con
   v2 = 1 - v1;
 
   // and use this...
-  x = _xdata[k][j][i];
-  y = _ydata[k][j][i];
-  z = _zdata[k][j][i];
+  x = _data[k][j][i]._x;
+  y = _data[k][j][i]._y;
+  z = _data[k][j][i]._z;
 
   // Linear interpolation
-  x = (t1 * (u2 * (v2 * _xdata[k][j][i+1] + v1 * _xdata[k+1][j][i+1]) +
-             u1 * (v2 * _xdata[k][j+1][i+1] + v1 * _xdata[k+1][j+1][i+1])) +
-       t2 * (u2 * (v2 * _xdata[k][j][i] + v1 * _xdata[k+1][j][i]) +
-             u1 * (v2 * _xdata[k][j+1][i] + v1 * _xdata[k+1][j+1][i])));
-  y = (t1 * (u2 * (v2 * _ydata[k][j][i+1] + v1 * _ydata[k+1][j][i+1]) +
-             u1 * (v2 * _ydata[k][j+1][i+1] + v1 * _ydata[k+1][j+1][i+1])) +
-       t2 * (u2 * (v2 * _ydata[k][j][i] + v1 * _ydata[k+1][j][i]) +
-             u1 * (v2 * _ydata[k][j+1][i] + v1 * _ydata[k+1][j+1][i])));
-  z = (t1 * (u2 * (v2 * _zdata[k][j][i+1] + v1 * _zdata[k+1][j][i+1]) +
-             u1 * (v2 * _zdata[k][j+1][i+1] + v1 * _zdata[k+1][j+1][i+1])) +
-       t2 * (u2 * (v2 * _zdata[k][j][i] + v1 * _zdata[k+1][j][i]) +
-             u1 * (v2 * _zdata[k][j+1][i] + v1 * _zdata[k+1][j+1][i])));
+  x = (t1 * (u2 * (v2 * _data[k][j][i+1]._x + v1 * _data[k+1][j][i+1]._x) +
+             u1 * (v2 * _data[k][j+1][i+1]._x + v1 * _data[k+1][j+1][i+1]._x)) +
+       t2 * (u2 * (v2 * _data[k][j][i]._x + v1 * _data[k+1][j][i]._x) +
+             u1 * (v2 * _data[k][j+1][i]._x + v1 * _data[k+1][j+1][i]._x)));
+  y = (t1 * (u2 * (v2 * _data[k][j][i+1]._y + v1 * _data[k+1][j][i+1]._y) +
+             u1 * (v2 * _data[k][j+1][i+1]._y + v1 * _data[k+1][j+1][i+1]._y)) +
+       t2 * (u2 * (v2 * _data[k][j][i]._y + v1 * _data[k+1][j][i]._y) +
+             u1 * (v2 * _data[k][j+1][i]._y + v1 * _data[k+1][j+1][i]._y)));
+  z = (t1 * (u2 * (v2 * _data[k][j][i+1]._z + v1 * _data[k+1][j][i+1]._z) +
+             u1 * (v2 * _data[k][j+1][i+1]._z + v1 * _data[k+1][j+1][i+1]._z)) +
+       t2 * (u2 * (v2 * _data[k][j][i]._z + v1 * _data[k+1][j][i]._z) +
+             u1 * (v2 * _data[k][j+1][i]._z + v1 * _data[k+1][j+1][i]._z)));
 }
 
 void irtkLinearFreeFormTransformation::FFD2(double &x, double &y, double &z) const
@@ -562,23 +548,23 @@ void irtkLinearFreeFormTransformation::FFD2(double &x, double &y, double &z) con
   v2 = 1 - v1;
 
   // and use this...
-  x = _xdata[k][j][i];
-  y = _ydata[k][j][i];
-  z = _zdata[k][j][i];
+  x = _data[k][j][i]._x;
+  y = _data[k][j][i]._y;
+  z = _data[k][j][i]._z;
 
   // Linear interpolation
-  x = (t1 * (u2 * (v2 * _xdata[k][j][i+1] + v1 * _xdata[k+1][j][i+1]) +
-             u1 * (v2 * _xdata[k][j+1][i+1] + v1 * _xdata[k+1][j+1][i+1])) +
-       t2 * (u2 * (v2 * _xdata[k][j][i] + v1 * _xdata[k+1][j][i]) +
-             u1 * (v2 * _xdata[k][j+1][i] + v1 * _xdata[k+1][j+1][i])));
-  y = (t1 * (u2 * (v2 * _ydata[k][j][i+1] + v1 * _ydata[k+1][j][i+1]) +
-             u1 * (v2 * _ydata[k][j+1][i+1] + v1 * _ydata[k+1][j+1][i+1])) +
-       t2 * (u2 * (v2 * _ydata[k][j][i] + v1 * _ydata[k+1][j][i]) +
-             u1 * (v2 * _ydata[k][j+1][i] + v1 * _ydata[k+1][j+1][i])));
-  z = (t1 * (u2 * (v2 * _zdata[k][j][i+1] + v1 * _zdata[k+1][j][i+1]) +
-             u1 * (v2 * _zdata[k][j+1][i+1] + v1 * _zdata[k+1][j+1][i+1])) +
-       t2 * (u2 * (v2 * _zdata[k][j][i] + v1 * _zdata[k+1][j][i]) +
-             u1 * (v2 * _zdata[k][j+1][i] + v1 * _zdata[k+1][j+1][i])));
+  x = (t1 * (u2 * (v2 * _data[k][j][i+1]._x + v1 * _data[k+1][j][i+1]._x) +
+             u1 * (v2 * _data[k][j+1][i+1]._x + v1 * _data[k+1][j+1][i+1]._x)) +
+       t2 * (u2 * (v2 * _data[k][j][i]._x + v1 * _data[k+1][j][i]._x) +
+             u1 * (v2 * _data[k][j+1][i]._x + v1 * _data[k+1][j+1][i]._x)));
+  y = (t1 * (u2 * (v2 * _data[k][j][i+1]._y + v1 * _data[k+1][j][i+1]._y) +
+             u1 * (v2 * _data[k][j+1][i+1]._y + v1 * _data[k+1][j+1][i+1]._y)) +
+       t2 * (u2 * (v2 * _data[k][j][i]._y + v1 * _data[k+1][j][i]._y) +
+             u1 * (v2 * _data[k][j+1][i]._y + v1 * _data[k+1][j+1][i]._y)));
+  z = (t1 * (u2 * (v2 * _data[k][j][i+1]._z + v1 * _data[k+1][j][i+1]._z) +
+             u1 * (v2 * _data[k][j+1][i+1]._z + v1 * _data[k+1][j+1][i+1]._z)) +
+       t2 * (u2 * (v2 * _data[k][j][i]._z + v1 * _data[k+1][j][i]._z) +
+             u1 * (v2 * _data[k][j+1][i]._z + v1 * _data[k+1][j+1][i]._z)));
 }
 
 void irtkLinearFreeFormTransformation::Jacobian(irtkMatrix &jac, double x, double y, double z, double t)
@@ -764,9 +750,7 @@ istream& irtkLinearFreeFormTransformation::Import(istream& is)
   double x1, y1, z1, x2, y2, z2;
 
   // Free memory if necessary
-  _xdata = Deallocate(_xdata, _x, _y, _z);
-  _ydata = Deallocate(_ydata, _x, _y, _z);
-  _zdata = Deallocate(_zdata, _x, _y, _z);
+  _data = Deallocate(_data, _x, _y, _z);
 
   delete []_status;
   _x = 0;
@@ -898,17 +882,15 @@ istream& irtkLinearFreeFormTransformation::Import(istream& is)
   n = _x*_y*_z;
 
   // Initialize control points
-  _xdata = Allocate(_xdata, _x, _y, _z);
-  _ydata = Allocate(_ydata, _x, _y, _z);
-  _zdata = Allocate(_zdata, _x, _y, _z);
+  _data = Allocate(_data, _x, _y, _z);
 
   // Initialize control points
   for (i = -2; i < _x+2; i++) {
     for (j = -2; j < _y+2; j++) {
       for (k = -2; k < _z+2; k++) {
-        _xdata[k][j][i] = 0;
-        _ydata[k][j][i] = 0;
-        _zdata[k][j][i] = 0;
+        _data[k][j][i]._x = 0;
+        _data[k][j][i]._y = 0;
+        _data[k][j][i]._z = 0;
       }
     }
   }
@@ -936,9 +918,9 @@ istream& irtkLinearFreeFormTransformation::Import(istream& is)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        _xdata[k][j][i] = data[index];
-        _ydata[k][j][i] = data[index+1];
-        _zdata[k][j][i] = data[index+2];
+        _data[k][j][i]._x = data[index];
+        _data[k][j][i]._y = data[index+1];
+        _data[k][j][i]._z = data[index+2];
         index += 3;
       }
     }
@@ -1163,9 +1145,9 @@ ostream& irtkLinearFreeFormTransformation::Export(ostream& os)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        data[index]   = _xdata[k][j][i];
-        data[index+1] = _ydata[k][j][i];
-        data[index+2] = _zdata[k][j][i];
+        data[index]   = _data[k][j][i]._x;
+        data[index+1] = _data[k][j][i]._y;
+        data[index+2] = _data[k][j][i]._z;
         index += 3;
       }
     }
@@ -1247,9 +1229,7 @@ irtkCifstream& irtkLinearFreeFormTransformation::Read(irtkCifstream& from)
   }
 
   // Free memory if necessary
-  _xdata = Deallocate(_xdata, _x, _y, _z);
-  _ydata = Deallocate(_ydata, _x, _y, _z);
-  _zdata = Deallocate(_zdata, _x, _y, _z);
+  _data = Deallocate(_data, _x, _y, _z);
   delete []_status;
 
   // Read no of control points
@@ -1279,17 +1259,15 @@ irtkCifstream& irtkLinearFreeFormTransformation::Read(irtkCifstream& from)
   from.ReadAsDouble(&_origin._z, 1);
 
   // Initialize control points
-  _xdata = Allocate(_xdata, _x, _y, _z);
-  _ydata = Allocate(_ydata, _x, _y, _z);
-  _zdata = Allocate(_zdata, _x, _y, _z);
+  _data = Allocate(_data, _x, _y, _z);
 
   // Initialize control points
   for (i = -2; i < _x+2; i++) {
     for (j = -2; j < _y+2; j++) {
       for (k = -2; k < _z+2; k++) {
-        _xdata[k][j][i] = 0;
-        _ydata[k][j][i] = 0;
-        _zdata[k][j][i] = 0;
+        _data[k][j][i]._x = 0;
+        _data[k][j][i]._y = 0;
+        _data[k][j][i]._z = 0;
       }
     }
   }
@@ -1305,9 +1283,9 @@ irtkCifstream& irtkLinearFreeFormTransformation::Read(irtkCifstream& from)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        _xdata[k][j][i] = data[index];
-        _ydata[k][j][i] = data[index+1];
-        _zdata[k][j][i] = data[index+2];
+        _data[k][j][i]._x = data[index];
+        _data[k][j][i]._y = data[index+1];
+        _data[k][j][i]._z = data[index+2];
         index += 3;
       }
     }
@@ -1370,9 +1348,9 @@ irtkCofstream& irtkLinearFreeFormTransformation::Write(irtkCofstream& to)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        data[index]   = _xdata[k][j][i];
-        data[index+1] = _ydata[k][j][i];
-        data[index+2] = _zdata[k][j][i];
+        data[index]   = _data[k][j][i]._x;
+        data[index+1] = _data[k][j][i]._y;
+        data[index+2] = _data[k][j][i]._z;
         index += 3;
       }
     }

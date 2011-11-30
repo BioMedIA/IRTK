@@ -62,9 +62,7 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D()
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -183,9 +181,7 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkBas
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -299,9 +295,7 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(double 
   this->UpdateMatrix();
 
   // Intialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
 
   // Initialize memory for control point status
   _status = new _Status[3*_x*_y*_z];
@@ -375,15 +369,13 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(const i
   this->UpdateMatrix();
 
   // Initialize memory for control point values
-  _xdata = this->Allocate(_xdata, _x, _y, _z);
-  _ydata = this->Allocate(_ydata, _x, _y, _z);
-  _zdata = this->Allocate(_zdata, _x, _y, _z);
+  _data = this->Allocate(_data, _x, _y, _z);
   for (i = -4; i < _x+4; i++) {
     for (j = -4; j < _y+4; j++) {
       for (k = -4; k < _z+4; k++) {
-        _xdata[k][j][i] = ffd._xdata[k][j][i];
-        _ydata[k][j][i] = ffd._ydata[k][j][i];
-        _zdata[k][j][i] = ffd._zdata[k][j][i];
+        _data[k][j][i]._x = ffd._data[k][j][i]._x;
+        _data[k][j][i]._y = ffd._data[k][j][i]._y;
+        _data[k][j][i]._z = ffd._data[k][j][i]._z;
       }
     }
   }
@@ -414,9 +406,7 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(const i
 irtkBSplineFreeFormTransformation3D::~irtkBSplineFreeFormTransformation3D()
 {
   // Free memory for control points if necessary
-  if (_xdata != NULL) _xdata = this->Deallocate(_xdata, _x, _y, _z);
-  if (_ydata != NULL) _ydata = this->Deallocate(_ydata, _x, _y, _z);
-  if (_zdata != NULL) _zdata = this->Deallocate(_zdata, _x, _y, _z);
+  if (_data != NULL) _data = this->Deallocate(_data, _x, _y, _z);
 
   _x = 0;
   _y = 0;
@@ -432,7 +422,7 @@ void irtkBSplineFreeFormTransformation3D::FFD2D(double &x, double &y) const
     return;
   }
 
-  double *xdata, *ydata;
+  irtkVector3D<double> *data;
   double s, t, B_J, xii, yii;
   int i, j, l, m, S, T;
 
@@ -448,35 +438,28 @@ void irtkBSplineFreeFormTransformation3D::FFD2D(double &x, double &y) const
   y = 0;
   S = round(LUTSIZE*s);
   T = round(LUTSIZE*t);
-  xdata = &(_xdata[0][m-1][l-1]);
-  ydata = &(_ydata[0][m-1][l-1]);
+  data = &(_data[0][m-1][l-1]);
   for (j = 0; j < 4; j++) {
     B_J = this->LookupTable[T][j];
 
     // Inner most loop unrolled starts here
-    xii  = *xdata * this->LookupTable[S][0];
-    xdata++;
-    xii += *xdata * this->LookupTable[S][1];
-    xdata++;
-    xii += *xdata * this->LookupTable[S][2];
-    xdata++;
-    xii += *xdata * this->LookupTable[S][3];
-    xdata++;
-
-    yii  = *ydata * this->LookupTable[S][0];
-    ydata++;
-    yii += *ydata * this->LookupTable[S][1];
-    ydata++;
-    yii += *ydata * this->LookupTable[S][2];
-    ydata++;
-    yii += *ydata * this->LookupTable[S][3];
-    ydata++;
+    xii  = data->_x * this->LookupTable[S][0];
+    yii  = data->_y * this->LookupTable[S][0];
+    data++;
+    xii += data->_x * this->LookupTable[S][1];
+    yii += data->_y * this->LookupTable[S][1];
+    data++;
+    xii += data->_x * this->LookupTable[S][2];
+    yii += data->_y * this->LookupTable[S][2];
+    data++;
+    xii += data->_x * this->LookupTable[S][3];
+    yii += data->_y * this->LookupTable[S][3];
+    data++;
     // Inner most loop unrolled stops here
 
     x += xii * B_J;
     y += yii * B_J;
-    xdata += _x + 4;
-    ydata += _x + 4;
+    data += _x + 4;
   }
 }
 
@@ -490,9 +473,9 @@ void irtkBSplineFreeFormTransformation3D::FFD3D(double &x, double &y, double &z)
     return;
   }
 
-  double *xdata, *ydata, *zdata;
+  irtkVector3D<double> *data;
   double s, t, u, B_J, B_K, xi, yi, zi, xii, yii, zii;
-  int i, j, k, l, m, n, o, S, T, U;
+  int i, j, k, l, m, n, S, T, U;
 
   // Now calculate the real stuff
   l = (int)floor(x);
@@ -510,9 +493,7 @@ void irtkBSplineFreeFormTransformation3D::FFD3D(double &x, double &y, double &z)
   S = round(LUTSIZE*s);
   T = round(LUTSIZE*t);
   U = round(LUTSIZE*u);
-  xdata = &(_xdata[n-1][m-1][l-1]);
-  ydata = &(_ydata[n-1][m-1][l-1]);
-  zdata = &(_zdata[n-1][m-1][l-1]);
+  data = &(_data[n-1][m-1][l-1]);
   for (k = 0; k < 4; k++) {
     B_K = this->LookupTable[U][k];
     xi = 0;
@@ -521,32 +502,35 @@ void irtkBSplineFreeFormTransformation3D::FFD3D(double &x, double &y, double &z)
     for (j = 0; j < 4; j++) {
       B_J = this->LookupTable[T][j];
       xii = 0; yii = 0; zii = 0;
-      for ( o = 0; o < 4; o++){
-          // Inner most loop unrolled starts here
-          xii  += *xdata * this->LookupTable[S][o];
-          xdata++;
 
-          yii  += *ydata * this->LookupTable[S][o];
-          ydata++;
-
-          zii  += *zdata * this->LookupTable[S][o];
-          zdata++;
-      }
+      // Inner most loop unrolled starts here
+      xii  += data->_x * this->LookupTable[S][0];
+      yii  += data->_y * this->LookupTable[S][0];
+      zii  += data->_z * this->LookupTable[S][0];
+      data++;
+      xii  += data->_x * this->LookupTable[S][1];
+      yii  += data->_y * this->LookupTable[S][1];
+      zii  += data->_z * this->LookupTable[S][1];
+      data++;
+      xii  += data->_x * this->LookupTable[S][2];
+      yii  += data->_y * this->LookupTable[S][2];
+      zii  += data->_z * this->LookupTable[S][2];
+      data++;
+      xii  += data->_x * this->LookupTable[S][3];
+      yii  += data->_y * this->LookupTable[S][3];
+      zii  += data->_z * this->LookupTable[S][3];
+      data++;
       // Inner most loop unrolled stops here
 
       xi += xii * B_J;
       yi += yii * B_J;
       zi += zii * B_J;
-      xdata += _x + 4;
-      ydata += _x + 4;
-      zdata += _x + 4;
+      data += _x + 4;
     }
     x += xi * B_K;
     y += yi * B_K;
     z += zi * B_K;
-    xdata += i;
-    ydata += i;
-    zdata += i;
+    data += i;
   }
 }
 
@@ -601,17 +585,17 @@ void irtkBSplineFreeFormTransformation3D::LocalJacobian(irtkMatrix &jac, double 
               B_I   = this->LookupTable[S][i];
               B_I_I = this->LookupTable_I[S][i];
               v = B_I * B_J * B_K_I;
-              x_k += _xdata[K][J][I] * v;
-              y_k += _ydata[K][J][I] * v;
-              z_k += _zdata[K][J][I] * v;
+              x_k += _data[K][J][I]._x * v;
+              y_k += _data[K][J][I]._y * v;
+              z_k += _data[K][J][I]._z * v;
               v = B_I * B_J_I * B_K;
-              x_j += _xdata[K][J][I] * v;
-              y_j += _ydata[K][J][I] * v;
-              z_j += _zdata[K][J][I] * v;
+              x_j += _data[K][J][I]._x * v;
+              y_j += _data[K][J][I]._y * v;
+              z_j += _data[K][J][I]._z * v;
               v = B_I_I * B_J * B_K;
-              x_i += _xdata[K][J][I] * v;
-              y_i += _ydata[K][J][I] * v;
-              z_i += _zdata[K][J][I] * v;
+              x_i += _data[K][J][I]._x * v;
+              y_i += _data[K][J][I]._y * v;
+              z_i += _data[K][J][I]._z * v;
             }
           }
         }
@@ -758,16 +742,16 @@ double irtkBSplineFreeFormTransformation3D::Bending2D(int i, int j)
       B_I_II = b_ii[I-(i-1)];
 
       v = B_I_II * B_J;
-      y_ii += _ydata[0][J][I] * v;
-      x_ii += _xdata[0][J][I] * v;
+      y_ii += _data[0][J][I]._y * v;
+      x_ii += _data[0][J][I]._x * v;
 
       v = B_I * B_J_II;
-      y_jj += _ydata[0][J][I] * v;
-      x_jj += _xdata[0][J][I] * v;
+      y_jj += _data[0][J][I]._y * v;
+      x_jj += _data[0][J][I]._x * v;
 
       v = B_I_I * B_J_I;
-      y_ij += _ydata[0][J][I] * v;
-      x_ij += _xdata[0][J][I] * v;
+      y_ij += _data[0][J][I]._y * v;
+      x_ij += _data[0][J][I]._x * v;
     }
   }
 
@@ -806,34 +790,34 @@ double irtkBSplineFreeFormTransformation3D::Bending3D(int i, int j, int k)
         B_I_II = b_ii[I-(i-1)];
 
         v = B_I * B_J * B_K_II;
-        z_kk += _zdata[K][J][I] * v;
-        y_kk += _ydata[K][J][I] * v;
-        x_kk += _xdata[K][J][I] * v;
+        z_kk += _data[K][J][I]._z * v;
+        y_kk += _data[K][J][I]._y * v;
+        x_kk += _data[K][J][I]._x * v;
 
         v = B_I * B_J_II * B_K;
-        z_jj += _zdata[K][J][I] * v;
-        y_jj += _ydata[K][J][I] * v;
-        x_jj += _xdata[K][J][I] * v;
+        z_jj += _data[K][J][I]._z * v;
+        y_jj += _data[K][J][I]._y * v;
+        x_jj += _data[K][J][I]._x * v;
 
         v = B_I_II * B_J * B_K;
-        z_ii += _zdata[K][J][I] * v;
-        y_ii += _ydata[K][J][I] * v;
-        x_ii += _xdata[K][J][I] * v;
+        z_ii += _data[K][J][I]._z * v;
+        y_ii += _data[K][J][I]._y * v;
+        x_ii += _data[K][J][I]._x * v;
 
         v = B_I_I * B_J_I * B_K;
-        z_ij += _zdata[K][J][I] * v;
-        y_ij += _ydata[K][J][I] * v;
-        x_ij += _xdata[K][J][I] * v;
+        z_ij += _data[K][J][I]._z * v;
+        y_ij += _data[K][J][I]._y * v;
+        x_ij += _data[K][J][I]._x * v;
 
         v = B_I_I * B_J * B_K_I;
-        z_ik += _zdata[K][J][I] * v;
-        y_ik += _ydata[K][J][I] * v;
-        x_ik += _xdata[K][J][I] * v;
+        z_ik += _data[K][J][I]._z * v;
+        y_ik += _data[K][J][I]._y * v;
+        x_ik += _data[K][J][I]._x * v;
 
         v = B_I * B_J_I * B_K_I;
-        z_jk += _zdata[K][J][I] * v;
-        y_jk += _ydata[K][J][I] * v;
-        x_jk += _xdata[K][J][I] * v;
+        z_jk += _data[K][J][I]._z * v;
+        y_jk += _data[K][J][I]._y * v;
+        x_jk += _data[K][J][I]._x * v;
       }
     }
   }
@@ -877,18 +861,12 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient2D(double *gradient)
   double B_J, B_I, B_J_I, B_I_I, B_J_II, B_I_II, v, tmp[3];
 
   // Derivatives
-  double ***y_jj = NULL;
-  y_jj = this->Allocate(y_jj, _x, _y, _z);
-  double ***x_jj = NULL;
-  x_jj = this->Allocate(x_jj, _x, _y, _z);
-  double ***y_ii = NULL;
-  y_ii = this->Allocate(y_ii, _x, _y, _z);
-  double ***x_ii = NULL;
-  x_ii = this->Allocate(x_ii, _x, _y, _z);
-  double ***y_ij = NULL;
-  y_ij = this->Allocate(y_ij, _x, _y, _z);
-  double ***x_ij = NULL;
-  x_ij = this->Allocate(x_ij, _x, _y, _z);
+  irtkVector3D<double> ***d_jj = NULL;
+  d_jj = this->Allocate(d_jj, _x, _y, _z);
+  irtkVector3D<double> ***d_ii = NULL;
+  d_ii = this->Allocate(d_ii, _x, _y, _z);
+  irtkVector3D<double> ***d_ij = NULL;
+  d_ij = this->Allocate(d_ij, _x, _y, _z);
 
   // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location i, j, k)
   double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
@@ -910,16 +888,16 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient2D(double *gradient)
             B_I_II = b_ii[I-(i-1)];
 
             v = B_I * B_J_II;
-            y_jj[k][j][i] += 2 * _ydata[k][J][I] * v;
-            x_jj[k][j][i] += 2 * _xdata[k][J][I] * v;
+            d_jj[k][j][i]._y += 2 * _data[k][J][I]._y * v;
+            d_jj[k][j][i]._x += 2 * _data[k][J][I]._x * v;
 
             v = B_I_II * B_J;
-            y_ii[k][j][i] += 2 * _ydata[k][J][I] * v;
-            x_ii[k][j][i] += 2 * _xdata[k][J][I] * v;
+            d_ii[k][j][i]._y += 2 * _data[k][J][I]._y * v;
+            d_ii[k][j][i]._x += 2 * _data[k][J][I]._x * v;
 
             v = B_I_I * B_J_I;
-            y_ij[k][j][i] += 4 * _ydata[k][J][I] * v;
-            x_ij[k][j][i] += 4 * _xdata[k][J][I] * v;
+            d_ij[k][j][i]._y += 4 * _data[k][J][I]._y * v;
+            d_ij[k][j][i]._x += 4 * _data[k][J][I]._x * v;
 
           }
         }
@@ -946,16 +924,16 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient2D(double *gradient)
             B_I_II = b_ii[I-(i-1)];
 
             v = B_I * B_J_II;
-            tmp[1] += y_jj[k][J][I] * v;
-            tmp[0] += x_jj[k][J][I] * v;
+            tmp[1] += d_jj[k][J][I]._y * v;
+            tmp[0] += d_jj[k][J][I]._x * v;
 
             v = B_I_II * B_J;
-            tmp[1] += y_ii[k][J][I] * v;
-            tmp[0] += x_ii[k][J][I] * v;
+            tmp[1] += d_ii[k][J][I]._y * v;
+            tmp[0] += d_ii[k][J][I]._x * v;
 
             v = B_I_I * B_J_I;
-            tmp[1] += y_ij[k][J][I] * v;
-            tmp[0] += x_ij[k][J][I] * v;
+            tmp[1] += d_ij[k][J][I]._y * v;
+            tmp[0] += d_ij[k][J][I]._x * v;
 
           }
         }
@@ -967,12 +945,9 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient2D(double *gradient)
     }
   }
 
-  this->Deallocate(y_jj, _x, _y, _z);
-  this->Deallocate(x_jj, _x, _y, _z);
-  this->Deallocate(y_ii, _x, _y, _z);
-  this->Deallocate(x_ii, _x, _y, _z);
-  this->Deallocate(y_ij, _x, _y, _z);
-  this->Deallocate(x_ij, _x, _y, _z);
+  this->Deallocate(d_jj, _x, _y, _z);
+  this->Deallocate(d_ii, _x, _y, _z);
+  this->Deallocate(d_ij, _x, _y, _z);
 }
 
 void irtkBSplineFreeFormTransformation3D::BendingGradient3D(double *gradient)
@@ -981,42 +956,18 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient3D(double *gradient)
   double B_K, B_J, B_I, B_K_I, B_J_I, B_I_I, B_K_II, B_J_II, B_I_II, v, tmp[3];
 
   // Derivatives
-  double ***z_kk = NULL;
-  z_kk = this->Allocate(z_kk, _x, _y, _z);
-  double ***y_kk = NULL;
-  y_kk = this->Allocate(y_kk, _x, _y, _z);
-  double ***x_kk = NULL;
-  x_kk = this->Allocate(x_kk, _x, _y, _z);
-  double ***z_jj = NULL;
-  z_jj = this->Allocate(z_jj, _x, _y, _z);
-  double ***y_jj = NULL;
-  y_jj = this->Allocate(y_jj, _x, _y, _z);
-  double ***x_jj = NULL;
-  x_jj = this->Allocate(x_jj, _x, _y, _z);
-  double ***z_ii = NULL;
-  z_ii = this->Allocate(z_ii, _x, _y, _z);
-  double ***y_ii = NULL;
-  y_ii = this->Allocate(y_ii, _x, _y, _z);
-  double ***x_ii = NULL;
-  x_ii = this->Allocate(x_ii, _x, _y, _z);
-  double ***z_ij = NULL;
-  z_ij = this->Allocate(z_ij, _x, _y, _z);
-  double ***y_ij = NULL;
-  y_ij = this->Allocate(y_ij, _x, _y, _z);
-  double ***x_ij = NULL;
-  x_ij = this->Allocate(x_ij, _x, _y, _z);
-  double ***z_ik = NULL;
-  z_ik = this->Allocate(z_ik, _x, _y, _z);
-  double ***y_ik = NULL;
-  y_ik = this->Allocate(y_ik, _x, _y, _z);
-  double ***x_ik = NULL;
-  x_ik = this->Allocate(x_ik, _x, _y, _z);
-  double ***z_jk = NULL;
-  z_jk = this->Allocate(z_jk, _x, _y, _z);
-  double ***y_jk = NULL;
-  y_jk = this->Allocate(y_jk, _x, _y, _z);
-  double ***x_jk = NULL;
-  x_jk = this->Allocate(x_jk, _x, _y, _z);
+  irtkVector3D<double> ***d_kk = NULL;
+  d_kk = this->Allocate(d_kk, _x, _y, _z);
+  irtkVector3D<double> ***d_jj = NULL;
+  d_jj = this->Allocate(d_jj, _x, _y, _z);
+  irtkVector3D<double> ***d_ii = NULL;
+  d_ii = this->Allocate(d_ii, _x, _y, _z);
+  irtkVector3D<double> ***d_ij = NULL;
+  d_ij = this->Allocate(d_ij, _x, _y, _z);
+  irtkVector3D<double> ***d_ik = NULL;
+  d_ik = this->Allocate(d_ik, _x, _y, _z);
+  irtkVector3D<double> ***d_jk = NULL;
+  d_jk = this->Allocate(d_jk, _x, _y, _z);
 
   // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location i, j, k)
   double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
@@ -1043,34 +994,34 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient3D(double *gradient)
               B_I_II = b_ii[I-(i-1)];
 
               v = B_I * B_J * B_K_II;
-              z_kk[k][j][i] += 2 * _zdata[K][J][I] * v;
-              y_kk[k][j][i] += 2 * _ydata[K][J][I] * v;
-              x_kk[k][j][i] += 2 * _xdata[K][J][I] * v;
+              d_kk[k][j][i]._z += 2 * _data[K][J][I]._z * v;
+              d_kk[k][j][i]._y += 2 * _data[K][J][I]._y * v;
+              d_kk[k][j][i]._x += 2 * _data[K][J][I]._x * v;
 
               v = B_I * B_J_II * B_K;
-              z_jj[k][j][i] += 2 * _zdata[K][J][I] * v;
-              y_jj[k][j][i] += 2 * _ydata[K][J][I] * v;
-              x_jj[k][j][i] += 2 * _xdata[K][J][I] * v;
+              d_jj[k][j][i]._z += 2 * _data[K][J][I]._z * v;
+              d_jj[k][j][i]._y += 2 * _data[K][J][I]._y * v;
+              d_jj[k][j][i]._x += 2 * _data[K][J][I]._x * v;
 
               v = B_I_II * B_J * B_K;
-              z_ii[k][j][i] += 2 * _zdata[K][J][I] * v;
-              y_ii[k][j][i] += 2 * _ydata[K][J][I] * v;
-              x_ii[k][j][i] += 2 * _xdata[K][J][I] * v;
+              d_ii[k][j][i]._z += 2 * _data[K][J][I]._z * v;
+              d_ii[k][j][i]._y += 2 * _data[K][J][I]._y * v;
+              d_ii[k][j][i]._x += 2 * _data[K][J][I]._x * v;
 
               v = B_I_I * B_J_I * B_K;
-              z_ij[k][j][i] += 4 * _zdata[K][J][I] * v;
-              y_ij[k][j][i] += 4 * _ydata[K][J][I] * v;
-              x_ij[k][j][i] += 4 * _xdata[K][J][I] * v;
+              d_ij[k][j][i]._z += 4 * _data[K][J][I]._z * v;
+              d_ij[k][j][i]._y += 4 * _data[K][J][I]._y * v;
+              d_ij[k][j][i]._x += 4 * _data[K][J][I]._x * v;
 
               v = B_I_I * B_J * B_K_I;
-              z_ik[k][j][i] += 4 * _zdata[K][J][I] * v;
-              y_ik[k][j][i] += 4 * _ydata[K][J][I] * v;
-              x_ik[k][j][i] += 4 * _xdata[K][J][I] * v;
+              d_ik[k][j][i]._z += 4 * _data[K][J][I]._z * v;
+              d_ik[k][j][i]._y += 4 * _data[K][J][I]._y * v;
+              d_ik[k][j][i]._x += 4 * _data[K][J][I]._x * v;
 
               v = B_I * B_J_I * B_K_I;
-              z_jk[k][j][i] += 4 * _zdata[K][J][I] * v;
-              y_jk[k][j][i] += 4 * _ydata[K][J][I] * v;
-              x_jk[k][j][i] += 4 * _xdata[K][J][I] * v;
+              d_jk[k][j][i]._z += 4 * _data[K][J][I]._z * v;
+              d_jk[k][j][i]._y += 4 * _data[K][J][I]._y * v;
+              d_jk[k][j][i]._x += 4 * _data[K][J][I]._x * v;
             }
           }
         }
@@ -1102,34 +1053,34 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient3D(double *gradient)
               B_I_II = b_ii[I-(i-1)];
 
               v = B_I * B_J * B_K_II;
-              tmp[2] += z_kk[K][J][I] * v;
-              tmp[1] += y_kk[K][J][I] * v;
-              tmp[0] += x_kk[K][J][I] * v;
+              tmp[2] += d_kk[K][J][I]._z * v;
+              tmp[1] += d_kk[K][J][I]._y * v;
+              tmp[0] += d_kk[K][J][I]._x * v;
 
               v = B_I * B_J_II * B_K;
-              tmp[2] += z_jj[K][J][I] * v;
-              tmp[1] += y_jj[K][J][I] * v;
-              tmp[0] += x_jj[K][J][I] * v;
+              tmp[2] += d_jj[K][J][I]._z * v;
+              tmp[1] += d_jj[K][J][I]._y * v;
+              tmp[0] += d_jj[K][J][I]._x * v;
 
               v = B_I_II * B_J * B_K;
-              tmp[2] += z_ii[K][J][I] * v;
-              tmp[1] += y_ii[K][J][I] * v;
-              tmp[0] += x_ii[K][J][I] * v;
+              tmp[2] += d_ii[K][J][I]._z * v;
+              tmp[1] += d_ii[K][J][I]._y * v;
+              tmp[0] += d_ii[K][J][I]._x * v;
 
               v = B_I_I * B_J_I * B_K;
-              tmp[2] += z_ij[K][J][I] * v;
-              tmp[1] += y_ij[K][J][I] * v;
-              tmp[0] += x_ij[K][J][I] * v;
+              tmp[2] += d_ij[K][J][I]._z * v;
+              tmp[1] += d_ij[K][J][I]._y * v;
+              tmp[0] += d_ij[K][J][I]._x * v;
 
               v = B_I_I * B_J * B_K_I;
-              tmp[2] += z_ik[K][J][I] * v;
-              tmp[1] += y_ik[K][J][I] * v;
-              tmp[0] += x_ik[K][J][I] * v;
+              tmp[2] += d_ik[K][J][I]._z * v;
+              tmp[1] += d_ik[K][J][I]._y * v;
+              tmp[0] += d_ik[K][J][I]._x * v;
 
               v = B_I * B_J_I * B_K_I;
-              tmp[2] += z_jk[K][J][I] * v;
-              tmp[1] += y_jk[K][J][I] * v;
-              tmp[0] += x_jk[K][J][I] * v;
+              tmp[2] += d_jk[K][J][I]._z * v;
+              tmp[1] += d_jk[K][J][I]._y * v;
+              tmp[0] += d_jk[K][J][I]._x * v;
             }
           }
         }
@@ -1141,24 +1092,12 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient3D(double *gradient)
     }
   }
 
-  this->Deallocate(z_kk, _x, _y, _z);
-  this->Deallocate(y_kk, _x, _y, _z);
-  this->Deallocate(x_kk, _x, _y, _z);
-  this->Deallocate(z_jj, _x, _y, _z);
-  this->Deallocate(y_jj, _x, _y, _z);
-  this->Deallocate(x_jj, _x, _y, _z);
-  this->Deallocate(z_ii, _x, _y, _z);
-  this->Deallocate(y_ii, _x, _y, _z);
-  this->Deallocate(x_ii, _x, _y, _z);
-  this->Deallocate(z_ij, _x, _y, _z);
-  this->Deallocate(y_ij, _x, _y, _z);
-  this->Deallocate(x_ij, _x, _y, _z);
-  this->Deallocate(z_ik, _x, _y, _z);
-  this->Deallocate(y_ik, _x, _y, _z);
-  this->Deallocate(x_ik, _x, _y, _z);
-  this->Deallocate(z_jk, _x, _y, _z);
-  this->Deallocate(y_jk, _x, _y, _z);
-  this->Deallocate(x_jk, _x, _y, _z);
+  this->Deallocate(d_kk, _x, _y, _z);
+  this->Deallocate(d_jj, _x, _y, _z);
+  this->Deallocate(d_ii, _x, _y, _z);
+  this->Deallocate(d_ij, _x, _y, _z);
+  this->Deallocate(d_ik, _x, _y, _z);
+  this->Deallocate(d_jk, _x, _y, _z);
 }
 
 void irtkBSplineFreeFormTransformation3D::BendingGradient(double *gradient)
@@ -1201,16 +1140,16 @@ double irtkBSplineFreeFormTransformation3D::Bending2D(double x, double y)
           B_I_II = this->LookupTable_II[S][i];
 
           v = B_I * B_J_II;
-          y_jj += _ydata[0][J][I] * v;
-          x_jj += _xdata[0][J][I] * v;
+          y_jj += _data[0][J][I]._y * v;
+          x_jj += _data[0][J][I]._x * v;
 
           v = B_I_II * B_J;
-          y_ii += _ydata[0][J][I] * v;
-          x_ii += _xdata[0][J][I] * v;
+          y_ii += _data[0][J][I]._y * v;
+          x_ii += _data[0][J][I]._x * v;
 
           v = B_I_I * B_J_I;
-          y_ij += _ydata[0][J][I] * v;
-          x_ij += _xdata[0][J][I] * v;
+          y_ij += _data[0][J][I]._y * v;
+          x_ij += _data[0][J][I]._x * v;
         }
       }
     }
@@ -1260,34 +1199,34 @@ double irtkBSplineFreeFormTransformation3D::Bending3D(double x, double y, double
               B_I_II = this->LookupTable_II[S][i];
 
               v = B_I * B_J * B_K_II;
-              z_kk += _zdata[K][J][I] * v;
-              y_kk += _ydata[K][J][I] * v;
-              x_kk += _xdata[K][J][I] * v;
+              z_kk += _data[K][J][I]._z * v;
+              y_kk += _data[K][J][I]._y * v;
+              x_kk += _data[K][J][I]._x * v;
 
               v = B_I * B_J_II * B_K;
-              z_jj += _zdata[K][J][I] * v;
-              y_jj += _ydata[K][J][I] * v;
-              x_jj += _xdata[K][J][I] * v;
+              z_jj += _data[K][J][I]._z * v;
+              y_jj += _data[K][J][I]._y * v;
+              x_jj += _data[K][J][I]._x * v;
 
               v = B_I_II * B_J * B_K;
-              z_ii += _zdata[K][J][I] * v;
-              y_ii += _ydata[K][J][I] * v;
-              x_ii += _xdata[K][J][I] * v;
+              z_ii += _data[K][J][I]._z * v;
+              y_ii += _data[K][J][I]._y * v;
+              x_ii += _data[K][J][I]._x * v;
 
               v = B_I_I * B_J_I * B_K;
-              z_ij += _zdata[K][J][I] * v;
-              y_ij += _ydata[K][J][I] * v;
-              x_ij += _xdata[K][J][I] * v;
+              z_ij += _data[K][J][I]._z * v;
+              y_ij += _data[K][J][I]._y * v;
+              x_ij += _data[K][J][I]._x * v;
 
               v = B_I_I * B_J * B_K_I;
-              z_ik += _zdata[K][J][I] * v;
-              y_ik += _ydata[K][J][I] * v;
-              x_ik += _xdata[K][J][I] * v;
+              z_ik += _data[K][J][I]._z * v;
+              y_ik += _data[K][J][I]._y * v;
+              x_ik += _data[K][J][I]._x * v;
 
               v = B_I * B_J_I * B_K_I;
-              z_jk += _zdata[K][J][I] * v;
-              y_jk += _ydata[K][J][I] * v;
-              x_jk += _xdata[K][J][I] * v;
+              z_jk += _data[K][J][I]._z * v;
+              y_jk += _data[K][J][I]._y * v;
+              x_jk += _data[K][J][I]._x * v;
             }
           }
         }
@@ -1327,245 +1266,24 @@ int irtkBSplineFreeFormTransformation3D::CheckHeader(char *name)
 
 void irtkBSplineFreeFormTransformation3D::ApproximateAsNew2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
 {
-    int i, j, l, m, I, J, S, T, index;
-    double s, t, x, y, z, B_I, B_J, basis, basis2, phi, norm;
-
-    // Allocate memory
-    double ***dx = NULL;
-    double ***dy = NULL;
-    double ***ds = NULL;
-    dx = Allocate(dx, _x, _y, _z);
-    dy = Allocate(dy, _x, _y, _z);
-    ds = Allocate(ds, _x, _y, _z);
-
-    // Initialize data structures
-    for (j = -2; j < _y+2; j++) {
-        for (i = -2; i < _x+2; i++) {
-            dx[0][j][i] = 0;
-            dy[0][j][i] = 0;
-            ds[0][j][i] = 0;
-        }
-    }
-
-    // Initial loop: Calculate change of control points
-    for (index = 0; index < no; index++) {
-        x = x1[index];
-        y = y1[index];
-        z = z1[index];
-        this->WorldToLattice(x, y, z);
-        l = (int)floor(x);
-        m = (int)floor(y);
-        s = x-l;
-        t = y-m;
-        S = round(LUTSIZE*s);
-        T = round(LUTSIZE*t);
-        norm = 0;
-        for (j = 0; j < 4; j++) {
-            B_J = this->LookupTable[T][j];
-            for (i = 0; i < 4; i++) {
-                B_I = B_J * this->LookupTable[S][i];
-                norm += B_I * B_I;
-            }
-        }
-        for (j = 0; j < 4; j++) {
-            B_J = this->LookupTable[T][j];
-            J = j + m - 1;
-            if ((J >= -2) && (J < _y+2)) {
-                for (i = 0; i < 4; i++) {
-                    B_I = B_J * this->LookupTable[S][i];
-                    I = i + l - 1;
-                    if ((I >= -2) && (I < _x+2)) {
-                        basis = B_I / norm;
-                        basis2 = B_I * B_I;
-                        phi = x2[index] * basis;
-                        dx[0][J][I] += basis2 * phi;
-                        phi = y2[index] * basis;
-                        dy[0][J][I] += basis2 * phi;
-                        ds[0][J][I] += basis2;
-                    }
-                }
-            }
-        }
-    }
-
-    // Final loop: Calculate new control points
-    for (j = -2; j < _y+2; j++) {
-        for (i = -2; i < _x+2; i++) {
-            if (ds[0][j][i] > 0) {
-                _xdata[0][j][i] = dx[0][j][i] / ds[0][j][i];
-                _ydata[0][j][i] = dy[0][j][i] / ds[0][j][i];
-            }
-        }
-    }
-
-    // Calculate residual error
-    for (index = 0; index < no; index++) {
-        x = x1[index];
-        y = y1[index];
-        z = z1[index];
-        this->LocalDisplacement(x, y, z);
-        x2[index] -= x;
-        y2[index] -= y;
-        z2[index] -= z;
-    }
-
-    // Deallocate memory
-    Deallocate(dx, _x, _y, _z);
-    Deallocate(dy, _x, _y, _z);
-    Deallocate(ds, _x, _y, _z);
-}
-
-void irtkBSplineFreeFormTransformation3D::ApproximateAsNew3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
-{
-    int i, j, k, l, m, n, I, J, K, S, T, U, index;
-    double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, phi, norm;
-
-    // Allocate memory
-    double ***dx = NULL;
-    double ***dy = NULL;
-    double ***dz = NULL;
-    double ***ds = NULL;
-    dx = Allocate(dx, _x, _y, _z);
-    dy = Allocate(dy, _x, _y, _z);
-    dz = Allocate(dz, _x, _y, _z);
-    ds = Allocate(ds, _x, _y, _z);
-
-    // Initialize data structures
-    for (k = -2; k < _z+2; k++) {
-        for (j = -2; j < _y+2; j++) {
-            for (i = -2; i < _x+2; i++) {
-                dx[k][j][i] = 0;
-                dy[k][j][i] = 0;
-                dz[k][j][i] = 0;
-                ds[k][j][i] = 0;
-            }
-        }
-    }
-    // Initial loop: Calculate change of control points
-    for (index = 0; index < no; index++) {
-        x = x1[index];
-        y = y1[index];
-        z = z1[index];
-        this->WorldToLattice(x, y, z);
-        l = (int)floor(x);
-        m = (int)floor(y);
-        n = (int)floor(z);
-        s = x-l;
-        t = y-m;
-        u = z-n;
-        S = round(LUTSIZE*s);
-        T = round(LUTSIZE*t);
-        U = round(LUTSIZE*u);
-        norm = 0;
-        for (k = 0; k < 4; k++) {
-            B_K = this->LookupTable[U][k];
-            for (j = 0; j < 4; j++) {
-                B_J = B_K * this->LookupTable[T][j];
-                for (i = 0; i < 4; i++) {
-                    B_I = B_J * this->LookupTable[S][i];
-                    norm += B_I * B_I;
-                }
-            }
-        }
-        for (k = 0; k < 4; k++) {
-            B_K = this->LookupTable[U][k];
-            K = k + n - 1;
-            if ((K >= 0) && (K < _z+2)) {
-                for (j = 0; j < 4; j++) {
-                    B_J = B_K * this->LookupTable[T][j];
-                    J = j + m - 1;
-                    if ((J >= -2) && (J < _y+2)) {
-                        for (i = 0; i < 4; i++) {
-                            B_I = B_J * this->LookupTable[S][i];
-                            I = i + l - 1;
-                            if ((I >= -2) && (I < _x+2)) {
-                                basis = B_I / norm;
-                                basis2 = B_I * B_I;
-                                phi = x2[index] * basis;
-                                dx[K][J][I] += basis2 * phi;
-                                phi = y2[index] * basis;
-                                dy[K][J][I] += basis2 * phi;
-                                phi = z2[index] * basis;
-                                dz[K][J][I] += basis2 * phi;
-                                ds[K][J][I] += basis2;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Final loop: Calculate new control points
-    for (k = -2; k < _z+2; k++) {
-        for (j = -2; j < _y+2; j++) {
-            for (i = -2; i < _x+2; i++) {
-                if (ds[k][j][i] > 0) {
-                    _xdata[k][j][i] = dx[k][j][i] / ds[k][j][i];
-                    _ydata[k][j][i] = dy[k][j][i] / ds[k][j][i];
-                    _zdata[k][j][i] = dz[k][j][i] / ds[k][j][i];
-                }
-            }
-        }
-    }
-
-    // Calculate residual error
-    for (index = 0; index < no; index++) {
-        x = x1[index];
-        y = y1[index];
-        z = z1[index];
-        this->LocalDisplacement(x, y, z);
-        x2[index] -= x;
-        y2[index] -= y;
-        z2[index] -= z;
-    }
-
-    // Deallocate memory
-    Deallocate(dx, _x, _y, _z);
-    Deallocate(dy, _x, _y, _z);
-    Deallocate(dz, _x, _y, _z);
-    Deallocate(ds, _x, _y, _z);
-}
-
-void irtkBSplineFreeFormTransformation3D::ApproximateAsNew(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
-{
-    if (_z == 1) {
-        ApproximateAsNew2D(x1, y1, z1, x2, y2, z2, no);
-    } else {
-        ApproximateAsNew3D(x1, y1, z1, x2, y2, z2, no);
-    }
-}
-
-double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
-{
   int i, j, l, m, I, J, S, T, index;
-  double s, t, x, y, z, B_I, B_J, basis, basis2, error, phi, norm;
+  double s, t, x, y, z, B_I, B_J, basis, basis2, phi, norm;
 
-  // Allocate memory
-  double ***dx = NULL;
-  double ***dy = NULL;
+  // Allocate memory for control points
+  irtkVector3D<double> ***data = NULL;
+  data = Allocate(data, _x, _y, _z);
+
+  // Allocate memory for temporary storage
   double ***ds = NULL;
-  dx = Allocate(dx, _x, _y, _z);
-  dy = Allocate(dy, _x, _y, _z);
   ds = Allocate(ds, _x, _y, _z);
-
-  // Subtract displacements which are approximated by current control points
-  for (index = 0; index < no; index++) {
-    x = x1[index];
-    y = y1[index];
-    z = z1[index];
-    this->LocalDisplacement(x, y, z);
-    x2[index] -= x;
-    y2[index] -= y;
-    z2[index] -= z;
-  }
 
   // Initialize data structures
   for (j = -2; j < _y+2; j++) {
     for (i = -2; i < _x+2; i++) {
-      dx[0][j][i] = 0;
-      dy[0][j][i] = 0;
-      ds[0][j][i] = 0;
+      data[0][j][i]._x = 0;
+      data[0][j][i]._y = 0;
+      data[0][j][i]._z = 0;
+      ds[0][j][i]      = 0;
     }
   }
 
@@ -1600,9 +1318,9 @@ double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, cons
             basis = B_I / norm;
             basis2 = B_I * B_I;
             phi = x2[index] * basis;
-            dx[0][J][I] += basis2 * phi;
+            data[0][J][I]._x += basis2 * phi;
             phi = y2[index] * basis;
-            dy[0][J][I] += basis2 * phi;
+            data[0][J][I]._y += basis2 * phi;
             ds[0][J][I] += basis2;
           }
         }
@@ -1610,29 +1328,17 @@ double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, cons
     }
   }
 
-  // Add displacements which are approximated by current control points
-  for (index = 0; index < no; index++) {
-    x = x1[index];
-    y = y1[index];
-    z = z1[index];
-    this->LocalDisplacement(x, y, z);
-    x2[index] += x;
-    y2[index] += y;
-    z2[index] += z;
-  }
-
   // Final loop: Calculate new control points
   for (j = -2; j < _y+2; j++) {
     for (i = -2; i < _x+2; i++) {
       if (ds[0][j][i] > 0) {
-        _xdata[0][j][i] += dx[0][j][i] / ds[0][j][i];
-        _ydata[0][j][i] += dy[0][j][i] / ds[0][j][i];
+        _data[0][j][i]._x = data[0][j][i]._x / ds[0][j][i];
+        _data[0][j][i]._y = data[0][j][i]._y / ds[0][j][i];
       }
     }
   }
 
   // Calculate residual error
-  error = 0;
   for (index = 0; index < no; index++) {
     x = x1[index];
     y = y1[index];
@@ -1641,53 +1347,33 @@ double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, cons
     x2[index] -= x;
     y2[index] -= y;
     z2[index] -= z;
-    // Calculate error
-    error += sqrt(x2[index]*x2[index]+y2[index]*y2[index]+z2[index]*z2[index]);
   }
-  error = error / (double)no;
 
   // Deallocate memory
-  Deallocate(dx, _x, _y, _z);
-  Deallocate(dy, _x, _y, _z);
+  Deallocate(data, _x, _y, _z);
   Deallocate(ds, _x, _y, _z);
-
-  // Return error
-  return error;
 }
 
-double irtkBSplineFreeFormTransformation3D::Approximate3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+void irtkBSplineFreeFormTransformation3D::ApproximateAsNew3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
 {
   int i, j, k, l, m, n, I, J, K, S, T, U, index;
-  double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, error, phi, norm;
+  double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, phi, norm;
 
-  // Allocate memory
-  double ***dx = NULL;
-  double ***dy = NULL;
-  double ***dz = NULL;
+  // Allocate memory for control points
+  irtkVector3D<double> ***data = NULL;
+  data = Allocate(data, _x, _y, _z);
+
+  // Allocate memory for temporary storage
   double ***ds = NULL;
-  dx = Allocate(dx, _x, _y, _z);
-  dy = Allocate(dy, _x, _y, _z);
-  dz = Allocate(dz, _x, _y, _z);
   ds = Allocate(ds, _x, _y, _z);
-
-  // Subtract displacements which are approximated by current control points
-  for (index = 0; index < no; index++) {
-    x = x1[index];
-    y = y1[index];
-    z = z1[index];
-    this->LocalDisplacement(x, y, z);
-    x2[index] -= x;
-    y2[index] -= y;
-    z2[index] -= z;
-  }
 
   // Initialize data structures
   for (k = -2; k < _z+2; k++) {
     for (j = -2; j < _y+2; j++) {
       for (i = -2; i < _x+2; i++) {
-        dx[k][j][i] = 0;
-        dy[k][j][i] = 0;
-        dz[k][j][i] = 0;
+        data[k][j][i]._x = 0;
+        data[k][j][i]._y = 0;
+        data[k][j][i]._z = 0;
         ds[k][j][i] = 0;
       }
     }
@@ -1733,11 +1419,258 @@ double irtkBSplineFreeFormTransformation3D::Approximate3D(const double *x1, cons
                 basis = B_I / norm;
                 basis2 = B_I * B_I;
                 phi = x2[index] * basis;
-                dx[K][J][I] += basis2 * phi;
+                data[K][J][I]._x += basis2 * phi;
                 phi = y2[index] * basis;
-                dy[K][J][I] += basis2 * phi;
+                data[K][J][I]._y += basis2 * phi;
                 phi = z2[index] * basis;
-                dz[K][J][I] += basis2 * phi;
+                data[K][J][I]._z += basis2 * phi;
+                ds[K][J][I] += basis2;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Final loop: Calculate new control points
+  for (k = -2; k < _z+2; k++) {
+    for (j = -2; j < _y+2; j++) {
+      for (i = -2; i < _x+2; i++) {
+        if (ds[k][j][i] > 0) {
+          _data[k][j][i]._x = data[k][j][i]._x / ds[k][j][i];
+          _data[k][j][i]._y = data[k][j][i]._y / ds[k][j][i];
+          _data[k][j][i]._z = data[k][j][i]._z / ds[k][j][i];
+        }
+      }
+    }
+  }
+
+  // Calculate residual error
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->LocalDisplacement(x, y, z);
+    x2[index] -= x;
+    y2[index] -= y;
+    z2[index] -= z;
+  }
+
+  // Deallocate memory
+  Deallocate(data, _x, _y, _z);
+  Deallocate(ds, _x, _y, _z);
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateAsNew(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+{
+  if (_z == 1) {
+    ApproximateAsNew2D(x1, y1, z1, x2, y2, z2, no);
+  } else {
+    ApproximateAsNew3D(x1, y1, z1, x2, y2, z2, no);
+  }
+}
+
+double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+{
+  int i, j, l, m, I, J, S, T, index;
+  double s, t, x, y, z, B_I, B_J, basis, basis2, error, phi, norm;
+
+  // Allocate memory for control points
+  irtkVector3D<double> ***data = NULL;
+  data = Allocate(data, _x, _y, _z);
+
+  // Allocate memory for temporary storage
+  double ***ds = NULL;
+  ds = Allocate(ds, _x, _y, _z);
+
+  // Subtract displacements which are approximated by current control points
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->LocalDisplacement(x, y, z);
+    x2[index] -= x;
+    y2[index] -= y;
+    z2[index] -= z;
+  }
+
+  // Initialize data structures
+  for (j = -2; j < _y+2; j++) {
+    for (i = -2; i < _x+2; i++) {
+      data[0][j][i]._x = 0;
+      data[0][j][i]._y = 0;
+      data[0][j][i]._z = 0;
+      ds[0][j][i]      = 0;
+    }
+  }
+
+  // Initial loop: Calculate change of control points
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->WorldToLattice(x, y, z);
+    l = (int)floor(x);
+    m = (int)floor(y);
+    s = x-l;
+    t = y-m;
+    S = round(LUTSIZE*s);
+    T = round(LUTSIZE*t);
+    norm = 0;
+    for (j = 0; j < 4; j++) {
+      B_J = this->LookupTable[T][j];
+      for (i = 0; i < 4; i++) {
+        B_I = B_J * this->LookupTable[S][i];
+        norm += B_I * B_I;
+      }
+    }
+    for (j = 0; j < 4; j++) {
+      B_J = this->LookupTable[T][j];
+      J = j + m - 1;
+      if ((J >= -2) && (J < _y+2)) {
+        for (i = 0; i < 4; i++) {
+          B_I = B_J * this->LookupTable[S][i];
+          I = i + l - 1;
+          if ((I >= -2) && (I < _x+2)) {
+            basis = B_I / norm;
+            basis2 = B_I * B_I;
+            phi = x2[index] * basis;
+            data[0][J][I]._x += basis2 * phi;
+            phi = y2[index] * basis;
+            data[0][J][I]._y += basis2 * phi;
+            ds[0][J][I] += basis2;
+          }
+        }
+      }
+    }
+  }
+
+  // Add displacements which are approximated by current control points
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->LocalDisplacement(x, y, z);
+    x2[index] += x;
+    y2[index] += y;
+    z2[index] += z;
+  }
+
+  // Final loop: Calculate new control points
+  for (j = -2; j < _y+2; j++) {
+    for (i = -2; i < _x+2; i++) {
+      if (ds[0][j][i] > 0) {
+        _data[0][j][i]._x += data[0][j][i]._x / ds[0][j][i];
+        _data[0][j][i]._y += data[0][j][i]._y / ds[0][j][i];
+      }
+    }
+  }
+
+  // Calculate residual error
+  error = 0;
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->LocalDisplacement(x, y, z);
+    x2[index] -= x;
+    y2[index] -= y;
+    z2[index] -= z;
+    // Calculate error
+    error += sqrt(x2[index]*x2[index]+y2[index]*y2[index]+z2[index]*z2[index]);
+  }
+  error = error / (double)no;
+
+  // Deallocate memory
+  Deallocate(data, _x, _y, _z);
+  Deallocate(ds, _x, _y, _z);
+
+  // Return error
+  return error;
+}
+
+double irtkBSplineFreeFormTransformation3D::Approximate3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
+{
+  int i, j, k, l, m, n, I, J, K, S, T, U, index;
+  double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, error, phi, norm;
+
+  // Allocate memory for control points
+  irtkVector3D<double> ***data = NULL;
+  data = Allocate(data, _x, _y, _z);
+
+  // Allocate memory for temporary storage
+  double ***ds = NULL;
+  ds = Allocate(ds, _x, _y, _z);
+
+  // Subtract displacements which are approximated by current control points
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->LocalDisplacement(x, y, z);
+    x2[index] -= x;
+    y2[index] -= y;
+    z2[index] -= z;
+  }
+
+  // Initialize data structures
+  for (k = -2; k < _z+2; k++) {
+    for (j = -2; j < _y+2; j++) {
+      for (i = -2; i < _x+2; i++) {
+        data[k][j][i]._x = 0;
+        data[k][j][i]._y = 0;
+        data[k][j][i]._z = 0;
+        ds[k][j][i] = 0;
+      }
+    }
+  }
+  // Initial loop: Calculate change of control points
+  for (index = 0; index < no; index++) {
+    x = x1[index];
+    y = y1[index];
+    z = z1[index];
+    this->WorldToLattice(x, y, z);
+    l = (int)floor(x);
+    m = (int)floor(y);
+    n = (int)floor(z);
+    s = x-l;
+    t = y-m;
+    u = z-n;
+    S = round(LUTSIZE*s);
+    T = round(LUTSIZE*t);
+    U = round(LUTSIZE*u);
+    norm = 0;
+    for (k = 0; k < 4; k++) {
+      B_K = this->LookupTable[U][k];
+      for (j = 0; j < 4; j++) {
+        B_J = B_K * this->LookupTable[T][j];
+        for (i = 0; i < 4; i++) {
+          B_I = B_J * this->LookupTable[S][i];
+          norm += B_I * B_I;
+        }
+      }
+    }
+    for (k = 0; k < 4; k++) {
+      B_K = this->LookupTable[U][k];
+      K = k + n - 1;
+      if ((K >= 0) && (K < _z+2)) {
+        for (j = 0; j < 4; j++) {
+          B_J = B_K * this->LookupTable[T][j];
+          J = j + m - 1;
+          if ((J >= -2) && (J < _y+2)) {
+            for (i = 0; i < 4; i++) {
+              B_I = B_J * this->LookupTable[S][i];
+              I = i + l - 1;
+              if ((I >= -2) && (I < _x+2)) {
+                basis = B_I / norm;
+                basis2 = B_I * B_I;
+                phi = x2[index] * basis;
+                data[K][J][I]._x += basis2 * phi;
+                phi = y2[index] * basis;
+                data[K][J][I]._y += basis2 * phi;
+                phi = z2[index] * basis;
+                data[K][J][I]._z += basis2 * phi;
                 ds[K][J][I] += basis2;
               }
             }
@@ -1763,9 +1696,9 @@ double irtkBSplineFreeFormTransformation3D::Approximate3D(const double *x1, cons
     for (j = -2; j < _y+2; j++) {
       for (i = -2; i < _x+2; i++) {
         if (ds[k][j][i] > 0) {
-          _xdata[k][j][i] += dx[k][j][i] / ds[k][j][i];
-          _ydata[k][j][i] += dy[k][j][i] / ds[k][j][i];
-          _zdata[k][j][i] += dz[k][j][i] / ds[k][j][i];
+          _data[k][j][i]._x += data[k][j][i]._x / ds[k][j][i];
+          _data[k][j][i]._y += data[k][j][i]._y / ds[k][j][i];
+          _data[k][j][i]._z += data[k][j][i]._z / ds[k][j][i];
         }
       }
     }
@@ -1787,9 +1720,7 @@ double irtkBSplineFreeFormTransformation3D::Approximate3D(const double *x1, cons
   error = error / (double)no;
 
   // Deallocate memory
-  Deallocate(dx, _x, _y, _z);
-  Deallocate(dy, _x, _y, _z);
-  Deallocate(dz, _x, _y, _z);
+  Deallocate(data, _x, _y, _z);
   Deallocate(ds, _x, _y, _z);
 
   // Return error
@@ -1818,9 +1749,9 @@ void irtkBSplineFreeFormTransformation3D::Interpolate(const double* dxs, const d
   for (int z = 0; z < _z; z++) {
     for (int y = 0; y < _y; y++) {
       for (int x = 0; x < _x; x++) {
-        _xdata[z][y][x] = xCoeffs(x, y, z);
-        _ydata[z][y][x] = yCoeffs(x, y, z);
-        _zdata[z][y][x] = zCoeffs(x, y, z);
+        _data[z][y][x]._x = xCoeffs(x, y, z);
+        _data[z][y][x]._y = yCoeffs(x, y, z);
+        _data[z][y][x]._z = zCoeffs(x, y, z);
       }
     }
   }
@@ -1849,28 +1780,21 @@ void irtkBSplineFreeFormTransformation3D::Subdivide2D()
   w[0][2] = 1.0/8.0;
 
   // Allocate memory for new control points
-  double ***x = NULL;
-  double ***y = NULL;
-  double ***z = NULL;
-  x = this->Allocate(x, 2*_x-1, 2*_y-1, _z);
-  y = this->Allocate(y, 2*_x-1, 2*_y-1, _z);
-  z = this->Allocate(z, 2*_x-1, 2*_y-1, _z);
+  irtkVector3D<double> ***data = NULL;
+  data = this->Allocate(data, 2*_x-1, 2*_y-1, _z);
 
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (i1 = 0; i1 < 2; i1++) {
         for (j1 = 0; j1 < 2; j1++) {
-          x[0][2*j+j1][2*i+i1] = 0;
-          y[0][2*j+j1][2*i+i1] = 0;
-          z[0][2*j+j1][2*i+i1] = 0;
+          data[0][2*j+j1][2*i+i1]._x = 0;
+          data[0][2*j+j1][2*i+i1]._y = 0;
+          data[0][2*j+j1][2*i+i1]._z = 0;
           for (i2 = 0; i2 < 3; i2++) {
             for (j2 = 0; j2 < 3; j2++) {
-              x[0][2*j+j1][2*i+i1] += w[i1][i2] *
-                                      w[j1][j2] * _xdata[0][j+j2-1][i+i2-1];
-              y[0][2*j+j1][2*i+i1] += w[i1][i2] *
-                                      w[j1][j2] * _ydata[0][j+j2-1][i+i2-1];
-              z[0][2*j+j1][2*i+i1] += w[i1][i2] *
-                                      w[j1][j2] * _zdata[0][j+j2-1][i+i2-1];
+              data[0][2*j+j1][2*i+i1]._x += w[i1][i2] * w[j1][j2] * _data[0][j+j2-1][i+i2-1]._x;
+              data[0][2*j+j1][2*i+i1]._y += w[i1][i2] * w[j1][j2] * _data[0][j+j2-1][i+i2-1]._y;
+              data[0][2*j+j1][2*i+i1]._z += w[i1][i2] * w[j1][j2] * _data[0][j+j2-1][i+i2-1]._z;
             }
           }
         }
@@ -1879,15 +1803,11 @@ void irtkBSplineFreeFormTransformation3D::Subdivide2D()
   }
 
   // Deallocate points
-  this->Deallocate(_xdata, _x, _y, _z);
-  this->Deallocate(_ydata, _x, _y, _z);
-  this->Deallocate(_zdata, _x, _y, _z);
+  this->Deallocate(_data, _x, _y, _z);
   delete []_status;
 
   // Update pointers to control points
-  _xdata = x;
-  _ydata = y;
-  _zdata = z;
+  _data = data;
 
   // Increase number of control points
   _x = 2*_x - 1;
@@ -1925,12 +1845,8 @@ void irtkBSplineFreeFormTransformation3D::Subdivide3D()
   w[0][2] = 1.0/8.0;
 
   // Allocate memory for new control points
-  double ***x = NULL;
-  double ***y = NULL;
-  double ***z = NULL;
-  x = this->Allocate(x, 2*_x-1, 2*_y-1, 2*_z-1);
-  y = this->Allocate(y, 2*_x-1, 2*_y-1, 2*_z-1);
-  z = this->Allocate(z, 2*_x-1, 2*_y-1, 2*_z-1);
+  irtkVector3D<double> ***data = NULL;
+  data = this->Allocate(data, 2*_x-1, 2*_y-1, 2*_z-1);
 
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
@@ -1938,18 +1854,15 @@ void irtkBSplineFreeFormTransformation3D::Subdivide3D()
         for (i1 = 0; i1 < 2; i1++) {
           for (j1 = 0; j1 < 2; j1++) {
             for (k1 = 0; k1 < 2; k1++) {
-              x[2*k+k1][2*j+j1][2*i+i1] = 0;
-              y[2*k+k1][2*j+j1][2*i+i1] = 0;
-              z[2*k+k1][2*j+j1][2*i+i1] = 0;
+              data[2*k+k1][2*j+j1][2*i+i1]._x = 0;
+              data[2*k+k1][2*j+j1][2*i+i1]._y = 0;
+              data[2*k+k1][2*j+j1][2*i+i1]._z = 0;
               for (i2 = 0; i2 < 3; i2++) {
                 for (j2 = 0; j2 < 3; j2++) {
                   for (k2 = 0; k2 < 3; k2++) {
-                    x[2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] *
-                                                 w[j1][j2] * w[k1][k2] * _xdata[k+k2-1][j+j2-1][i+i2-1];
-                    y[2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] *
-                                                 w[j1][j2] * w[k1][k2] * _ydata[k+k2-1][j+j2-1][i+i2-1];
-                    z[2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] *
-                                                 w[j1][j2] * w[k1][k2] * _zdata[k+k2-1][j+j2-1][i+i2-1];
+                    data[2*k+k1][2*j+j1][2*i+i1]._x += w[i1][i2] * w[j1][j2] * w[k1][k2] * _data[k+k2-1][j+j2-1][i+i2-1]._x;
+                    data[2*k+k1][2*j+j1][2*i+i1]._y += w[i1][i2] * w[j1][j2] * w[k1][k2] * _data[k+k2-1][j+j2-1][i+i2-1]._y;
+                    data[2*k+k1][2*j+j1][2*i+i1]._z += w[i1][i2] * w[j1][j2] * w[k1][k2] * _data[k+k2-1][j+j2-1][i+i2-1]._z;
                   }
                 }
               }
@@ -1961,15 +1874,11 @@ void irtkBSplineFreeFormTransformation3D::Subdivide3D()
   }
 
   // Deallocate points
-  this->Deallocate(_xdata, _x, _y, _z);
-  this->Deallocate(_ydata, _x, _y, _z);
-  this->Deallocate(_zdata, _x, _y, _z);
+  this->Deallocate(_data, _x, _y, _z);
   delete []_status;
 
   // Update pointers to control points
-  _xdata = x;
-  _ydata = y;
-  _zdata = z;
+  _data = data;
 
   // Increase number of control points
   _x = 2*_x - 1;
@@ -2334,9 +2243,7 @@ istream& irtkBSplineFreeFormTransformation3D::Import(istream& is)
   double x1, y1, z1, x2, y2, z2;
 
   // Free memory if necessary
-  _xdata = Deallocate(_xdata, _x, _y, _z);
-  _ydata = Deallocate(_ydata, _x, _y, _z);
-  _zdata = Deallocate(_zdata, _x, _y, _z);
+  _data = Deallocate(_data, _x, _y, _z);
   delete []_status;
   _x = 0;
   _y = 0;
@@ -2466,17 +2373,15 @@ istream& irtkBSplineFreeFormTransformation3D::Import(istream& is)
   n = _x*_y*_z;
 
   // Initialize control points
-  _xdata = Allocate(_xdata, _x, _y, _z);
-  _ydata = Allocate(_ydata, _x, _y, _z);
-  _zdata = Allocate(_zdata, _x, _y, _z);
+  _data = Allocate(_data, _x, _y, _z);
 
   // Initialize control points
   for (i = -2; i < _x+2; i++) {
     for (j = -2; j < _y+2; j++) {
       for (k = -2; k < _z+2; k++) {
-        _xdata[k][j][i] = 0;
-        _ydata[k][j][i] = 0;
-        _zdata[k][j][i] = 0;
+        _data[k][j][i]._x = 0;
+        _data[k][j][i]._y = 0;
+        _data[k][j][i]._z = 0;
       }
     }
   }
@@ -2504,9 +2409,9 @@ istream& irtkBSplineFreeFormTransformation3D::Import(istream& is)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        _xdata[k][j][i] = data[index];
-        _ydata[k][j][i] = data[index+1];
-        _zdata[k][j][i] = data[index+2];
+        _data[k][j][i]._x = data[index];
+        _data[k][j][i]._y = data[index+1];
+        _data[k][j][i]._z = data[index+2];
         index += 3;
       }
     }
@@ -2731,9 +2636,9 @@ ostream& irtkBSplineFreeFormTransformation3D::Export(ostream& os)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        data[index]   = _xdata[k][j][i];
-        data[index+1] = _ydata[k][j][i];
-        data[index+2] = _zdata[k][j][i];
+        data[index]   = _data[k][j][i]._x;
+        data[index+1] = _data[k][j][i]._y;
+        data[index+2] = _data[k][j][i]._z;
         index += 3;
       }
     }
@@ -2818,9 +2723,7 @@ irtkCifstream& irtkBSplineFreeFormTransformation3D::Read(irtkCifstream& from)
   }
 
   // Free memory if necessary
-  _xdata = Deallocate(_xdata, _x, _y, _z);
-  _ydata = Deallocate(_ydata, _x, _y, _z);
-  _zdata = Deallocate(_zdata, _x, _y, _z);
+  _data = Deallocate(_data, _x, _y, _z);
   delete []_status;
 
   // Read no of control points
@@ -2850,17 +2753,15 @@ irtkCifstream& irtkBSplineFreeFormTransformation3D::Read(irtkCifstream& from)
   from.ReadAsDouble(&_origin._z, 1);
 
   // Initialize control points
-  _xdata = Allocate(_xdata, _x, _y, _z);
-  _ydata = Allocate(_ydata, _x, _y, _z);
-  _zdata = Allocate(_zdata, _x, _y, _z);
+  _data = Allocate(_data, _x, _y, _z);
 
   // Initialize control points
   for (i = -2; i < _x+2; i++) {
     for (j = -2; j < _y+2; j++) {
       for (k = -2; k < _z+2; k++) {
-        _xdata[k][j][i] = 0;
-        _ydata[k][j][i] = 0;
-        _zdata[k][j][i] = 0;
+        _data[k][j][i]._x = 0;
+        _data[k][j][i]._y = 0;
+        _data[k][j][i]._z = 0;
       }
     }
   }
@@ -2876,9 +2777,9 @@ irtkCifstream& irtkBSplineFreeFormTransformation3D::Read(irtkCifstream& from)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        _xdata[k][j][i] = data[index];
-        _ydata[k][j][i] = data[index+1];
-        _zdata[k][j][i] = data[index+2];
+        _data[k][j][i]._x = data[index];
+        _data[k][j][i]._y = data[index+1];
+        _data[k][j][i]._z = data[index+2];
         index += 3;
       }
     }
@@ -2941,9 +2842,9 @@ irtkCofstream& irtkBSplineFreeFormTransformation3D::Write(irtkCofstream& to)
   for (i = 0; i < _x; i++) {
     for (j = 0; j < _y; j++) {
       for (k = 0; k < _z; k++) {
-        data[index]   = _xdata[k][j][i];
-        data[index+1] = _ydata[k][j][i];
-        data[index+2] = _zdata[k][j][i];
+        data[index]   = _data[k][j][i]._x;
+        data[index+1] = _data[k][j][i]._y;
+        data[index+2] = _data[k][j][i]._z;
         index += 3;
       }
     }
