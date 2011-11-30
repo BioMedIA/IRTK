@@ -83,6 +83,8 @@ Section "Install IRTK" SecInstall
   File "..\Windows\bin\release\region.exe"
   File "..\Windows\bin\release\resample.exe"
   File "..\Windows\bin\release\rescale.exe"
+  File "..\Windows\bin\release\combineLabels.exe"
+  File "..\Windows\bin\release\ems.exe"
   File "..\README"
   File "..\COPYRIGHT"
 
