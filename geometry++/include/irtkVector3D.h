@@ -33,13 +33,16 @@ public:
   T _z;
 
   /** Constructor. */
-  irtkVector3D(T x = 0, T y = 0, T z = 0);
+  irtkVector3D();
 
-  /** Normalizes the vector. */
-  void Normalize();
+  /** Constructor. */
+  irtkVector3D(T x, T y, T z);
 
-  /** Returns the length of the vector. */
-  double Length() const;
+  /** Copy Constructor. */
+  irtkVector3D(const irtkVector3D &);
+
+  /** Operator for dividing one vector by another. */
+  irtkVector3D& operator=(const irtkVector3D& v);
 
   /** Operator for multiplying by a scalar. */
   irtkVector3D operator*(double s);
@@ -92,6 +95,12 @@ public:
   /** Operator for dividing a vector by a scalar. */
   irtkVector3D operator/(double s);
 
+  /** Normalizes the vector. */
+  void Normalize();
+
+  /** Returns the length of the vector. */
+  double Length() const;
+
   /** Takes the cross-product of two vectors. */
   static irtkVector3D CrossProduct(const irtkVector3D& v1, const irtkVector3D& v2);
 
@@ -100,43 +109,32 @@ public:
 
 };
 
+template <typename T> inline irtkVector3D<T>::irtkVector3D()
+{
+  _x = 0;
+  _y = 0;
+  _z = 0;
+}
+
 template <typename T> inline irtkVector3D<T>::irtkVector3D(T x, T y, T z)
 {
   _x = x;
   _y = y;
   _z = z;
 }
-
-template <typename T> inline void irtkVector3D<T>::Normalize()
+template <typename T> inline irtkVector3D<T>::irtkVector3D(const irtkVector3D &v)
 {
-  double length = sqrt(static_cast<double>(_x*_x + _y*_y + _z*_z));
-
-  if (length != 0) {
-    _x = static_cast<T>(_x/length);
-    _y = static_cast<T>(_y/length);
-    _z = static_cast<T>(_z/length);
-  }
+  _x = v._x;
+  _y = v._y;
+  _z = v._z;
 }
 
-template <typename T> inline double irtkVector3D<T>::Length() const
+template <typename T> inline irtkVector3D<T>& irtkVector3D<T>::operator=(const irtkVector3D<T>& v)
 {
-  return sqrt(static_cast<double>(_x*_x + _y*_y + _z*_z));
-}
-
-template<typename T> inline irtkVector3D<T> irtkVector3D<T>::CrossProduct(const irtkVector3D<T>& v1, const irtkVector3D<T>& v2)
-{
-  irtkVector3D<T> cp;
-
-  cp._x = v1._y*v2._z - v1._z*v2._y;
-  cp._y = v1._z*v2._x - v1._x*v2._z;
-  cp._z = v1._x*v2._y - v1._y*v2._x;
-
-  return cp;
-}
-
-template <typename T> inline double irtkVector3D<T>::DotProduct(const irtkVector3D<T>& v1, const irtkVector3D<T>& v2)
-{
-  return v1._x*v2._x + v1._y*v2._y + v1._z*v2._z;
+  _x = v._x;
+  _y = v._y;
+  _z = v._z;
+  return *this;
 }
 
 template <typename T> inline irtkVector3D<T> irtkVector3D<T>::operator*(double s)
@@ -255,6 +253,38 @@ template <typename T> inline irtkVector3D<T>& irtkVector3D<T>::operator/=(double
 template <typename T> inline irtkVector3D<T> irtkVector3D<T>::operator/(double s)
 {
   return irtkVector3D<T>(static_cast<T>(_x/s), static_cast<T>(_y/s), static_cast<T>(_z/s));
+}
+
+template <typename T> inline void irtkVector3D<T>::Normalize()
+{
+  double length = sqrt(static_cast<double>(_x*_x + _y*_y + _z*_z));
+
+  if (length != 0) {
+    _x = static_cast<T>(_x/length);
+    _y = static_cast<T>(_y/length);
+    _z = static_cast<T>(_z/length);
+  }
+}
+
+template <typename T> inline double irtkVector3D<T>::Length() const
+{
+  return sqrt(static_cast<double>(_x*_x + _y*_y + _z*_z));
+}
+
+template<typename T> inline irtkVector3D<T> irtkVector3D<T>::CrossProduct(const irtkVector3D<T>& v1, const irtkVector3D<T>& v2)
+{
+  irtkVector3D<T> cp;
+
+  cp._x = v1._y*v2._z - v1._z*v2._y;
+  cp._y = v1._z*v2._x - v1._x*v2._z;
+  cp._z = v1._x*v2._y - v1._y*v2._x;
+
+  return cp;
+}
+
+template <typename T> inline double irtkVector3D<T>::DotProduct(const irtkVector3D<T>& v1, const irtkVector3D<T>& v2)
+{
+  return v1._x*v2._x + v1._y*v2._y + v1._z*v2._z;
 }
 
 #endif // __IRTKVECTOR3D_H
