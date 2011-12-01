@@ -130,7 +130,7 @@ void irtkFileANALYZEToImage::ReadHeader()
       this->_attr._dx = hdr.pixdims[1];
       this->_attr._dy = hdr.pixdims[2];
       this->_attr._dz = hdr.pixdims[3];
-      if (hdr.dims[4] == 0) {
+      if (hdr.dims[4] <= 0) {
         this->_attr._t  = 1;
         this->_attr._dt = 1;
       } else {
