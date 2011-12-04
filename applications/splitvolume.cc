@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 						}
 					}
 					char buffer[255];
-					sprintf(buffer, "%s%.4d.nii", output, z);
+					sprintf(buffer, "%s%.4d.nii.gz", output, z);
 					target->Write(buffer);
 					delete target;
 				}
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 				}
 
 				char buffer[255];
-				sprintf(buffer, "%s%.2d.nii", output, t);
+				sprintf(buffer, "%s%.2d.nii.gz", output, t);
 				target->Write(buffer);
 				delete target;
 			}else{
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 					}
 
 					char buffer[255];
-					sprintf(buffer, "%s%.2d%.2d.nii", output, t, z);
+					sprintf(buffer, "%s%.2d%.2d.nii.gz", output, t, z);
 					target->Write(buffer);
 					delete target;
 				}

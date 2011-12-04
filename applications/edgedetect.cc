@@ -26,7 +26,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  irtkGreyImage input;
+  irtkRealImage input;
 
   if (argc < 4) {
     usage();
@@ -43,13 +43,15 @@ int main(int argc, char **argv)
   input.Read(input_name);
 
   // Blur image
-  irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(atof(argv[1]));
-  gaussianBlurring.SetInput (&input);
-  gaussianBlurring.SetOutput(&input);
-  gaussianBlurring.Run();
+  if(atof(argv[1]) > 0){
+      irtkGaussianBlurring<irtkRealPixel> gaussianBlurring(atof(argv[1]));
+      gaussianBlurring.SetInput (&input);
+      gaussianBlurring.SetOutput(&input);
+      gaussianBlurring.Run();
+  }
 
   // Compute gradient
-  irtkGradientImage<irtkGreyPixel> gradient;
+  irtkGradientImage<irtkRealPixel> gradient;
   gradient.SetInput (&input);
   gradient.SetOutput(&input);
   gradient.Run();
