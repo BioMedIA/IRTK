@@ -40,6 +40,9 @@ public:
   /// Constructor (copy)
   irtkFluidFreeFormTransformation(const irtkFluidFreeFormTransformation &);
 
+  /// Combine local transformations
+  virtual void CombineLocalTransformation();
+
   /// Transforms a point
   virtual void Transform(double &, double &, double &, double = 0);
 

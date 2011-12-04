@@ -33,7 +33,7 @@ class irtkMultiLevelFreeFormTransformation : public irtkAffineTransformation
 public:
 
   /// Local transformations
-  irtkFreeFormTransformation *_localTransformation[MAX_TRANS];
+  irtkFreeFormTransformation *_localTransformation[MAX_TRANS+1];
 
   /// Number of local transformations
   int _NumberOfLevels;
@@ -62,14 +62,20 @@ public:
   /// Puts local transformation
   virtual void PutLocalTransformation(irtkFreeFormTransformation *, int);
 
-  /// Push local transformation on stack
+  /// Push local transformation on stack (append transformation)
   virtual void PushLocalTransformation(irtkFreeFormTransformation *);
+
+  /// Insert local transformation
+  virtual void InsertLocalTransformation(irtkFreeFormTransformation *, int = 0);
 
   /// Combine local transformation on stack
   virtual void CombineLocalTransformation();
 
-  /// Pop local transformation from stack
+  /// Pop local transformation from stack (remove last transformation)
   virtual irtkFreeFormTransformation *PopLocalTransformation();
+
+  /// Insert local transformation
+  virtual irtkFreeFormTransformation *RemoveLocalTransformation(int = 0);
 
   /// Transforms a point
   virtual void Transform(double &, double &, double &, double = 0);
@@ -185,6 +191,21 @@ inline void irtkMultiLevelFreeFormTransformation::PushLocalTransformation(irtkFr
   }
 }
 
+inline void irtkMultiLevelFreeFormTransformation::InsertLocalTransformation(irtkFreeFormTransformation *transformation, int pos)
+{
+	int i;
+
+  if (_NumberOfLevels < MAX_TRANS) {
+  	for (i = pos; i < _NumberOfLevels + 1; i++) _localTransformation[i+1] = _localTransformation[i];
+  	_localTransformation[pos] = transformation;
+    _NumberOfLevels++;
+  } else {
+    cerr << "irtkMultiLevelFreeFormTransformation::Insert"
+    		"LocalTransformation: Stack overflow" << endl;
+    exit(1);
+  }
+}
+
 inline irtkFreeFormTransformation *irtkMultiLevelFreeFormTransformation::PopLocalTransformation()
 {
   irtkFreeFormTransformation *localTransformation;
@@ -194,8 +215,24 @@ inline irtkFreeFormTransformation *irtkMultiLevelFreeFormTransformation::PopLoca
     _localTransformation[_NumberOfLevels-1] = NULL;
     _NumberOfLevels--;
   } else {
-    cerr << "irtkMultiLevelFreeFormTransformation:PopLocalTransformation: Stack "
-         << "underflow" << endl;
+    cerr << "irtkMultiLevelFreeFormTransformation:PopLocalTransformation: Stack underflow" << endl;
+    exit(1);
+  }
+  return localTransformation;
+}
+
+inline irtkFreeFormTransformation *irtkMultiLevelFreeFormTransformation::RemoveLocalTransformation(int pos)
+{
+	int i;
+  irtkFreeFormTransformation *localTransformation;
+
+  if (_NumberOfLevels > pos) {
+    localTransformation = _localTransformation[_NumberOfLevels-1];
+  	for (i = _NumberOfLevels-1; i > pos; i--) _localTransformation[i-1] = _localTransformation[i];
+    _localTransformation[_NumberOfLevels-1] = NULL;
+    _NumberOfLevels--;
+  } else {
+    cerr << "irtkMultiLevelFreeFormTransformation:DeleteLocalTransformation: No such " << "transformation" << endl;
     exit(1);
   }
   return localTransformation;

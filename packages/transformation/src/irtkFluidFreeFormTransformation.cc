@@ -49,21 +49,25 @@ irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkAffin
   _NumberOfLevels = 0;
 }
 
+void irtkFluidFreeFormTransformation::CombineLocalTransformation()
+{
+  cerr << "irtkFluidFreeFormTransformation::CombineLocalTransformation: Does not make sense" << endl;
+  exit(1);
+}
 
 void irtkFluidFreeFormTransformation::Transform(double &x, double &y, double &z, double t)
 {
   int i;
 
+  // Compute global transformation
+  this->irtkAffineTransformation::Transform(x, y, z, t);
+
   // Compute local transformation
-  for (i = _NumberOfLevels - 1; i >= 0; i--) {
+  for (i = 0; i < _NumberOfLevels; i++) {
 
     // Displacement
     _localTransformation[i]->Transform(x, y, z, t);
   }
-
-  // Compute global transformation
-  this->irtkAffineTransformation::Transform(x, y, z, t);
-
 }
 
 void irtkFluidFreeFormTransformation::Displacement(double& x, double& y, double& z, double t)
@@ -93,15 +97,15 @@ void irtkFluidFreeFormTransformation::Transform(int n, double &x, double &y, dou
     exit(1);
   }
 
+  // Compute global transformation
+  this->irtkAffineTransformation::Transform(x, y, z, t);
+
   // Compute local transformation
-  for (i = n - 1; i >= 0; i--) {
+  for (i = 0; i < n; i++) {
 
     // Displacement
     _localTransformation[i]->Transform(x, y, z, t);
   }
-
-  // Compute global transformation
-  this->irtkAffineTransformation::Transform(x, y, z, t);
 }
 
 void irtkFluidFreeFormTransformation::GlobalTransform(double &, double &, double &, double)
@@ -148,38 +152,32 @@ void irtkFluidFreeFormTransformation::Jacobian(irtkMatrix &jac, double x, double
   // Initialize to identity
   jac.Ident();
 
+  // Compute global jacobian
+  this->GlobalJacobian(tmp_jac, x, y, z, t);
+  jac = tmp_jac * jac;
+
+  // Transform
+  this->irtkAffineTransformation::Transform(x, y, z, t);
+
   // Compute local jacobian
-  for (i = _NumberOfLevels - 1; i >= 0; i--) {
+  for (i = 0; i < _NumberOfLevels; i++) {
 
     // Calculate jacobian
     _localTransformation[i]->Jacobian(tmp_jac, x, y, z, t);
 
     // Multiply jacobian
     jac = tmp_jac * jac;
-  }
 
-  // Compute global jacobian
-  this->GlobalJacobian(tmp_jac, x, y, z, t);
-  jac = tmp_jac * jac;
+    // Transform
+    _localTransformation[i]->Transform(x, y, z, t);
+
+  }
 }
 
 void irtkFluidFreeFormTransformation::LocalJacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
-  int i;
-  irtkMatrix tmp_jac(3, 3);
-
-  // Initialize to identity
-  jac.Ident();
-
-  // Compute local jacobian
-  for (i = _NumberOfLevels - 1; i >= 0; i--) {
-
-    // Calculate jacobian
-    _localTransformation[i]->Jacobian(tmp_jac, x, y, z, t);
-
-    // Multiply jacobian
-    jac = tmp_jac * jac;
-  }
+  cerr << "irtkFluidFreeFormTransformation::LocalJacobian: Does not make sense" << endl;
+  exit(1);
 }
 
 irtkCifstream& irtkFluidFreeFormTransformation::Read(irtkCifstream& from)

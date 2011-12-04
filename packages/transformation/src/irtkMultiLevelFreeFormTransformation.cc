@@ -798,7 +798,7 @@ void irtkMultiLevelFreeFormTransformation::CombineLocalTransformation()
   int i;
   irtkFreeFormTransformation *first, *second;
 
-  // Loop over local transformatuons
+  // Loop over local transformations
   first  = NULL;
   second = NULL;
   while(_NumberOfLevels>1) {
