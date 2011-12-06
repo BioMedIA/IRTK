@@ -478,6 +478,7 @@ inline void irtkBSplineFreeFormTransformation3D::LocalDisplacement(double &x, do
   // Calculate FFD
   if (_z == 1) {
   	this->FFD2D(x, y);
+    z = 0;
   } else {
   	this->FFD3D(x, y, z);
   }
