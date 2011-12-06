@@ -18,10 +18,10 @@ cp ${IRTK_SOURCE_DIR}/COPYRIGHT $targetDir
 
 if ( `uname` == "Linux" ) then
 
-   tar czvf irtk-linux-32.tar.gz $targetDir
+   tar czvf irtk-linux-64.tar.gz $targetDir
 
 else
 
-   hdiutil create -srcfolder $targetDir irtk-mac-32.dmg
+   hdiutil create -srcfolder $targetDir irtk-mac-64.dmg
 
 endif
