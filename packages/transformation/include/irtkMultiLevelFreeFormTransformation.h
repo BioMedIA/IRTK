@@ -74,7 +74,7 @@ public:
   /// Pop local transformation from stack (remove last transformation)
   virtual irtkFreeFormTransformation *PopLocalTransformation();
 
-  /// Insert local transformation
+  /// Remove local transformation and return the pointer (need to be deleted if not used)
   virtual irtkFreeFormTransformation *RemoveLocalTransformation(int = 0);
 
   /// Transforms a point
