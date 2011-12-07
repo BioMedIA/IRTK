@@ -21,8 +21,6 @@ irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation() : irtkMultiLe
 
 irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkFluidFreeFormTransformation &transformation) : irtkMultiLevelFreeFormTransformation(transformation)
 {
-  cout << "irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkFluidFreeFormTransformation &transformation): Do not use" << endl;
-  exit(1);
 }
 
 irtkFluidFreeFormTransformation::irtkFluidFreeFormTransformation(const irtkRigidTransformation &transformation) : irtkMultiLevelFreeFormTransformation(transformation)
@@ -272,40 +270,41 @@ irtkCofstream& irtkFluidFreeFormTransformation::Write(irtkCofstream& to)
 
 double irtkFluidFreeFormTransformation::Inverse(double &x, double &y, double &z, double t, double tolerance)
 {
-  int i;
+  int check;
   double error;
 
-  // Invert global transformation
-  error = this->irtkHomogeneousTransformation::Inverse(x, y, z, t);
+  // Initialize global variables
+  irtkTransformationPointer  = this;
+  x_invert = x;
+  y_invert = y;
+  z_invert = z;
 
-  // Invert local transformations
-  for (i = 0; i < _NumberOfLevels; i++) {
-    error += _localTransformation[i]->Inverse(x, y, z, t, tolerance);
+  // Pointer to B-spline wrapper
+  void (*Newton_function)(int, float [], float []) = irtkTransformationEvaluate;
+
+  // Calculate initial estimate using affine transformation
+  this->irtkHomogeneousTransformation::Inverse(x, y, z, t);
+
+  // Inverse
+  float invert[3], f_invert[3];
+  invert[0] = x;
+  invert[1] = y;
+  invert[2] = z;
+
+  // Numerically approximate the inverse transformation
+  newt2(invert-1, 3, &check, Newton_function);
+
+  // Calculate error
+  irtkTransformationEvaluate(3, invert-1, f_invert-1);
+  error = sqrt(f_invert[0]*f_invert[0]+f_invert[1]*f_invert[1]+f_invert[2]*f_invert[2]);
+  if (error > tolerance) {
+    cout << "irtkFluidFreeFormTransformation::Inverse: RMS error = " << error << "\n";
   }
 
-  // Return error
-  return error;
-}
+  // Set output to solution
+  x = invert[0];
+  y = invert[1];
+  z = invert[2];
 
-double irtkFluidFreeFormTransformation::Inverse(int n, double &x, double &y, double &z, double t, double tolerance)
-{
-  int i;
-  double error;
-
-  if (n > _NumberOfLevels) {
-    cerr << "irtkFluidFreeFormTransformation::Inverse: No such "
-    << "transformation" << endl;
-    exit(1);
-  }
-
-  // Invert global transformation
-  error = this->irtkHomogeneousTransformation::Inverse(x, y, z, t);
-
-  // Invert local transformations
-  for (i = 0; i < n; i++) {
-    error += _localTransformation[i]->Inverse(x, y, z, t, tolerance);
-  }
-
-  // Return error
   return error;
 }

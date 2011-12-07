@@ -736,47 +736,6 @@ double irtkMultiLevelFreeFormTransformation::Inverse(double &x, double &y, doubl
   return error;
 }
 
-double irtkMultiLevelFreeFormTransformation::Inverse(int, double &x, double &y, double &z, double, double tolerance)
-{
-  int check;
-  double error;
-
-  // Initialize global variables
-  irtkTransformationPointer  = this;
-  x_invert = x;
-  y_invert = y;
-  z_invert = z;
-
-  // Pointer to B-spline wrapper
-  void (*Newton_function)(int, float [], float []) = irtkTransformationEvaluate;
-
-  // Calculate initial estimate using affine transformation
-  this->irtkHomogeneousTransformation::Inverse(x, y, z);
-
-  // Inverse
-  float invert[3], f_invert[3];
-  invert[0] = x;
-  invert[1] = y;
-  invert[2] = z;
-
-  // Numerically approximate the inverse transformation
-  newt2(invert-1, 3, &check, Newton_function);
-
-  // Calculate error
-  irtkTransformationEvaluate(3, invert-1, f_invert-1);
-  error = sqrt(f_invert[0]*f_invert[0]+f_invert[1]*f_invert[1]+f_invert[2]*f_invert[2]);
-  if (error > tolerance) {
-    cout << "irtkMultiLevelFreeFormTransformation::Inverse: RMS error = " << error << "\n";
-  }
-
-  // Set output to solution
-  x = invert[0];
-  y = invert[1];
-  z = invert[2];
-
-  return error;
-}
-
 void irtkMultiLevelFreeFormTransformation::Print()
 {
   int i;

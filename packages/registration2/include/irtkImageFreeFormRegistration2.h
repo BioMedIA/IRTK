@@ -150,6 +150,8 @@ public:
 
   virtual SetMacro(MFFDMode, bool);
   virtual GetMacro(MFFDMode, bool);
+  virtual SetMacro(Subdivision, bool);
+  virtual GetMacro(Subdivision, bool);
   virtual SetMacro(Lambda2, double);
   virtual GetMacro(Lambda2, double);
 };

@@ -3,39 +3,29 @@
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2008 onwards
+              Visual Information Processing (VIP), 2009 onwards
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
 
 =========================================================================*/
 
-#include <irtkRegistration.h>
-
-#include <irtkFluidFreeFormTransformation.h>
-
-#include <irtkImageFluidRegistration.h>
-
-#include <irtkImageFluidRegistration2D.h>
+#include <irtkRegistration2.h>
 
 // Default filenames
 char *source_name = NULL, *target_name = NULL;
 char *dofin_name  = NULL, *dofout_name = NULL;
-char *parameter_name = NULL;
-
-#ifdef HAS_VTK
-extern bool interactiveVTK;
-extern bool displayVTK;
-extern bool firstVTK;
-#endif
+char *parin_name  = NULL, *parout_name = NULL;
+char *mask_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: fluid [target] [source] <options> \n" << endl;
+  cerr << "Usage: nreg2 [target] [source] <options> \n" << endl;
   cerr << "where <options> is one or more of the following:\n" << endl;
-  cerr << "<-parameter file>    Parameter file" << endl;
-  cerr << "<-dofout    file>    Final transformation estimate" << endl;
-  cerr << "<-dofin     file>    Initial transformation estimate" << endl;
+  cerr << "<-parin file>        Read parameter from file" << endl;
+  cerr << "<-parout file>       Write parameter to file" << endl;
+  cerr << "<-dofin  file>       Read transformation from file" << endl;
+  cerr << "<-dofout file>       Write transformation to file" << endl;
   cerr << "<-Rx1 value>         Region of interest in both images" << endl;
   cerr << "<-Ry1 value>         Region of interest in both images" << endl;
   cerr << "<-Rz1 value>         Region of interest in both images" << endl;
@@ -55,13 +45,21 @@ void usage()
   cerr << "<-Sy2 value>         Region of interest in source image" << endl;
   cerr << "<-Sz2 value>         Region of interest in source image" << endl;
   cerr << "<-Tp  value>         Padding value in target image" << endl;
+  cerr << "<-ds  value>         Initial control point spacing" << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
+  cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
+  cerr << "                     must have the same dimensions as the target." << endl;
+  cerr << "                     Voxels in the mask with zero or less are " << endl;
+  cerr << "                     padded in the target." << endl;
+  cerr << "<-mask_dilation n>   Dilate mask n times before using it" << endl;
+
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int ok;
+  double spacing;
+  int ok, padding, mask_dilation = 0;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
 
@@ -69,9 +67,6 @@ int main(int argc, char **argv)
   if (argc < 3) {
     usage();
   }
-
-  cerr << "Don't use, this may not work" << endl;
-  exit(1);
 
   // Parse source and target images
   target_name = argv[1];
@@ -105,15 +100,15 @@ int main(int argc, char **argv)
   source_z2 = source.GetZ();
 
   // Create registration filter
-  irtkImageFluidRegistration *registration = NULL;
-  if ((target.GetZ() == 1) && (source.GetZ() == 1)) {
-    registration = new irtkImageFluidRegistration2D;
-  } else {
-    registration = new irtkImageFluidRegistration;
-  }
+  irtkImageFreeFormRegistration2 *registration = NULL;
+  registration = new irtkImageFreeFormRegistration2;
 
   // Create initial fluid free-form deformation
-  irtkFluidFreeFormTransformation *mffd = NULL;
+  irtkFluidFreeFormTransformation *fluid = NULL;
+
+  // Default parameters
+  padding   = MIN_GREY;
+  spacing   = 0;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -281,7 +276,7 @@ int main(int argc, char **argv)
     if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
       argv++;
-      registration->SetTargetPadding(atoi(argv[1]));
+      padding = atoi(argv[1]);
       argc--;
       argv++;
       ok = true;
@@ -292,17 +287,105 @@ int main(int argc, char **argv)
       ok = true;
       registration->SetDebugFlag(true);
     }
-    if ((ok == false) && (strcmp(argv[1], "-parameter") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
+      argc--;
+      argv++;
+      spacing = atof(argv[1]);
       argc--;
       argv++;
       ok = true;
-      parameter_name = argv[1];
+    }
+    if ((ok == false) && (strcmp(argv[1], "-x_only") == 0)) {
       argc--;
       argv++;
+      registration->SetMode(RegisterX);
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-y_only") == 0)) {
+      argc--;
+      argv++;
+      registration->SetMode(RegisterY);
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-xy_only") == 0)) {
+      argc--;
+      argv++;
+      registration->SetMode(RegisterXY);
+      ok = true;
+    }
+    if ((ok == false) && ((strcmp(argv[1], "-parameter") == 0) || (strcmp(argv[1], "-parin") == 0))) {
+      argc--;
+      argv++;
+      ok = true;
+      parin_name = argv[1];
+      argc--;
+      argv++;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-parout") == 0)) {
+      argc--;
+      argv++;
+      ok = true;
+      parout_name = argv[1];
+      argc--;
+      argv++;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-mask") == 0)) {
+      argc--;
+      argv++;
+      mask_name = argv[1];
+      argc--;
+      argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-mask_dilation") == 0)) {
+      argc--;
+      argv++;
+      mask_dilation = atoi(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
     }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
+    }
+  }
+
+  // Is there a mask to use?
+  if (mask_name != NULL) {
+    int voxels, i;
+    irtkGreyPixel *ptr2target, *ptr2mask;
+    irtkGreyImage mask(mask_name);
+
+    if (mask.GetX() != target.GetX() ||
+        mask.GetY() != target.GetY() ||
+        mask.GetZ() != target.GetZ()) {
+      cerr << "Mask given does not match target dimensions." << endl;
+      exit(1);
+    }
+
+    if (mask_dilation > 0) {
+      irtkDilation<irtkGreyPixel> dilation;
+    	dilation.SetConnectivity(CONNECTIVITY_26);
+      dilation.SetInput(&mask);
+      dilation.SetOutput(&mask);
+      cout << "Dilating mask ... ";
+      cout.flush();
+      for (i = 0; i < mask_dilation; i++) dilation.Run();
+      cout << "done" << endl;
+
+    }
+
+    voxels     = target.GetNumberOfVoxels();
+    ptr2target = target.GetPointerToVoxels();
+    ptr2mask   = mask.GetPointerToVoxels();
+
+    for (i = 0; i < voxels; ++i) {
+      if (*ptr2mask <= 0) {
+        *ptr2target = padding;
+      }
+      ++ptr2mask;
+      ++ptr2target;
     }
   }
 
@@ -324,16 +407,15 @@ int main(int argc, char **argv)
 
   if (dofin_name != NULL) {
     irtkTransformation *transform = irtkTransformation::New(dofin_name);
+
     if (strcmp(transform->NameOfClass(), "irtkRigidTransformation") == 0) {
-      mffd = new irtkFluidFreeFormTransformation(*((irtkRigidTransformation *)transform));
-      delete transform;
+      fluid = new irtkFluidFreeFormTransformation(*((irtkRigidTransformation *)transform));
     } else {
       if (strcmp(transform->NameOfClass(), "irtkAffineTransformation") == 0) {
-        mffd = new irtkFluidFreeFormTransformation(*((irtkAffineTransformation *)transform));
-        delete transform;
+        fluid = new irtkFluidFreeFormTransformation(*((irtkAffineTransformation *)transform));
       } else {
         if (strcmp(transform->NameOfClass(), "irtkFluidFreeFormTransformation") == 0) {
-          mffd = dynamic_cast<irtkFluidFreeFormTransformation *>(transform);
+          fluid = new irtkFluidFreeFormTransformation(*((irtkFluidFreeFormTransformation *)transform));
         } else {
           cerr << "Input transformation is not of type rigid or affine " << endl;
           cerr << "or fluid free form deformation" << endl;
@@ -342,24 +424,74 @@ int main(int argc, char **argv)
     }
   } else {
     // Otherwise use identity transformation to start
-    mffd = new irtkFluidFreeFormTransformation;
+    fluid = new irtkFluidFreeFormTransformation;
   }
 
+  // Create tmp image
+	irtkGreyImage tmp;
+	tmp.Initialize(target.GetImageAttributes());
+
+  // Create interpolator
+	irtkImageFunction *interpolator = new irtkBSplineInterpolateImageFunction;
+
+	// Create image transformation
+	irtkImageTransformation *imagetransformation =
+		new irtkImageTransformation;
+
+	imagetransformation->SetInput (&target, fluid);
+	imagetransformation->SetOutput(&tmp);
+	imagetransformation->PutTargetPaddingValue(padding);
+	imagetransformation->PutSourcePaddingValue(padding);
+	imagetransformation->PutInterpolator(interpolator);
+	imagetransformation->InvertOn();
+
+	cout << "Starting ... ";
+	cout.flush();
+	// Run image transformation
+	imagetransformation->Run();
+	cout << "done" << endl;
+
+  // Create identity transform
+  irtkMultiLevelFreeFormTransformation *mffd = new irtkMultiLevelFreeFormTransformation;
+
   // Set input and output for the registration filter
-  registration->SetInput(&target, &source);
+  registration->SetInput(&tmp, &source);
   registration->SetOutput(mffd);
 
-  // Read parameter if there any, otherwise make an intelligent guess
-  if (parameter_name != NULL) {
-    registration->irtkImageRegistration::Read(parameter_name);
+  // Make an initial Guess for the parameters.
+  registration->GuessParameter();
+
+  // Overrride with any the user has set.
+  if (parin_name != NULL) {
+    registration->irtkImageRegistration2::Read(parin_name);
+  }
+
+  // Override parameter settings if necessary
+  if (padding != MIN_GREY) {
+    registration->SetTargetPadding(padding);
+  }
+  if (spacing > 0) {
+    registration->SetDX(spacing);
+    registration->SetDY(spacing);
+    registration->SetDZ(spacing);
+  }
+
+  // Override subdivision setting
+  registration->SetSubdivision(true);
+
+  // Write parameters if necessary
+  if (parout_name != NULL) {
+    registration->irtkImageRegistration2::Write(parout_name);
   }
 
   // Run registration filter
   registration->Run();
 
+	// Create fluid free-form deformation
+	fluid->PushLocalTransformation(mffd->PopLocalTransformation());
+
   // Write the final transformation estimate
   if (dofout_name != NULL) {
-    mffd->irtkTransformation::Write(dofout_name);
+    fluid->irtkTransformation::Write(dofout_name);
   }
-
 }

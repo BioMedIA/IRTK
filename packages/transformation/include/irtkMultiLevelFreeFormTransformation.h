@@ -123,9 +123,6 @@ public:
   /// Inverts the transformation
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.01);
 
-  /// Inverts the transformation
-  virtual double Inverse(int, double &, double &, double &, double = 0, double = 0.01);
-
   /// Checks whether transformation is an identity mapping
   virtual bool IsIdentity();
 

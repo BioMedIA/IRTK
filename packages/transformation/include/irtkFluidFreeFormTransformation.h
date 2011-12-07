@@ -79,9 +79,6 @@ public:
   /// Inverts the transformation
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.01);
 
-  /// Inverts the transformation
-  virtual double Inverse(int, double &, double &, double &, double = 0, double = 0.01);
-
   /// Returns a string with the name of the instantiated class
   virtual const char *NameOfClass();
 
