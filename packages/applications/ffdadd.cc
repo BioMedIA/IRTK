@@ -21,6 +21,11 @@ char *dofout_name = NULL;
 irtkGreyImage *target;
 irtkMultiLevelFreeFormTransformation *mffd;
 
+#include <sys/time.h>
+
+#include <nr.h>
+#include <nrutil.h>
+
 void usage()
 {
   cerr << "Usage: ffdadd [target] [dofin] [dofout] [options]" << endl;
@@ -46,7 +51,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  double dx, dy, dz, dt;
+  double dx, dy, dz, dt, noise;
   int i1, j1, k1, l1, i2, j2, k2, l2, ok, dilate, fluid, ffd4D;
 
   // Check command line
@@ -95,6 +100,9 @@ int main(int argc, char **argv)
 
   // No fluid
   fluid = false;
+
+  // Don't add noise
+  noise = 0;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -224,6 +232,14 @@ int main(int argc, char **argv)
       ffd4D = true;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-noise") == 0)) {
+      argc--;
+      argv++;
+      noise = atof(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -248,13 +264,37 @@ int main(int argc, char **argv)
 
   if (ffd4D == false) {
     // Create free-form transformation
-    irtkBSplineFreeFormTransformation *affd = new irtkBSplineFreeFormTransformation(*target, dx, dy, dz);
+    irtkBSplineFreeFormTransformation3D *affd = new irtkBSplineFreeFormTransformation(*target, dx, dy, dz);
+
+    // Add noise to the transformation
+    if (noise > 0) {
+      int i;
+      long temp;
+
+      timeval tv;
+      gettimeofday(&tv, NULL);
+      temp = -tv.tv_usec;
+
+      for (i = 0; i < affd->NumberOfDOFs(); i++) affd->Put(i, noise*gasdev(&temp));
+    }
 
     // Add and write file
     mffd->PushLocalTransformation(affd);
   } else {
     // Create free-form transformation
     irtkBSplineFreeFormTransformation4D *affd = new irtkBSplineFreeFormTransformation4D(*target, dx, dy, dz, dt);
+
+    // Add noise to the transformation
+    if (noise > 0) {
+      int i;
+      long temp;
+
+      timeval tv;
+      gettimeofday(&tv, NULL);
+      temp = -tv.tv_usec;
+
+      for (i = 0; i < affd->NumberOfDOFs(); i++) affd->Put(i, noise*gasdev(&temp));
+    }
 
     // Add and write file
     mffd->PushLocalTransformation(affd);

@@ -22,13 +22,15 @@ char *dofout_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: ffdcollapse [dofin] [dofout]\n" << endl;
+  cerr << "Usage: ffdcollapse [dofin] [dofout] [options]\n" << endl;
+  cerr << "where the following options are supported:\n" << endl;
+  cerr << "<-subdivide>  Subdivide levels before collapsing" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int i, j, k, level;
+  int i, j, k, ok, subdivide, level;
   double x1, y1, z1, x2, y2, z2;
 
   // Check command line
@@ -44,11 +46,34 @@ int main(int argc, char **argv)
   argc--;
   argv++;
 
+  // Parse remaining parameters
+  while (argc > 1) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-subdivide") == 0)) {
+      argc--;
+      argv++;
+      subdivide = true;
+      ok = true;
+    }
+    if (ok == false) {
+      cerr << "Can not parse argument " << argv[1] << endl;
+      usage();
+    }
+  }
+
   // Read transformation
   cout << "Reading transformation ... "; cout.flush();
   irtkMultiLevelFreeFormTransformation *mffd = new irtkMultiLevelFreeFormTransformation;
   mffd->irtkTransformation::Read(dofin_name);
   cout << "done" << endl;
+
+  // Subdivide if useful
+  if (subdivide == true) {
+    for (level = 0; level < mffd->NumberOfLevels(); level++) {
+      irtkFreeFormTransformation3D *ffd = dynamic_cast<irtkFreeFormTransformation3D *>(mffd->GetLocalTransformation(level));
+    	for (i = level; i < mffd->NumberOfLevels()-1; i++) ffd->Subdivide();
+    }
+  }
 
   // Default level is the last level
   level = mffd->NumberOfLevels()-1;
@@ -76,7 +101,7 @@ int main(int argc, char **argv)
         (ffd1->GetY() != ffd2->GetY()) ||
         (ffd1->GetZ() != ffd2->GetZ())) {
       cerr << "Number of control points on each level must be identical"
-           << endl;
+      << endl;
       exit(1);
     }
 
