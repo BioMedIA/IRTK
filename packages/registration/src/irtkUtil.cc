@@ -73,7 +73,6 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding)
       }
     }
   }
-  cout << n << " " << m << endl;
   if (n > 0) {
 
     // Print some padding information
