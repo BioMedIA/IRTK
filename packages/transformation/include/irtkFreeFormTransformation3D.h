@@ -95,6 +95,15 @@ public:
   /// Returns the of control points in z
   virtual int GetZ() const;
 
+  /// Returns the of control point spacing in x
+  virtual double GetXSpacing() const;
+
+  /// Returns the of control point spacing in y
+  virtual double GetYSpacing() const;
+
+  /// Returns the of control point spacing in z
+  virtual double GetZSpacing() const;
+
   /// Returns the number of parameters of the transformation
   virtual int NumberOfDOFs() const;
 
@@ -234,6 +243,22 @@ inline int irtkFreeFormTransformation3D::GetZ() const
 {
   return _z;
 }
+
+inline double irtkFreeFormTransformation3D::GetXSpacing() const
+{
+  return _dx;
+}
+
+inline double irtkFreeFormTransformation3D::GetYSpacing() const
+{
+  return _dy;
+}
+
+inline double irtkFreeFormTransformation3D::GetZSpacing() const
+{
+  return _dz;
+}
+
 
 inline int irtkFreeFormTransformation3D::NumberOfDOFs() const
 {
