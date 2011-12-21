@@ -28,6 +28,8 @@
 class irtkBSplineFreeFormTransformation3D : public irtkFreeFormTransformation3D
 {
 
+  friend class irtkImageFreeFormRegistration2;
+
   friend class irtkLinearFreeFormTransformation;
 
 protected:
