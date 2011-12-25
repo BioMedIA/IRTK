@@ -36,9 +36,6 @@ template <class VoxelType> double irtkGradientImage<VoxelType>::Run(int x, int y
   if ((x > 0) && (x < this->_input->GetX()-1)
       && this->_input->Get(x-1, y, z, t) > _Padding
       && this->_input->Get(x+1, y, z, t) > _Padding
-      //&&((x <= 1) || (x >= this->_input->GetX()-2)
-      //|| (this->_input->Get(x-2, y, z, t) > _Padding
-      //&& this->_input->Get(x+2, y, z, t) > _Padding))
      ) {
     dx = this->_input->Get(x-1, y, z, t) - this->_input->Get(x+1, y, z, t);
   } else {
@@ -48,9 +45,6 @@ template <class VoxelType> double irtkGradientImage<VoxelType>::Run(int x, int y
   if ((y > 0) && (y < this->_input->GetY()-1)
       && this->_input->Get(x, y-1, z, t) > _Padding
       && this->_input->Get(x, y+1, z, t) > _Padding
-      //&&((y <= 1) || (y >= this->_input->GetY()-2)
-      //|| (this->_input->Get(x, y-2, z, t) > _Padding
-      //&& this->_input->Get(x, y+2, z, t) > _Padding))
      ) {
     dy = this->_input->Get(x, y-1, z, t) - this->_input->Get(x, y+1, z, t);
   } else {
@@ -60,52 +54,12 @@ template <class VoxelType> double irtkGradientImage<VoxelType>::Run(int x, int y
   if ((z > 0) && (z < this->_input->GetZ()-1)
       && this->_input->Get(x, y, z-1, t) > _Padding
       && this->_input->Get(x, y, z+1, t) > _Padding
-      //&&((z <= 1) || (z >= this->_input->GetZ()-2)
-      //|| (this->_input->Get(x, y, z-2, t) > _Padding
-      //&& this->_input->Get(x, y, z+2, t) > _Padding))
      ) {
     dz = this->_input->Get(x, y, z-1, t) - this->_input->Get(x, y, z+1, t);
   } else {
     dz = 0;
   }
 
-  /*if ((x > 0) && (x < this->_input->GetX()-1)
-   && (y > 0) && (y < this->_input->GetY()-1)
-   && (z > 0) && (z < this->_input->GetZ()-1)) {
-    dx = 4*(this->_input->Get(x-1, y, z, t) - this->_input->Get(x+1, y, z, t))
-  + 2*(this->_input->Get(x-1, y-1, z, t) - this->_input->Get(x+1, y-1, z, t))
-  + 2*(this->_input->Get(x-1, y+1, z, t) - this->_input->Get(x+1, y+1, z, t))
-  + 2*(this->_input->Get(x-1, y, z-1, t) - this->_input->Get(x+1, y, z+1, t))
-  + 2*(this->_input->Get(x-1, y, z-1, t) - this->_input->Get(x+1, y, z+1, t))
-  + (this->_input->Get(x-1, y-1, z-1, t) - this->_input->Get(x+1, y-1, z-1, t))
-  + (this->_input->Get(x-1, y-1, z+1, t) - this->_input->Get(x+1, y-1, z+1, t))
-  + (this->_input->Get(x-1, y+1, z-1, t) - this->_input->Get(x+1, y+1, z-1, t))
-  + (this->_input->Get(x-1, y+1, z+1, t) - this->_input->Get(x+1, y+1, z+1, t));
-
-  dy = 4*(this->_input->Get(x, y-1, z, t) - this->_input->Get(x, y+1, z, t))
-  + 2*(this->_input->Get(x-1, y-1, z, t) - this->_input->Get(x-1, y+1, z, t))
-  + 2*(this->_input->Get(x+1, y-1, z, t) - this->_input->Get(x+1, y+1, z, t))
-  + 2*(this->_input->Get(x, y-1, z-1, t) - this->_input->Get(x, y+1, z-1, t))
-  + 2*(this->_input->Get(x, y-1, z+1, t) - this->_input->Get(x, y+1, z+1, t))
-  + (this->_input->Get(x-1, y-1, z-1, t) - this->_input->Get(x-1, y+1, z-1, t))
-  + (this->_input->Get(x-1, y-1, z+1, t) - this->_input->Get(x-1, y+1, z+1, t))
-  + (this->_input->Get(x+1, y-1, z-1, t) - this->_input->Get(x+1, y+1, z-1, t))
-  + (this->_input->Get(x+1, y-1, z+1, t) - this->_input->Get(x+1, y+1, z+1, t));
-
-  dz = 4*(this->_input->Get(x, y, z-1, t) - this->_input->Get(x, y, z+1, t))
-  + 2*(this->_input->Get(x-1, y, z-1, t) - this->_input->Get(x-1, y, z+1, t))
-  + 2*(this->_input->Get(x+1, y, z-1, t) - this->_input->Get(x+1, y, z+1, t))
-  + 2*(this->_input->Get(x, y-1, z-1, t) - this->_input->Get(x, y-1, z+1, t))
-  + 2*(this->_input->Get(x, y+1, z-1, t) - this->_input->Get(x, y+1, z+1, t))
-  + (this->_input->Get(x-1, y-1, z-1, t) - this->_input->Get(x-1, y-1, z+1, t))
-  + (this->_input->Get(x+1, y+1, z-1, t) - this->_input->Get(x+1, y+1, z+1, t))
-  + (this->_input->Get(x-1, y+1, z-1, t) - this->_input->Get(x-1, y+1, z+1, t))
-  + (this->_input->Get(x+1, y-1, z-1, t) - this->_input->Get(x+1, y-1, z+1, t));
-} else {
-    dx = 0;
-  dy = 0;
-  dz = 0;
-}*/
   return sqrt(dx*dx + dy*dy + dz*dz);
 }
 

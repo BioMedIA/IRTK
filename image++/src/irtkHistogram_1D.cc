@@ -369,4 +369,7 @@ template <class HistogramType> void irtkHistogram_1D<HistogramType>::Print()
 
 template class irtkHistogram_1D<int>;
 template class irtkHistogram_1D<double>;
-
+template class irtkHistogram_1D<unsigned char>;
+template class irtkHistogram_1D<short>;
+template class irtkHistogram_1D<unsigned short>;
+template class irtkHistogram_1D<float>;

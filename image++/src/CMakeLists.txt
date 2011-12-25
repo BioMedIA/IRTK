@@ -63,6 +63,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkNearestNeighborInterpolateImageFunction2D.h
 ../include/irtkNearestNeighborInterpolateImageFunction.h
 ../include/irtkNIFTI.h
+../include/irtkNonLocalMedianFilter.h
 ../include/irtkNoise.h
 ../include/irtkPointToImage.h
 ../include/irtkRegionFilter.h
@@ -140,6 +141,7 @@ irtkLinearInterpolateImageFunction.cc
 irtkLinearInterpolateImageFunction2D.cc
 irtkNearestNeighborInterpolateImageFunction.cc
 irtkNearestNeighborInterpolateImageFunction2D.cc
+irtkNonLocalMedianFilter.cc
 irtkNoise.cc
 irtkRegionFilter.cc
 irtkResampling.cc
