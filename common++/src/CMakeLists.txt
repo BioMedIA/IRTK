@@ -16,7 +16,7 @@ irtkCofstream.cc
 irtkObject.cc
 read.cc 
 swap.cc
-uncompress.cc)
+ weightedmedian.cc uncompress.cc)
 
 ADD_LIBRARY(common++ ${COMMON_INCLUDES} ${COMMON_SRCS})
 

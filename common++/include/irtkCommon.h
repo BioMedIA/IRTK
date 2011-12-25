@@ -81,6 +81,7 @@ inline int round(double x)
 extern void swap16(char *, char *, int);
 extern void swap32(char *, char *, int);
 extern void swap64(char *, char *, int);
+extern double weightedmedian(int, double,double, float*, float*);
 
 // Orientation codes (same as NIFTI)
 #define IRTK_L2R  1    /* Left to Right         */
