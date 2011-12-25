@@ -175,6 +175,9 @@ public:
   /// Calculate norm of matrix
   double Norm(void) const;
 
+  /// Calculate trace of matrix
+  double Trace(void) const;
+
   // The infinity norm is the maximum of the absolute value row sums.
   double InfinityNorm(void) const;
 
@@ -455,6 +458,26 @@ inline int irtkMatrix::operator!=(const irtkMatrix& m)
   return !(*this == m);
 }
 #endif
+
+inline double irtkMatrix::Trace(void) const
+{
+    int i, j;
+    double trace = 0;
+
+    if(_rows == _cols){
+
+        // The trace of a matrix
+        for (j = 0; j < _cols; j++) {
+            for (i = 0; i < _rows; i++) {
+                trace += _matrix[j][i];
+            }
+        }
+        return trace;
+    }else{
+        cerr << "irtkMatrix::Trace() matrix number of col != row" << endl;
+        return 0;
+    }
+}
 
 inline double irtkMatrix::Norm(void) const
 {
