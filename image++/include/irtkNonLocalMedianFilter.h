@@ -34,17 +34,30 @@ protected:
   /// Sigma (standard deviation of Gaussian kernel)
   int _Sigma;
 
-  /// Second input, i.e. the displacement
+  /// Second input, i.e. the scale image
   irtkGenericImage<irtkGreyPixel> *_input2;
 
   /// Third input, i.e. occlusion
   irtkGenericImage<irtkRealPixel> *_input3;
+
+  /// Fourth input, i.e. constrain
+  irtkGenericImage<VoxelType> *_input4;
 
   irtkGenericImage<VoxelType> *_edge;
 
   float *_localweight;
 
   float *_localneighbor;
+
+  float _dx;
+
+  float _dy;
+
+  float _dz;
+
+  float _ds;
+
+  float _Lambda;
 
   /// Initialize the filter
   virtual void Initialize();
@@ -67,8 +80,12 @@ protected:
 
 public:
 
-  /// Constructor
-  irtkNonLocalMedianFilter(int,irtkGenericImage<irtkGreyPixel>* = NULL,irtkGenericImage<irtkRealPixel>* = NULL);
+  /// Constructor to remvoe the non-local term
+  /// only supply the size argument
+  /// otherwise an non-local weight will be cauculated using input1
+  /// i.e. second argument
+  irtkNonLocalMedianFilter(int,irtkGenericImage<irtkGreyPixel>* = NULL,
+      irtkGenericImage<irtkRealPixel>* = NULL,irtkGenericImage<VoxelType>* = NULL);
 
   /// Destructor
   ~irtkNonLocalMedianFilter();
@@ -82,17 +99,20 @@ public:
   /// Set occlusion
   SetMacro(input3, irtkGenericImage<irtkRealPixel>*);
 
+  /// Set constrain
+  SetMacro(input4, irtkGenericImage<VoxelType>*);
+
   /// Set sigma
   SetMacro(Sigma, int);
 
-  /// Get sigma
-  GetMacro(Sigma, int);
+  /// Set sigma
+  SetMacro(Lambda, float);
 
 };
 
 template <class VoxelType> inline double irtkNonLocalMedianFilter<VoxelType>::EvaluateWeight(const double &distancev)
 {
-    return exp(- distancev / (256*(_input->GetXSize()*_input->GetXSize()+
+    return exp(- distancev / (_Sigma*_Sigma/6.0*(_input->GetXSize()*_input->GetXSize()+
         _input->GetYSize()*_input->GetYSize() + _input->GetZSize()*_input->GetZSize())));
 }
 
