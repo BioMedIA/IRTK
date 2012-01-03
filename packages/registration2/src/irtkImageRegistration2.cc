@@ -935,6 +935,10 @@ void irtkImageRegistration2::EvaluateGradientSSD()
           _similarityGradient(i, j, k, 0) = ssd * _transformedSourceGradient(i, j, k, 0);
           _similarityGradient(i, j, k, 1) = ssd * _transformedSourceGradient(i, j, k, 1);
           _similarityGradient(i, j, k, 2) = ssd * _transformedSourceGradient(i, j, k, 2);
+        }else{
+            _similarityGradient(i, j, k, 0) = 0;
+            _similarityGradient(i, j, k, 1) = 0;
+            _similarityGradient(i, j, k, 2) = 0;
         }
         ptr2target++;
         ptr2source++;
@@ -1043,6 +1047,10 @@ void irtkImageRegistration2::EvaluateGradientNMI()
             _similarityGradient(i, j, k, 0) = ((targetEntropyGrad[0] + sourceEntropyGrad[0] - nmi * jointEntropyGrad[0]) / je);
             _similarityGradient(i, j, k, 1) = ((targetEntropyGrad[1] + sourceEntropyGrad[1] - nmi * jointEntropyGrad[1]) / je);
             _similarityGradient(i, j, k, 2) = ((targetEntropyGrad[2] + sourceEntropyGrad[2] - nmi * jointEntropyGrad[2]) / je);
+          }else{
+              _similarityGradient(i, j, k, 0) = 0;
+              _similarityGradient(i, j, k, 1) = 0;
+              _similarityGradient(i, j, k, 2) = 0;
           }
         }
         ptr2target++;
