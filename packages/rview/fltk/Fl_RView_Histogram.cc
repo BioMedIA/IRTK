@@ -64,8 +64,8 @@ void Fl_HistogramWindow::draw()
     position(i, -1, x, y);
     fl_line(round(x), 10, round(x), h()-20);
     fl_draw(buffer, round(x)-5, h()-5);
-    sprintf(buffer2, "%d", round(_histogramWindow._globalHistogram.BinToVal(i)));
-    fl_draw(buffer2, round(x), h()-25);
+    sprintf(buffer2, "%.2f", _histogramWindow._globalHistogram.BinToVal(i));
+    fl_draw(buffer2, round(x)-15, h()-25);
 
   }
 
