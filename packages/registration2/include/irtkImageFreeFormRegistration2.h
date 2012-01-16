@@ -34,6 +34,12 @@ protected:
   /// Pointer to the global transformation which is constant
   irtkMultiLevelFreeFormTransformation *_mffd;
 
+  /// Pointer to lattice coordinates for every voxel
+  double *_latticeCoordLUT;
+
+  /// Pointer to static displacements for every voxel
+  double *_displacementLUT;
+
   /// Pointer to adjugate Jacobian matrix
   irtkMatrix *_adjugate;
 
@@ -81,6 +87,12 @@ protected:
 
   /// Update state of the registration based on current transformation estimate
   virtual void Update(bool);
+
+  /// Update state of the registration based on current transformation estimate (source image)
+  virtual void UpdateSource();
+
+  /// Update state of the registration based on current transformation estimate (source image and source image gradient)
+  virtual void UpdateSourceAndGradient();
 
     /** Evaluates the smoothness preservation term. */
   virtual double SmoothnessPenalty();

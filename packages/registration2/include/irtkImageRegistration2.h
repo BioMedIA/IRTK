@@ -151,10 +151,10 @@ protected:
   virtual void Update(bool);
 
   /// Update state of the registration based on current transformation estimate (source image)
-  virtual void UpdateSource();
+  virtual void UpdateSource() = 0;
 
   /// Update state of the registration based on current transformation estimate (source image and source image gradient)
-  virtual void UpdateSourceAndGradient();
+  virtual void UpdateSourceAndGradient() = 0;
 
   /// Evaluate similarity measure: SSD
   virtual double EvaluateSSD();

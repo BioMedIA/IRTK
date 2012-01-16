@@ -167,7 +167,6 @@ void irtkImageFreeFormRegistration2::Initialize()
     _affd = new irtkBSplineFreeFormTransformation3D(*_target, this->_DX, this->_DY, this->_DZ);
   }
 
-  _mffd->PushLocalTransformation(_affd);
   _adjugate = new irtkMatrix[_affd->NumberOfDOFs()/3];
   _determinant = new double[_affd->NumberOfDOFs()/3];
 }
@@ -175,6 +174,7 @@ void irtkImageFreeFormRegistration2::Initialize()
 void irtkImageFreeFormRegistration2::Initialize(int level)
 {
   int i, j, k;
+  double x, y, z, *ptr2latt, *ptr2disp;
 
   // Print debugging information
   this->Debug("irtkImageFreeFormRegistration2::Initialize(int)");
@@ -223,10 +223,55 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
       }
     }
   }
+
+  // Allocate memory for global displacements
+  _displacementLUT = new double[_target->GetNumberOfVoxels() * 3];
+
+  // Allocate memory for lattice coordinates
+  _latticeCoordLUT = new double[_target->GetNumberOfVoxels() * 3];
+
+  ptr2disp = _displacementLUT;
+  ptr2latt = _latticeCoordLUT;
+  for (k = 0; k < _target->GetZ(); k++) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        if (_target->Get(i, j, k) >= 0) {
+          x = i;
+          y = j;
+          z = k;
+          _target->ImageToWorld(x, y, z);
+          _mffd->Transform(x, y, z);
+          ptr2disp[0] = x;
+          ptr2disp[1] = y;
+          ptr2disp[2] = z;
+          x = i;
+          y = j;
+          z = k;
+          _target->ImageToWorld(x, y, z);
+          _affd->WorldToLattice(x, y, z);
+          ptr2latt[0] = x;
+          ptr2latt[1] = y;
+          ptr2latt[2] = z;
+        } else {
+          ptr2disp[0] = 0;
+          ptr2disp[1] = 0;
+          ptr2disp[2] = 0;
+          ptr2latt[0] = 0;
+          ptr2latt[1] = 0;
+          ptr2latt[2] = 0;
+        }
+        ptr2disp += 3;
+        ptr2latt += 3;
+      }
+    }
+  }
 }
 
 void irtkImageFreeFormRegistration2::Finalize()
 {
+  // Push local transformation back on transformation stack
+  _mffd->PushLocalTransformation(_affd);
+
   // Print debugging information
   this->Debug("irtkImageFreeFormRegistration2::Finalize");
 
@@ -249,6 +294,10 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
     if (this->_Subdivision == true) {
       _affd->Subdivide();
     } else {
+
+      // Push local transformation back on transformation stack
+      _mffd->PushLocalTransformation(_affd);
+
       // Create new FFD
       _affd = new irtkBSplineFreeFormTransformation(*_target,
               this->_DX / pow(2.0, this->_NumberOfLevels-level),
@@ -263,6 +312,330 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
   delete []_determinant;
   _adjugate = new irtkMatrix[_affd->NumberOfDOFs()/3];
   _determinant = new double[_affd->NumberOfDOFs()/3];
+  delete []_displacementLUT;
+  delete []_latticeCoordLUT;
+}
+
+void irtkImageFreeFormRegistration2::UpdateSource()
+{
+  short *ptr1;
+  double x, y, z, t1, t2, u1, u2, v1, v2;
+  int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
+
+#ifdef USE_TIMING
+  // Start timing
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+#endif
+
+  // Generate transformed tmp image
+  _transformedSource = *_target;
+
+  // Calculate offsets for fast pixel access
+  offset1 = 0;
+  offset2 = 1;
+  offset3 = this->_source->GetX();
+  offset4 = this->_source->GetX()+1;
+  offset5 = this->_source->GetX()*this->_source->GetY();
+  offset6 = this->_source->GetX()*this->_source->GetY()+1;
+  offset7 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX();
+  offset8 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX()+1;
+
+  double *ptr2disp = _displacementLUT;
+  double *ptr2latt = _latticeCoordLUT;
+  if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        if (_target->Get(i, j, 0) >= 0) {
+          x = ptr2latt[0];
+          y = ptr2latt[1];
+          z = ptr2latt[2];
+          _affd->FFD2D(x, y);
+          z  = 0;
+          x += ptr2disp[0];
+          y += ptr2disp[1];
+          z += ptr2disp[2];
+          _source->WorldToImage(x, y, z);
+
+          // Check whether transformed point is inside volume
+          if ((x > 0) && (x < _source->GetX()-1) &&
+              (y > 0) && (y < _source->GetY()-1)) {
+
+            if (_InterpolationMode == Interpolation_Linear) {
+              // Calculated integer coordinates
+              a  = int(x);
+              b  = int(y);
+
+              // Calculated fractional coordinates
+              t1 = x - a;
+              u1 = y - b;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
+
+              // Linear interpolation in source image
+              ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+              _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+            } else {
+              // Interpolation in source image
+              _transformedSource(i, j, 0) = _interpolator->Evaluate(x, y, 0);
+            }
+          } else {
+            _transformedSource(i, j, 0) = -1;
+          }
+        } else {
+          _transformedSource(i, j, 0) = -1;
+        }
+        ptr2disp += 3;
+        ptr2latt += 3;
+      }
+    }
+  } else {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          if (_target->Get(i, j, k) >= 0) {
+            x = ptr2latt[0];
+            y = ptr2latt[1];
+            z = ptr2latt[2];
+            _affd->FFD3D(x, y, z);
+            x += ptr2disp[0];
+            y += ptr2disp[1];
+            z += ptr2disp[2];
+            _source->WorldToImage(x, y, z);
+
+            // Check whether transformed point is inside volume
+            if ((x > 0) && (x < _source->GetX()-1) &&
+                (y > 0) && (y < _source->GetY()-1) &&
+                (z > 0) && (z < _source->GetZ()-1)) {
+              if (_InterpolationMode == Interpolation_Linear) {
+
+                // Calculated integer coordinates
+                a  = int(x);
+                b  = int(y);
+                c  = int(z);
+
+                // Calculated fractional coordinates
+                t1 = x - a;
+                u1 = y - b;
+                v1 = z - c;
+                t2 = 1 - t1;
+                u2 = 1 - u1;
+                v2 = 1 - v1;
+
+                // Linear interpolation in source image
+                ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+                _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
+                                                     u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
+                                               t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
+                                                     u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+              } else {
+                // Interpolation in source image
+                _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
+              }
+            } else {
+              _transformedSource(i, j, k) = -1;
+            }
+          } else {
+            _transformedSource(i, j, k) = -1;
+          }
+          ptr2disp += 3;
+          ptr2latt += 3;
+        }
+      }
+    }
+  }
+
+#ifdef USE_TIMING
+  // Stop timing
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  cout << "CPU time for irtkImageFreeFormRegistration2::UpdateSource() = " << cpu_time_used << endl;
+#endif
+
+}
+
+void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
+{
+  short *ptr1;
+  double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
+  int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
+
+#ifdef USE_TIMING
+  // Start timing
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+#endif
+
+  // Generate transformed tmp image
+  _transformedSource = *_target;
+
+  // Calculate offsets for fast pixel access
+  offset1 = 0;
+  offset2 = 1;
+  offset3 = this->_source->GetX();
+  offset4 = this->_source->GetX()+1;
+  offset5 = this->_source->GetX()*this->_source->GetY();
+  offset6 = this->_source->GetX()*this->_source->GetY()+1;
+  offset7 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX();
+  offset8 = this->_source->GetX()*this->_source->GetY()+this->_source->GetX()+1;
+
+  double *ptr2disp = _displacementLUT;
+  double *ptr2latt = _latticeCoordLUT;
+  if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
+    for (j = 0; j < _target->GetY(); j++) {
+      for (i = 0; i < _target->GetX(); i++) {
+        if (_target->Get(i, j, 0) >= 0) {
+          x = ptr2latt[0];
+          y = ptr2latt[1];
+          z = ptr2latt[2];
+          _affd->FFD2D(x, y);
+          z  = 0;
+          x += ptr2disp[0];
+          y += ptr2disp[1];
+          z += ptr2disp[2];
+          _source->WorldToImage(x, y, z);
+
+          // Check whether transformed point is inside volume
+          if ((x > 0) && (x < _source->GetX()-1) &&
+              (y > 0) && (y < _source->GetY()-1)) {
+
+            if (_InterpolationMode == Interpolation_Linear) {
+              // Calculated integer coordinates
+              a  = int(x);
+              b  = int(y);
+
+              // Calculated fractional coordinates
+              t1 = x - a;
+              u1 = y - b;
+              t2 = 1 - t1;
+              u2 = 1 - u1;
+
+              // Linear interpolation in source image
+              ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+              _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
+
+              // Linear interpolation in gradient image
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
+              _transformedSourceGradient(i, j, 0, 0) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+              ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 1);
+              _transformedSourceGradient(i, j, 0, 1) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
+
+            } else {
+              // Interpolation in source image
+              _transformedSource(i, j, 0) = _interpolator->Evaluate(x, y, 0);
+
+              // Interpolation in gradient image
+              _transformedSourceGradient(i, j, 0, 0) = _interpolatorGradient->Evaluate(x, y, 0, 0);
+              _transformedSourceGradient(i, j, 0, 1) = _interpolatorGradient->Evaluate(x, y, 0, 1);
+            }
+          } else {
+            _transformedSource(i, j, 0) = -1;
+            _transformedSourceGradient(i, j, 0, 0) = 0;
+            _transformedSourceGradient(i, j, 0, 1) = 0;
+          }
+        } else {
+          _transformedSource(i, j, 0) = -1;
+          _transformedSourceGradient(i, j, 0, 0) = 0;
+          _transformedSourceGradient(i, j, 0, 1) = 0;
+        }
+        ptr2disp += 3;
+        ptr2latt += 3;
+      }
+    }
+  } else {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          if (_target->Get(i, j, k) >= 0) {
+            x = ptr2latt[0];
+            y = ptr2latt[1];
+            z = ptr2latt[2];
+            _affd->FFD3D(x, y, z);
+            x += ptr2disp[0];
+            y += ptr2disp[1];
+            z += ptr2disp[2];
+            _source->WorldToImage(x, y, z);
+
+            // Check whether transformed point is inside volume
+            if ((x > 0) && (x < _source->GetX()-1) &&
+                (y > 0) && (y < _source->GetY()-1) &&
+                (z > 0) && (z < _source->GetZ()-1)) {
+
+              if (_InterpolationMode == Interpolation_Linear) {
+                // Calculated integer coordinates
+                a  = int(x);
+                b  = int(y);
+                c  = int(z);
+
+                // Calculated fractional coordinates
+                t1 = x - a;
+                u1 = y - b;
+                v1 = z - c;
+                t2 = 1 - t1;
+                u2 = 1 - u1;
+                v2 = 1 - v1;
+
+                // Linear interpolation in source image
+                ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+                _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
+                                                     u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
+                                               t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
+                                                     u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
+
+                // Linear interpolation in gradient image
+                ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 0);
+                _transformedSourceGradient(i, j, k, 0) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                    u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                    t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                          u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+                ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 1);
+                _transformedSourceGradient(i, j, k, 1) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                    u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                    t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                          u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+                ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 2);
+                _transformedSourceGradient(i, j, k, 2) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
+                    u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
+                    t2 * (u2 * (v2 * ptr2[offset1] + v1 * ptr2[offset5]) +
+                          u1 * (v2 * ptr2[offset3] + v1 * ptr2[offset7])));
+
+              } else {
+                // Interpolation in source image
+                _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
+
+                // Interpolation in gradient image
+                _transformedSourceGradient(i, j, x, 0) = _interpolatorGradient->Evaluate(x, y, z, 0);
+                _transformedSourceGradient(i, j, y, 1) = _interpolatorGradient->Evaluate(x, y, z, 1);
+                _transformedSourceGradient(i, j, z, 2) = _interpolatorGradient->Evaluate(x, y, z, 2);
+              }
+            } else {
+              _transformedSource(i, j, k) = -1;
+              _transformedSourceGradient(i, j, k, 0) = 0;
+              _transformedSourceGradient(i, j, k, 1) = 0;
+              _transformedSourceGradient(i, j, k, 2) = 0;
+            }
+          } else {
+            _transformedSource(i, j, k) = -1;
+            _transformedSourceGradient(i, j, k, 0) = 0;
+            _transformedSourceGradient(i, j, k, 1) = 0;
+            _transformedSourceGradient(i, j, k, 2) = 0;
+          }
+          ptr2disp += 3;
+          ptr2latt += 3;
+        }
+      }
+    }
+  }
+
+#ifdef USE_TIMING
+  // Stop timing
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  cout << "CPU time for irtkImageFreeFormRegistration2::UpdateSourceAndGradient() = " << cpu_time_used << endl;
+#endif
+
 }
 
 void irtkImageFreeFormRegistration2::Update(bool updateGradient)
@@ -460,13 +833,16 @@ double irtkImageFreeFormRegistration2::Evaluate()
 
 void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
 {
-  double basis, pos[3];
+  double basis, pos[3], offset;
   int i, j, i1, i2, j1, j2, k1, k2, x, y, index, index2, index3;
 
   // Initialize gradient to zero
   for (i = 0; i < _affd->NumberOfDOFs(); i++) {
     gradient[i] = 0;
   }
+
+  // Compute change in lattice coordinates per voxel (x-direction)
+  offset = _target->GetXSize() / _affd->GetXSpacing();
 
   // Loop over control points
   for (y = 0; y < _affd->GetY(); y++) {
@@ -520,7 +896,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
 
 void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
 {
-  double basis, pos[3];
+  double basis, *ptr;
   int i, j, k, i1, i2, j1, j2, k1, k2, x, y, z, index, index2, index3;
 
   // Initialize gradient to zero
@@ -545,24 +921,17 @@ void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
           _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1);
 
           // Loop over all voxels in the target (reference) volume
+          //
+          // NOTE: This currently assumes that the control point lattice is aligned with the target image
+          //
           for (k = k1; k <= k2; k++) {
             for (j = j1; j <= j2; j++) {
+              ptr = &(_latticeCoordLUT[3 * (k * (_target->GetX()*_target->GetY()) + j * _target->GetX() + i1)]);
               for (i = i1; i <= i2; i++) {
-
                 // Check whether reference point is valid
                 if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
-
-                  // Convert position from voxel coordinates to world coordinates
-                  pos[0] = i;
-                  pos[1] = j;
-                  pos[2] = k;
-                  _target->ImageToWorld(pos[0], pos[1], pos[2]);
-
-                  // Convert world coordinates into lattice coordinates
-                  _affd->WorldToLattice(pos[0], pos[1], pos[2]);
-
-                  // Compute B-spline tensor product at pos
-                  basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+                  // Compute B-spline tensor product at current position
+                  basis = _affd->B(ptr[0] - x) * _affd->B(ptr[1] - y) * _affd->B(ptr[2] - z);
 
                   // Convert voxel-based gradient into gradient with respect to parameters (chain rule)
                   //
@@ -572,6 +941,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
                   gradient[index2] += basis * _similarityGradient(i, j, k, 1);
                   gradient[index3] += basis * _similarityGradient(i, j, k, 2);
                 }
+                ptr += 3;
               }
             }
           }
