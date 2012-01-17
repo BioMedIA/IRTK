@@ -13,6 +13,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkMultiImageGraphCut.h
 ../include/irtkMeanShift.h
 ../include/irtkProbabilisticAtlas.h
+../include/irtkReconstruction.h
 ../include/irtkRician.h
 ../include/block.h
 ../include/graph.h
@@ -38,6 +39,7 @@ irtkMultiChannelImage.cc
 irtkMeanShift.cc
 irtkProbabilisticAtlas.cc
 irtkRician.cc
+irtkReconstruction.cc
 graph.cpp
 GCoptimization.cpp
 LinkedBlockList.cpp
