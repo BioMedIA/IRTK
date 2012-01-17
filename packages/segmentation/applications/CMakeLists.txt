@@ -37,6 +37,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(enlarge_image enlarge_image.cc)
     ADD_EXECUTABLE(multiimage_graphcut multiimage_graphcut.cc)
     ADD_EXECUTABLE(seg_uncertainty seg_uncertainty.cc)
+    ADD_EXECUTABLE(reconstruction reconstruction.cc)
 
   ENDIF (BUILD_MPI_EXE)
 
