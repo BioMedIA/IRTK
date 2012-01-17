@@ -220,6 +220,7 @@ void irtkBaseImage::PutMinMaxAsDouble(double min, double max)
 
 void irtkBaseImage::Print()
 {
+  char buffer[256];
   // Print image dimensions
   cout << "Image size is " << _attr._x << " " << _attr._y << " " << _attr._z << " " << _attr._t << endl;
   // Print voxel dimensions
@@ -228,9 +229,12 @@ void irtkBaseImage::Print()
   // Print origin
   cout << "Image origin is " << _attr._xorigin << " " << _attr._yorigin << " " << _attr._zorigin << " " << _attr._torigin << endl;
   // Print x-axis
-  printf("X-axis is % 0.2f % 0.2f % 0.2f\n", _attr._xaxis[0], _attr._xaxis[1], _attr._xaxis[2]);
+  sprintf(buffer,"X-axis is % 0.2f % 0.2f % 0.2f\n", _attr._xaxis[0], _attr._xaxis[1], _attr._xaxis[2]);
+  cout<<buffer;
   // Print y-axis
-  printf("Y-axis is % 0.2f % 0.2f % 0.2f\n", _attr._yaxis[0], _attr._yaxis[1], _attr._yaxis[2]);
+  sprintf(buffer,"Y-axis is % 0.2f % 0.2f % 0.2f\n", _attr._yaxis[0], _attr._yaxis[1], _attr._yaxis[2]);
+  cout<<buffer;
   // Print z-axis
-  printf("Z-axis is % 0.2f % 0.2f % 0.2f\n", _attr._zaxis[0], _attr._zaxis[1], _attr._zaxis[2]);
+  sprintf(buffer,"Z-axis is % 0.2f % 0.2f % 0.2f\n", _attr._zaxis[0], _attr._zaxis[1], _attr._zaxis[2]);
+  cout<<buffer;
 }
