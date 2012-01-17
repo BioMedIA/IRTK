@@ -88,6 +88,179 @@ void irtkImageRigidRegistration::GuessParameter()
   }
 }
 
+void irtkImageRigidRegistration::GuessParameterThickSlices()
+{
+  int i;
+  double xsize, ysize, zsize,size;
+
+  if ((_target == NULL) || (_source == NULL)) {
+    cerr << "irtkImageRigidRegistration::GuessParameter: Target and source image not found" << endl;
+    exit(1);
+  }
+
+  // Default parameters for registration
+  _NumberOfLevels     = 3;
+  _NumberOfBins       = 64;
+
+  // Default parameters for optimization
+  _SimilarityMeasure  = NMI;
+  _OptimizationMethod = GradientDescent;
+  _Epsilon            = 0.0001;
+
+  // Read target pixel size
+  _target->GetPixelSize(&xsize, &ysize, &zsize);
+  
+  if (ysize<xsize)
+    size = ysize;
+  else
+    size = xsize;
+  if (zsize<size)
+    size = zsize;  
+
+  // Default target parameters
+  _TargetBlurring[0]      = size / 2.0;
+  _TargetResolution[0][0] = size;
+  _TargetResolution[0][1] = size;
+  _TargetResolution[0][2] = size;
+
+  for (i = 1; i < _NumberOfLevels; i++) {
+    _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
+    _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
+    _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
+    _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+  }
+
+  // Read source pixel size
+  _source->GetPixelSize(&xsize, &ysize, &zsize);
+  
+  if (ysize<xsize)
+    size = ysize;
+  else
+    size = xsize;
+  if (zsize<size)
+    size = zsize;
+
+  // Default source parameters
+  _SourceBlurring[0]      = size / 2.0;
+  _SourceResolution[0][0] = size;
+  _SourceResolution[0][1] = size;
+  _SourceResolution[0][2] = size;
+
+  for (i = 1; i < _NumberOfLevels; i++) {
+    _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
+    _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
+    _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
+    _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+  }
+
+  // Remaining parameters
+  for (i = 0; i < _NumberOfLevels; i++) {
+    _NumberOfIterations[i] = 20;
+    _NumberOfSteps[i]      = 4;
+    _LengthOfSteps[i]      = 2 * pow(2.0, i);
+  }
+
+  // Try to guess padding by looking at voxel values in all eight corners of the volume:
+  // If all values are the same we assume that they correspond to the padding value
+  _TargetPadding = MIN_GREY;
+  if ((_target->Get(_target->GetX()-1, 0, 0)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, _target->GetY()-1, 0)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, 0, _target->GetZ()-1)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, _target->GetY()-1, 0)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, _target->GetY()-1, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
+    _TargetPadding = _target->Get(0, 0, 0);
+  }
+}
+
+void irtkImageRigidRegistration::GuessParameterSliceToVolume()
+{
+  int i;
+  double xsize, ysize, zsize;
+
+  if ((_target == NULL) || (_source == NULL)) {
+    cerr << "irtkImageRigidRegistration::GuessParameter: Target and source image not found" << endl;
+    exit(1);
+  }
+
+  // Default parameters for registration
+  _NumberOfLevels     = 2;
+  _NumberOfBins       = 64;
+
+  // Default parameters for optimization
+  _SimilarityMeasure  = NMI;
+  _OptimizationMethod = GradientDescent;
+  _Epsilon            = 0.0001;
+
+  // Read target pixel size
+  _target->GetPixelSize(&xsize, &ysize, &zsize);
+  
+  double size;
+  
+  if (ysize<xsize)
+    size = ysize;
+  else
+    size = xsize;
+
+  // Default target parameters
+  _TargetBlurring[0]      = size / 2.0;
+  _TargetResolution[0][0] = size;
+  _TargetResolution[0][1] = size;
+  _TargetResolution[0][2] = zsize;
+
+  for (i = 1; i < _NumberOfLevels; i++) {
+    _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
+    _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
+    _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
+    _TargetResolution[i][2] = _TargetResolution[i-1][2];
+  }
+
+  // Read source pixel size
+  _source->GetPixelSize(&xsize, &ysize, &zsize);
+  
+  if (ysize<xsize)
+    size = ysize;
+  else
+    size = xsize;
+  if (zsize<size)
+    size = zsize;
+  
+
+  // Default source parameters
+  _SourceBlurring[0]      = size / 2.0;
+  _SourceResolution[0][0] = size;
+  _SourceResolution[0][1] = size;
+  _SourceResolution[0][2] = size;
+
+  for (i = 1; i < _NumberOfLevels; i++) {
+    _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
+    _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
+    _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
+    _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+  }
+
+  // Remaining parameters
+  for (i = 0; i < _NumberOfLevels; i++) {
+    _NumberOfIterations[i] = 20;
+    _NumberOfSteps[i]      = 4;
+    _LengthOfSteps[i]      = 2 * pow(2.0, i);
+  }
+
+  // Try to guess padding by looking at voxel values in all eight corners of the volume:
+  // If all values are the same we assume that they correspond to the padding value
+  _TargetPadding = MIN_GREY;
+  if ((_target->Get(_target->GetX()-1, 0, 0)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, _target->GetY()-1, 0)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, 0, _target->GetZ()-1)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, _target->GetY()-1, 0)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, _target->GetY()-1, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
+    _TargetPadding = _target->Get(0, 0, 0);
+  }
+}
+
 void irtkImageRigidRegistration::Initialize()
 {
   // Call base class
