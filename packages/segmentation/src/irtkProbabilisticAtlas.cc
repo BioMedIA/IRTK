@@ -20,6 +20,21 @@ irtkProbabilisticAtlas::irtkProbabilisticAtlas()
   _number_of_tissues=0;
 }
 
+void irtkProbabilisticAtlas::SwapImages(int a, int b)
+{
+	if( a < 0 || b < 0 || a >= _number_of_tissues || b >= _number_of_tissues )
+	{
+		cerr << "cannot swap images, index out of bounds!" << endl;
+		return;
+	}
+	irtkRealImage tmpimage = _images[a];
+	_images[a] = _images[b];
+	_images[b] = tmpimage;
+	irtkRealPixel* tmpptr = _pointers[a];
+	_pointers[a] = _pointers[b];
+	_pointers[a] = tmpptr;
+}
+
 void irtkProbabilisticAtlas::AddImage(irtkRealImage image)
 {
   if (_images.size() == 0) {
