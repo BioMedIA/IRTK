@@ -29,7 +29,6 @@ Atlas probability map class
 
 class irtkProbabilisticAtlas : public irtkObject
 {
-
   // Vector of probability maps
   vector<irtkRealImage> _images;
 
@@ -50,6 +49,9 @@ public:
 
   /// Constructor
   irtkProbabilisticAtlas();
+
+  /// swaps images within the prob atlas
+  void SwapImages(int, int);
 
   /// Adds new image (channel)
   void AddImage(irtkRealImage image);
