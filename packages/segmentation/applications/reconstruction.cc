@@ -16,6 +16,8 @@
 #include <vector>
 using namespace std;
 
+//Application to perform reconstruction of volumetric MRI from thick slices.
+
 void usage()
 {
   cerr << "Usage: reconstruction [reconstructed] [N] [stack_1] .. [stack_N] [dof_1] .. [dof_N] <options>\n" << endl;
