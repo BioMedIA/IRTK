@@ -751,6 +751,10 @@ void irtkImageRegistration2::EvaluateGradientNMI()
             _similarityGradient(i, j, k, 1) = 0;
             _similarityGradient(i, j, k, 2) = 0;
           }
+        }else {
+            _similarityGradient(i, j, k, 0) = 0;
+            _similarityGradient(i, j, k, 1) = 0;
+            _similarityGradient(i, j, k, 2) = 0;
         }
         ptr2target++;
         ptr2source++;
