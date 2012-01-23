@@ -606,9 +606,9 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                 _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
 
                 // Interpolation in gradient image
-                _transformedSourceGradient(i, j, x, 0) = _interpolatorGradient->Evaluate(x, y, z, 0);
-                _transformedSourceGradient(i, j, y, 1) = _interpolatorGradient->Evaluate(x, y, z, 1);
-                _transformedSourceGradient(i, j, z, 2) = _interpolatorGradient->Evaluate(x, y, z, 2);
+                _transformedSourceGradient(i, j, k, 0) = _interpolatorGradient->Evaluate(x, y, z, 0);
+                _transformedSourceGradient(i, j, k, 1) = _interpolatorGradient->Evaluate(x, y, z, 1);
+                _transformedSourceGradient(i, j, k, 2) = _interpolatorGradient->Evaluate(x, y, z, 2);
               }
             } else {
               _transformedSource(i, j, k) = -1;
@@ -685,9 +685,9 @@ void irtkImageFreeFormRegistration2::SmoothnessPenaltyGradient(double *gradient)
 
   // Compute normalization factor
   if (_affd->GetZ() == 1) {
-    norm = (double(_target->GetNumberOfVoxels()) / double(_affd->GetX()*_affd->GetY()));
+    norm = (double(_target->GetNumberOfVoxels()) / double(2.0*_affd->GetX()*_affd->GetY()));
   } else {
-    norm = (double(_target->GetNumberOfVoxels()) / double(_affd->GetX()*_affd->GetY()*_affd->GetZ()));
+    norm = (double(_target->GetNumberOfVoxels()) / double(3.0*_affd->GetX()*_affd->GetY()*_affd->GetZ()));
   }
 
   // Allocate memory
@@ -731,6 +731,15 @@ void irtkImageFreeFormRegistration2::VolumePreservationPenaltyGradient(double *g
   int i, j, k, l, m, n, o, i1, j1, k1, i2, j2, k2, x, y, z, count, index, index1, index2, index3;
   double jacobian, drv[3];
   irtkMatrix jac, det_drv[3];
+
+  double norm;
+
+  // Compute normalization factor
+  if (_affd->GetZ() == 1) {
+      norm = (double(_target->GetNumberOfVoxels()) / double(2.0*_affd->GetX()*_affd->GetY()));
+  } else {
+      norm = (double(_target->GetNumberOfVoxels()) / double(3.0*_affd->GetX()*_affd->GetY()*_affd->GetZ()));
+  }
 
   // Loop over control points
   for (z = 0; z < _affd->GetZ(); z++) {
@@ -794,9 +803,9 @@ void irtkImageFreeFormRegistration2::VolumePreservationPenaltyGradient(double *g
 
           for (l = 0; l < 3; l++) drv[l] = -drv[l]/count;
 
-          gradient[index]  += this->_Lambda2  * drv[0];
-          gradient[index2] += this->_Lambda2  * drv[1];
-          gradient[index3] += this->_Lambda2  * drv[2];
+          gradient[index]  += this->_Lambda2  * drv[0] * norm;
+          gradient[index2] += this->_Lambda2  * drv[1] * norm;
+          gradient[index3] += this->_Lambda2  * drv[2] * norm;
         }
       }
     }
@@ -951,6 +960,42 @@ void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
   }
 }
 
+void irtkImageFreeFormRegistration2::NormalizeGradient(double *gradient)
+{
+    int x,y,z,index1,index2,index3,offset;
+    double norm,spacingnorm;
+
+    // Compute normalization factor
+    if (_affd->GetZ() == 1) {
+        spacingnorm = (double(_target->GetNumberOfVoxels()) / double(2.0*_affd->GetX()*_affd->GetY()));
+    } else {
+        spacingnorm = (double(_target->GetNumberOfVoxels()) / double(3.0*_affd->GetX()*_affd->GetY()*_affd->GetZ()));
+    }
+
+    offset = _affd->GetX()*_affd->GetY()*_affd->GetZ();
+
+    for (z = 0; z < _affd->GetZ(); z++) {
+        for (y = 0; y < _affd->GetY(); y++) {
+            for (x = 0; x < _affd->GetX(); x++) {
+                index1 = _affd->LatticeToIndex(x,y,z);
+                index2 = index1 + offset;
+                index3 = index2 + offset;
+                norm = pow(gradient[index1],2.0)
+                    + pow(gradient[index2],2.0)
+                    + pow(gradient[index3],2.0);
+
+                //normalize
+                if(norm > 0){
+                    norm = sqrt(norm);
+                    gradient[index1] = gradient[index1]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                    gradient[index2] = gradient[index2]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                    gradient[index3] = gradient[index3]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                }
+            }
+        }
+    }
+}
+
 double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
 {
   double norm, max_length;
@@ -973,37 +1018,41 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
 
   // Update gradient
   if (_CurrentIteration == 0) {
-    // First iteration, so let's initialize
-    if (g != NULL) delete []g;
-    g = new double [_affd->NumberOfDOFs()];
-    if (h != NULL) delete []h;
-    h = new double [_affd->NumberOfDOFs()];
-    for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-      g[i] = -gradient[i];
-      h[i] = g[i];
-    }
+      // First iteration, so let's initialize
+      if (g != NULL) delete []g;
+      g = new double [_affd->NumberOfDOFs()];
+      if (h != NULL) delete []h;
+      h = new double [_affd->NumberOfDOFs()];
+      for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+          g[i] = -gradient[i];
+          h[i] = g[i];
+      }
   } else {
-    // Update gradient direction to be conjugate
-    gg = 0;
-    dgg = 0;
-    for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-      gg  += g[i]*h[i];
-      dgg += (gradient[i]+g[i])*gradient[i];
-    }
-    gamma = dgg/gg;
-    for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-      g[i] = -gradient[i];
-      h[i] = g[i] + gamma*h[i];
-      gradient[i] = -h[i];
-    }
+      // Update gradient direction to be conjugate
+      gg = 0;
+      dgg = 0;
+      for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+          gg  += g[i]*h[i];
+          dgg += (gradient[i]+g[i])*gradient[i];
+      }
+      gamma = dgg/gg;
+      for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+          g[i] = -gradient[i];
+          h[i] = g[i] + gamma*h[i];
+          gradient[i] = -h[i];
+      }
   }
 
   if (this->_Lambda1 > 0) {
-    this->SmoothnessPenaltyGradient(gradient);
+      this->SmoothnessPenaltyGradient(gradient);
   }
 
   if (this->_Lambda2 > 0) {
-    this->VolumePreservationPenaltyGradient(gradient);
+      this->VolumePreservationPenaltyGradient(gradient);
+  }
+
+  if(_Lambda3 > 0){
+      this->NormalizeGradient(gradient);
   }
 
   // Calculate maximum of gradient vector

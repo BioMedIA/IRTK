@@ -52,7 +52,7 @@ protected:
   /// Volume preservation parameter for non-rigid registration
   double _Lambda2;
 
-  /// Topology preservation parameter for non-rigid registration
+  /// Gradient normalization parameter for non-rigid registration
   double _Lambda3;
 
   /// Control point spacing in the x-direction
@@ -122,6 +122,9 @@ protected:
   /// Evaluate the gradient of the similarity measure for the current transformation.
   virtual double EvaluateGradient(double *);
 
+  /// Normalization of similarity gradient
+  virtual void NormalizeGradient(double *);
+
 public:
 
   /// Constructor
@@ -164,8 +167,12 @@ public:
   virtual GetMacro(MFFDMode, bool);
   virtual SetMacro(Subdivision, bool);
   virtual GetMacro(Subdivision, bool);
+  virtual SetMacro(Lambda1, double);
+  virtual GetMacro(Lambda1, double);
   virtual SetMacro(Lambda2, double);
   virtual GetMacro(Lambda2, double);
+  virtual SetMacro(Lambda3, double);
+  virtual GetMacro(Lambda3, double);
 };
 
 inline void irtkImageFreeFormRegistration2::SetOutput(irtkTransformation *transformation)
