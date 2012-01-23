@@ -1,3 +1,15 @@
+/*=========================================================================
+
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2011 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
+
+=========================================================================*/
+
 #include <irtkReconstruction.h>
 #include <irtkResampling.h>
 #include <irtkRegistration.h>
@@ -298,10 +310,10 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,vector
   }
 
   //register all stacks to the target
-  for (uint i=0; i<stacks.size(); i++)
+  for (int i=0; i<stacks.size(); i++)
   {
     //do not perform registration for template
-    if (i == (uint)templateNumber) continue;
+    if (i == (int)templateNumber) continue;
     
     //set target and source (need to be converted to irtkGreyImage)
     irtkGreyImage source = stacks[i];
@@ -336,7 +348,7 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,vec
   vector<double> average;
   double sum,num;
   char buffer[256];
-  uint ind;
+  int ind;
   int i,j,k;
   double x,y,z;
  
@@ -421,7 +433,7 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,vec
 void irtkReconstruction::InvertStackTransformations(vector<irtkRigidTransformation>& stack_transformations)
 { 
   //for each stack
-  for (uint i=0; i<stack_transformations.size(); i++)
+  for (int i=0; i<stack_transformations.size(); i++)
   {    
     //invert transformation for the stacks
     irtkMatrix m = stack_transformations[i].GetMatrix();
@@ -433,7 +445,7 @@ void irtkReconstruction::InvertStackTransformations(vector<irtkRigidTransformati
 void irtkReconstruction::CreateSlicesAndTransformations(vector<irtkRealImage>& stacks, vector<irtkRigidTransformation>& stack_transformations, vector<double>& thickness)
 { 
   //for each stack
-  for (uint i=0; i<stacks.size(); i++)
+  for (int i=0; i<stacks.size(); i++)
   {        
     //image attributes contain image and voxel size
     irtkImageAttributes attr = stacks[i].GetImageAttributes();
@@ -480,7 +492,7 @@ void irtkReconstruction::MaskSlices()
   }
 
   //mask slices
-  for (uint inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+  for (int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
   {
     irtkRealImage slice = _slices[inputIndex];
     for (i=0;i<slice.GetX();i++)
@@ -521,7 +533,7 @@ void irtkReconstruction::SliceToVolumeRegistration()
   irtkGreyPixel smin,smax;
   irtkGreyImage target;
   irtkRealImage slice,w,b;
-  uint inputIndex;
+  int inputIndex;
 
   
   for (inputIndex=0; inputIndex<_slices.size(); inputIndex++)
@@ -547,7 +559,7 @@ void irtkReconstruction::SliceToVolumeRegistration()
 void irtkReconstruction::SaveTransformations()
 {
   char buffer[256];
-  for (uint inputIndex=0; inputIndex<_slices.size(); inputIndex++)
+  for (int inputIndex=0; inputIndex<_slices.size(); inputIndex++)
   {
     sprintf(buffer,"transformation%i.dof",inputIndex);
     _transformations[inputIndex].irtkTransformation::Write(buffer);
@@ -557,7 +569,7 @@ void irtkReconstruction::SaveTransformations()
 void irtkReconstruction::SaveSlices()
 {
   char buffer[256];
-  for (uint inputIndex=0; inputIndex<_slices.size(); inputIndex++)
+  for (int inputIndex=0; inputIndex<_slices.size(); inputIndex++)
   {
     sprintf(buffer,"slice%i.nii.gz",inputIndex);
     _slices[inputIndex].Write(buffer);
@@ -588,7 +600,7 @@ void irtkReconstruction::CoeffInit()
   ClearImage(_volume_weights,0);
   
   cout<<"Initialising matrix coefficients...";
-  for (uint inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+  for (int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
   {
   //start of a loop for a slice inputIndex  
     cout<<inputIndex<<" ";
@@ -665,7 +677,7 @@ void irtkReconstruction::CoeffInit()
     
     //prepare storage for PSF transformed and resampled to the space of reconstructed volume
     //maximum dim of rotated kernel - the next higher odd integer
-    int dim = (floor(ceil(sqrt(xDim*xDim+yDim*yDim+zDim*zDim))/2))*2+1;
+    int dim = (floor(ceil(sqrt(double(xDim*xDim+yDim*yDim+zDim*zDim)))/2))*2+1;
     //prepare image attributes. Voxel dimension will be taken from the reconstructed volume
     attr._x=dim; attr._y=dim;attr._z=dim;
     attr._dx=res; attr._dy=res; attr._dz=res;
@@ -824,7 +836,7 @@ void irtkReconstruction::CoeffInit()
 void irtkReconstruction::GaussianReconstruction()
 {
   cout<<"Gaussian reconstruction ... ";
-  uint inputIndex;
+  int inputIndex;
   int i,j,k,n;
   irtkRealImage slice,addon,b;
   double scale;
@@ -886,18 +898,18 @@ void irtkReconstruction::GaussianReconstruction()
 void irtkReconstruction::InitializeEM()
 {
   //Create images for voxel weights and bias fields
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
   {
     _weights.push_back(_slices[i]);
     _bias.push_back(_slices[i]);
   }
   
   //Create and initialize scales
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
     _scale.push_back(1);
 
   //Create and initialize slice weights
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
     _slice_weight.push_back(1);
   
   //Initialise smoothing for bias field
@@ -906,7 +918,7 @@ void irtkReconstruction::InitializeEM()
   //Find the range of intensities
   _max_intensity=0;
   _min_intensity=1000000;
-  for (uint i = 0; i < _slices.size(); i++)
+  for (int i = 0; i < _slices.size(); i++)
   {
     //find min and max of slice intensities
     irtkRealPixel mmin,mmax;
@@ -935,7 +947,7 @@ void irtkReconstruction::InitializeEMValues()
 {
 
   //Initialise voxel weights and bias values
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
   {
     irtkRealPixel *pw = _weights[i].GetPointerToVoxels();
     irtkRealPixel *pb = _bias[i].GetPointerToVoxels();
@@ -959,11 +971,11 @@ void irtkReconstruction::InitializeEMValues()
   }
   
   //Initialise slice weights
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
     _slice_weight[i]=1;
 
   //Initialise scaling factors for intensity matching
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
     _scale[i]=1;  
 }
 
@@ -980,7 +992,7 @@ void irtkReconstruction::InitializeRobustStatistics()
   
   
   //for each slice
-  for (uint inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+  for (int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
   {
     slice=_slices[inputIndex];
 
@@ -1044,7 +1056,7 @@ void irtkReconstruction::EStep()
   if(_debug)
     cout<<"EStep: "<<endl;
 
-  uint inputIndex;
+  int inputIndex;
   int i,j,k,n;
   irtkRealImage slice,w,b;
   double scale;
@@ -1290,7 +1302,7 @@ void irtkReconstruction::EStep()
 
 void irtkReconstruction::Scale()
 {
-  uint inputIndex;
+  int inputIndex;
   int i,j,k,n;
   irtkRealImage slice,w,b,sim;
   POINT p;
@@ -1366,7 +1378,7 @@ void irtkReconstruction::Bias()
 {
   if (_debug)
     cout<<"Correcting bias ...";
-  uint inputIndex;
+  int inputIndex;
   int i,j,k,n;
   irtkRealImage slice,w,b,sim,wb,deltab,wresidual;
   POINT p;
@@ -1473,7 +1485,7 @@ void irtkReconstruction::Bias()
 
 void irtkReconstruction::SuperresolutionAndMStep(int iter)
 {
-  uint inputIndex;
+  int inputIndex;
   int i,j,k,n;
   irtkRealImage slice,addon,w,b,original;
   POINT p;
@@ -1613,7 +1625,7 @@ void irtkReconstruction::AdaptiveRegularization(int iter, irtkRealImage& origina
   for (i=0;i<13;i++)
   {
     for (j=0;j<3;j++)
-      factor[i]+= fabs(directions[i][j]);
+      factor[i]+= fabs(double(directions[i][j]));
     factor[i]=1/factor[i];
   }
   
@@ -1715,7 +1727,7 @@ void irtkReconstruction::Evaluate(int iter)
   
   cout<<"Included slices: ";
   int sum=0;
-  uint i;
+  int i;
   for (i=0; i<_slices.size(); i++)
   {
     if ((_slice_weight[i]>=0.5)&&(_slice_inside[i]))
