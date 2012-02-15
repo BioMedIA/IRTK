@@ -50,7 +50,7 @@ template <class VoxelType> irtkNonLocalMedianFilter<VoxelType>::~irtkNonLocalMed
 
 template <class VoxelType> bool irtkNonLocalMedianFilter<VoxelType>::RequiresBuffering(void)
 {
-    return false;
+    return true;
 }
 
 template <class VoxelType> const char *irtkNonLocalMedianFilter<VoxelType>::NameOfClass()
@@ -125,10 +125,12 @@ template <class VoxelType> double irtkNonLocalMedianFilter<VoxelType>::Run(int x
                             distancev += (this->_input2->GetAsDouble(i1,j1,k1)-this->_input2->GetAsDouble(x,y,z))
                             * (this->_input2->GetAsDouble(i1,j1,k1)-this->_input2->GetAsDouble(x,y,z))*_ds;
 
-                        if(distancev > 0){
+                        distancev = this->EvaluateWeight(distancev);
+
+                        if(distancev > 0 && distancev < 1){
                             _localneighbor[index] = this->_input->GetAsDouble(i1,j1,k1,t);
 
-                            _localweight[index] = this->EvaluateWeight(distancev);
+                            _localweight[index] = distancev;
 
                             if(this->_input3 != NULL)
                                 _localweight[index] = _localweight[index]*this->_input3->GetAsDouble(i1,j1,k1);
@@ -161,7 +163,7 @@ template <class VoxelType> void irtkNonLocalMedianFilter<VoxelType>::Initialize(
     //Run
     this->irtkImageToImage<VoxelType>::Initialize();
 
-    int x,y,z,t;
+    int x,y,z,t,index;
     double threshold;
 
     if(_Sigma%2 == 0) _Sigma ++;
@@ -187,21 +189,23 @@ template <class VoxelType> void irtkNonLocalMedianFilter<VoxelType>::Initialize(
     // Calculate edge using threshold
     for (t = 0; t < _edge->GetT(); t++) {
         threshold = 0;
+        index = 0;
         for (z = 0; z < _edge->GetZ(); z++) {
             for (y = 0; y < _edge->GetY(); y++) {
                 for (x = 0; x < this->_input->GetX(); x++) {
-                    if(_edge->GetAsDouble(x,y,z,t)>threshold){
-                        threshold = _edge->GetAsDouble(x,y,z,t);
-                    }
+                     threshold += _edge->GetAsDouble(x,y,z,t);
+                     index ++;
                 }
             }
         }
-        threshold = threshold/2.0;
-        for (z = 0; z < _edge->GetZ(); z++) {
-            for (y = 0; y < _edge->GetY(); y++) {
-                for (x = 0; x < this->_input->GetX(); x++) {
-                    if(_edge->GetAsDouble(x,y,z,t) <= threshold){
-                        _edge->PutAsDouble(x,y,z,t,0);
+        threshold = threshold/index;
+        if(threshold > 0){
+            for (z = 0; z < _edge->GetZ(); z++) {
+                for (y = 0; y < _edge->GetY(); y++) {
+                    for (x = 0; x < this->_input->GetX(); x++) {
+                        if(_edge->GetAsDouble(x,y,z,t) <= threshold){
+                            _edge->PutAsDouble(x,y,z,t,0);
+                        }    
                     }
                 }
             }
@@ -213,12 +217,12 @@ template <class VoxelType> void irtkNonLocalMedianFilter<VoxelType>::Initialize(
         this->_input->GetMinMax(&min,&max);
         _ds = max-min;
     }
-    else{
+    else{   
         irtkGreyPixel min,max;
         this->_input2->GetMinMax(&min,&max);
         _ds = max-min;
     }
-    _ds = 256*256/_ds/_ds;
+    _ds = 128*128/_ds/_ds;
 
     _dx = this->_input->GetXSize();
     _dy = this->_input->GetYSize();

@@ -112,8 +112,7 @@ public:
 
 template <class VoxelType> inline double irtkNonLocalMedianFilter<VoxelType>::EvaluateWeight(const double &distancev)
 {
-    return exp(- distancev / (_Sigma*_Sigma/6.0*(this->_input->GetXSize()*this->_input->GetXSize()+
-        this->_input->GetYSize()*this->_input->GetYSize() + this->_input->GetZSize()*this->_input->GetZSize())));
+    return exp(- distancev / (_Sigma*_Sigma/2.0));
 }
 
 #endif

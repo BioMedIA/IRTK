@@ -20,10 +20,15 @@
 
 template <class VoxelType> class irtkImageHistogram_1D : public irtkHistogram_1D<double>
 {
+protected:
+    /// min for equalize
+    VoxelType _emin;
+    /// max for equalize
+    VoxelType _emax;
 
 public:
 	/// Evaluate the histogram from a given image with padding value
-	virtual void Evaluate(irtkGenericImage<VoxelType> *, double padding = -1);
+	virtual void Evaluate(irtkGenericImage<VoxelType> *, double padding = -10000);
 	/// Histogram Equalization
 	virtual void Equalize(VoxelType min,VoxelType max);
 	/// Back project the equalized histogram to image
