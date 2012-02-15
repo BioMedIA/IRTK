@@ -138,7 +138,9 @@ int main(int argc, char **argv)
     if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
       argc--;
       argv++;
-      target = new irtkGreyImage(argv[1]);
+      target = irtkImage::New(argv[1]);
+      irtkFileToImage *targetReader = irtkFileToImage::New(argv[1]);
+      targetType = targetReader->GetDataType();
       argc--;
       argv++;
       ok = true;
