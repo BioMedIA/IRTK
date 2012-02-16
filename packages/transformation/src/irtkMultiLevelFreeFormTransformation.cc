@@ -357,6 +357,97 @@ void irtkMultiLevelFreeFormTransformation::LocalDisplacement(double &x, double &
   z = dz;
 }
 
+void irtkMultiLevelFreeFormTransformation::InterpolateGlobalDisplacement(irtkBSplineFreeFormTransformation3D *f)
+{
+	int i, j, k, count, noOfCPs;
+	double x, y, z;
+
+  noOfCPs = f->NumberOfDOFs() / 3;
+
+  double *dx = new double[noOfCPs];
+  double *dy = new double[noOfCPs];
+  double *dz = new double[noOfCPs];
+
+  count = 0;
+  for (k = 0; k < f->GetZ(); k++){
+  	for (j = 0; j < f->GetY(); j++){
+  		for (i = 0; i < f->GetX(); i++){
+
+  			// Reset.
+  			f->Put(i, j, k, 0.0f, 0.0f, 0.0f);
+
+  			x = i;
+  			y = j;
+  			z = k;
+
+  			f->LatticeToWorld(x, y, z);
+  		  this->GlobalDisplacement(x,y,z);
+
+  		  dx[count] = x;
+  		  dy[count] = y;
+  		  dz[count] = z;
+  		  count++;
+  		}
+  	}
+  }
+
+  // Compute B-spline coefficients that provide an interpolation
+  // of the global affine component.
+  f->Interpolate(dx, dy, dz);
+
+  delete [] dx;
+  delete [] dy;
+  delete [] dz;
+
+  // Some reporting.
+  if (f->GetX() < 4 || f->GetY() < 4 || f->GetZ() < 4){
+  	cerr << "irtkMultiLevelFreeFormTransformation::InterpolateGlobalDisplacement : ";
+  	cerr << "Very small lattice for interpolation. Result likely to be inaccurate." << endl;
+  	return;
+  }
+
+  double totalVol, effectiveVol;
+
+  totalVol = f->GetX() * f->GetXSpacing() + f->GetY() * f->GetYSpacing() + f->GetZ() * f->GetZSpacing();
+  effectiveVol = (f->GetX()-4) * f->GetXSpacing() + (f->GetY()-4) * f->GetYSpacing() + (f->GetZ()-4) * f->GetZSpacing();
+
+  cout << "irtkMultiLevelFreeFormTransformation::InterpolateGlobalDisplacement : ";
+  cout << "Accurate interpolation of affine transformation over ";
+  printf("% .1f %% of lattice volume\n", 100.0 * effectiveVol / totalVol);
+
+}
+
+void irtkMultiLevelFreeFormTransformation::MergeGlobalIntoLocalDisplacement()
+{
+	int i;
+
+  irtkBSplineFreeFormTransformation3D *ffd =
+  		dynamic_cast<irtkBSplineFreeFormTransformation3D *> (this->GetLocalTransformation(0));
+
+  if (ffd == NULL){
+  	cerr << "irtkFluidFreeFormTransformation::MergeGlobalIntoLocalDisplacement: ";
+  	cerr << "FFD should be of type irtkBSplineFreeFormTransformation3D" << endl;
+  	exit(1);
+  }
+
+  // Get a copy for making a FFD interpolation of the global affine component.
+  irtkBSplineFreeFormTransformation3D *ffdCopy = new irtkBSplineFreeFormTransformation3D(*ffd);
+
+  this->InterpolateGlobalDisplacement(ffdCopy);
+
+  // Add the calculated coefficents to the coefficients of the
+  // first FFD in the given MFFD.
+  for (i = 0; i < ffd->NumberOfDOFs(); i++){
+  	ffd->Put(i, ffd->Get(i) + ffdCopy->Get(i));
+  }
+
+  // Reset matrix previously used for global transform to identity
+  this->Reset();
+
+  // Clean up.
+  delete ffdCopy;
+}
+
 void irtkMultiLevelFreeFormTransformation::Jacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
   int i;

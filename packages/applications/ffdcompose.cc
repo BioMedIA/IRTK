@@ -16,8 +16,9 @@
 
 void usage()
 {
-  cerr << "Usage: ffdcompose [ffd1_in] [ffd2_in] [ffd_out]\n" << endl;
-  cerr << "ffdcompose computes the composition T of two FFDs T_1 and T_2 such that T = T_1 o T_2\n" << endl;
+  cerr << "Usage: ffdcompose [T1] [T2] [mffd_out]\n" << endl;
+  cerr << "ffdcompose computes the composition T of two MFFDs T_1 and T_2 such that" << endl;
+  cerr << "T(x) = T_2 o T_1(x) \n" << endl;
   exit(1);
 }
 
@@ -44,37 +45,62 @@ int main(int argc, char **argv)
 
 	// Convert first transformation
   irtkMultiLevelFreeFormTransformation *mffd1 = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(t1);
+
   if (mffd1 == NULL){
   	cerr << "Transformation T_1 is not of type irtkMultiLevelFreeFormTransformation or irtkFluidFreeFormTransformation" << endl;
   	exit(1);
   }
 
-  // Check if first transformation is either a irtkFluidFreeFormTransformation or has only one level
-  if ((mffd1->NumberOfLevels() > 1) && (strcmp(mffd1->NameOfClass(), "irtkMultiLevelFreeFormTransformation") == 0)){
-  	cerr << "Transformation T_1 has more than one level and is a irtkMultiLevelFreeFormTransformation (should be irtkFluidFreeFormTransformation)" << endl;
-  	exit(1);
-  }
-
 	// Convert second transformation
   irtkMultiLevelFreeFormTransformation *mffd2 = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(t2);
+
   if (mffd2 == NULL){
   	cerr << "Transformation T_2 is not of type irtkMultiLevelFreeFormTransformation or irtkFluidFreeFormTransformation" << endl;
   	exit(1);
   }
 
-  // Check if second transformation has only one level
-  if (mffd2->NumberOfLevels() > 1){
-  	cerr << "Transformation T_2 has more than one level (which is not allowed)" << endl;
+  // If a transformation has more than one level, it must be a Fluid Free Form Transformation.
+  if ((mffd1->NumberOfLevels() > 1) && (strcmp(mffd1->NameOfClass(), "irtkMultiLevelFreeFormTransformation") == 0)){
+  	cerr << "Transformation T_1 has more than one level and is a irtkMultiLevelFreeFormTransformation " << endl;
+  	cerr << "(should be irtkFluidFreeFormTransformation)" << endl;
+  	exit(1);
+  }
+
+  if ((mffd2->NumberOfLevels() > 1) && (strcmp(mffd2->NameOfClass(), "irtkMultiLevelFreeFormTransformation") == 0)){
+  	cerr << "Transformation T_2 has more than one level and is a irtkMultiLevelFreeFormTransformation " << endl;
+  	cerr << "(should be irtkFluidFreeFormTransformation)" << endl;
+  	exit(1);
+  }
+
+  // Details of the first FFD in T2.
+  irtkBSplineFreeFormTransformation3D *ffd =
+  		dynamic_cast<irtkBSplineFreeFormTransformation3D *> (mffd2->GetLocalTransformation(0));
+  if (ffd == NULL){
+  	cerr << "Input FFDs should be of type irtkBSplineFreeFormTransformation3D" << endl;
   	exit(1);
   }
 
 	// Create fluid free-form deformation
 	irtkFluidFreeFormTransformation *t = new irtkFluidFreeFormTransformation();
-	for (i = 0; i < mffd1->NumberOfLevels(); i++) t->PushLocalTransformation(mffd1->GetLocalTransformation(i));
-	t->PushLocalTransformation(mffd2->PopLocalTransformation());
+
+	mffd2->MergeGlobalIntoLocalDisplacement();
+
+	// Push all of the FFDs in T1
+	for (i = 0; i < mffd1->NumberOfLevels(); i++){
+		t->PushLocalTransformation(mffd1->GetLocalTransformation(i));
+	}
+
+	// Push all of the FFDs in T2
+	for (i = 0; i < mffd2->NumberOfLevels(); i++){
+		t->PushLocalTransformation(mffd2->GetLocalTransformation(i));
+	}
+
+	// Global matrix from T1.
+	t->PutMatrix(mffd1->GetMatrix());
 
 	// Write local transformation
-	cout << "Writing T = T_1 o T_2 = " << argv[1] << endl;
+	cout << "Writing T = T_2 o T_1 to " << argv[1] << endl;
 	t->irtkTransformation::Write(argv[1]);
+
 }
 

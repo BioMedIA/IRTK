@@ -142,6 +142,36 @@ void irtkFluidFreeFormTransformation::LocalDisplacement(double &, double &, doub
   exit(1);
 }
 
+void irtkFluidFreeFormTransformation::MergeGlobalIntoLocalDisplacement()
+{
+	int i;
+
+  irtkBSplineFreeFormTransformation3D *ffd =
+  		dynamic_cast<irtkBSplineFreeFormTransformation3D *> (this->GetLocalTransformation(0));
+
+  if (ffd == NULL){
+  	cerr << "irtkFluidFreeFormTransformation::MergeGlobalIntoLocalDisplacement: ";
+  	cerr << "FFD should be of type irtkBSplineFreeFormTransformation3D" << endl;
+  	exit(1);
+  }
+
+  // Get a copy for making a FFD interpolation of the global affine component.
+  irtkBSplineFreeFormTransformation3D *ffdCopy = new irtkBSplineFreeFormTransformation3D(*ffd);
+
+  this->InterpolateGlobalDisplacement(ffdCopy);
+
+  // Shift all existing FFDs in the stack along by one place.
+  for (i = this->NumberOfLevels(); i > 0; i--){
+  	this->PutLocalTransformation(this->GetLocalTransformation(i-1), i);
+  }
+
+  // Insert the new FFD for the global transformation into the first position.
+  this->PutLocalTransformation(ffdCopy, 0);
+
+  // Reset matrix previously used for global transform to identity
+  this->Reset();
+}
+
 void irtkFluidFreeFormTransformation::Jacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
   int i;

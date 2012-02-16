@@ -95,6 +95,13 @@ public:
   /// Calculates displacement using the local transformation component only
   virtual void LocalDisplacement(double &, double &, double &, double = 0);
 
+  /** Convert the global transformation from a matrix representation to a
+      FFD and incorporate it with any existing local displacement. **/
+  virtual void MergeGlobalIntoLocalDisplacement();
+
+  // Helper function for the above.
+  virtual void InterpolateGlobalDisplacement(irtkBSplineFreeFormTransformation3D *f);
+
   /// Transforms a point
   virtual void Transform(int, double &, double &, double &, double = 0);
 

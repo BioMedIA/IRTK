@@ -70,6 +70,10 @@ public:
   /// Calculates displacement using the local transformation component only
   virtual void LocalDisplacement(int, double &, double &, double &, double = 0);
 
+  /** Convert the global transformation from a matrix representation to a
+      FFD and incorporate it with any existing local displacement. **/
+  virtual void MergeGlobalIntoLocalDisplacement();
+
   /// Calculate the Jacobian of the transformation
   virtual void Jacobian(irtkMatrix &, double, double, double, double = 0);
 
