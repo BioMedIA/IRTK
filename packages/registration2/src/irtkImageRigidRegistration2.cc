@@ -170,7 +170,7 @@ void irtkImageRigidRegistration2::UpdateSource()
 
             // Linear interpolation in source image
             ptr2source  = _source->GetPointerToVoxels(a, b, 0);
-            *ptr2result = 1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
+            *ptr2result = t1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
           } else {
             *ptr2result = -1;
           }
@@ -311,7 +311,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
 
             // Linear interpolation in source image
             ptr2source  = _source->GetPointerToVoxels(a, b, 0);
-            *ptr2result = 1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
+            *ptr2result = t1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
 
             // Linear interpolation in gradient image
             ptr = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
