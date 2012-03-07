@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   argv++;
   while (argc > 1) {
     ok = false;
-	if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
       argc--;
       argv++;
       invert = 1;
@@ -65,26 +65,26 @@ int main(int argc, char **argv)
   }
 
   for (t = 0; t < imageA->GetT(); t++) {
-      for (z = 0; z < imageA->GetZ(); z++) {
-          for (y = 0; y < imageA->GetY(); y++) {
-              for (x = 0; x < imageA->GetX(); x++) {
-                  i = x; j = y; k = z;
-                  imageA->ImageToWorld(i,j,k);
-                  imageB->WorldToImage(i,j,k);
-                  i = round(i); j = round(j); k = round(k);
-                  if(i >= 0 && i < imageB->GetX()
-                      && j >= 0 && j < imageB->GetY()
-                      && k >= 0 && k < imageB->GetZ()
-                      && t >= 0 && t < imageB->GetT()){
-                          if(invert){
-                              if (imageB->GetAsDouble(i, j, k, t) != threshold) imageA->PutAsDouble(x, y, z, t, padding);
-                          }else{
-                              if (imageB->GetAsDouble(i, j, k, t) == threshold) imageA->PutAsDouble(x, y, z, t, padding);
-                          }
-                  }
-              }
+    for (z = 0; z < imageA->GetZ(); z++) {
+      for (y = 0; y < imageA->GetY(); y++) {
+        for (x = 0; x < imageA->GetX(); x++) {
+          i = x; j = y; k = z;
+          imageA->ImageToWorld(i,j,k);
+          imageB->WorldToImage(i,j,k);
+          i = round(i); j = round(j); k = round(k);
+          if(i >= 0 && i < imageB->GetX()
+              && j >= 0 && j < imageB->GetY()
+              && k >= 0 && k < imageB->GetZ()
+              && t >= 0 && t < imageB->GetT()){
+            if(invert){
+              if (imageB->GetAsDouble(i, j, k, t) != threshold) imageA->PutAsDouble(x, y, z, t, padding);
+            }else{
+              if (imageB->GetAsDouble(i, j, k, t) == threshold) imageA->PutAsDouble(x, y, z, t, padding);
+            }
           }
+        }
       }
+    }
   }
 
   imageA->Write(outputname);
