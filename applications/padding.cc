@@ -11,6 +11,7 @@
 =========================================================================*/
 
 #include <irtkImage.h>
+#include <irtkFileToImage.h>
 
 void usage()
 {
@@ -32,10 +33,12 @@ int main(int argc, char **argv)
   }
   invert = 0;
 
-  irtkGreyImage imageA(argv[1]);
+  irtkFileToImage *readerA = irtkFileToImage::New(argv[1]);
+  irtkBaseImage *imageA = readerA->GetOutput();
   argc--;
   argv++;
-  irtkGreyImage imageB(argv[1]);
+  irtkFileToImage *readerB = irtkFileToImage::New(argv[1]);
+  irtkBaseImage *imageB = readerB->GetOutput();
   argc--;
   argv++;
   outputname = argv[1];
@@ -61,22 +64,22 @@ int main(int argc, char **argv)
     }
   }
 
-  for (t = 0; t < imageA.GetT(); t++) {
-      for (z = 0; z < imageA.GetZ(); z++) {
-          for (y = 0; y < imageA.GetY(); y++) {
-              for (x = 0; x < imageA.GetX(); x++) {
+  for (t = 0; t < imageA->GetT(); t++) {
+      for (z = 0; z < imageA->GetZ(); z++) {
+          for (y = 0; y < imageA->GetY(); y++) {
+              for (x = 0; x < imageA->GetX(); x++) {
                   i = x; j = y; k = z;
-                  imageA.ImageToWorld(i,j,k);
-                  imageB.WorldToImage(i,j,k);
+                  imageA->ImageToWorld(i,j,k);
+                  imageB->WorldToImage(i,j,k);
                   i = round(i); j = round(j); k = round(k);
-                  if(i >= 0 && i < imageB.GetX()
-                      && j >= 0 && j < imageB.GetY()
-                      && k >= 0 && k < imageB.GetZ()
-                      && t >= 0 && t < imageB.GetT()){
+                  if(i >= 0 && i < imageB->GetX()
+                      && j >= 0 && j < imageB->GetY()
+                      && k >= 0 && k < imageB->GetZ()
+                      && t >= 0 && t < imageB->GetT()){
                           if(invert){
-                              if (imageB(i, j, k, t) != threshold) imageA(x, y, z, t) = padding;
+                              if (imageB->GetAsDouble(i, j, k, t) != threshold) imageA->PutAsDouble(x, y, z, t, padding);
                           }else{
-                              if (imageB(i, j, k, t) == threshold) imageA(x, y, z, t) = padding;
+                              if (imageB->GetAsDouble(i, j, k, t) == threshold) imageA->PutAsDouble(x, y, z, t, padding);
                           }
                   }
               }
@@ -84,7 +87,7 @@ int main(int argc, char **argv)
       }
   }
 
-  imageA.Write(outputname);
+  imageA->Write(outputname);
 
   return 0;
 }
