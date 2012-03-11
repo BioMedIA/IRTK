@@ -50,50 +50,50 @@ public:
   ~irtkCofstream();
 
   /// Write n data as array from offset
-  void Write(char *data, int offset, int length);
+  void Write(char *data, long offset, long length);
 
   /// Write data as char (possibly compressed) from offset
-  void WriteAsChar  (char data, int offset = -1);
+  void WriteAsChar  (char data, long offset = -1);
   /// Write data as char (possibly compressed) from offset
-  void WriteAsChar  (char *data, int length, int offset = -1);
+  void WriteAsChar  (char *data, long length, long offset = -1);
 
   /// Write data as unsigned char (possibly compressed) from offset
-  void WriteAsUChar (unsigned char data, int offset = -1);
+  void WriteAsUChar (unsigned char data, long offset = -1);
   /// Write data as unsigned char (possibly compressed) from offset
-  void WriteAsUChar (unsigned char *data, int length, int offset = -1);
+  void WriteAsUChar (unsigned char *data, long length, long offset = -1);
 
   /// Write data as short (possibly compressed) from offset
-  void WriteAsShort (short data, int offset = -1);
+  void WriteAsShort (short data, long offset = -1);
   /// Write data as short (possibly compressed) from offset
-  void WriteAsShort (short *data, int length, int offset = -1);
+  void WriteAsShort (short *data, long length, long offset = -1);
 
   /// Write data as unsigned short (possibly compressed) from offset
-  void WriteAsUShort(unsigned short data, int offset = -1);
+  void WriteAsUShort(unsigned short data, long offset = -1);
   /// Write data as unsigned short (possibly compressed) from offset
-  void WriteAsUShort(unsigned short *data, int length, int offset = -1);
+  void WriteAsUShort(unsigned short *data, long length, long offset = -1);
 
   /// Write data as int (possibly compressed) from offset
-  void WriteAsInt   (int data, int offset = -1);
+  void WriteAsInt   (int data, long offset = -1);
   /// Write data as int (possibly compressed) from offset
-  void WriteAsInt   (int *data, int length, int offset = -1);
+  void WriteAsInt   (int *data, long length, long offset = -1);
 
   /// Write data as unsigned int (possibly compressed) from offset
-  void WriteAsUInt  (unsigned int data, int offset = -1);
+  void WriteAsUInt  (unsigned int data, long offset = -1);
   /// Write data as unsigned int (possibly compressed) from offset
-  void WriteAsUInt  (unsigned int *data, int length, int offset = -1);
+  void WriteAsUInt  (unsigned int *data, long length, long offset = -1);
 
   /// Write data as float (possibly compressed) from offset
-  void WriteAsFloat (float data, int offset = -1);
+  void WriteAsFloat (float data, long offset = -1);
   /// Write data as float (possibly compressed) from offset
-  void WriteAsFloat (float *data, int length, int offset = -1);
+  void WriteAsFloat (float *data, long length, long offset = -1);
 
   /// Write data as double (possibly compressed) from offset
-  void WriteAsDouble(double data, int offset = -1);
+  void WriteAsDouble(double data, long offset = -1);
   /// Write data as double (possibly compressed) from offset
-  void WriteAsDouble(double *data, int length, int offset = -1);
+  void WriteAsDouble(double *data, long length, long offset = -1);
 
   /// Write data as string (possibly compressed)
-  void WriteAsString(char *data, int offset = -1);
+  void WriteAsString(char *data, long offset = -1);
 
   /// Open file
   void Open(const char *);

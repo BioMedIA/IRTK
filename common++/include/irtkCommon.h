@@ -66,9 +66,9 @@ extern float ReadFloat (ifstream &in);
 extern char *ReadString(ifstream &in);
 
 #ifdef HAS_ZLIB
-extern int   ReadCompressed(gzFile, char *, int, int);
+extern int   ReadCompressed(gzFile, char *, long, long);
 #else
-extern int   ReadCompressed(FILE *, char *, int, int);
+extern int   ReadCompressed(FILE *, char *, long, long);
 #endif
 
 #define round round2
@@ -78,9 +78,9 @@ inline int round(double x)
   return x > 0 ? int(x + 0.5) : int(x - 0.5);
 }
 
-extern void swap16(char *, char *, int);
-extern void swap32(char *, char *, int);
-extern void swap64(char *, char *, int);
+extern void swap16(char *, char *, long);
+extern void swap32(char *, char *, long);
+extern void swap64(char *, char *, long);
 extern double weightedmedian(int, double,double, float*, float*);
 
 // Orientation codes (same as NIFTI)

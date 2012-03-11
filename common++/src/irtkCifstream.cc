@@ -30,7 +30,7 @@ irtkCifstream::~irtkCifstream()
   this->Close();
 }
 
-void irtkCifstream::Read(char *mem, int start, int num)
+void irtkCifstream::Read(char *mem, long start, long num)
 {
   // Read data uncompressed
 #ifdef ENABLE_UNIX_COMPRESS
@@ -52,19 +52,19 @@ void irtkCifstream::Read(char *mem, int start, int num)
 #endif
 }
 
-void irtkCifstream::ReadAsChar(char *data, int length, int offset)
+void irtkCifstream::ReadAsChar(char *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset, length * sizeof(char));
 }
 
-void irtkCifstream::ReadAsUChar(unsigned char *data, int length, int offset)
+void irtkCifstream::ReadAsUChar(unsigned char *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset, length * sizeof(unsigned char));
 }
 
-void irtkCifstream::ReadAsShort(short *data, int length, int offset)
+void irtkCifstream::ReadAsShort(short *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset, length * sizeof(short));
@@ -73,7 +73,7 @@ void irtkCifstream::ReadAsShort(short *data, int length, int offset)
   if (_swapped == true) swap16((char *)data, (char *)data, length);
 }
 
-void irtkCifstream::ReadAsUShort(unsigned short *data, int length, int offset)
+void irtkCifstream::ReadAsUShort(unsigned short *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset,
@@ -83,7 +83,7 @@ void irtkCifstream::ReadAsUShort(unsigned short *data, int length, int offset)
   if (_swapped == true) swap16((char *)data, (char *)data, length);
 }
 
-void irtkCifstream::ReadAsInt(int *data, int length, int offset)
+void irtkCifstream::ReadAsInt(int *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset, length * sizeof(int));
@@ -92,7 +92,7 @@ void irtkCifstream::ReadAsInt(int *data, int length, int offset)
   if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
-void irtkCifstream::ReadAsUInt(unsigned int *data, int length, int offset)
+void irtkCifstream::ReadAsUInt(unsigned int *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset,
@@ -102,7 +102,7 @@ void irtkCifstream::ReadAsUInt(unsigned int *data, int length, int offset)
   if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
-void irtkCifstream::ReadAsFloat(float *data, int length, int offset)
+void irtkCifstream::ReadAsFloat(float *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset, length * sizeof(float));
@@ -111,7 +111,7 @@ void irtkCifstream::ReadAsFloat(float *data, int length, int offset)
   if (_swapped == true) swap32((char *)data, (char *)data, length);
 }
 
-void irtkCifstream::ReadAsDouble(double *data, int length, int offset)
+void irtkCifstream::ReadAsDouble(double *data, long length, long offset)
 {
   // Read data (possibly compressed)
   this->Read((char *)data, offset, length * sizeof(double));
@@ -120,7 +120,7 @@ void irtkCifstream::ReadAsDouble(double *data, int length, int offset)
   if (_swapped == true) swap64((char *)data, (char *)data, length);
 }
 
-void irtkCifstream::ReadAsString(char *data, int length, int offset)
+void irtkCifstream::ReadAsString(char *data, long length, long offset)
 {
   // Read string
 #ifdef HAS_ZLIB

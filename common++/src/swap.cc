@@ -12,7 +12,7 @@
 
 #include <irtkCommon.h>
 
-void swap16(char *a, char *b, int n)
+void swap16(char *a, char *b, long n)
 {
   int i;
   char c;
@@ -24,7 +24,7 @@ void swap16(char *a, char *b, int n)
   }
 }
 
-void swap32(char *a, char *b, int n)
+void swap32(char *a, char *b, long n)
 {
   int i;
   char c;
@@ -39,7 +39,7 @@ void swap32(char *a, char *b, int n)
   }
 }
 
-void swap64(char *a, char *b, int n)
+void swap64(char *a, char *b, long n)
 {
   int i;
   char c;

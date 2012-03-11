@@ -50,34 +50,34 @@ public:
   ~irtkCifstream();
 
   /// Read n data as array (possibly compressed) from offset
-  void Read(char *data, int length, int offset);
+  void Read(char *data, long length, long offset);
 
   /// Read n data as array of char (possibly compressed) from offset
-  void ReadAsChar  (char *data, int length, int offset = -1);
+  void ReadAsChar  (char *data, long length, long offset = -1);
 
   /// Read n data as array of unsigned char (possibly compressed) from offset
-  void ReadAsUChar (unsigned char  *data, int length, int offset = -1);
+  void ReadAsUChar (unsigned char  *data, long length, long offset = -1);
 
   /// Read n data as array of short (possibly compressed) from offset
-  void ReadAsShort (short *data, int length, int offset = -1);
+  void ReadAsShort (short *data, long length, long offset = -1);
 
   /// Read n data as array of unsigned short (possibly compressed) from offset
-  void ReadAsUShort(unsigned short *data, int length, int offset = -1);
+  void ReadAsUShort(unsigned short *data, long length, long offset = -1);
 
   /// Read n data as array of short (possibly compressed) from offset
-  void ReadAsInt   (int *data, int length, int offset = -1);
+  void ReadAsInt   (int *data, long length, long offset = -1);
 
   /// Read n data as array of unsigned short (possibly compressed) from offset
-  void ReadAsUInt  (unsigned int *data, int length, int offset = -1);
+  void ReadAsUInt  (unsigned int *data, long length, long offset = -1);
 
   /// Read n data as array of short (possibly compressed) from offset
-  void ReadAsFloat (float *data, int length, int offset = -1);
+  void ReadAsFloat (float *data, long length, long offset = -1);
 
   /// Read n data as array of unsigned short (possibly compressed) from offset
-  void ReadAsDouble(double *data, int length, int offset = -1);
+  void ReadAsDouble(double *data, long length, long offset = -1);
 
   /// Read n data as string (possibly compressed) from current position
-  void ReadAsString(char *data, int length, int offset = -1);
+  void ReadAsString(char *data, long length, long offset = -1);
 
   /// Open file
   void Open(const char *);

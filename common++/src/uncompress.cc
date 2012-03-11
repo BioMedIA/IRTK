@@ -225,7 +225,7 @@ code_int getcode(FILE *file, int fflg)
 
 #ifdef HAS_ZLIB
 
-int ReadCompressed(gzFile file, char *mem, int start, int num)
+int ReadCompressed(gzFile file, char *mem, long start, long num)
 {
   // Read data compressed if necessary
   char_type *stackp;
@@ -331,7 +331,7 @@ int ReadCompressed(gzFile file, char *mem, int start, int num)
 
 #else
 
-int ReadCompressed(FILE *file, char *mem, int start, int num)
+int ReadCompressed(FILE *file, char *mem, long start, long num)
 {
   // Read data compressed if necessary
   char_type *stackp;
