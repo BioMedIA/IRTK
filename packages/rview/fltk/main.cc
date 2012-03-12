@@ -260,6 +260,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       rview->DisplayCursorOff();
+      rview->DisplayAxisLabelsOff();
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-grid") == 0)) {
@@ -437,6 +438,18 @@ int main(int argc, char **argv)
       rview->GetSegmentTable()->Read(argv[1]);
       rview->SegmentationContoursOn();
       rviewUI->UpdateSegmentationBrowser();
+      argv++;
+      argc--;
+      ok = true;
+    }
+
+    if ((ok == false) && (strcmp(argv[1], "-line_thickness") == 0)){
+      argv++;
+      argc--;
+      double val = atof(argv[1]);
+      if ((val > 0.9) && (val < 10.1)){
+        rview->SetLineThickness(val);
+      }
       argv++;
       argc--;
       ok = true;
