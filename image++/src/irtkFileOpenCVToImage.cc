@@ -16,7 +16,7 @@
 
 #ifdef HAS_OPENCV
 
-#include <irtkImageToOpenCV.h>
+#include <irtkImageToOpenCv.h>
 
 const char *irtkFileOpenCVToImage::NameOfClass()
 {
