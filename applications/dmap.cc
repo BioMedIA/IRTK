@@ -24,22 +24,26 @@ char *modeName = NULL;
 
 void usage()
 {
-	cerr << " Usage: dmap [in] [out] <-options>"<<endl;
-	cerr << " " << endl;
-	cerr << " Where options are: " << endl;
-	cerr << "   -mode [mode]  Where [mode] can be 'euclidean' (default) or 'cityblock'." << endl;
-	cerr << " " << endl;
-	cerr << " Options applying to the default Euclidean transform only are:  " << endl;
-	cerr << "   <-3D/-2D>  " << endl;
-	cerr << "   -radial    " << endl;
-	cerr << "   -isotropic [zaxis times]" << endl << endl;
-	exit(1);
+  cerr << " Usage: dmap [in] [out] <-options>"<<endl;
+  cerr << " " << endl;
+  cerr << " Where options are: " << endl << endl;
+  cerr << "   -mode [mode]  Where [mode] can be 'euclidean' (default) or 'cityblock'." << endl << endl;
+
+  cerr << "   -clearSlices  Set distance map to zero for completely homogeneous slices." << endl;
+  cerr << "                 Used for visualisation." << endl << endl;
+
+  cerr << " Options applying to the default Euclidean transform only are:  " << endl;
+  cerr << "   <-3D/-2D>  " << endl;
+  cerr << "   -radial    " << endl;
+  cerr << "   -isotropic [zaxis times]" << endl << endl;
+  exit(1);
 }
 
 int main(int argc, char **argv)
 {
 	int x, y, z, ok, radialon, isotropic, sum;
 	irtkRealImage input, inputA, inputB, outputA, outputB;
+	bool clearSlices = false;
 
 	if (argc < 3) {
 		usage();
@@ -104,6 +108,12 @@ int main(int argc, char **argv)
 			argv++;
 			ok = true;
 		}
+    if ((ok == false) && (strcmp(argv[1], "-clearSlices") == 0)) {
+      argc--;
+      argv++;
+      clearSlices = true;
+      ok = true;
+    }
 		if (ok == false) {
 			cerr << "Can't parse argument " << argv[1] << endl;
 			usage();
@@ -208,21 +218,24 @@ int main(int argc, char **argv)
 		}
 	}
 
-	//fix the result to better visiualization
-	for (z = 0; z < input.GetZ(); z++) {
-		sum = 0;
-		for (y = 0; y < input.GetY(); y++){
-			for (x = 0; x < input.GetX(); x++){
-				sum += input.GetAsDouble(x,y,z);
-			}
-		}
-		if (sum == 0 || sum == input.GetX()*input.GetY()){
-			for (y = 0; y < input.GetY(); y++){
-				for (x = 0; x < input.GetX(); x++){
-					outputA(x, y, z) = 0;
-				}
-			}			
-		}
+
+	if (clearSlices){
+	  //fix the result to better visualisation
+	  for (z = 0; z < input.GetZ(); z++) {
+	    sum = 0;
+	    for (y = 0; y < input.GetY(); y++){
+	      for (x = 0; x < input.GetX(); x++){
+	        sum += input.GetAsDouble(x,y,z);
+	      }
+	    }
+	    if (sum == 0 || sum == input.GetX()*input.GetY()){
+	      for (y = 0; y < input.GetY(); y++){
+	        for (x = 0; x < input.GetX(); x++){
+	          outputA(x, y, z) = 0;
+	        }
+	      }
+	    }
+	  }
 	}
 
 	if(radialon == 1){
