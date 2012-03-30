@@ -36,17 +36,22 @@ void usage()
   cerr << "\t" << endl;
   cerr << "Options:" << endl;
   cerr << "\t-thickness [th_1] .. [th_N] Give slice thickness.[Default: voxel size in z direction]"<<endl;
-  cerr << "\t-mask [mask]            Binary mask to define the region od interest. [Default: whole image]"<<endl;
-  cerr << "\t-iterations [iter]      Number of registration-reconstruction iterations. [Default: 9]"<<endl;
-  cerr << "\t-sigma [sigma]          Stdev for bias field. [Default: 12mm]"<<endl;
-  cerr << "\t-resolution [res]       Isotropic resolution of the volume. [Default: 0.75mm]"<<endl;
-  cerr << "\t-multires [levels]      Multiresolution smooting with given number of levels. [Default: 3]"<<endl;
-  cerr << "\t-average [average]      Average intensity value for stacks [Default: 700]"<<endl;
-  cerr << "\t-delta [delta]          Parameter to define what is an edge. [Default: 150]"<<endl;
-  cerr << "\t-lambda [lambda]        Smoothing parameter. [Default: 0.02]"<<endl;
-  cerr << "\t-lastIter [lambda]      Smoothing parameter for last iteration. [Default: 0.01]"<<endl;
-  cerr << "\t-smooth_mask [sigma]    Smooth the mask to reduce artefacts of manual segmentation. [Default: 4mm]"<<endl;
-  cerr << "\t-debug                  Debug mode - save intermediate results."<<endl;
+  cerr << "\t-mask [mask]              Binary mask to define the region od interest. [Default: whole image]"<<endl;
+  cerr << "\t-iterations [iter]        Number of registration-reconstruction iterations. [Default: 9]"<<endl;
+  cerr << "\t-sigma [sigma]            Stdev for bias field. [Default: 12mm]"<<endl;
+  cerr << "\t-resolution [res]         Isotropic resolution of the volume. [Default: 0.75mm]"<<endl;
+  cerr << "\t-multires [levels]        Multiresolution smooting with given number of levels. [Default: 3]"<<endl;
+  cerr << "\t-average [average]        Average intensity value for stacks [Default: 700]"<<endl;
+  cerr << "\t-delta [delta]            Parameter to define what is an edge. [Default: 150]"<<endl;
+  cerr << "\t-lambda [lambda]          Smoothing parameter. [Default: 0.02]"<<endl;
+  cerr << "\t-lastIter [lambda]        Smoothing parameter for last iteration. [Default: 0.01]"<<endl;
+  cerr << "\t-smooth_mask [sigma]      Smooth the mask to reduce artefacts of manual segmentation. [Default: 4mm]"<<endl;
+  cerr << "\t-global_bias_correction   Correct the bias in reconstructed image against previous estimation."<<endl;
+  cerr << "\t-low_intensity_cutoff     Lower intensity threshold for inclusion of voxels in global bias correction."<<endl;
+  cerr << "\t-remove_black_background  Create mask from black background."<<endl;
+  cerr << "\t-transformations [folder] Use existing slice-to-volume transformations to initialize the reconstruction."<<endl;
+  cerr << "\t-force_exclude [number of slices] [ind1] ... [indN]  Force exclusion of slices with these indices."<<endl;
+  cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
   cerr << "\t" << endl;
   cerr << "\t" << endl;
   exit(1);
@@ -59,7 +64,7 @@ int main(int argc, char **argv)
   int i, ok;
   char buffer[256];
   irtkRealImage stack; 
-
+  
   //declare variables for input
   /// Name for output volume
   char * output_name = NULL;
@@ -86,7 +91,16 @@ int main(int argc, char **argv)
   int rec_iterations;
   double averageValue = 700;
   double smooth_mask = 4;
+  bool global_bias_correction = false;
+  double low_intensity_cutoff = 0.01;
+  //folder for slice-to-volume registrations, if given
+  char * folder=NULL;
+  //flag to remove black background, e.g. when neonatal motion correction is performed
+  bool remove_black_background = false;
   
+  //forced exclusion of slices
+  int number_of_force_excluded_slices = 0;
+  vector<int> force_excluded;
   //if not enough arguments print help
   if (argc < 5)
     usage();
@@ -252,6 +266,23 @@ int main(int argc, char **argv)
       ok = true;
     }
 
+    //Perform bias correction of the reconstructed image agains the GW image in the same motion correction iteration
+    if ((ok == false) && (strcmp(argv[1], "-global_bias_correction") == 0)){
+      argc--;
+      argv++;
+      global_bias_correction=true;
+      ok = true;
+    }
+
+    if ((ok == false) && (strcmp(argv[1], "-low_intensity_cutoff") == 0)){
+      argc--;
+      argv++;
+      low_intensity_cutoff=atof(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+    }
+
     //Debug mode
     if ((ok == false) && (strcmp(argv[1], "-debug") == 0)){
       argc--;
@@ -259,6 +290,47 @@ int main(int argc, char **argv)
       debug=true;
       ok = true;
     }
+    
+    //Read transformations from this folder
+    if ((ok == false) && (strcmp(argv[1], "-transformations") == 0)){
+      argc--;
+      argv++;
+      folder=argv[1];
+      ok = true;
+      argc--;
+      argv++;
+    }
+
+    //Remove black background
+    if ((ok == false) && (strcmp(argv[1], "-remove_black_background") == 0)){
+      argc--;
+      argv++;
+      remove_black_background=true;
+      ok = true;
+    }
+
+    //Force removal of certain slices
+    if ((ok == false) && (strcmp(argv[1], "-force_exclude") == 0)){
+      argc--;
+      argv++;
+      number_of_force_excluded_slices = atoi(argv[1]);
+      argc--;
+      argv++;
+
+      cout<< number_of_force_excluded_slices<< " force excluded slices: ";
+      for (i=0;i<number_of_force_excluded_slices;i++)
+      {
+        force_excluded.push_back(atoi(argv[1]));
+	cout<<force_excluded[i]<<" ";
+        argc--;
+        argv++;
+       }
+       cout<<"."<<endl;
+       cout.flush();
+
+      ok = true;
+    }
+
 
     if (ok == false){
       cerr << "Can not parse argument " << argv[1] << endl;
@@ -290,6 +362,12 @@ int main(int argc, char **argv)
   //Set debug mode
   if (debug) reconstruction.DebugOn();
   else reconstruction.DebugOff();
+  
+  //Set force excluded slices
+  reconstruction.SetForceExcludedSlices(force_excluded);
+
+  //Set low intensity cutoff for bias estimation
+  reconstruction.SetLowIntensityCutoff(low_intensity_cutoff)  ;
 
   
   // Check whether the template stack can be indentified
@@ -344,6 +422,11 @@ int main(int argc, char **argv)
   cout.rdbuf (file.rdbuf());
   //volumetric registration
   reconstruction.StackRegistrations(stacks,stack_transformations,templateNumber);
+
+  //if remove_black_background flag is set, create mask from black background of the stacks
+  if (remove_black_background)
+    reconstruction.CreateMaskFromBlackBackground(stacks,stack_transformations, smooth_mask);
+  
   cout<<endl;
   cout.flush();
   //redirect output back to screen
@@ -359,7 +442,7 @@ int main(int argc, char **argv)
   for (i=0; i<nStacks; i++)
   {
     //template stack has been cropped already
-    if (i==templateNumber) continue;
+    if ((i==templateNumber)&&(!remove_black_background)) continue;
     //transform the mask
     irtkRealImage m=reconstruction.GetMask();
     reconstruction.TransformMask(stacks[i],m,stack_transformations[templateNumber]);
@@ -402,9 +485,20 @@ int main(int argc, char **argv)
     reconstruction.SetSigma(sigma);
   else
   {
-    cerr<<"Please set sigma larger than zero. Current value: "<<sigma<<endl;
-    exit(1);
+    //cerr<<"Please set sigma larger than zero. Current value: "<<sigma<<endl;
+    //exit(1);
+    reconstruction.SetSigma(12);
   }
+  
+  //Set global bias correction flag
+  if (global_bias_correction)
+    reconstruction.GlobalBiasCorrectionOn();
+  else 
+    reconstruction.GlobalBiasCorrectionOff();
+    
+  //if given read slice-to-volume registrations
+  if (folder!=NULL)
+    reconstruction.ReadTransformation(folder);
     
   //Initialise data structures for EM
   reconstruction.InitializeEM();
@@ -486,17 +580,29 @@ int main(int argc, char **argv)
     {
       cout<<endl<<"  Reconstruction iteration "<<i<<". "<<endl;
       
+      //calculate bias fields
+      if (sigma>0)
+        reconstruction.Bias();
+      
       //calculate scales
       reconstruction.Scale();
       
-      //calculate bias fields
-      reconstruction.Bias();
-      
       //MStep and update reconstructed volume
-      reconstruction.SuperresolutionAndMStep(i+1);
+      //reconstruction.SuperresolutionAndMStep(i+1);
+      reconstruction.Superresolution(i+1);
+      reconstruction.MStep(i+1);
       
       //E-step
       reconstruction.EStep();
+      
+    //Save intermediate reconstructed image
+    if (debug)
+    {
+      reconstructed=reconstruction.GetReconstructed();
+      sprintf(buffer,"super%i.nii.gz",i);
+      reconstructed.Write(buffer);
+    }
+
       
     }//end of reconstruction iterations
     
@@ -525,6 +631,12 @@ int main(int argc, char **argv)
   reconstructed.Write(output_name); 
   reconstruction.SaveTransformations();
   reconstruction.SaveSlices();
+  if(debug)
+  {
+    reconstruction.SaveWeights();
+    reconstruction.SaveBiasFields();
+    reconstruction.SaveConfidenceMap();
+  }
   
   //The end of main()
 }  
