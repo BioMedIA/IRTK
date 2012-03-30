@@ -14,6 +14,7 @@
 #include <irtkResampling.h>
 #include <irtkRegistration.h>
 #include <irtkTransformation.h>
+#include <irtkMeanShift.h>
 
 irtkReconstruction::irtkReconstruction()
 {
@@ -31,6 +32,8 @@ irtkReconstruction::irtkReconstruction()
   _alpha=(0.05/_lambda)*_delta*_delta;
   _template_created=false;
   _have_mask=false;
+  _low_intensity_cutoff=0.01;
+  _global_bias_correction=false;
 
 }
 
@@ -87,6 +90,65 @@ double irtkReconstruction::CreateTemplate(irtkRealImage stack, double resolution
   //return resulting resolution of the template image
   return d;
 }
+
+void irtkReconstruction::CreateMaskFromBlackBackground(vector<irtkRealImage>& stacks,vector<irtkRigidTransformation>& stack_transformations, double smooth_mask)
+{
+  //Create average of the stack using currect stack transformations
+  irtkGreyImage average = CreateAverage(stacks,stack_transformations);
+
+  //Create mask of the average from the black background
+  irtkMeanShift msh(average, 0, 256);
+  msh.GenerateDensity();
+  msh.SetTreshold();
+  msh.RemoveBackground();
+  irtkGreyImage mask = msh.ReturnMask();
+  
+  //Calculate LCC of the mask to remove disconected structures
+  irtkMeanShift msh2(mask,0,256);
+  msh2.SetOutput(&mask);
+  cout.flush();
+  msh2.Lcc(1);
+  cout.flush();
+  irtkRealImage m = mask;
+  SetMask(&m,smooth_mask); 
+  
+}
+
+irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,vector<irtkRigidTransformation>& stack_transformations)
+{
+  if (!_template_created)
+  {
+    cerr<<"Please create the template before calculating the average of the stacks."<<endl;
+    exit(1);
+  }
+  irtkRealImage average = _reconstructed;
+  ClearImage(average,0);
+  //transform stack to the template space
+  irtkImageTransformation *imagetransformation = new irtkImageTransformation;
+  irtkImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
+  InvertStackTransformations(stack_transformations);
+  for (uint i=0; i<stacks.size();i++)
+  {
+    irtkRealImage s = stacks[i];
+    irtkRigidTransformation t = stack_transformations[i];
+    imagetransformation->SetInput (&s, &t);
+    irtkRealImage image = _reconstructed;
+    ClearImage(image,0);
+    imagetransformation->SetOutput(&image);
+    //target contains zeros and ones image, need padding -1
+    imagetransformation->PutTargetPaddingValue(-1);
+    //need to fill voxels in target where there is no info from source with zeroes
+    imagetransformation->PutSourcePaddingValue(0);
+    imagetransformation->PutInterpolator(interpolator);
+    imagetransformation->Run();
+    average+=image;
+  }
+  InvertStackTransformations(stack_transformations);
+  delete imagetransformation;
+  delete interpolator;
+  return average;  
+}
+
 
 void irtkReconstruction::SetMask(irtkRealImage * mask, double sigma)
 {
@@ -576,6 +638,33 @@ void irtkReconstruction::SaveSlices()
   }
 }
 
+void irtkReconstruction::SaveWeights()
+{
+  char buffer[256];
+  for (int inputIndex=0; inputIndex<_slices.size(); inputIndex++)
+  {
+    sprintf(buffer,"weights%i.nii.gz",inputIndex);
+    _weights[inputIndex].Write(buffer);
+  }
+}
+
+void irtkReconstruction::SaveBiasFields()
+{
+  char buffer[256];
+  for (int inputIndex=0; inputIndex<_slices.size(); inputIndex++)
+  {
+    sprintf(buffer,"bias%i.nii.gz",inputIndex);
+    _bias[inputIndex].Write(buffer);
+  }
+}
+
+void irtkReconstruction::SaveConfidenceMap()
+{
+  _confidence_map.Write("confidence-map.nii.gz");
+}
+
+
+
 void irtkReconstruction::CoeffInit()
 {
  //clear slice-volume matrix from previous iteration
@@ -664,7 +753,7 @@ void irtkReconstruction::CoeffInit()
 	  x=i;y=j;z=k;
 	  PSF.ImageToWorld(x,y,z);
 	  x-=cx;y-=cy;z-=cz;
-	  //continuous PSF does not need to be normalized as discreet will be
+	  //continuous PSF does not need to be normalized as discrete will be
 	  PSF(i,j,k) = exp(-x*x/(2*sigmax*sigmax)-y*y/(2*sigmay*sigmay)-z*z/(2*sigmaz*sigmaz));
           sum+=PSF(i,j,k);
 	}
@@ -676,8 +765,9 @@ void irtkReconstruction::CoeffInit()
     
     
     //prepare storage for PSF transformed and resampled to the space of reconstructed volume
-    //maximum dim of rotated kernel - the next higher odd integer
-    int dim = (floor(ceil(sqrt(double(xDim*xDim+yDim*yDim+zDim*zDim)))/2))*2+1;
+    //maximum dim of rotated kernel - the next higher odd integer plus two to accound for rounding error of tx,ty,tz. 
+    //Note conversion from PSF image coordinates to tPSF image coordinates *size/res
+    int dim = (floor(ceil(sqrt(double(xDim*xDim+yDim*yDim+zDim*zDim))*size/res)/2))*2+1+2;
     //prepare image attributes. Voxel dimension will be taken from the reconstructed volume
     attr._x=dim; attr._y=dim;attr._z=dim;
     attr._dx=res; attr._dy=res; attr._dz=res;
@@ -695,7 +785,7 @@ void irtkReconstruction::CoeffInit()
     for(i=0;i<slice.GetX();i++)
       for(j=0;j<slice.GetY();j++)
         if (slice(i,j,0)!=-1)
-        {	  
+        {  
 	  //calculate centrepoint of slice voxel in volume space (tx,ty,tz)
 	  x=i;y=j;z=0;
 	  slice.ImageToWorld(x,y,z);
@@ -797,6 +887,10 @@ void irtkReconstruction::CoeffInit()
 			      if ((aa<0)||(aa>=dim)||(bb<0)||(bb>=dim)||(cc<0)||(cc>=dim))
 			      {
 				cerr<<"Error while trying to populate tPSF. "<<aa<<" "<<bb<<" "<<cc<<endl;
+				cerr<<l<<" "<<m<<" "<<n<<endl;
+				cerr<<tx<<" "<<ty<<" "<<tz<<endl;
+				cerr<<centre<<endl;
+				tPSF.Write("tPSF.nii.gz");
 				exit(1);
 			      }
 			      else //update transformed PSF
@@ -971,11 +1065,11 @@ void irtkReconstruction::InitializeEMValues()
   }
   
   //Initialise slice weights
-  for (int i=0; i<_slices.size(); i++)
+  for (uint i=0; i<_slices.size(); i++)
     _slice_weight[i]=1;
-
+  
   //Initialise scaling factors for intensity matching
-  for (int i=0; i<_slices.size(); i++)
+  for (uint i=0; i<_slices.size(); i++)
     _scale[i]=1;  
 }
 
@@ -1029,11 +1123,18 @@ void irtkReconstruction::InitializeRobustStatistics()
 	    num++;
 	  }
 	}
+	
     //if slice does not have an overlap with ROI, set its weight to zero	
     if (!slice_inside)
 	  _slice_weight[inputIndex]=0;
+
   }
   
+  //Force exclusion of slices predefined by user
+  for (uint i=0; i<_force_excluded.size(); i++)
+    _slice_weight[_force_excluded[i]]=0;
+
+
   //initialize sigma for voxelwise robust statistics
   _sigma=sigma/num;
   //initialize sigma for slice-wise robust statistics
@@ -1127,6 +1228,11 @@ void irtkReconstruction::EStep()
       slice_potential[inputIndex]=sqrt(slice_potential[inputIndex]/num);
     else slice_potential[inputIndex]=-1; // slice has no unpadded voxels
   }
+  
+  //To force-exclude slices predefined by a user, set their potentials to -1
+  for (uint i=0; i<_force_excluded.size(); i++)
+    slice_potential[_force_excluded[i]]=-1;
+
       
   //Calulation of slice-wise robust statistics parameters.
   //This is theoretically M-step, but we want to use latest estimate of slice potentials
@@ -1355,12 +1461,15 @@ void irtkReconstruction::Scale()
   }
   
   //Normalise scales by setting geometric mean to 1
-  double product=1;
-  for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-    product*=_scale[inputIndex];
-  product=pow(product,1.0/_slices.size());
-  for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-    _scale[inputIndex]/=product; 
+  if ( !_global_bias_correction )
+  {
+    double product=1;
+    for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+      product*=_scale[inputIndex];
+    product=pow(product,1.0/_slices.size());
+    for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+      _scale[inputIndex]/=product; 
+  }
 
   if (_debug)
   {
@@ -1427,7 +1536,8 @@ void irtkReconstruction::Bias()
 	  
 	  //calculate weighted residual image
 	  //make sure it is far from zero to avoid numerical instability
-	  if ((sim(i,j,0)>1)&&(slice(i,j,0))>1)
+	  //if ((sim(i,j,0)>_low_intensity_cutoff*_max_intensity)&&(slice(i,j,0)>_low_intensity_cutoff*_max_intensity))
+          if ((sim(i,j,0)>1)&&(slice(i,j,0)>1))
 	  {
 	    wresidual(i,j,0)=log(slice(i,j,0)/sim(i,j,0))*wb(i,j,0);
 	  }
@@ -1464,15 +1574,18 @@ void irtkReconstruction::Bias()
 	}    
 
     //normalize bias field to have zero mean
-    double mean=0;
-    if (num>0)
-      mean=sum/num;
-    for (i=0;i<slice.GetX();i++)
-      for (j=0;j<slice.GetY();j++)
-        if ((slice(i,j,0)!=-1)&&(num>0))
-	{
-          b(i,j,0)-=mean;
-	}
+    if ( !_global_bias_correction )
+    {
+      double mean=0;
+      if (num>0)
+        mean=sum/num;
+      for (i=0;i<slice.GetX();i++)
+        for (j=0;j<slice.GetY();j++)
+          if ((slice(i,j,0)!=-1)&&(num>0))
+	  {
+            b(i,j,0)-=mean;
+	  }
+    }
 	
     _bias[inputIndex]=b;
 
@@ -1482,6 +1595,167 @@ void irtkReconstruction::Bias()
     cout<<"done. "<<endl;
 }
 
+void irtkReconstruction::Superresolution(int iter)
+{
+  int inputIndex;
+  int i,j,k,n;
+  irtkRealImage slice,addon,w,b,original;
+  POINT p;
+  double scale;
+  
+  //Remember current reconstruction for edge-preserving smoothing
+  original=_reconstructed;
+  
+  //Clear addon
+  addon=_reconstructed;
+  ClearImage(addon,0);
+  
+  //Clear confidence map
+  _confidence_map=_reconstructed;
+  ClearImage(_confidence_map,0);
+   
+  for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
+  {
+    // read the current slice
+    slice=_slices[inputIndex];  
+    //read the current weight image
+    w=_weights[inputIndex];
+    //read the current bias image
+    b=_bias[inputIndex];
+    //identify scale factor
+    scale = _scale[inputIndex];
+ 
+    //Update reconstructed volume using current slice
+
+    //Clear addon
+    addon=_reconstructed;
+    addon(0,0,0)=1;
+    addon.PutMinMax(0,0);
+
+     //Distribute error to the volume
+    for (i=0;i<slice.GetX();i++)
+      for (j=0;j<slice.GetY();j++)
+        if (slice(i,j,0)!=-1)
+	{
+	  //bias correct and scale the slice
+	  slice(i,j,0)*=exp(-b(i,j,0))*scale;
+	  n=_volcoeffs[inputIndex][i][j].size();
+	  
+	  //calculate error
+	  for(k=0;k<n;k++)
+	  {
+	    p=_volcoeffs[inputIndex][i][j][k];
+	    slice(i,j,0)-=p.value*_reconstructed(p.x,p.y,p.z);
+	  }
+	  
+	  for(k=0;k<n;k++)
+	  {
+	    p=_volcoeffs[inputIndex][i][j][k];
+	    addon(p.x,p.y,p.z) += p.value*slice(i,j,0)*w(i,j,0)*_slice_weight[inputIndex];
+	    _confidence_map(p.x,p.y,p.z) += p.value*w(i,j,0)*_slice_weight[inputIndex];
+	  }
+	}
+	
+    //update volume using errors of the current slice
+    _reconstructed += addon*_alpha;
+
+   //end of loop for a slice inputIndex  
+  }
+  
+  //bound the intensities
+  for(i=0;i<_reconstructed.GetX();i++)
+    for(j=0;j<_reconstructed.GetY();j++)
+      for(k=0;k<_reconstructed.GetZ();k++)
+      {
+	  if (_reconstructed(i,j,k)<_min_intensity*0.9) _reconstructed(i,j,k)=_min_intensity*0.9;
+	  if (_reconstructed(i,j,k)>_max_intensity*1.1) _reconstructed(i,j,k)=_max_intensity*1.1;
+      }
+        
+  //Smooth the reconstructed image
+  AdaptiveRegularization(iter, original);
+  //Remove the bias in the reconstructed volume compared to previous iteration
+  if (_global_bias_correction)BiasCorrectVolume(original);
+  
+}
+
+void irtkReconstruction::MStep(int iter)
+{
+  int inputIndex;
+  int i,j,k,n;
+  irtkRealImage slice,w,b;
+  POINT p;
+  double sigma=0, mix=0,num=0,scale;
+  double min=0,max=0;
+  
+   
+  for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
+  {
+    // read the current slice
+    slice=_slices[inputIndex];  
+    //read the current weight image
+    w=_weights[inputIndex];
+    //read the current bias image
+    b=_bias[inputIndex];
+    //identify scale factor
+    scale = _scale[inputIndex];
+
+ 
+    //calculate error
+    for (i=0;i<slice.GetX();i++)
+      for (j=0;j<slice.GetY();j++)
+        if (slice(i,j,0)!=-1)
+	{
+	  //bias correct and scale the slice
+	  slice(i,j,0)*=exp(-b(i,j,0))*scale;
+	  
+	  //calculate error
+  	  n=_volcoeffs[inputIndex][i][j].size();
+	  for(k=0;k<n;k++)
+	  {
+	    p=_volcoeffs[inputIndex][i][j][k];
+	    slice(i,j,0)-=p.value*_reconstructed(p.x,p.y,p.z);
+	  }
+	  
+ 	  //sigma and mix
+	  double e=slice(i,j,0);
+  	  sigma += e*e*w(i,j,0);
+	  mix += w(i,j,0);
+
+	  //_m
+	  if (e<min) min=e;
+	  if (e>max) max=e;
+	  
+	  num++;
+	}	    
+   //end of loop for a slice inputIndex  
+  }
+        
+  //Calculate sigma and mix
+  if (mix>0)
+  {
+    _sigma=sigma/mix;
+  }
+  else
+  {
+    cerr<<"Something went wrong: sigma="<<sigma<<" mix="<<mix<<endl;
+    exit(1);
+  }
+  if (_sigma<_step*_step/6.28)
+    _sigma = _step*_step/6.28;
+  if (iter>1)
+    _mix = mix/num;
+  
+  //Calculate m
+  _m=1/(max-min);
+
+  if (_debug)
+  {
+    cout<<"Voxel-wise robust statistics parameters: ";
+    cout<<"sigma = "<<sqrt(_sigma)<<" mix = "<<_mix<<" ";
+    cout<<" m = "<<_m<<endl;
+  }
+  
+}
 
 void irtkReconstruction::SuperresolutionAndMStep(int iter)
 {
@@ -1606,6 +1880,8 @@ void irtkReconstruction::SuperresolutionAndMStep(int iter)
   
   //Smooth the reconstructed image
   AdaptiveRegularization(iter, original);
+  //Remove the bias in the reconstructed volume compared to previous iteration
+  if (_global_bias_correction)BiasCorrectVolume(original);
 }
 
 
@@ -1708,6 +1984,84 @@ void irtkReconstruction::AdaptiveRegularization(int iter, irtkRealImage& origina
   }
 }
 
+void irtkReconstruction::BiasCorrectVolume(irtkRealImage& original)
+{
+  //remove low-frequancy component in the reconstructed image which might have accured due to overfitting of the biasfield
+  irtkRealImage residual = _reconstructed;
+  irtkRealImage weights = _mask;
+  
+  //_reconstructed.Write("super-notbiascor.nii.gz");
+
+  
+  //calculate weighted residual
+  irtkRealPixel *pr = residual.GetPointerToVoxels();
+  irtkRealPixel *po = original.GetPointerToVoxels();
+  irtkRealPixel *pw = weights.GetPointerToVoxels();
+  for (int i=0; i<_reconstructed.GetNumberOfVoxels();i++)
+  {
+    //second and term to avoid numerical problems
+    if ((*pw==1)&&(*po>_low_intensity_cutoff*_max_intensity)&&(*pr>_low_intensity_cutoff*_max_intensity))
+    {
+      *pr/=*po;
+      *pr=log(*pr);
+    }
+    else
+    {
+      *pw=0;
+      *pr=0;
+    }
+    pr++;  
+    po++;  
+    pw++;
+  }
+  //residual.Write("residual.nii.gz");
+  //blurring needs to be same as for slices
+  irtkGaussianBlurring<irtkRealPixel> *_gb = new irtkGaussianBlurring<irtkRealPixel>(_sigma_bias);
+  //blur weigted residual
+  _gb->SetInput(&residual);
+  _gb->SetOutput(&residual);
+  _gb->Run();
+  //blur weight image
+  _gb->SetInput(&weights);
+  _gb->SetOutput(&weights);
+  _gb->Run();
+  
+  //calculate the bias field
+  pr = residual.GetPointerToVoxels();
+  pw = weights.GetPointerToVoxels();
+  irtkRealPixel *pm = _mask.GetPointerToVoxels();
+  irtkRealPixel *pi = _reconstructed.GetPointerToVoxels();
+  for (int i=0; i<_reconstructed.GetNumberOfVoxels();i++)
+  {
+    
+    if (*pm==1)
+    {
+      //weighted gaussian smoothing
+      *pr/=*pw;
+      //exponential to recover multiplicative bias field
+      *pr=exp(*pr);
+      //bias correct reconstructed
+      *pi/=*pr;
+      //clamp intensities to allowed range
+      if (*pi < _min_intensity*0.9) *pi = _min_intensity*0.9;
+      if (*pi > _max_intensity*1.1) *pi = _max_intensity*1.1;
+    }
+    else
+    {
+      *pr=0;
+    }
+    pr++;
+    pw++;
+    pm++;
+    pi++;
+  }
+  
+  //residual.Write("biasfield.nii.gz");
+  //_reconstructed.Write("super-biascor.nii.gz");
+  
+  
+}
+
 void irtkReconstruction::MaskVolume()
 {
   irtkRealPixel *pr = _reconstructed.GetPointerToVoxels();
@@ -1764,4 +2118,43 @@ void irtkReconstruction::Evaluate(int iter)
 
 }
 
+
+void irtkReconstruction::ReadTransformation(char* folder)
+{
+  int n = _slices.size();
+  char name[256];
+  char path[256];
+  irtkTransformation *transformation;
+  irtkRigidTransformation *rigidTransf;
+  
+  if (n==0)
+  {
+    cerr<<"Please create slices before reading transformations!"<<endl;
+    exit(1);
+  }
+  cout<<"Reading transformations:"<<endl;
+  cout.flush();
+  
+  _transformations.clear();
+  for (int i=0; i<n;i++)
+  {
+    if (folder!=NULL)
+    {
+      sprintf(name,"/transformation%i.dof",i);
+      strcpy(path,folder);
+      strcat(path,name);
+    }
+    else
+    {
+      sprintf(path,"transformation%i.dof",i);
+    }
+    transformation = irtkTransformation::New(path);
+    rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
+    _transformations.push_back(*rigidTransf);
+    delete transformation;
+    cout<<path<<endl;
+    cout.flush();
+
+  }
+}
 
