@@ -25,6 +25,23 @@ irtkMeanShift::~irtkMeanShift()
   delete[] _density;
 }
 
+irtkRealImage irtkMeanShift::ReturnMask()
+{
+  irtkRealImage mask = _image;
+  irtkRealPixel *ptr = mask.GetPointerToVoxels();
+  int n = _image.GetNumberOfVoxels();
+  for(int i=0;i<n;i++)
+  {
+    if(*ptr!=_padding)
+      *ptr=1;
+    else
+      *ptr=0;
+    ptr++;
+  }
+  return mask;
+}
+
+
 void irtkMeanShift::SetOutput(irtkGreyImage *output)
 {
   _output = output;
@@ -48,10 +65,10 @@ double irtkMeanShift::GenerateDensity(double cut_off)
   int voxels=0;
 
   _image.GetMinMax(&_imin,&_imax);
-  cerr<<_imin<<" "<<_imax<<endl;
+  cout<<_imin<<" "<<_imax<<endl;
   _bin_width = (_imax-_imin+1)/_nBins;
 
-  cerr<<"generating density..."<<endl;
+  cout<<"generating density..."<<endl;
   for(i=0;i<n;i++)
   {
     if(*ptr>_padding)
@@ -62,10 +79,10 @@ double irtkMeanShift::GenerateDensity(double cut_off)
     }
     ptr++;
   }
-  cerr<<"done"<<endl;
+  cout<<"done"<<endl;
 
 
-  cerr<<"Cutting off 2% of highest intensities"<<endl;
+  cout<<"Cutting off 2% of highest intensities"<<endl;
   double sum=0,bs=0;
   for(i=0; i<_nBins; i++) sum+=_density[i];
   i=_nBins-1;
@@ -77,7 +94,7 @@ double irtkMeanShift::GenerateDensity(double cut_off)
 
   _limit = BinToValue(i);
 
-  cerr<<"limit="<<_limit<<endl<<endl;
+  cout<<"limit="<<_limit<<endl<<endl;
   return _limit;
 }
 
@@ -129,7 +146,7 @@ double irtkMeanShift::msh(double y, double h)
   irtkGreyPixel* ptr;
   int n = _image.GetNumberOfVoxels();
 
-  //cerr<<"msh: position = "<<y<<", bandwidth = "<<h<<endl;
+  //cout<<"msh: position = "<<y<<", bandwidth = "<<h<<endl;
 
   if(h<=_bin_width) return y;
 
@@ -169,7 +186,7 @@ double irtkMeanShift::findGMvar()
   {
     k=sqrt(2*log(_density[mean]/(double)_density[i]));
     sigma=abs(BinToValue(i)-_gm)/k;
-    cerr<<"Pos "<<BinToValue(i)<<": sigma = "<<sigma<<endl;
+    cout<<"Pos "<<BinToValue(i)<<": sigma = "<<sigma<<endl;
   }
 
   return sigma;
@@ -184,25 +201,25 @@ double irtkMeanShift::findMax(double tr1, double tr2)
   j1=ValueToBin(tr1);
   j2=ValueToBin(tr2);
 
-  //cerr<<imin<<" "<<imax<<endl;
-  //cerr<<j1<<" "<<j2<<endl;
+  //cout<<imin<<" "<<imax<<endl;
+  //cout<<j1<<" "<<j2<<endl;
 
   i0 = j1;
   for (i=j1; i<=j2; i++)
   {
-    //cerr<<_density[i]<<" ";
+    //cout<<_density[i]<<" ";
     if(mx<_density[i])
     {
      i0=i;
      mx=_density[i];
-     //cerr<<"density["<<i<<"]="<<_density[i]<<", mx="<<mx<<endl;
+     //cout<<"density["<<i<<"]="<<_density[i]<<", mx="<<mx<<endl;
     }
   }
-  //cerr<<i0<<endl;
+  //cout<<i0<<endl;
   pos=BinToValue(i0);//imin+i0*(imax+1-imin)/nBins;
-  //cerr<<pos<<endl;
+  //cout<<pos<<endl;
 
-  cerr<<"Maximum for interval <"<<tr1<<", "<<tr2<<"> is "<<pos<<endl;
+  cout<<"Maximum for interval <"<<tr1<<", "<<tr2<<"> is "<<pos<<endl;
   return pos;
 }
 
@@ -213,8 +230,8 @@ double irtkMeanShift::findMin(double tr1, double tr2)
   //j1 = nBins*(tr1-imin)/(imax+1-imin);
   //j2 = nBins*(tr2-imin)/(imax+1-imin);
 
-  //cerr<<imin<<" "<<imax<<endl;
-  //cerr<<j1<<" "<<j2<<endl;
+  //cout<<imin<<" "<<imax<<endl;
+  //cout<<j1<<" "<<j2<<endl;
 
   j1=ValueToBin(tr1);
   j2=ValueToBin(tr2);
@@ -226,13 +243,13 @@ double irtkMeanShift::findMin(double tr1, double tr2)
     {
      i0=i;
      mx=_density[i];
-     //cerr<<"density["<<i<<"]="<<density[i]<<", mx="<<mx<<endl;
+     //cout<<"density["<<i<<"]="<<density[i]<<", mx="<<mx<<endl;
     }
   }
   pos=BinToValue(i0);//imin+i0*(imax+1-imin)/nBins;
   //pos=imin+i0*(imax+1-imin)/nBins;
 
-  cerr<<"Minimum for interval <"<<tr1<<", "<<tr2<<"> is "<<pos<<endl;
+  cout<<"Minimum for interval <"<<tr1<<", "<<tr2<<"> is "<<pos<<endl;
   return pos;
 }
 
@@ -242,17 +259,17 @@ double irtkMeanShift::split(double pos1, double pos2, double bw, double h1, doub
   double m1, m2, m3;
   bool change = true;
 
-  cerr<<"split: "<<pos1<<" "<<pos2<<" "<<bw<<" "<<h1<<" "<<h2<<endl;
+  cout<<"split: "<<pos1<<" "<<pos2<<" "<<bw<<" "<<h1<<" "<<h2<<endl;
 
   while(((pos2-pos1) > _bin_width)&&(change)&&( bw>_bin_width ))
   {
     change=false;
-    cerr<<"pos1="<<pos1<<" pos2="<<pos2<<endl;
+    cout<<"pos1="<<pos1<<" pos2="<<pos2<<endl;
     tr=_bin_width;
     if (tr<1) tr=1;
     m1=msh(pos1,bw);
     m2=msh(pos2,bw);
-    cerr<<"m1="<<m1<<", m2="<<m2<<endl;
+    cout<<"m1="<<m1<<", m2="<<m2<<endl;
     
     if((m2-m1)< tr)
     {
@@ -260,21 +277,21 @@ double irtkMeanShift::split(double pos1, double pos2, double bw, double h1, doub
       bw=(h1+h2)/2;
       if(bw<=h2-1)
       {
-        cerr<<"reducing bandwidth: bw="<<bw<<endl;
-        cerr<<"h1="<<h1<<", h2="<<h2<<endl;
+        cout<<"reducing bandwidth: bw="<<bw<<endl;
+        cout<<"h1="<<h1<<", h2="<<h2<<endl;
         change=true;
       }
     }
     else
     {
-      cerr<<"changing positions:"<<endl;
+      cout<<"changing positions:"<<endl;
       m3=msh((pos1+pos2)/2, bw);
-      cerr<<"m3="<<m3<<endl;
+      cout<<"m3="<<m3<<endl;
       if((m3-m1)<tr)
       {
         pos1=(pos1+pos2)/2;
         change=true;
-        cerr<<"pos1="<<pos1<<endl;
+        cout<<"pos1="<<pos1<<endl;
       }
       else
       {
@@ -282,7 +299,7 @@ double irtkMeanShift::split(double pos1, double pos2, double bw, double h1, doub
 	{
 	  pos2=(pos1+pos2)/2;
 	  change=true;
-        cerr<<"pos2="<<pos2<<endl;
+        cout<<"pos2="<<pos2<<endl;
 	}
 	else
 	{
@@ -290,15 +307,15 @@ double irtkMeanShift::split(double pos1, double pos2, double bw, double h1, doub
 	  bw=(h1+h2)/2;
 	  if(bw>=h1+1)
 	  {
-            cerr<<"increasing bandwidth: bw="<<bw<<endl;
-            cerr<<"h1="<<h1<<", h2="<<h2<<endl;
+            cout<<"increasing bandwidth: bw="<<bw<<endl;
+            cout<<"h1="<<h1<<", h2="<<h2<<endl;
 
 	    change=true;
 	  }
           else 
           {
-            //cerr<<"bandwidth fixed:"<<bw<<endl;
-            cerr<<"change=false, exiting split."<<endl;
+            //cout<<"bandwidth fixed:"<<bw<<endl;
+            cout<<"change=false, exiting split."<<endl;
             
           }
 	}
@@ -307,7 +324,7 @@ double irtkMeanShift::split(double pos1, double pos2, double bw, double h1, doub
     }
   }
 
-  cerr<<"treshold="<<pos1<<endl;
+  cout<<"treshold="<<pos1<<endl;
 
   return pos1;
 }
@@ -315,7 +332,7 @@ double irtkMeanShift::split(double pos1, double pos2, double bw, double h1, doub
 
 void irtkMeanShift::SetTreshold(double treshold)
 {
-  cerr<<"treshold = "<<treshold<<endl;
+  cout<<"treshold = "<<treshold<<endl;
 
   _treshold = treshold;
 }
@@ -327,7 +344,7 @@ void irtkMeanShift::SetTreshold()
   double bw=2*_nBins;
   double h1=0, h2=bw;
 
-  cerr<<"calculating treshold ... ";
+  cout<<"calculating treshold ... ";
 
   _limit1 = split(pos1, pos2, bw, h1, h2);
   _bg=findMax(0,_limit1);
@@ -344,7 +361,7 @@ int irtkMeanShift::Lcc(int label, bool add_second)
  int lcc2_size = 0;
  int lcc_x = 0, lcc_y = 0, lcc_z = 0, lcc2_x = 0, lcc2_y = 0, lcc2_z = 0;
 
- //cerr<<"Finding Lcc"<<endl;
+ //cout<<"Finding Lcc"<<endl;
   _map=_image;
   //_image.Write("image.nii.gz");
 
@@ -388,7 +405,7 @@ int irtkMeanShift::Lcc(int label, bool add_second)
 
   if((add_second)&&(lcc2_size > 0.5*lcc_size))
   {
-    cerr<<"Adding second largest cluster too. ";
+    cout<<"Adding second largest cluster too. ";
     Grow(lcc2_x,lcc2_y,lcc2_z,label);
   }
   //_map.Write("lcc.nii.gz");
@@ -405,7 +422,7 @@ int irtkMeanShift::LccS(int label, double treshold)
  queue<irtkPoint> seed;
  queue<int> size;
 
- //cerr<<"Finding Lcc and all cluster of 70% of the size of Lcc"<<endl;
+ //cout<<"Finding Lcc and all cluster of 70% of the size of Lcc"<<endl;
   _map=_image;
   //_image.Write("image.nii.gz");
 
@@ -486,7 +503,7 @@ void irtkMeanShift::Grow(int x, int y, int z, int label)
 void irtkMeanShift::RegionGrowing()
 {
  int i; 
- cerr<<"Removing background"<<endl;
+ cout<<"Removing background"<<endl;
   _map=_image;
 
   irtkGreyPixel* ptr=_map.GetPointerToVoxels();
@@ -530,7 +547,7 @@ void irtkMeanShift::RegionGrowing()
 void irtkMeanShift::RemoveBackground()
 {
  int i; 
- cerr<<"Removing background"<<endl;
+ cout<<"Removing background"<<endl;
   _map=_image;
 
   irtkGreyPixel* ptr=_map.GetPointerToVoxels();
@@ -569,7 +586,7 @@ void irtkMeanShift::RemoveBackground()
     AddPoint(x,y,z+1);
   }
 
-  cerr<< "dilating and eroding ... ";
+  cout<< "dilating and eroding ... ";
   _brain = new irtkGreyImage(_map);
 
   int iterations = 3;
@@ -583,7 +600,7 @@ void irtkMeanShift::RemoveBackground()
   erosion.SetOutput(_brain);
   for (i = 0; i < iterations; i++) erosion.Run();
 
-  cerr<<"recalculating ... ";
+  cout<<"recalculating ... ";
 
   ptr=_map.GetPointerToVoxels();
   for(i=0;i<n;i++)
@@ -617,7 +634,7 @@ void irtkMeanShift::RemoveBackground()
     AddPoint(x,y,z+1);
   }
 
-   cerr<<"eroding ... ";
+   cout<<"eroding ... ";
 
   *_brain = _map;
 
@@ -625,7 +642,7 @@ void irtkMeanShift::RemoveBackground()
   erosion.SetOutput(_brain);
   for (i = 0; i < iterations; i++) erosion.Run();
 
-  cerr<<"final recalculation ...";
+  cout<<"final recalculation ...";
 
   ptr=_map.GetPointerToVoxels();
   for(i=0;i<n;i++)
@@ -660,7 +677,7 @@ void irtkMeanShift::RemoveBackground()
   }
 
   delete _brain;
-  cerr<<"done."<<endl;
+  cout<<"done."<<endl;
 
   ptr=_map.GetPointerToVoxels();
   irtkGreyPixel *ptr_b=_image.GetPointerToVoxels();
@@ -686,15 +703,15 @@ void irtkMeanShift::WriteMap(char *output_name)
 
 void irtkMeanShift::FindWMGMmeans()
 {
-  cerr<<"Finding WM and GM mean"<<endl;
-  cerr<<"Make sure that background has been removed when calling this method!!!"<<endl;
+  cout<<"Finding WM and GM mean"<<endl;
+  cout<<"Make sure that background has been removed when calling this method!!!"<<endl;
 
   _gm=findMax(0, _limit);
   _limit2 = split(_gm, _limit, 2*_nBins, 0, 2*_nBins);
   _wm=findMax(_limit2,_limit);
   _split2=findMin(_gm,_wm);
-  cerr<<"GM mean = "<<_gm<<endl;
-  cerr<<"WM mean = "<<_wm<<endl;
+  cout<<"GM mean = "<<_gm<<endl;
+  cout<<"WM mean = "<<_wm<<endl;
 
 /*
   _limit2 = split(0, _limit, 2*_nBins, 0, 2*_nBins);
@@ -706,8 +723,8 @@ void irtkMeanShift::FindWMGMmeans()
   if(_bg>-1) _split1=findMin(_bg,_gm);
   _split2=findMin(_gm,_wm);
 
-  cerr<<"GM mean = "<<_gm<<endl;
-  cerr<<"WM mean = "<<_wm<<endl;
+  cout<<"GM mean = "<<_gm<<endl;
+  cout<<"WM mean = "<<_wm<<endl;
 
   irtkGreyImage gmwm(_image);
   irtkGreyPixel *ptr=gmwm.GetPointerToVoxels();
