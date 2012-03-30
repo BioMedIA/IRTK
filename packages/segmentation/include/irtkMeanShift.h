@@ -57,6 +57,8 @@ public:
   void WriteMap(char *output_name);
   void SetTreshold();
   void SetTreshold(double treshold);
+  
+  irtkRealImage ReturnMask();
 };
 
 
