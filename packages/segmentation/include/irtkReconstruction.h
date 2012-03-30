@@ -118,6 +118,15 @@ protected:
   ///Amount of smoothing
   double _lambda;
     
+  //global bias field correction
+  ///global bias correction flag
+  bool _global_bias_correction;
+  ///low intensity cutoff for bias field estimation
+  double _low_intensity_cutoff;
+  
+  //forced excluded slices
+  vector<int> _force_excluded;
+  
   //utility
   ///Debug mode
   bool _debug;
@@ -141,6 +150,10 @@ public:
   double CreateTemplate(irtkRealImage stack, double resolution = 0);
   ///Remember volumetric mask and smooth it if necessary
   void SetMask(irtkRealImage * mask, double sigma);  
+  ///Create mask from black background if the flag is set
+  void CreateMaskFromBlackBackground(vector<irtkRealImage>& stacks,vector<irtkRigidTransformation>& stack_transformations, double smooth_mask);
+  //Create average image from the stacks and volumetric transformations
+  irtkRealImage CreateAverage(vector<irtkRealImage>& stacks,vector<irtkRigidTransformation>& stack_transformations);
   ///Crop image according to the mask
   void CropImage(irtkRealImage& image, irtkRealImage& mask);
   /// Transform and resample mask to the space of the image
@@ -175,18 +188,28 @@ public:
   void Bias();
   ///Superresolution and calculation of sigma and mix
   void SuperresolutionAndMStep(int iter);
+  void Superresolution(int iter);
+  void MStep(int iter);
   ///Edge-preserving regularization
   void Regularization(int iter);
   ///Edge-preserving regularization with confidence map
   void AdaptiveRegularization(int iter, irtkRealImage& original);
   ///Slice to volume registrations
   void SliceToVolumeRegistration();
+  ///Correct bias in the reconstructed volume
+  void BiasCorrectVolume(irtkRealImage& original);
   ///Mask the volume
   void MaskVolume();
   ///Save slices
   void SaveSlices();
+  ///Save weights
+  void SaveWeights();
   ///Save transformations
   void SaveTransformations();
+  ///Save confidence map
+  void SaveConfidenceMap();
+  ///Save confidence map
+  void SaveBiasFields();
   
   ///Remember stdev for bias field
   inline void SetSigma(double sigma);
@@ -200,7 +223,16 @@ public:
   inline void SpeedupOn();
   ///Use slower better quality reconstruction
   inline void SpeedupOff();
-   
+  ///Switch on global bias correction
+  inline void GlobalBiasCorrectionOn();
+  ///Switch off global bias correction
+  inline void GlobalBiasCorrectionOff();
+  ///Set lower threshold for low intensity cutoff during bias estimation
+  inline void SetLowIntensityCutoff(double cutoff);
+  ///Set slices which need to be excluded by default
+  inline void SetForceExcludedSlices(vector<int>& force_excluded);
+
+
   //utility
   ///Save intermediate results
   inline void DebugOn();
@@ -209,6 +241,10 @@ public:
   
   ///Write included/excluded/outside slices
   void Evaluate(int iter);
+  
+  /// Read Transformations
+  void ReadTransformation(char* folder);
+
   
 };
 
@@ -259,6 +295,25 @@ inline void irtkReconstruction::SpeedupOff()
   _quality_factor=2;
 }
 
+inline void irtkReconstruction::GlobalBiasCorrectionOn()
+{
+  _global_bias_correction=true;
+}
+
+inline void irtkReconstruction::GlobalBiasCorrectionOff()
+{
+  _global_bias_correction=false;
+}
+
+inline void irtkReconstruction::SetLowIntensityCutoff(double cutoff)
+{
+  if (cutoff>1) cutoff=1;
+  if (cutoff<0) cutoff=0;
+  _low_intensity_cutoff = cutoff;
+  //cout<<"Setting low intensity cutoff for bias correction to "<<_low_intensity_cutoff<<" of the maximum intensity."<<endl;
+}
+
+
 inline void irtkReconstruction::SetSmoothingParameters(double delta, double lambda)
 {
   _delta=delta;
@@ -266,6 +321,11 @@ inline void irtkReconstruction::SetSmoothingParameters(double delta, double lamb
   _alpha = 0.05/lambda;
   if (_alpha>1) _alpha= 1;
   cout<<"delta = "<<_delta<<" lambda = "<<lambda<<" alpha = "<<_alpha<<endl;
+}
+
+inline void irtkReconstruction::SetForceExcludedSlices(vector<int>& force_excluded)
+{
+  _force_excluded = force_excluded;  
 }
 
 
