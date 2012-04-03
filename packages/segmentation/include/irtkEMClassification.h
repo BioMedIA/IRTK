@@ -128,6 +128,9 @@ public:
   /// Get ProbMap
   virtual void GetProbMap(int i,irtkRealImage& image);
 
+  /// Get ProbMap considering the mask
+  virtual void GetProbMapMasked(int i,irtkRealImage& image);
+
   /// Print parameters
   virtual void Print();
 
