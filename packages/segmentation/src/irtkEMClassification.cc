@@ -951,6 +951,24 @@ void irtkEMClassification::GetProbMap(int i,irtkRealImage& image){
 		exit(1);
 	}
 }
+void irtkEMClassification::GetProbMapMasked(int i,irtkRealImage& image){
+	if  (i < _number_of_tissues) {
+		image = _output.GetImage(i);
+		irtkRealPixel* imgPtr = _input.GetPointerToVoxels();
+		irtkRealPixel* maskPtr = _mask.GetPointerToVoxels();
+		irtkRealPixel* ptr = image.GetPointerToVoxels();
+		for( int k = 0; k < image.GetNumberOfVoxels(); ++k )
+		{
+			if( maskPtr[k] <= 0 || imgPtr[k] == _padding )
+			{
+				ptr[k] = 0;
+			}
+		}
+	} else {
+		cerr << "irtkProbabilisticAtlas::Write: No such probability map" << endl;
+		exit(1);
+	}
+}
 void irtkEMClassification::ConstructSegmentation()
 {
   int i, j;
