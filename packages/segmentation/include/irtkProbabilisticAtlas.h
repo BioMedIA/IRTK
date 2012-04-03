@@ -68,11 +68,17 @@ public:
   ///Returns intensity value at position
   irtkRealPixel GetValue(int x, int y, int z, unsigned int tissue);
 
+  /// Returns intensity value at position
+  irtkRealPixel GetValue(int x, int y, int z, int t, unsigned int tissue);
+
   ///Sets intensity value at pointer
   void SetValue(unsigned int tissue, irtkRealPixel value);
 
   ///Sets intensity value at position
   void SetValue(int x, int y, int z, unsigned int tissue, irtkRealPixel value);
+
+  /// Sets intensity value at position
+  void SetValue(int x, int y, int z, int t, unsigned int tissue, irtkRealPixel value);
 
   /// Returns number of voxels
   int GetNumberOfVoxels();
@@ -138,6 +144,15 @@ inline irtkRealPixel irtkProbabilisticAtlas::GetValue(int x, int y, int z, unsig
   }
 }
 
+inline irtkRealPixel irtkProbabilisticAtlas::GetValue(int x, int y, int z, int t, unsigned int channel)
+{
+  if (channel < _images.size()) return _images[channel].Get(x,y,z,t);
+  else {
+    cerr << "Channel identificator " << channel <<" out of range." <<endl;
+    exit(1);
+  }
+}
+
 inline void irtkProbabilisticAtlas::SetValue(unsigned int channel, irtkRealPixel value)
 {
   if (channel < _images.size()) *_pointers[channel] = value;
@@ -150,6 +165,15 @@ inline void irtkProbabilisticAtlas::SetValue(unsigned int channel, irtkRealPixel
 inline void irtkProbabilisticAtlas::SetValue(int x, int y, int z, unsigned int channel, irtkRealPixel value)
 {
   if (channel < _images.size()) _images[channel].Put( x, y, z, value);
+  else {
+    cerr << "Channel identificator " << channel <<" out of range." <<endl;
+    exit(1);
+  }
+}
+
+inline void irtkProbabilisticAtlas::SetValue(int x, int y, int z, int t, unsigned int channel, irtkRealPixel value)
+{
+  if (channel < _images.size()) _images[channel].Put( x, y, z, t, value);
   else {
     cerr << "Channel identificator " << channel <<" out of range." <<endl;
     exit(1);
