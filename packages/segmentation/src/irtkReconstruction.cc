@@ -127,7 +127,7 @@ irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,ve
   irtkImageTransformation *imagetransformation = new irtkImageTransformation;
   irtkImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
   InvertStackTransformations(stack_transformations);
-  for (uint i=0; i<stacks.size();i++)
+  for (int i=0; i<stacks.size();i++)
   {
     irtkRealImage s = stacks[i];
     irtkRigidTransformation t = stack_transformations[i];
@@ -1065,11 +1065,11 @@ void irtkReconstruction::InitializeEMValues()
   }
   
   //Initialise slice weights
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
     _slice_weight[i]=1;
   
   //Initialise scaling factors for intensity matching
-  for (uint i=0; i<_slices.size(); i++)
+  for (int i=0; i<_slices.size(); i++)
     _scale[i]=1;  
 }
 
@@ -1131,7 +1131,7 @@ void irtkReconstruction::InitializeRobustStatistics()
   }
   
   //Force exclusion of slices predefined by user
-  for (uint i=0; i<_force_excluded.size(); i++)
+  for (int i=0; i<_force_excluded.size(); i++)
     _slice_weight[_force_excluded[i]]=0;
 
 
@@ -1230,7 +1230,7 @@ void irtkReconstruction::EStep()
   }
   
   //To force-exclude slices predefined by a user, set their potentials to -1
-  for (uint i=0; i<_force_excluded.size(); i++)
+  for (int i=0; i<_force_excluded.size(); i++)
     slice_potential[_force_excluded[i]]=-1;
 
       
