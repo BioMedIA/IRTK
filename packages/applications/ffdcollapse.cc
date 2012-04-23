@@ -39,6 +39,7 @@ int main(int argc, char **argv)
   }
 
   // Parse file names
+  subdivide = false;
   dofin_name  = argv[1];
   argc--;
   argv++;
@@ -101,6 +102,8 @@ int main(int argc, char **argv)
         (ffd1->GetY() != ffd2->GetY()) ||
         (ffd1->GetZ() != ffd2->GetZ())) {
       cerr << "Number of control points on each level must be identical"
+          <<" "<<ffd1->GetX()<<" "<<ffd1->GetY()<<" "<<ffd1->GetZ()
+          <<" "<<ffd2->GetX()<<" "<<ffd2->GetY()<<" "<<ffd2->GetZ()
       << endl;
       exit(1);
     }
