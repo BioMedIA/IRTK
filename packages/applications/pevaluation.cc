@@ -20,7 +20,6 @@
 #include <irtkTransformation.h>
 
 char *_target_name = NULL, *_source_name = NULL;
-//char *dofin_name = NULL, *dofout_name = NULL;
 char *resultout_name = NULL;
 
 void usage()

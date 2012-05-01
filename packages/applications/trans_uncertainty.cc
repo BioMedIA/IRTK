@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : target Registration Toolkit (IRTK)
-  Module    : $Id: hard_target.cc 2 2008-12-23 12:40:14Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2008-12-23 12:40:14 +0000 (二, 23 十二月 2008) $
-  Version   : $Revision: 2 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

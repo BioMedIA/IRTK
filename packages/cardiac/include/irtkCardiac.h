@@ -20,8 +20,6 @@
 
 #include <irtkCardiac3DImageFreeFormRegistration.h>
 
-#include <irtkImageMultiFreeFormRegistration2.h>
-
 #include <irtkBep.h>
 
 #include <irtkCardiacSpatialCorrection.h>

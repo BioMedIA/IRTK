@@ -3,7 +3,7 @@
 
 #include <irtkImage.h>
 
-#include <irtkRegistration.h>
+#include <irtkRegistration2.h>
 
 #include <irtkGaussianBlurring.h>
 
@@ -32,17 +32,14 @@ void usage()
   cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
   cerr << "<-landmarks name>    Landmark Regulation input name is prefix" << endl;
   cerr << "<-weighting levelnumber weight1...weightn>    weighting for the images" << endl;
-  cerr << "<-adaptive weight>   Adapt regulation weight using the weight" <<endl;
-  cerr << "<-mode 0/1>          Registration mode [t0-ti]/[ti-ti+1]" <<endl;
-  cerr << "                     (w = weight^(t (t<n/2) n-t (t>-n/2))*w)" << endl;
   exit(1);
 }
 
 
 int main(int argc, char **argv)
 {
-  int l, i, j, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, framemode, ok, debug;
-  double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3],**weight;
+  int l, i, j, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
+  double spacing, sigma, xaxis[3], yaxis[3], zaxis[3];
   irtkGreyPixel padding;
   irtkMultiLevelFreeFormTransformation *mffd;
 
@@ -59,7 +56,6 @@ int main(int argc, char **argv)
   // Get image names for sequence
   numberOfImages = 0;
   filenames = argv;
-  weight = new double*[10];
   while ((argc > 1) && (argv[1][0] != '-' )) {
     argv++;
     argc--;
@@ -70,14 +66,6 @@ int main(int argc, char **argv)
 
   landmarks = NULL;
   reader = NULL;
-
-
-  for (i = 0; i < 10; i++) {
-    weight[i] = new double[numberOfImages];
-    for (j = 0; j < numberOfImages; j++) {
-      weight[i][j] = 1;
-    }
-  }
 
   // Read image sequence
   cout << "Reading image sequence ... "; cout.flush();
@@ -107,8 +95,6 @@ int main(int argc, char **argv)
   spacing   = 0;
   sigma     = 0;
   debug     = false;
-  adaptive  = 0;
-  framemode = 0;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -177,14 +163,6 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-adaptive") == 0)) {
-      argc--;
-      argv++;
-      ok = true;
-      adaptive = atof(argv[1]);
-      argc--;
-      argv++;
-    }
     if ((ok == false) && (strcmp(argv[1], "-dofout") == 0)) {
       argc--;
       argv++;
@@ -192,14 +170,6 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       ok = true;
-    }
-    if ((ok == false) && (strcmp(argv[1], "-mode") == 0)) {
-      argc--;
-      argv++;
-      ok = true;
-      framemode = atoi(argv[1]);
-      argc--;
-      argv++;
     }
     if ((ok == false) && (strcmp(argv[1], "-Tp") == 0)) {
       argc--;
@@ -254,24 +224,6 @@ int main(int argc, char **argv)
       mask_name = argv[1];
       argc--;
       argv++;
-      ok = true;
-    }
-    if ((ok == false) && (strcmp(argv[1], "-weighting") == 0)) {
-      argc--;
-      argv++;
-      int level = atoi(argv[1]);
-      if(level > 9) {
-        cout << "Number of level < 10" << endl;
-        exit(1);
-      }
-      argc--;
-      argv++;
-      cout << "Setting weighting for level: " << level << endl; cout.flush();
-      for (i = 0; i < numberOfImages; i++) {
-        weight[level][i] = atof(argv[1]);
-        argc--;
-        argv++;
-      }
       ok = true;
     }
 
@@ -339,19 +291,8 @@ int main(int argc, char **argv)
   mffd = new irtkMultiLevelFreeFormTransformation;
   for (t = 1; t < image[0]->GetT(); t++) {
     // Create registration filter
-    irtkMultipleImageFreeFormRegistration *multimageregistration = NULL;
-    if (image[0]->GetZ() == 1) {
-      cerr<<"this mode can't be used with 2D images"<<endl;
-      exit(1);
-    } else {
-      multimageregistration = new irtkMultipleImageFreeFormRegistration;
-    }
-
-    // if frame to frame clear previous mffd
-    if(framemode != 0){
-        delete mffd;
-        mffd = new irtkMultiLevelFreeFormTransformation;
-    }
+    irtkMultipleImageFreeFormRegistration2 *registration = NULL;
+    registration = new irtkMultipleImageFreeFormRegistration2;
 
     // Combine images
     irtkGreyImage **target = new irtkGreyImage*[numberOfImages];
@@ -364,11 +305,7 @@ int main(int argc, char **argv)
       for (z = 0; z < target[l]->GetZ(); z++) {
         for (y = 0; y < target[l]->GetY(); y++) {
           for (x = 0; x < target[l]->GetX(); x++) {
-            if(framemode == 0) {
-              target[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, 0));
-            } else {
-              target[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, t-1));
-            }
+            target[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, 0));
             source[l]->Put(x, y, z, 0, image[l]->Get(x, y, z, t));
           }
         }
@@ -409,7 +346,7 @@ int main(int argc, char **argv)
     }
 
     // Set input and output for the registration filter
-    multimageregistration->SetInput(target, source, numberOfImages);
+    registration->SetInput(target, source, numberOfImages);
 
     vtkPolyData* tlandmarks = vtkPolyData::New();
     vtkPolyData* slandmarks = vtkPolyData::New();
@@ -419,75 +356,53 @@ int main(int argc, char **argv)
     }
 
     if(landmarks != NULL) {
-        multimageregistration->SetLandmarks(tlandmarks,slandmarks);
+        registration->SetLandmarks(tlandmarks,slandmarks);
     }
 
 
-    multimageregistration->SetOutput(mffd);
-    multimageregistration->SetDebugFlag(debug);
+    registration->SetOutput(mffd);
+    registration->SetDebugFlag(debug);
 
     // Make an initial Guess for the parameters.
-    multimageregistration->GuessParameter();
+    registration->GuessParameter();
     // Overrride with any the user has set.
     if (parin_name != NULL) {
-      multimageregistration->irtkMultipleImageRegistration::Read(parin_name);
+      registration->irtkMultipleImageRegistration2::Read(parin_name);
     }
 
     // Override parameter settings if necessary
     if (padding != MIN_GREY) {
-      multimageregistration->SetTargetPadding(padding);
+      registration->SetTargetPadding(padding);
     }
     if (spacing > 0) {
-      multimageregistration->SetDX(spacing);
-      multimageregistration->SetDY(spacing);
-      multimageregistration->SetDZ(spacing);
+      registration->SetDX(spacing);
+      registration->SetDY(spacing);
+      registration->SetDZ(spacing);
     }
 
     // Write parameters if necessary
     if (parout_name != NULL) {
-      multimageregistration->irtkMultipleImageRegistration::Write(parout_name);
-    }
-
-    multimageregistration->SetWeighting(weight);
-
-    if (adaptive > 0) {               
-        int times = 0;
-        t < round(image[0]->GetT() / 3) ? 
-            (times = t):(times = round(image[0]->GetT() / 3));
-        t > round(image[0]->GetT()*2 / 3) ? 
-            (times = (image[0]->GetT() - 1 - t)):(times = times);
-        double weight = multimageregistration->GetLambda1();
-        weight = pow(adaptive,2*times)*weight;
-        cout << "current lambda1 of frame " << t << " is "<<weight<<endl;
-        multimageregistration->SetLambda1(weight);
-        weight = multimageregistration->GetLambda2();
-        weight = pow(adaptive,2*times)*weight;
-        cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
-        multimageregistration->SetLambda2(weight);
+      registration->irtkMultipleImageRegistration2::Write(parout_name);
     }
 
     // Run registration filter
-    multimageregistration->Run();
+    registration->Run();
 
     // Write the final transformation estimate
     if (dofout_name != NULL) {
-      char buffer[255];
-      sprintf(buffer, "%s%.2d.dof.gz", dofout_name, t);
-      if(framemode == 0) {
-        if(multimageregistration->GetMFFDMode()) {
-          mffd->CombineLocalTransformation();
+        char buffer[255];
+        sprintf(buffer, "%s%.2d.dof.gz", dofout_name, t);
+        if(registration->GetMFFDMode()) {
+            mffd->CombineLocalTransformation();
         }
         mffd->irtkTransformation::Write(buffer);
-      } else {
-        mffd->irtkTransformation::Write(buffer);
-      }
     } else {
-      if(multimageregistration->GetMFFDMode()) {
+      if(registration->GetMFFDMode()) {
         mffd->CombineLocalTransformation();
       }
     }
 
-    delete multimageregistration;
+    delete registration;
 
     for (l = 0; l < numberOfImages; l++) {
       delete target[l];
@@ -503,11 +418,6 @@ int main(int argc, char **argv)
 
 
   }
-
-  for(i = 0; i < 10; i++) {
-    delete []weight[i];
-  }
-  delete []weight;
 }
 
 

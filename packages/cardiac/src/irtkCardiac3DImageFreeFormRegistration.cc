@@ -502,39 +502,39 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
   _umffdLookupTable = new float*[_numberOfuImages];
 
   for (l = 0; l < _numberOfuImages; l++) {
-	    // Allocate memory for metric
-  _utmpMetricA[l] = irtkSimilarityMetric::New(_umetric[l]);
-  _utmpMetricB[l] = irtkSimilarityMetric::New(_umetric[l]);
-    _utmpImage[l] = new irtkGreyImage(_utarget[l]->GetX(),
-                                     _utarget[l]->GetY(),
-                                     _utarget[l]->GetZ(),
-                                     _utarget[l]->GetT());
+      // Allocate memory for metric
+      _utmpMetricA[l] = irtkSimilarityMetric::New(_umetric[l]);
+      _utmpMetricB[l] = irtkSimilarityMetric::New(_umetric[l]);
+      _utmpImage[l] = new irtkGreyImage(_utarget[l]->GetX(),
+          _utarget[l]->GetY(),
+          _utarget[l]->GetZ(),
+          _utarget[l]->GetT());
 
-    n = _utarget[l]->GetNumberOfVoxels() * 3 / _utarget[l]->GetT();
+      n = _utarget[l]->GetNumberOfVoxels() * 3 / _utarget[l]->GetT();
 
-    // Allocate memory for lookup table for single-level FFD
-    _uaffdLookupTable[l]  = new float[n];
+      // Allocate memory for lookup table for single-level FFD
+      _uaffdLookupTable[l]  = new float[n];
 
-    // Allocate memory for lookup table for multi-level FFD
-    _umffdLookupTable[l]  = new float[n];
+      // Allocate memory for lookup table for multi-level FFD
+      _umffdLookupTable[l]  = new float[n];
 
-    // Initialize lookup table for multi-level FFD (this is done only once)
-    ptr = _umffdLookupTable[l];
-    for (k = 0; k < _utarget[l]->GetZ(); k++) {
-      for (j = 0; j < _utarget[l]->GetY(); j++) {
-        for (i = 0; i < _utarget[l]->GetX(); i++) {
-          x = i;
-          y = j;
-          z = k;
-          _utarget[l]->ImageToWorld(x, y, z);
-          _mffd->Transform(x, y, z);
-          ptr[0] = x;
-          ptr[1] = y;
-          ptr[2] = z;
-          ptr += 3;
-        }
+      // Initialize lookup table for multi-level FFD (this is done only once)
+      ptr = _umffdLookupTable[l];
+      for (k = 0; k < _utarget[l]->GetZ(); k++) {
+          for (j = 0; j < _utarget[l]->GetY(); j++) {
+              for (i = 0; i < _utarget[l]->GetX(); i++) {
+                  x = i;
+                  y = j;
+                  z = k;
+                  _utarget[l]->ImageToWorld(x, y, z);
+                  _mffd->Transform(x, y, z);
+                  ptr[0] = x;
+                  ptr[1] = y;
+                  ptr[2] = z;
+                  ptr += 3;
+              }
+          }
       }
-    }
   }
 
   // Allocate memory for comega
@@ -1781,57 +1781,61 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateOmega (int index){
 void irtkCardiac3DImageFreeFormRegistration::UpdateOmega ()
 {
 	int i, j, k;
-	double x, y, z, jacobian, count;
+	//double x, y, z, jacobian, count;
+	double count;
 	count = 0;
 	irtkMatrix jac,tmp_jac;
-	/*for (k = 0; k < _omega->GetZ(); k++) {
-		for (j = 0; j < _omega->GetY(); j++) {
-			for (i = 0; i < _omega->GetX(); i++) {
-				if(_myoprob->GetAsDouble(i,j,k) > 0.01){
-					_omega->PutAsDouble(i,j,k,_myoprob->GetAsDouble(i,j,k));
-				}else{
-					_omega->PutAsDouble(i,j,k,0.01);
-				}
-				count += _omega->GetAsDouble(i,j,k);
-			}
-		}
-	}*/
-	for (k = 0; k < _omega->GetZ(); k++) {
-		for (j = 0; j < _omega->GetY(); j++) {
-			for (i = 0; i < _omega->GetX(); i++) {
-				x = i;
-				y = j;
-				z = k;
-				_omega->ImageToWorld(x, y, z);
-				// myocardium adaptive jacobian weight
-				_affd->Jacobian(tmp_jac,x,y,z);
-				// Calculate jacobian
-				jac.Initialize(3, 3);
-				_mffd->LocalJacobian(jac, x, y, z);
-
-				// Subtract identity matrix
-				tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
-				tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
-				tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
-
-				// Add jacobian
-				jac += tmp_jac;
-				// Determinant of Jacobian of deformation derivatives
-				jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
-					jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
-					jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
-
-				if(jacobian < 0.0001) 
-					jacobian = 0.0001;
-
-				if(_myoprob->GetAsDouble(i,j,k) > 0){
-					_omega->PutAsDouble(i,j,k,
-						pow(log(jacobian),2)*_myoprob->GetAsDouble(i,j,k));
+    for (k = 0; k < _omega->GetZ(); k++) {
+        for (j = 0; j < _omega->GetY(); j++) {
+            for (i = 0; i < _omega->GetX(); i++) {
+                if(_myoprob->GetAsDouble(i,j,k) > 0.1){
+                //if(_myoprob->GetAsDouble(i,j,k) > 0.01){
+                    _omega->PutAsDouble(i,j,k,1.0);
+                    //_omega->PutAsDouble(i,j,k,_myoprob->GetAsDouble(i,j,k));
+                }else{
+                    _omega->PutAsDouble(i,j,k,0);
+                    //_omega->PutAsDouble(i,j,k,0.01);
                 }
-				count += _omega->GetAsDouble(i,j,k);
-			}
-		}
-	}	
+                count += _omega->GetAsDouble(i,j,k);
+            }
+        }
+    }
+	//for (k = 0; k < _omega->GetZ(); k++) {
+	//	for (j = 0; j < _omega->GetY(); j++) {
+	//		for (i = 0; i < _omega->GetX(); i++) {
+	//			x = i;
+	//			y = j;
+	//			z = k;
+	//			_omega->ImageToWorld(x, y, z);
+	//			// myocardium adaptive jacobian weight
+	//			_affd->Jacobian(tmp_jac,x,y,z);
+	//			// Calculate jacobian
+	//			jac.Initialize(3, 3);
+	//			_mffd->LocalJacobian(jac, x, y, z);
+
+	//			// Subtract identity matrix
+	//			tmp_jac(0, 0) = tmp_jac(0, 0) - 1;
+	//			tmp_jac(1, 1) = tmp_jac(1, 1) - 1;
+	//			tmp_jac(2, 2) = tmp_jac(2, 2) - 1;
+
+	//			// Add jacobian
+	//			jac += tmp_jac;
+	//			// Determinant of Jacobian of deformation derivatives
+	//			jacobian = (jac(0, 0)*jac(1, 1)*jac(2, 2) + jac(0, 1)*jac(1, 2)*jac(2, 0) +
+	//				jac(0, 2)*jac(1, 0)*jac(2, 1) - jac(0, 2)*jac(1, 1)*jac(2, 0) -
+	//				jac(0, 0)*jac(1, 2)*jac(2, 1) - jac(0, 1)*jac(1, 0)*jac(2, 2));
+
+	//			if(jacobian < 0.0001) 
+	//				jacobian = 0.0001;
+
+	//			if(_myoprob->GetAsDouble(i,j,k) > 0){
+	//				_omega->PutAsDouble(i,j,k,
+	//					pow(log(jacobian),2)*_myoprob->GetAsDouble(i,j,k));
+ //               }
+	//			count += _omega->GetAsDouble(i,j,k);
+	//		}
+	//	}
+	//}	
 	//normalize
 	if(count>0){
 		for (k = 0; k < _omega->GetZ(); k++) {

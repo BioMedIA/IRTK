@@ -855,6 +855,156 @@ double irtkBSplineFreeFormTransformation3D::Bending()
   return bending;
 }
 
+double irtkBSplineFreeFormTransformation3D::BendingSparse2D(int i, int j)
+{
+    int I, J;
+    double B_J, B_I, B_J_I, B_I_I, B_J_II, B_I_II, v;
+
+    // Derivatives
+    double y_jj=0, x_jj=0, y_ii=0, x_ii=0, y_ij=0, x_ij=0;
+
+    // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location c = i, j, k)
+    double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
+    double b_i[3]  = {-0.5, 0, 0.5};
+    double b_ii[3] = {1.0, -2.0, 1.0};
+
+    for (J = j-1; J < j+2; J++) {
+        // Get B-spline basis
+        B_J    = b   [J-(j-1)];
+        B_J_I  = b_i [J-(j-1)];
+        B_J_II = b_ii[J-(j-1)];
+        for (I = i-1; I < i+2; I++) {
+            if(_data[0][J][I]._y != 0
+                || _data[0][J][I]._x != 0){
+                    // Get B-spline basis
+                    B_I    = b   [I-(i-1)];
+                    B_I_I  = b_i [I-(i-1)];
+                    B_I_II = b_ii[I-(i-1)];
+
+                    v = B_I_II * B_J;
+                    y_ii += _data[0][J][I]._y * v;
+                    x_ii += _data[0][J][I]._x * v;
+
+                    v = B_I * B_J_II;
+                    y_jj += _data[0][J][I]._y * v;
+                    x_jj += _data[0][J][I]._x * v;
+
+                    v = B_I_I * B_J_I;
+                    y_ij += _data[0][J][I]._y * v;
+                    x_ij += _data[0][J][I]._x * v;
+            }
+        }
+    }
+
+    // Compute bending
+    return (x_ii*x_ii + x_jj*x_jj + y_ii*y_ii + y_jj*y_jj + 2*(x_ij*x_ij + y_ij*y_ij));
+}
+
+double irtkBSplineFreeFormTransformation3D::BendingSparse3D(int i, int j, int k)
+{
+    int I, J, K;
+    double B_K, B_J, B_I, B_K_I, B_J_I, B_I_I, B_K_II, B_J_II, B_I_II, v;
+
+    // Derivatives
+    double z_kk=0, y_kk=0, x_kk=0, z_jj=0, y_jj=0, x_jj=0, z_ii=0, y_ii=0, x_ii=0;
+    double z_ij=0, y_ij=0, x_ij=0, z_ik=0, y_ik=0, x_ik=0, z_jk=0, y_jk=0, x_jk=0;
+
+    // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location c = i, j, k)
+    double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
+    double b_i[3]  = {-0.5, 0, 0.5};
+    double b_ii[3] = {1.0, -2.0, 1.0};
+
+    for (K = k-1; K < k+2; K++) {
+        // Get B-spline basis
+        B_K    = b   [K-(k-1)];
+        B_K_I  = b_i [K-(k-1)];
+        B_K_II = b_ii[K-(k-1)];
+        for (J = j-1; J < j+2; J++) {
+            // Get B-spline basis
+            B_J    = b   [J-(j-1)];
+            B_J_I  = b_i [J-(j-1)];
+            B_J_II = b_ii[J-(j-1)];
+            for (I = i-1; I < i+2; I++) {
+                if(_data[K][J][I]._z != 0
+                    || _data[K][J][I]._y != 0
+                    || _data[K][J][I]._x != 0){
+                        // Get B-spline basis
+                        B_I    = b   [I-(i-1)];
+                        B_I_I  = b_i [I-(i-1)];
+                        B_I_II = b_ii[I-(i-1)];
+
+                        v = B_I * B_J * B_K_II;
+                        z_kk += _data[K][J][I]._z * v;
+                        y_kk += _data[K][J][I]._y * v;
+                        x_kk += _data[K][J][I]._x * v;
+
+                        v = B_I * B_J_II * B_K;
+                        z_jj += _data[K][J][I]._z * v;
+                        y_jj += _data[K][J][I]._y * v;
+                        x_jj += _data[K][J][I]._x * v;
+
+                        v = B_I_II * B_J * B_K;
+                        z_ii += _data[K][J][I]._z * v;
+                        y_ii += _data[K][J][I]._y * v;
+                        x_ii += _data[K][J][I]._x * v;
+
+                        v = B_I_I * B_J_I * B_K;
+                        z_ij += _data[K][J][I]._z * v;
+                        y_ij += _data[K][J][I]._y * v;
+                        x_ij += _data[K][J][I]._x * v;
+
+                        v = B_I_I * B_J * B_K_I;
+                        z_ik += _data[K][J][I]._z * v;
+                        y_ik += _data[K][J][I]._y * v;
+                        x_ik += _data[K][J][I]._x * v;
+
+                        v = B_I * B_J_I * B_K_I;
+                        z_jk += _data[K][J][I]._z * v;
+                        y_jk += _data[K][J][I]._y * v;
+                        x_jk += _data[K][J][I]._x * v;
+                }
+            }
+        }
+    }
+
+    // Compute bending
+    return (x_ii*x_ii + x_jj*x_jj + x_kk*x_kk +
+        y_ii*y_ii + y_jj*y_jj + y_kk*y_kk +
+        z_ii*z_ii + z_jj*z_jj + z_kk*z_kk +
+        2*(x_ij*x_ij + y_ij*y_ij + z_ij*z_ij +
+        x_ik*x_ik + y_ik*y_ik + z_ik*z_ik +
+        x_jk*x_jk + y_jk*y_jk + z_jk*z_jk));
+}
+
+double irtkBSplineFreeFormTransformation3D::BendingSparse()
+{
+    int i, j, k;
+    double bending;
+
+    bending = 0;
+    if (_z == 1) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                if(this->_data[0][j][i]._x != 0
+                    || this->_data[0][j][i]._y != 0)
+                    bending += this->BendingSparse2D(i, j);
+            }
+        }
+    } else {
+        for (k = 0; k < _z; k++) {
+            for (j = 0; j < _y; j++) {
+                for (i = 0; i < _x; i++) {
+                    if(this->_data[k][j][i]._x != 0
+                        || this->_data[k][j][i]._y != 0
+                        || this->_data[k][j][i]._z != 0)
+                        bending += this->BendingSparse3D(i, j, k);
+                }
+            }
+        }
+    }
+    return bending;
+}
+
 void irtkBSplineFreeFormTransformation3D::BendingGradient2D(double *gradient)
 {
   int I, J, index, i, j, k, n = _x*_y*_z;
@@ -1109,6 +1259,275 @@ void irtkBSplineFreeFormTransformation3D::BendingGradient(double *gradient)
   }
 }
 
+void irtkBSplineFreeFormTransformation3D::BendingGradientSparse2D(double *gradient)
+{
+    int I, J, index, i, j, k, n = _x*_y*_z;
+    double B_J, B_I, B_J_I, B_I_I, B_J_II, B_I_II, v, tmp[3];
+
+    // Derivatives
+    irtkVector3D<double> ***d_jj = NULL;
+    d_jj = this->Allocate(d_jj, _x, _y, _z);
+    irtkVector3D<double> ***d_ii = NULL;
+    d_ii = this->Allocate(d_ii, _x, _y, _z);
+    irtkVector3D<double> ***d_ij = NULL;
+    d_ij = this->Allocate(d_ij, _x, _y, _z);
+
+    // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location i, j, k)
+    double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
+    double b_i[3]  = {-0.5, 0, 0.5};
+    double b_ii[3] = {1.0, -2.0, 1.0};
+
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                if( _data[k][j][i]._y != 0
+                    || _data[k][j][i]._x != 0){
+                        for (J = j-1; J < j+2; J++) {
+                            // Get B-spline basis
+                            B_J    = b   [J-(j-1)];
+                            B_J_I  = b_i [J-(j-1)];
+                            B_J_II = b_ii[J-(j-1)];
+                            for (I = i-1; I < i+2; I++) {
+
+                                if( _data[k][J][I]._y != 0
+                                    || _data[k][J][I]._x != 0){
+                                        // Get B-spline basis
+                                        B_I    = b   [I-(i-1)];
+                                        B_I_I  = b_i [I-(i-1)];
+                                        B_I_II = b_ii[I-(i-1)];
+
+                                        v = B_I * B_J_II;
+                                        d_jj[k][j][i]._y += 2 * _data[k][J][I]._y * v;
+                                        d_jj[k][j][i]._x += 2 * _data[k][J][I]._x * v;
+
+                                        v = B_I_II * B_J;
+                                        d_ii[k][j][i]._y += 2 * _data[k][J][I]._y * v;
+                                        d_ii[k][j][i]._x += 2 * _data[k][J][I]._x * v;
+
+                                        v = B_I_I * B_J_I;
+                                        d_ij[k][j][i]._y += 4 * _data[k][J][I]._y * v;
+                                        d_ij[k][j][i]._x += 4 * _data[k][J][I]._x * v;
+                                }
+
+                            }
+                        }
+                }
+            }
+        }
+    }
+
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                // Initialize tmp variables
+                tmp[0] = 0;
+                tmp[1] = 0;
+                tmp[2] = 0;
+                for (J = j-1; J < j+2; J++) {
+                    // Get B-spline basis
+                    B_J    = b   [J-(j-1)];
+                    B_J_I  = b_i [J-(j-1)];
+                    B_J_II = b_ii[J-(j-1)];
+                    for (I = i-1; I < i+2; I++) {
+                        // Get B-spline basis
+                        B_I    = b   [I-(i-1)];
+                        B_I_I  = b_i [I-(i-1)];
+                        B_I_II = b_ii[I-(i-1)];
+
+                        v = B_I * B_J_II;
+                        tmp[1] += d_jj[k][J][I]._y * v;
+                        tmp[0] += d_jj[k][J][I]._x * v;
+
+                        v = B_I_II * B_J;
+                        tmp[1] += d_ii[k][J][I]._y * v;
+                        tmp[0] += d_ii[k][J][I]._x * v;
+
+                        v = B_I_I * B_J_I;
+                        tmp[1] += d_ij[k][J][I]._y * v;
+                        tmp[0] += d_ij[k][J][I]._x * v;
+
+                    }
+                }
+                index = this->LatticeToIndex(i, j, k);
+                gradient[index]     += -tmp[0];
+                gradient[index+n]   += -tmp[1];
+                gradient[index+2*n] += 0;
+            }
+        }
+    }
+
+    this->Deallocate(d_jj, _x, _y, _z);
+    this->Deallocate(d_ii, _x, _y, _z);
+    this->Deallocate(d_ij, _x, _y, _z);
+}
+
+void irtkBSplineFreeFormTransformation3D::BendingGradientSparse3D(double *gradient)
+{
+    int I, J, K, index, i, j, k, n = _x*_y*_z;
+    double B_K, B_J, B_I, B_K_I, B_J_I, B_I_I, B_K_II, B_J_II, B_I_II, v, tmp[3];
+
+    // Derivatives
+    irtkVector3D<double> ***d_kk = NULL;
+    d_kk = this->Allocate(d_kk, _x, _y, _z);
+    irtkVector3D<double> ***d_jj = NULL;
+    d_jj = this->Allocate(d_jj, _x, _y, _z);
+    irtkVector3D<double> ***d_ii = NULL;
+    d_ii = this->Allocate(d_ii, _x, _y, _z);
+    irtkVector3D<double> ***d_ij = NULL;
+    d_ij = this->Allocate(d_ij, _x, _y, _z);
+    irtkVector3D<double> ***d_ik = NULL;
+    d_ik = this->Allocate(d_ik, _x, _y, _z);
+    irtkVector3D<double> ***d_jk = NULL;
+    d_jk = this->Allocate(d_jk, _x, _y, _z);
+
+    // Values of the B-spline basis functions and its derivative (assuming that we compute the bending energy only at the control point location i, j, k)
+    double b[3]    = {1.0/6.0, 2.0/3.0, 1.0/6.0};
+    double b_i[3]  = {-0.5, 0, 0.5};
+    double b_ii[3] = {1.0, -2.0, 1.0};
+
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                if(_data[k][j][i]._z != 0
+                    || _data[k][j][i]._y != 0
+                    || _data[k][j][i]._x != 0){
+                        for (K = k-1; K < k+2; K++) {
+                            // Get B-spline basis
+                            B_K    = b   [K-(k-1)];
+                            B_K_I  = b_i [K-(k-1)];
+                            B_K_II = b_ii[K-(k-1)];
+                            for (J = j-1; J < j+2; J++) {
+                                // Get B-spline basis
+                                B_J    = b   [J-(j-1)];
+                                B_J_I  = b_i [J-(j-1)];
+                                B_J_II = b_ii[J-(j-1)];
+                                for (I = i-1; I < i+2; I++) {
+                                    if(_data[K][J][I]._z != 0
+                                        || _data[K][J][I]._y != 0
+                                        || _data[K][J][I]._x != 0){
+                                            // Get B-spline basis
+                                            B_I    = b   [I-(i-1)];
+                                            B_I_I  = b_i [I-(i-1)];
+                                            B_I_II = b_ii[I-(i-1)];
+
+                                            v = B_I * B_J * B_K_II;
+                                            d_kk[k][j][i]._z += 2 * _data[K][J][I]._z * v;
+                                            d_kk[k][j][i]._y += 2 * _data[K][J][I]._y * v;
+                                            d_kk[k][j][i]._x += 2 * _data[K][J][I]._x * v;
+
+                                            v = B_I * B_J_II * B_K;
+                                            d_jj[k][j][i]._z += 2 * _data[K][J][I]._z * v;
+                                            d_jj[k][j][i]._y += 2 * _data[K][J][I]._y * v;
+                                            d_jj[k][j][i]._x += 2 * _data[K][J][I]._x * v;
+
+                                            v = B_I_II * B_J * B_K;
+                                            d_ii[k][j][i]._z += 2 * _data[K][J][I]._z * v;
+                                            d_ii[k][j][i]._y += 2 * _data[K][J][I]._y * v;
+                                            d_ii[k][j][i]._x += 2 * _data[K][J][I]._x * v;
+
+                                            v = B_I_I * B_J_I * B_K;
+                                            d_ij[k][j][i]._z += 4 * _data[K][J][I]._z * v;
+                                            d_ij[k][j][i]._y += 4 * _data[K][J][I]._y * v;
+                                            d_ij[k][j][i]._x += 4 * _data[K][J][I]._x * v;
+
+                                            v = B_I_I * B_J * B_K_I;
+                                            d_ik[k][j][i]._z += 4 * _data[K][J][I]._z * v;
+                                            d_ik[k][j][i]._y += 4 * _data[K][J][I]._y * v;
+                                            d_ik[k][j][i]._x += 4 * _data[K][J][I]._x * v;
+
+                                            v = B_I * B_J_I * B_K_I;
+                                            d_jk[k][j][i]._z += 4 * _data[K][J][I]._z * v;
+                                            d_jk[k][j][i]._y += 4 * _data[K][J][I]._y * v;
+                                            d_jk[k][j][i]._x += 4 * _data[K][J][I]._x * v;
+                                    }
+                                }
+                            }
+                        }
+                }
+            }
+        }
+    }
+
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                // Initialize tmp variables
+                tmp[0] = 0;
+                tmp[1] = 0;
+                tmp[2] = 0;
+                for (K = k-1; K < k+2; K++) {
+                    // Get B-spline basis
+                    B_K    = b   [K-(k-1)];
+                    B_K_I  = b_i [K-(k-1)];
+                    B_K_II = b_ii[K-(k-1)];
+                    for (J = j-1; J < j+2; J++) {
+                        // Get B-spline basis
+                        B_J    = b   [J-(j-1)];
+                        B_J_I  = b_i [J-(j-1)];
+                        B_J_II = b_ii[J-(j-1)];
+                        for (I = i-1; I < i+2; I++) {
+                            // Get B-spline basis
+                            B_I    = b   [I-(i-1)];
+                            B_I_I  = b_i [I-(i-1)];
+                            B_I_II = b_ii[I-(i-1)];
+
+                            v = B_I * B_J * B_K_II;
+                            tmp[2] += d_kk[K][J][I]._z * v;
+                            tmp[1] += d_kk[K][J][I]._y * v;
+                            tmp[0] += d_kk[K][J][I]._x * v;
+
+                            v = B_I * B_J_II * B_K;
+                            tmp[2] += d_jj[K][J][I]._z * v;
+                            tmp[1] += d_jj[K][J][I]._y * v;
+                            tmp[0] += d_jj[K][J][I]._x * v;
+
+                            v = B_I_II * B_J * B_K;
+                            tmp[2] += d_ii[K][J][I]._z * v;
+                            tmp[1] += d_ii[K][J][I]._y * v;
+                            tmp[0] += d_ii[K][J][I]._x * v;
+
+                            v = B_I_I * B_J_I * B_K;
+                            tmp[2] += d_ij[K][J][I]._z * v;
+                            tmp[1] += d_ij[K][J][I]._y * v;
+                            tmp[0] += d_ij[K][J][I]._x * v;
+
+                            v = B_I_I * B_J * B_K_I;
+                            tmp[2] += d_ik[K][J][I]._z * v;
+                            tmp[1] += d_ik[K][J][I]._y * v;
+                            tmp[0] += d_ik[K][J][I]._x * v;
+
+                            v = B_I * B_J_I * B_K_I;
+                            tmp[2] += d_jk[K][J][I]._z * v;
+                            tmp[1] += d_jk[K][J][I]._y * v;
+                            tmp[0] += d_jk[K][J][I]._x * v;
+                        }
+                    }
+                }
+                index = this->LatticeToIndex(i, j, k);
+                gradient[index]     += -tmp[0];
+                gradient[index+n]   += -tmp[1];
+                gradient[index+2*n] += -tmp[2];
+            }
+        }
+    }
+
+    this->Deallocate(d_kk, _x, _y, _z);
+    this->Deallocate(d_jj, _x, _y, _z);
+    this->Deallocate(d_ii, _x, _y, _z);
+    this->Deallocate(d_ij, _x, _y, _z);
+    this->Deallocate(d_ik, _x, _y, _z);
+    this->Deallocate(d_jk, _x, _y, _z);
+}
+
+void irtkBSplineFreeFormTransformation3D::BendingGradientSparse(double *gradient)
+{
+    if (_z == 1) {
+        this->BendingGradientSparse2D(gradient);
+    } else {
+        this->BendingGradientSparse3D(gradient);
+    }
+}
+
 double irtkBSplineFreeFormTransformation3D::Bending2D(double x, double y)
 {
   int i, j, l, m, I, J, S, T;
@@ -1266,77 +1685,77 @@ int irtkBSplineFreeFormTransformation3D::CheckHeader(char *name)
 
 void irtkBSplineFreeFormTransformation3D::ApproximateAsNew2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
 {
-  int i, j, l, m, I, J, S, T, index;
-  double s, t, x, y, z, B_I, B_J, basis, basis2, phi, norm;
+    int i, j, l, m, I, J, S, T, index;
+    double s, t, x, y, z, B_I, B_J, basis, basis2, phi, norm;
 
-  // Allocate memory for control points
-  irtkVector3D<double> ***data = NULL;
-  data = Allocate(data, _x, _y, _z);
+    // Allocate memory for control points
+    irtkVector3D<double> ***data = NULL;
+    data = Allocate(data, _x, _y, _z);
 
-  // Allocate memory for temporary storage
-  double ***ds = NULL;
-  ds = Allocate(ds, _x, _y, _z);
+    // Allocate memory for temporary storage
+    double ***ds = NULL;
+    ds = Allocate(ds, _x, _y, _z);
 
-  // Initialize data structures
-  for (j = -2; j < _y+2; j++) {
-    for (i = -2; i < _x+2; i++) {
-      data[0][j][i]._x = 0;
-      data[0][j][i]._y = 0;
-      data[0][j][i]._z = 0;
-      ds[0][j][i]      = 0;
-    }
-  }
-
-  // Initial loop: Calculate change of control points
-  for (index = 0; index < no; index++) {
-    x = x1[index];
-    y = y1[index];
-    z = z1[index];
-    this->WorldToLattice(x, y, z);
-    l = (int)floor(x);
-    m = (int)floor(y);
-    s = x-l;
-    t = y-m;
-    S = round(LUTSIZE*s);
-    T = round(LUTSIZE*t);
-    norm = 0;
-    for (j = 0; j < 4; j++) {
-      B_J = this->LookupTable[T][j];
-      for (i = 0; i < 4; i++) {
-        B_I = B_J * this->LookupTable[S][i];
-        norm += B_I * B_I;
-      }
-    }
-    for (j = 0; j < 4; j++) {
-      B_J = this->LookupTable[T][j];
-      J = j + m - 1;
-      if ((J >= -2) && (J < _y+2)) {
-        for (i = 0; i < 4; i++) {
-          B_I = B_J * this->LookupTable[S][i];
-          I = i + l - 1;
-          if ((I >= -2) && (I < _x+2)) {
-            basis = B_I / norm;
-            basis2 = B_I * B_I;
-            phi = x2[index] * basis;
-            data[0][J][I]._x += basis2 * phi;
-            phi = y2[index] * basis;
-            data[0][J][I]._y += basis2 * phi;
-            ds[0][J][I] += basis2;
-          }
+    // Initialize data structures
+    for (j = -2; j < _y+2; j++) {
+        for (i = -2; i < _x+2; i++) {
+            data[0][j][i]._x = 0;
+            data[0][j][i]._y = 0;
+            data[0][j][i]._z = 0;
+            ds[0][j][i]      = 0;
         }
-      }
     }
-  }
 
-  // Final loop: Calculate new control points
-  for (j = -2; j < _y+2; j++) {
-    for (i = -2; i < _x+2; i++) {
-      if (ds[0][j][i] > 0) {
-        _data[0][j][i]._x = data[0][j][i]._x / ds[0][j][i];
-        _data[0][j][i]._y = data[0][j][i]._y / ds[0][j][i];
-      }
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        s = x-l;
+        t = y-m;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        norm = 0;
+        for (j = 0; j < 4; j++) {
+            B_J = this->LookupTable[T][j];
+            for (i = 0; i < 4; i++) {
+                B_I = B_J * this->LookupTable[S][i];
+                norm += B_I * B_I;
+            }
+        }
+        for (j = 0; j < 4; j++) {
+            J = j + m - 1;
+            if ((J >= 0) && (J < _y)) {
+                B_J = this->LookupTable[T][j];
+                for (i = 0; i < 4; i++) {
+                    I = i + l - 1;
+                    if ((I >= 0) && (I < _x)) {
+                        B_I = B_J * this->LookupTable[S][i];
+                        basis = B_I / norm;
+                        basis2 = B_I;
+                        phi = x2[index] * basis;
+                        data[0][J][I]._x += basis2 * phi;
+                        phi = y2[index] * basis;
+                        data[0][J][I]._y += basis2 * phi;
+                        ds[0][J][I] += basis2;
+                    }
+                }
+            }
+        }
     }
-  }
+
+    // Final loop: Calculate new control points
+    for (j = -2; j < _y+2; j++) {
+        for (i = -2; i < _x+2; i++) {
+            if(ds[0][j][i]>0){
+                _data[0][j][i]._x = data[0][j][i]._x / ds[0][j][i];
+                _data[0][j][i]._y = data[0][j][i]._y / ds[0][j][i];
+            }
+        }
+    }
 
   // Calculate residual error
   for (index = 0; index < no; index++) {
@@ -1357,7 +1776,7 @@ void irtkBSplineFreeFormTransformation3D::ApproximateAsNew2D(const double *x1, c
 void irtkBSplineFreeFormTransformation3D::ApproximateAsNew3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
 {
   int i, j, k, l, m, n, I, J, K, S, T, U, index;
-  double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, phi, norm;
+  double s, t, u, x, y, z, B_I, B_J, B_K, basis, basis2, phi, norm;;
 
   // Allocate memory for control points
   irtkVector3D<double> ***data = NULL;
@@ -1380,57 +1799,57 @@ void irtkBSplineFreeFormTransformation3D::ApproximateAsNew3D(const double *x1, c
   }
   // Initial loop: Calculate change of control points
   for (index = 0; index < no; index++) {
-    x = x1[index];
-    y = y1[index];
-    z = z1[index];
-    this->WorldToLattice(x, y, z);
-    l = (int)floor(x);
-    m = (int)floor(y);
-    n = (int)floor(z);
-    s = x-l;
-    t = y-m;
-    u = z-n;
-    S = round(LUTSIZE*s);
-    T = round(LUTSIZE*t);
-    U = round(LUTSIZE*u);
-    norm = 0;
-    for (k = 0; k < 4; k++) {
-      B_K = this->LookupTable[U][k];
-      for (j = 0; j < 4; j++) {
-        B_J = B_K * this->LookupTable[T][j];
-        for (i = 0; i < 4; i++) {
-          B_I = B_J * this->LookupTable[S][i];
-          norm += B_I * B_I;
-        }
-      }
-    }
-    for (k = 0; k < 4; k++) {
-      B_K = this->LookupTable[U][k];
-      K = k + n - 1;
-      if ((K >= 0) && (K < _z+2)) {
-        for (j = 0; j < 4; j++) {
-          B_J = B_K * this->LookupTable[T][j];
-          J = j + m - 1;
-          if ((J >= -2) && (J < _y+2)) {
-            for (i = 0; i < 4; i++) {
-              B_I = B_J * this->LookupTable[S][i];
-              I = i + l - 1;
-              if ((I >= -2) && (I < _x+2)) {
-                basis = B_I / norm;
-                basis2 = B_I * B_I;
-                phi = x2[index] * basis;
-                data[K][J][I]._x += basis2 * phi;
-                phi = y2[index] * basis;
-                data[K][J][I]._y += basis2 * phi;
-                phi = z2[index] * basis;
-                data[K][J][I]._z += basis2 * phi;
-                ds[K][J][I] += basis2;
+      x = x1[index];
+      y = y1[index];
+      z = z1[index];
+      this->WorldToLattice(x, y, z);
+      l = (int)floor(x);
+      m = (int)floor(y);
+      n = (int)floor(z);
+      s = x-l;
+      t = y-m;
+      u = z-n;
+      S = round(LUTSIZE*s);
+      T = round(LUTSIZE*t);
+      U = round(LUTSIZE*u);
+      norm = 0;
+      for (k = 0; k < 4; k++) {
+          B_K = this->LookupTable[U][k];
+          for (j = 0; j < 4; j++) {
+              B_J = B_K * this->LookupTable[T][j];
+              for (i = 0; i < 4; i++) {
+                  B_I = B_J * this->LookupTable[S][i];
+                  norm += B_I * B_I;
               }
-            }
           }
-        }
       }
-    }
+      for (k = 0; k < 4; k++) {
+          K = k + n - 1;
+          if ((K >= 0) && (K < _z)) {
+              B_K = this->LookupTable[U][k];
+              for (j = 0; j < 4; j++) {        
+                  J = j + m - 1;
+                  if ((J >= 0) && (J < _y)) {
+                      B_J = B_K * this->LookupTable[T][j];
+                      for (i = 0; i < 4; i++) {
+                          I = i + l - 1;
+                          if ((I >= 0) && (I < _x)) {
+                              B_I = B_J * this->LookupTable[S][i];
+                              basis = B_I / norm;
+                              basis2 = B_I;
+                              phi = x2[index] * basis;
+                              data[K][J][I]._x += basis2 * phi;
+                              phi = y2[index] * basis;
+                              data[K][J][I]._y += basis2 * phi;
+                              phi = z2[index] * basis;
+                              data[K][J][I]._z += basis2 * phi;
+                              ds[K][J][I] += basis2;
+                          }
+                      }
+                  }
+              }
+          }
+      }
   }
 
   // Final loop: Calculate new control points
@@ -1469,6 +1888,151 @@ void irtkBSplineFreeFormTransformation3D::ApproximateAsNew(const double *x1, con
   } else {
     ApproximateAsNew3D(x1, y1, z1, x2, y2, z2, no);
   }
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateGradient(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no, double *gradient)
+{
+    if (_z == 1) {
+        ApproximateGradient2D(x1, y1, z1, x2, y2, z2, no, gradient);
+    } else {
+        ApproximateGradient3D(x1, y1, z1, x2, y2, z2, no, gradient);
+    }
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateGradient2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no, double *gradient)
+{
+
+    int i, j, l, m, I, J, S, T, index;
+    double s, t, x, y, z, B_I, B_J, basis;
+
+    // Allocate memory for control points
+    irtkVector3D<double> ***data = NULL;
+    data = Allocate(data, _x, _y, _z);
+
+    // Initialize data structures
+    for (j = 0; j < _y; j++) {
+        for (i = 0; i < _x; i++) {
+            data[0][j][i]._x = 0;
+            data[0][j][i]._y = 0;
+            data[0][j][i]._z = 0;
+        }
+    }
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        s = x-l;
+        t = y-m;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        for (j = 0; j < 4; j++) {
+            J = j + m - 1;
+            if ((J >= 0) && (J < _y)) {
+                B_J = this->LookupTable[T][j];
+                for (i = 0; i < 4; i++) {
+                    I = i + l - 1;
+                    if ((I >= 0) && (I < _x)) {
+                        B_I = B_J * this->LookupTable[S][i];
+                        basis = B_I;
+                        data[0][J][I]._x += x2[index] * basis;
+                        data[0][J][I]._y += y2[index] * basis;
+                    }
+                }
+            }
+        }
+    }
+
+    // Final loop: Calculate new control points
+    for (j = 0; j < _y; j++) {
+        for (i = 0; i < _x; i++) {
+            index = this->LatticeToIndex(i,j,0);
+            gradient[index] = data[0][j][i]._x;
+            gradient[index + _x*_y*_z] = data[0][j][i]._y;
+            gradient[index + 2*_x*_y*_z] = 0;
+        }
+    }
+
+    // Deallocate memory
+    Deallocate(data, _x, _y, _z);
+}
+
+void irtkBSplineFreeFormTransformation3D::ApproximateGradient3D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no, double *gradient)
+{
+
+    int i, j, k, l, m, n, I, J, K, S, T, U, index;
+    double s, t, u, x, y, z, B_I, B_J, B_K, basis;
+
+    // Allocate memory for control points
+    irtkVector3D<double> ***data = NULL;
+    data = Allocate(data, _x, _y, _z);
+
+    // Initialize data structures
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                data[k][j][i]._x = 0;
+                data[k][j][i]._y = 0;
+                data[k][j][i]._z = 0;
+            }
+        }
+    }
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        n = (int)floor(z);
+        s = x-l;
+        t = y-m;
+        u = z-n;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        U = round(LUTSIZE*u);
+        for (k = 0; k < 4; k++) {
+            K = k + n - 1;
+            if ((K >= 0) && (K < _z)) {
+                B_K = this->LookupTable[U][k];
+                for (j = 0; j < 4; j++) {
+                    J = j + m - 1;
+                    if ((J >= 0) && (J < _y)) {
+                        B_J = B_K * this->LookupTable[T][j];
+                        for (i = 0; i < 4; i++) {             
+                            I = i + l - 1;
+                            if ((I >= 0) && (I < _x)) {
+                                B_I = B_J * this->LookupTable[S][i];
+                                basis = B_I;
+                                data[K][J][I]._x += x2[index] * basis;
+                                data[K][J][I]._y += y2[index] * basis;
+                                data[K][J][I]._z += z2[index] * basis;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Final loop: Calculate new control points
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                index = this->LatticeToIndex(i,j,k);
+                gradient[index] = data[k][j][i]._x;
+                gradient[index + _x*_y*_z] = data[k][j][i]._y;
+                gradient[index + 2*_x*_y*_z] = data[k][j][i]._z;
+            }
+        }
+    }
+
+    // Deallocate memory
+    Deallocate(data, _x, _y, _z);
 }
 
 double irtkBSplineFreeFormTransformation3D::Approximate2D(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
@@ -1654,7 +2218,7 @@ double irtkBSplineFreeFormTransformation3D::Approximate3D(const double *x1, cons
     for (k = 0; k < 4; k++) {
       B_K = this->LookupTable[U][k];
       K = k + n - 1;
-      if ((K >= 0) && (K < _z+2)) {
+      if ((K >= -2) && (K < _z+2)) {
         for (j = 0; j < 4; j++) {
           B_J = B_K * this->LookupTable[T][j];
           J = j + m - 1;

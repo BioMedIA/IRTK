@@ -465,10 +465,180 @@ irtkLinearFreeFormTransformation::~irtkLinearFreeFormTransformation()
   _z = 0;
 }
 
-double irtkLinearFreeFormTransformation::Approximate(const double *, const double *, const double *, double *, double *, double *, int)
+double irtkLinearFreeFormTransformation::Approximate(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no)
 {
-  cerr << "irtkLinearFreeFormTransformation::Approximate: Not yet implemented" << endl;
-  exit(1);
+    int i, j, k, l, m, n, I, J, K, index;
+    double s[2], t[2], u[2], x, y, z, B_I, B_J, B_K, basis;
+
+    // Allocate memory for control points
+    irtkVector3D<double> ***data = NULL;
+    data = Allocate(data, _x, _y, _z);
+
+    // Allocate memory for temporary storage
+    double ***ds = NULL;
+    ds = Allocate(ds, _x, _y, _z);
+
+    // Initialize data structures
+    for (k = -2; k < _z+2; k++) {
+        for (j = -2; j < _y+2; j++) {
+            for (i = -2; i < _x+2; i++) {
+                data[k][j][i]._x = 0;
+                data[k][j][i]._y = 0;
+                data[k][j][i]._z = 0;
+                ds[k][j][i] = 0;
+            }
+        }
+    }
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        n = (int)floor(z);
+        s[1] = x-l;
+        t[1] = y-m;
+        u[1] = z-n;
+        s[0] = 1 - s[1];
+        t[0] = 1 - t[1];
+        u[0] = 1 - u[1];
+        for (k = 0; k < 2; k++) {
+            K = k + n;
+            if ((K >= 0) && (K < _z)) {
+                B_K = u[k];
+                for (j = 0; j < 2; j++) {        
+                    J = j + m;
+                    if ((J >= 0) && (J < _y)) {
+                        B_J = B_K*t[j];
+                        for (i = 0; i < 2; i++) {
+                            I = i + l;
+                            if ((I >= 0) && (I < _x)) {
+                                B_I = B_J * s[i];
+                                basis = B_I;
+                                data[K][J][I]._x += x2[index] * basis;
+                                data[K][J][I]._y += y2[index] * basis;
+                                data[K][J][I]._z += z2[index] * basis;
+                                ds[K][J][I] += basis;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Final loop: Calculate new control points
+    for (k = -2; k < _z+2; k++) {
+        for (j = -2; j < _y+2; j++) {
+            for (i = -2; i < _x+2; i++) {
+                if (ds[k][j][i] > 0) {
+                    _data[k][j][i]._x = data[k][j][i]._x / ds[k][j][i];
+                    _data[k][j][i]._y = data[k][j][i]._y / ds[k][j][i];
+                    _data[k][j][i]._z = data[k][j][i]._z / ds[k][j][i];
+                }
+            }
+        }
+    }
+
+    // Calculate residual error
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->LocalDisplacement(x, y, z);
+        x2[index] -= x;
+        y2[index] -= y;
+        z2[index] -= z;
+    }
+
+    // Deallocate memory
+    Deallocate(data, _x, _y, _z);
+    Deallocate(ds, _x, _y, _z);
+
+    return 0;
+}
+
+void irtkLinearFreeFormTransformation::ApproximateGradient(const double *x1, const double *y1, const double *z1, double *x2, double *y2, double *z2, int no, double *gradient)
+{
+    int i, j, k, l, m, n, I, J, K, index;
+    double s[2], t[2], u[2], x, y, z, B_I, B_J, B_K, basis;
+
+    // Allocate memory for control points
+    irtkVector3D<double> ***data = NULL;
+    data = Allocate(data, _x, _y, _z);
+
+    // Allocate memory for temporary storage
+    double ***ds = NULL;
+    ds = Allocate(ds, _x, _y, _z);
+
+    // Initialize data structures
+    for (k = -2; k < _z+2; k++) {
+        for (j = -2; j < _y+2; j++) {
+            for (i = -2; i < _x+2; i++) {
+                data[k][j][i]._x = 0;
+                data[k][j][i]._y = 0;
+                data[k][j][i]._z = 0;
+                ds[k][j][i] = 0;
+            }
+        }
+    }
+    // Initial loop: Calculate change of control points
+    for (index = 0; index < no; index++) {
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        n = (int)floor(z);
+        s[1] = x-l;
+        t[1] = y-m;
+        u[1] = z-n;
+        s[0] = 1 - s[1];
+        t[0] = 1 - t[1];
+        u[0] = 1 - u[1];
+        for (k = 0; k < 2; k++) {
+            K = k + n;
+            if ((K >= 0) && (K < _z)) {
+                B_K = u[k];
+                for (j = 0; j < 2; j++) {        
+                    J = j + m;
+                    if ((J >= 0) && (J < _y)) {
+                        B_J = B_K*t[j];
+                        for (i = 0; i < 2; i++) {
+                            I = i + l;
+                            if ((I >= 0) && (I < _x)) {
+                                B_I = B_J * s[i];
+                                basis = B_I;
+                                data[K][J][I]._x += x2[index] * basis;
+                                data[K][J][I]._y += y2[index] * basis;
+                                data[K][J][I]._z += z2[index] * basis;
+                                ds[K][J][I] += basis;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Final loop: Calculate new control points
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                index = this->LatticeToIndex(i,j,k);
+                gradient[index] = data[k][j][i]._x;
+                gradient[index + _x*_y*_z] = data[k][j][i]._y;
+                gradient[index + 2*_x*_y*_z] = data[k][j][i]._z;
+            }
+        }
+    }
+
+    // Deallocate memory
+    Deallocate(data, _x, _y, _z);
+    Deallocate(ds, _x, _y, _z);
 }
 
 void irtkLinearFreeFormTransformation::Interpolate(const double *, const double *, const double *)
@@ -497,9 +667,9 @@ void irtkLinearFreeFormTransformation::FFD1(double &x, double &y, double &z) con
   }
 
   // Calculated integer coordinates
-  i  = int(x);
-  j  = int(y);
-  k  = int(z);
+  i  = (int)floor(x);
+  j  = (int)floor(y);
+  k  = (int)floor(z);
 
   // Calculated fractional coordinates
   t1 = x - i;
@@ -663,6 +833,113 @@ double irtkLinearFreeFormTransformation::Bending(double, double, double, double
 {
   cerr << "irtkLinearFreeFormTransformation::Bending :Not yet implemented" << endl;
   exit(1);
+}
+
+double irtkLinearFreeFormTransformation::Bending()
+{
+    int i, j, k;
+    double bending;
+
+    bending = 0;
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                bending += this->Bending3D(i, j, k);
+            }
+        }
+    }
+    return bending;
+}
+
+void irtkLinearFreeFormTransformation::BendingGradient3D(double *gradient)
+{
+    // derivative of classic pairwise bending energy
+    int index,i,j,k,x1,x2,y1,y2,z1,z2,n = _x*_y*_z;
+    double tmp[3];
+    for (k = 0; k < _z; k++) {
+        for (j = 0; j < _y; j++) {
+            for (i = 0; i < _x; i++) {
+                index = this->LatticeToIndex(i, j, k);
+
+                // evaluate gradient of the current point for bending energy
+
+                x1 = i - 1;
+                if(x1 < 0) x1 = 0;
+                y1 = j - 1;
+                if(y1 < 0) y1 = 0;
+                z1 = k - 1;
+                if(z1 < 0) z1 = 0;
+                x2 = i + 1;
+                if(x2 > this->_x - 1) x2 = this->_x - 1;
+                y2 = j + 1;
+                if(y2 > this->_y - 1) y2 = this->_y - 1;
+                z2 = k + 1;
+                if(z2 > this->_z - 1) z2 = this->_z - 1;
+
+                tmp[0] = (2.0 * _data[k][j][i]._x - _data[z1][j][i]._x - _data[z2][j][i]._x)/_dz/_dz
+                    + (2.0 * _data[k][j][i]._x - _data[k][y1][i]._x - _data[k][y2][i]._x)/_dy/_dy
+                    + (2.0 * _data[k][j][i]._x - _data[k][j][x1]._x - _data[k][j][x2]._x)/_dx/_dx;
+                tmp[1] = (2.0 * _data[k][j][i]._y - _data[z1][j][i]._y - _data[z2][j][i]._y)/_dz/_dz
+                    + (2.0 * _data[k][j][i]._y - _data[k][y1][i]._y - _data[k][y2][i]._y)/_dy/_dy
+                    + (2.0 * _data[k][j][i]._y - _data[k][j][x1]._y - _data[k][j][x2]._y)/_dx/_dx;
+                tmp[2] = (2.0 * _data[k][j][i]._z - _data[z1][j][i]._z - _data[z2][j][i]._z)/_dz/_dz
+                    + (2.0 * _data[k][j][i]._z - _data[k][y1][i]._z - _data[k][y2][i]._z)/_dy/_dy
+                    + (2.0 * _data[k][j][i]._z - _data[k][j][x1]._z - _data[k][j][x2]._z)/_dx/_dx;
+
+                gradient[index]     = -2.0*tmp[0];
+                gradient[index+n]   = -2.0*tmp[1];
+                gradient[index+2*n] = -2.0*tmp[2];
+
+                // evaluate tested by numerical! good
+
+            }
+        }
+    }
+}
+
+void irtkLinearFreeFormTransformation::BendingGradient(double *gradient)
+{
+    this->BendingGradient3D(gradient);
+}
+
+double irtkLinearFreeFormTransformation::Bending3D(int i, int j, int k)
+{
+    // classic pairwise bending energy
+    double dx, dy, dz;
+    int x2,y2,z2;
+
+    x2 = i + 1;
+    if(x2 > this->_x - 1) x2 = this->_x - 1;
+    y2 = j + 1;
+    if(y2 > this->_y - 1) y2 = this->_y - 1;
+    z2 = k + 1;
+    if(z2 > this->_z - 1) z2 = this->_z - 1;
+
+    if (i != x2) {
+        dx = pow((_data[k][j][x2]._x - _data[k][j][i]._x)/(x2 - i)/_dx,2.0)
+            + pow((_data[k][j][x2]._y - _data[k][j][i]._y)/(x2 - i)/_dx,2.0)
+            + pow((_data[k][j][x2]._z - _data[k][j][i]._z)/(x2 - i)/_dx,2.0);
+    }else{
+        dx = 0;
+    }
+
+    if (j != y2) {
+        dy = pow((_data[k][y2][i]._x - _data[k][j][i]._x)/(y2 - j)/_dy,2.0)
+            + pow((_data[k][y2][i]._y - _data[k][j][i]._y)/(y2 - j)/_dy,2.0)
+            + pow((_data[k][y2][i]._z - _data[k][j][i]._z)/(y2 - j)/_dy,2.0);
+    }else{
+        dy = 0;
+    }
+
+    if (k != z2) {
+        dz = pow((_data[z2][j][i]._x - _data[k][j][i]._x)/(z2 - k)/_dz,2.0)
+            + pow((_data[z2][j][i]._y - _data[k][j][i]._y)/(z2 - k)/_dz,2.0)
+            + pow((_data[z2][j][i]._z - _data[k][j][i]._z)/(z2 - k)/_dz,2.0);
+    }else{
+        dz = 0;
+    }
+
+    return dx + dy + dz;
 }
 
 void irtkLinearFreeFormTransformation::BoundingBox(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const

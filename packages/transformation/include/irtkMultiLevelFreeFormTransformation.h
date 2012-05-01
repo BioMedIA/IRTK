@@ -127,6 +127,13 @@ public:
   virtual double Approximate(double *, double *, double *,
                              double *, double *, double *, int);
 
+  /** Approximate displacements: This function takes a set of points from a complete image
+      and a set of displacements and find a FreeFD which approximates these
+      displacements. After approximatation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual void ApproximateAsNew(double *, double *, double *,
+                             double *, double *, double *, int);
+
   /// Inverts the transformation
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.01);
 

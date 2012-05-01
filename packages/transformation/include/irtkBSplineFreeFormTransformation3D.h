@@ -30,6 +30,8 @@ class irtkBSplineFreeFormTransformation3D : public irtkFreeFormTransformation3D
 
   friend class irtkImageFreeFormRegistration2;
 
+  friend class irtkMultipleImageFreeFormRegistration2;
+
   friend class irtkLinearFreeFormTransformation;
 
 protected:
@@ -105,17 +107,27 @@ protected:
       the residual displacement errors at the points */
   virtual double Approximate3D(const double *, const double *, const double *, double *, double *, double *, int);
 
-  /** Approximate displacements in 2D: This function takes a set of points
+  /** Approximate displacements in 2D: This function takes a set of points 
+      !generated from a complete image!
       and a set of displacements and find a new FFD which approximates these
       displacements. After approximation the displacements replaced by
       the residual displacement errors at the points */
   virtual void ApproximateAsNew2D(const double *, const double *, const double *, double *, double *, double *, int);
 
   /** Approximate displacements in 3D: This function takes a set of points
+      !generated from a complete image!
       and a set of displacements and find a new FFD which approximates these
       displacements. After approximation the displacements replaced by
       the residual displacement errors at the points */
   virtual void ApproximateAsNew3D(const double *, const double *, const double *, double *, double *, double *, int);
+
+    /** Approximate displacements in 2D: This function takes a set of points
+      and a set of errors and find a gradient to minimize the error's l2 norm */
+  virtual void ApproximateGradient2D(const double *, const double *, const double *, double *, double *, double *, int, double *);
+
+  /** Approximate displacements in 3D: This function takes a set of points
+  and a set of errors and find a gradient to minimize the error's l2 norm */
+  virtual void ApproximateGradient3D(const double *, const double *, const double *, double *, double *, double *, int, double *);
 
   /// Memory for lookup table for B-spline basis function values
   static    double LookupTable[FFDLOOKUPTABLESIZE][4];
@@ -137,11 +149,17 @@ protected:
   /// Calculate the bending energy of the transformation at control points (2D)
   virtual double Bending2D(int i, int j);
 
+  /// Calculate the bending energy of the transformation at control points (2D)
+  virtual double BendingSparse2D(int i, int j);
+
   /// Calculate the bending energy of the transformation at arbitrary points  (2D)
   virtual double Bending2D(double x, double y);
 
   /// Calculate the bending energy of the transformation at control points (3D)
   virtual double Bending3D(int i, int j, int k);
+
+  /// Calculate the bending energy of the transformation at control points (3D)
+  virtual double BendingSparse3D(int i, int j, int k);
 
   /// Calculate the bending energy of the transformation at arbitrary points  (3D)
   virtual double Bending3D(double x, double y, double z);
@@ -151,6 +169,12 @@ protected:
 
   /// Calculate the gradient of the bending energy with respect to the parameters
   virtual void BendingGradient3D(double *gradient);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradientSparse2D(double *gradient);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradientSparse3D(double *gradient);
 
 public:
 
@@ -195,6 +219,12 @@ public:
       displacements. After approximation the displacements replaced by
       the residual displacement errors at the points */
   virtual void ApproximateAsNew(const double *, const double *, const double *, double *, double *, double *, int);
+
+    /** Approximate displacements: This function takes a set of points and a
+      set of displacements and find a !new! FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual void ApproximateGradient(const double *, const double *, const double *, double *, double *, double *, int, double *);
 
   /** Interpolates displacements: This function takes a set of displacements
       defined at the control points and finds a FFD which interpolates these
@@ -243,11 +273,17 @@ public:
   /// Calculate total bending energy
   virtual double Bending();
 
+  /// Calculate total bending energy
+  virtual double BendingSparse();
+
   /// Calculate bending energy
   virtual double Bending(double, double, double, double = 0);
 
   /// Calculate the gradient of the bending energy with respect to the parameters
   virtual void BendingGradient(double *gradient);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradientSparse(double *gradient);
 
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The

@@ -24,6 +24,13 @@
 
 class irtkLinearFreeFormTransformation : public irtkFreeFormTransformation3D
 {
+protected:
+
+    /// Calculate the bending energy of the transformation at control points (3D)
+    virtual double Bending3D(int i, int j, int k);
+
+    /// Calculate the gradient of the bending energy with respect to the parameters
+    virtual void BendingGradient3D(double *gradient);
 
 public:
 
@@ -63,6 +70,13 @@ public:
       \param dxs The x-displacements at each control point.
       \param dys The y-displacements at each control point.
       \param dzs The z-displacements at each control point. */
+
+      /** Approximate displacements: This function takes a set of points and a
+      set of displacements and find a !new! FFD which approximates these
+      displacements. After approximation the displacements replaced by
+      the residual displacement errors at the points */
+  virtual void ApproximateGradient(const double *, const double *, const double *, double *, double *, double *, int, double *);
+
   virtual void Interpolate(const double* dxs, const double* dys, const double* dzs);
 
   /// Subdivide FFD
@@ -105,7 +119,13 @@ public:
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 
   /// Calculate the bending energy of the transformation
-  virtual double Bending(double x, double y, double z, double t);
+  virtual double Bending(double x, double y, double z, double t = 0);
+
+  /// Calculate total bending energy
+  virtual double Bending();
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient(double *gradient);
 
   /// Inverts the transformation
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.0001);

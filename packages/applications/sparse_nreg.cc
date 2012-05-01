@@ -20,7 +20,7 @@ char *mask_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: nreg2 [target] [source] <options> \n" << endl;
+  cerr << "Usage: adaptive_nreg [target] [source] <options> \n" << endl;
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-parin file>        Read parameter from file" << endl;
   cerr << "<-parout file>       Write parameter to file" << endl;
@@ -45,26 +45,22 @@ void usage()
   cerr << "<-Sy2 value>         Region of interest in source image" << endl;
   cerr << "<-Sz2 value>         Region of interest in source image" << endl;
   cerr << "<-Tp  value>         Padding value in target image" << endl;
-  cerr << "<-ds  value>         Initial control point spacing" << endl;
   cerr << "<-Sp  value>         Smoothness preservation value" << endl;
-  cerr << "<-Gn  value>         Gradient normalize value" << endl;
+  cerr << "<-Sm  value>         Sparsity model value" << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
   cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
   cerr << "                     must have the same dimensions as the target." << endl;
   cerr << "                     Voxels in the mask with zero or less are " << endl;
   cerr << "                     padded in the target." << endl;
-  cerr << "<-mask_dilation n>   Dilate mask n times before using it" << endl;
-
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  double spacing;
-  int ok, padding, mask_dilation = 0;
+  int ok, padding;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
-  double sp,gn;
+  double sp,sm;
 
   // Check command line
   if (argc < 3) {
@@ -101,19 +97,20 @@ int main(int argc, char **argv)
   source_x2 = source.GetX();
   source_y2 = source.GetY();
   source_z2 = source.GetZ();
+
+  // parameters
   sp = 0;
-  gn = 0;
+  sm = 0;
 
   // Create registration filter
-  irtkImageFreeFormRegistration2 *registration = NULL;
-  registration = new irtkImageFreeFormRegistration2;
+  irtkSparseFreeFormRegistration *registration = NULL;
+  registration = new irtkSparseFreeFormRegistration;
 
   // Create initial multi-level free-form deformation
   irtkMultiLevelFreeFormTransformation *mffd = NULL;
 
   // Default parameters
   padding   = MIN_GREY;
-  spacing   = 0;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -286,20 +283,6 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
-      argc--;
-      argv++;
-      ok = true;
-      registration->SetDebugFlag(true);
-    }
-    if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
-      argc--;
-      argv++;
-      spacing = atof(argv[1]);
-      argc--;
-      argv++;
-      ok = true;
-    }
     if ((ok == false) && (strcmp(argv[1], "-Sp") == 0)) {
         argc--;
         argv++;
@@ -308,13 +291,19 @@ int main(int argc, char **argv)
         argv++;
         ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-Gn") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sm") == 0)) {
         argc--;
         argv++;
-        gn = atof(argv[1]);
+        sm = atof(argv[1]);
         argc--;
         argv++;
         ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
+      argc--;
+      argv++;
+      ok = true;
+      registration->SetDebugFlag(true);
     }
     if ((ok == false) && (strcmp(argv[1], "-x_only") == 0)) {
       argc--;
@@ -358,14 +347,6 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-mask_dilation") == 0)) {
-      argc--;
-      argv++;
-      mask_dilation = atoi(argv[1]);
-      argc--;
-      argv++;
-      ok = true;
-    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -374,8 +355,6 @@ int main(int argc, char **argv)
 
   // Is there a mask to use?
   if (mask_name != NULL) {
-    int voxels, i;
-    irtkGreyPixel *ptr2target, *ptr2mask;
     irtkGreyImage mask(mask_name);
 
     if (mask.GetX() != target.GetX() ||
@@ -385,17 +364,8 @@ int main(int argc, char **argv)
       exit(1);
     }
 
-    if (mask_dilation > 0) {
-      irtkDilation<irtkGreyPixel> dilation;
-      dilation.SetConnectivity(CONNECTIVITY_26);
-      dilation.SetInput(&mask);
-      dilation.SetOutput(&mask);
-      cout << "Dilating mask ... ";
-      cout.flush();
-      for (i = 0; i < mask_dilation; i++) dilation.Run();
-      cout << "done" << endl;
-
-    }
+    irtkGreyPixel *ptr2target, *ptr2mask;
+    int voxels, i;
 
     voxels     = target.GetNumberOfVoxels();
     ptr2target = target.GetPointerToVoxels();
@@ -461,16 +431,11 @@ int main(int argc, char **argv)
   }
 
   if(sp != 0) registration->SetLambda1(sp);
-  if(gn != 0) registration->SetLambda3(gn);
+  if(sm != 0) registration->SetLambda3(sm);
 
   // Override parameter settings if necessary
   if (padding != MIN_GREY) {
     registration->SetTargetPadding(padding);
-  }
-  if (spacing > 0) {
-    registration->SetDX(spacing);
-    registration->SetDY(spacing);
-    registration->SetDZ(spacing);
   }
 
   // Write parameters if necessary

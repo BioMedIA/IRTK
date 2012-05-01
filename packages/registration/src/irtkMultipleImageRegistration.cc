@@ -621,7 +621,7 @@ double irtkMultipleImageRegistration::LandMarkPenalty ()
 
 #ifdef HAS_VTK
 
-    int i,k;
+    int i;
     double d = 0,distance = 0, p[3],q[3];
 
     if (_ptarget == NULL || _psource == NULL){

@@ -14,12 +14,13 @@ private:
 	vtkPolyData *bepsurface;
 	vtkPolyData *datasurface;
 	char* outputfilename;
+    int numberofsegments;
 
 public:
 
 	irtkBep();
 
-	virtual void SetInput(vtkPolyData *bepsurface, vtkPolyData *datasurface);
+	virtual void SetInput(vtkPolyData *bepsurface, vtkPolyData *datasurface, int);
 
 	virtual void SetOutput(char *outputfilename);
 

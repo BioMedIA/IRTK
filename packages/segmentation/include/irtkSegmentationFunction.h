@@ -10,8 +10,6 @@
 
 #include <irtkMultiImageGraphCut.h>
 
-#include <irtkDynamicSegmentation.h>
-
 #ifdef HAS_OPENCV
 
 #include <highgui.h>

@@ -481,10 +481,10 @@ int main(int argc, char **argv)
                 weight = pow(adaptive,2*times)*weight;
                 cout << "current lambda1 of frame " << t << " is "<<weight<<endl;
                 cardiacregistration->SetLambda1(weight);
-                weight = cardiacregistration->GetLambda2();
-                weight = pow(adaptive,2*times)*weight;
-                cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
-                cardiacregistration->SetLambda2(weight);
+                //weight = cardiacregistration->GetLambda2();
+                //weight = pow(adaptive,2*times)*weight;
+                //cout << "current lambda2 of frame " << t << " is "<<weight<<endl;
+                //cardiacregistration->SetLambda2(weight);
             }
 
 			// Run registration filter

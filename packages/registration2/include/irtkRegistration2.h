@@ -30,5 +30,6 @@ public:
 };
 
 #include <irtkImageRegistration2.h>
+#include <irtkMultipleImageRegistration2.h>
 
 #endif

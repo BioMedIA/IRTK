@@ -6,17 +6,17 @@ char *bep_name = NULL, *data_name = NULL, *output_name;
 
 void usage()
 {
-	cerr << "Usage: bep [Number of frames] [Bep Surface] [Data Surface] [Output]" << endl;
+	cerr << "Usage: bep [Number of frames] [Number of segments] [Bep Surface] [Data Surface] [Output]" << endl;
 	cerr << "multiple frame, data surface is prefix name, actual data name prefix+%2d" << endl;
 	exit(1);
 }
 
 int main( int argc, char** argv )
 {
-	int i, numberofframes;
+	int i, numberofframes, numberofsegments;
 	irtkBep bep;
 
-	if (argc < 5) {
+	if (argc < 6) {
 		usage();
 	}
 
@@ -24,6 +24,9 @@ int main( int argc, char** argv )
 	numberofframes = atoi(argv[1]);
 	argv++;
 	argc--;
+    numberofsegments = atoi(argv[1]);
+    argv++;
+    argc--;
 	bep_name = argv[1];
 	argv++;
 	argc--;
@@ -57,7 +60,7 @@ int main( int argc, char** argv )
 		datasurface = datasurface_reader->GetOutput();
 		datasurface->Update();
 
-		bep.SetInput(bepsurface,datasurface);
+		bep.SetInput(bepsurface,datasurface,numberofsegments);
 		bep.SetOutput(output_name);
 		bep.Initialize();
 		bep.Bullseyeplot();
@@ -80,7 +83,7 @@ int main( int argc, char** argv )
             datasurface->DeepCopy(datasurface_reader->GetOutput());
             datasurface->Update();
 
-            bep.SetInput(bepsurface,datasurface);
+            bep.SetInput(bepsurface,datasurface,numberofsegments);
             bep.SetOutput(output_name);
             bep.Initialize();
             bep.Bullseyeplot();

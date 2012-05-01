@@ -508,6 +508,46 @@ double irtkMultiLevelFreeFormTransformation::Bending(double x, double y, double 
   return val;
 }
 
+void irtkMultiLevelFreeFormTransformation::ApproximateAsNew(double *x1, double *y1, double *z1, double *x2, double *y2, double *z2, int no)
+{
+    int level, i;
+    double error, rms_error, max_error;
+
+    // Loop over all levels
+    rms_error = 0;
+    for (level = 0; level < _NumberOfLevels; level++) {
+
+        // Approximate current level
+        if (dynamic_cast<irtkBSplineFreeFormTransformation *>(_localTransformation[level]) != NULL) {
+            cout << "Approximating FFD at level " << level+1 << endl;
+            ((irtkBSplineFreeFormTransformation *)_localTransformation[level])->ApproximateAsNew(x1, y1, z1, x2, y2, z2, no);
+        } else {
+            cerr << "Only supported for irtkBSplineFreeFormTransformation" << endl;
+            return;
+        }
+
+        // Calculate error
+        rms_error = 0;
+        max_error = 0;
+
+        // Loop over points
+        for (i = 0;  i < no; i++) {
+
+            // Calculate error
+            error = sqrt(x2[i]*x2[i] + y2[i]*y2[i] + z2[i]*z2[i]);
+
+            // Calculate maximum error
+            rms_error += error;
+            if (error > max_error) {
+                max_error = error;
+            }
+        }
+
+        rms_error /= (double)no;
+        cout << "Mean error: " << rms_error << endl;
+        cout << "Max. error: " << max_error << endl;
+    }
+}
 
 double irtkMultiLevelFreeFormTransformation::Approximate(double *x1, double *y1, double *z1, double *x2, double *y2, double *z2, int no)
 {

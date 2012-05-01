@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Library   : Image Registration Toolkit (IRTK)
-Module    : $Id: irtkMultiImageGraphCut.cc 101 2009-11-04 16:27:54Z dr $
+Module    : $Id$
 Copyright : Imperial College, Department of Computing
 Visual Information Processing (VIP), 2008 onwards
-Date      : $Date: 2009-11-04 16:27:54 +0000 (‰∏? 04 ÂçÅ‰∏ÄÊú?2009) $
-Version   : $Revision: 101 $
-Changes   : $Author: dr $
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
 =========================================================================*/
 

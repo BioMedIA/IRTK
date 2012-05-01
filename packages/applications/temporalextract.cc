@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: evaluation.cc 253 2010-11-11 22:48:13Z pa100 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2010-11-11 22:48:13 +0000 (Thu, 11 Nov 2010) $
-  Version   : $Revision: 253 $
-  Changes   : $Author: pa100 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

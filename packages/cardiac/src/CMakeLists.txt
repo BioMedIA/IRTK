@@ -3,7 +3,6 @@ SET(CARDIAC_INCLUDES
 ../include/irtkBep.h
 ../include/irtkCardiac3DImageFreeFormRegistration.h
 ../include/irtkCardiacSpatialCorrection.h
-../include/irtkImageMultiFreeFormRegistration2.h
 ../include/irtkTagFunction.h
 )
 
@@ -11,7 +10,6 @@ SET(CARDIAC_SRCS
 irtkBep.cc
 irtkCardiac3DImageFreeFormRegistration.cc
 irtkCardiacSpatialCorrection.cc
-irtkImageMultiFreeFormRegistration2.cc
 irtkTagFunction.cc
 )
 

@@ -53,7 +53,7 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   }
 
   // Default parameters for registration
-  _NumberOfLevels     = 3;
+  _NumberOfLevels     = 4;
   _NumberOfBins       = 64;
 
   // Default parameters for optimization
@@ -128,7 +128,7 @@ void irtkImageFreeFormRegistration2::GuessParameter()
   for (i = 0; i < _NumberOfLevels; i++) {
     _NumberOfIterations[i] = 40;
     _MinStep[i]            = 0.01;
-    _MaxStep[i]            = 1.0;
+    _MaxStep[i]            = 2.0;
   }
 
   // Try to guess padding by looking at voxel values in all eight corners of the volume:
@@ -142,6 +142,17 @@ void irtkImageFreeFormRegistration2::GuessParameter()
       (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
       (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
     _TargetPadding = _target->Get(0, 0, 0);
+  }
+
+  _SourcePadding = MIN_GREY;
+  if ((_source->Get(_source->GetX()-1, 0, 0)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, _source->GetY()-1, 0)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, 0, _source->GetZ()-1)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, _source->GetY()-1, 0)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, _source->GetY()-1, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, 0, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, _source->GetY()-1, _source->GetZ()-1) == _source->Get(0, 0, 0))) {
+          _SourcePadding = _source->Get(0, 0, 0);
   }
 }
 
@@ -1016,6 +1027,18 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     this->EvaluateGradient3D(gradient);
   }
 
+  if (this->_Lambda1 > 0) {
+      this->SmoothnessPenaltyGradient(gradient);
+  }
+
+  if (this->_Lambda2 > 0) {
+      this->VolumePreservationPenaltyGradient(gradient);
+  }
+
+  if(_Lambda3 > 0){
+      this->NormalizeGradient(gradient);
+  }
+
   // Update gradient
   if (_CurrentIteration == 0) {
       // First iteration, so let's initialize
@@ -1043,18 +1066,6 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
       }
   }
 
-  if (this->_Lambda1 > 0) {
-      this->SmoothnessPenaltyGradient(gradient);
-  }
-
-  if (this->_Lambda2 > 0) {
-      this->VolumePreservationPenaltyGradient(gradient);
-  }
-
-  if(_Lambda3 > 0){
-      this->NormalizeGradient(gradient);
-  }
-
   // Calculate maximum of gradient vector
   max_length = 0;
   for (z = 0; z < _affd->GetZ(); z++) {
@@ -1073,6 +1084,7 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
   for (i = 0; i < _affd->NumberOfDOFs(); i++) {
     if (_affd->irtkTransformation::GetStatus(i) == _Passive) {
       gradient[i] = 0;
+      _affd->Put(i,0);
     }
   }
 
@@ -1140,6 +1152,12 @@ void irtkImageFreeFormRegistration2::Run()
 
       // Update source image
       this->Update(true);
+
+      
+      if (_DebugFlag == true){
+          sprintf(buffer, "transformedsource_%d.nii.gz", _CurrentLevel);
+          _transformedSource.Write(buffer);
+      }
 
       // Compute current metric value
       best_similarity = old_similarity = this->Evaluate();

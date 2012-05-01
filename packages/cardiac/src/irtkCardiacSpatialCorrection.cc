@@ -1139,9 +1139,9 @@ void irtkCardiacSpatialCorrection::GuessParameter()
 
 	// Default parameters for optimization
 	_SimilarityMeasure  = NMI;
-	_Epsilon            = 0.0001;
+	_Epsilon            = 0.00001;
 	_IntLambda			= 0.3;
-	_ConstrainLambda    = 0.001;
+	_ConstrainLambda    = 0.0001;
 
 	// Read target pixel size
 	_target->GetPixelSize(&xsize, &ysize, &zsize);

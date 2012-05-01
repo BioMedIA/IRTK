@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: ems.cc 37 2009-04-27 15:28:58Z mm3 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2009-04-27 16:28:58 +0100 (一, 27 四月 2009) $
-  Version   : $Revision: 37 $
-  Changes   : $Author: mm3 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

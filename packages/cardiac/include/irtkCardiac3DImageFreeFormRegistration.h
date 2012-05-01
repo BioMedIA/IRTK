@@ -25,8 +25,7 @@ class irtkMultiThreadedImageFreeFormRegistrationEvaluateGradient;
  * Filter for non-rigid registration based on voxel similarity measures.
  *
  * This class implements a registration filter for the non-rigid registration
- * of two images. The basic algorithm is described in Rueckert et al., IEEE
- * Transactions on Medical Imaging, In press.
+ * of cardiac untagged and tagged images. 
  *
  */
 

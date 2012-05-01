@@ -17,21 +17,45 @@
 void usage()
 {
   cerr << "Usage: ffdinfo [dofin]\n" << endl;
+  cerr << "<-output file>       ffd value output file, prefix for each level, " << endl;
+  cerr << "for example info (output will be info0.txt...infon.txt)" << endl;
   exit(1);
 }
 
+char *resultout_name = NULL;
+
 int main(int argc, char **argv)
 {
-  int i, j, k, n, active, passive;
+  int i, j, k, n, active, passive, ok;
   double dx, dy, dz, xaxis[3], yaxis[3], zaxis[3];
 
   // Check command line
-  if (argc != 2) {
+  if (argc < 2) {
     usage();
   }
 
   // Read transformation
   irtkTransformation *transform = irtkTransformation::New(argv[1]);
+  argv++;
+  argc--;
+
+  // Parse remaining parameters
+  while (argc > 1){
+      ok = false;
+      if ((ok == false) && (strcmp(argv[1], "-output") == 0)){
+          argc--;
+          argv++;
+          resultout_name = argv[1];
+          argc--;
+          argv++;
+          ok = true;
+      }
+      if (ok == false){
+          cerr << "Can not parse argument " << argv[1] << endl;
+          usage();
+      }
+  } 
+
   irtkMultiLevelFreeFormTransformation *mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transform);
   cout << "Done" << endl;
 
@@ -91,5 +115,17 @@ int main(int argc, char **argv)
          << active*100.0/(active+passive) << "%)" << endl;
     cout << "Passive control points: " << passive << " ("
          << passive*100.0/(active+passive) << "%)" << endl;
+
+    if(resultout_name){
+        char buffer[255];
+        sprintf(buffer, "%s%d.txt",resultout_name,n);
+        cerr << "Writing Results: " << buffer << endl;
+        ofstream fout(buffer,ios::app);
+        for(i = 0; i < ffd->NumberOfDOFs(); i++){
+            fout << ffd->Get(i) << " ";
+        }
+        fout << endl;
+        fout.close();
+    }
   }
 }

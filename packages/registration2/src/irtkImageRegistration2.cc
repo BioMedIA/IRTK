@@ -96,6 +96,7 @@ irtkImageRegistration2::irtkImageRegistration2()
 
   // Set parameters
   _TargetPadding   = MIN_GREY;
+  _SourcePadding   = MIN_GREY;
 
   // Set inputs
   _target = NULL;
@@ -137,25 +138,6 @@ void irtkImageRegistration2::Initialize(int level)
   swap(tmp_target, _target);
   swap(tmp_source, _source);
 
-  // Blur images if necessary
-  if (_TargetBlurring[level] > 0) {
-    cout << "Blurring target ... "; cout.flush();
-    irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
-    blurring.SetInput (_target);
-    blurring.SetOutput(_target);
-    blurring.Run();
-    cout << "done" << endl;
-  }
-
-  if (_SourceBlurring[level] > 0) {
-    cout << "Blurring source ... "; cout.flush();
-    irtkGaussianBlurring<irtkGreyPixel> blurring(_SourceBlurring[level]);
-    blurring.SetInput (_source);
-    blurring.SetOutput(_source);
-    blurring.Run();
-    cout << "done" << endl;
-  }
-
   _target->GetPixelSize(&dx, &dy, &dz);
   temp = fabs(_TargetResolution[0][0]-dx) + fabs(_TargetResolution[0][1]-dy) + fabs(_TargetResolution[0][2]-dz);
 
@@ -180,12 +162,32 @@ void irtkImageRegistration2::Initialize(int level)
     // Create resampling filter
     irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
         _SourceResolution[level][1],
-        _SourceResolution[level][2], MIN_GREY);
+        _SourceResolution[level][2], 
+        _SourcePadding);
 
     resample.SetInput (_source);
     resample.SetOutput(_source);
     resample.Run();
     cout << "done" << endl;
+  }
+
+  // Blur images if necessary
+  if (_TargetBlurring[level] > 0) {
+      cout << "Blurring target ... "; cout.flush();
+      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
+      blurring.SetInput (_target);
+      blurring.SetOutput(_target);
+      blurring.Run();
+      cout << "done" << endl;
+  }
+
+  if (_SourceBlurring[level] > 0) {
+      cout << "Blurring source ... "; cout.flush();
+      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _SourcePadding);
+      blurring.SetInput (_source);
+      blurring.SetOutput(_source);
+      blurring.Run();
+      cout << "done" << endl;
   }
 
   // Find out the min and max values in target image, ignoring padding
@@ -215,10 +217,14 @@ void irtkImageRegistration2::Initialize(int level)
     for (k = 0; k < _source->GetZ(); k++) {
       for (j = 0; j < _source->GetY(); j++) {
         for (i = 0; i < _source->GetX(); i++) {
+            if (_source->Get(i, j, k, t) > _SourcePadding) {
           if (_source->Get(i, j, k, t) > _source_max)
             _source_max = _source->Get(i, j, k, t);
           if (_source->Get(i, j, k, t) < _source_min)
             _source_min = _source->Get(i, j, k, t);
+            } else {
+                _source->Put(i, j, k, t, _SourcePadding);
+            }
         }
       }
     }
@@ -259,7 +265,11 @@ void irtkImageRegistration2::Initialize(int level)
         for (k = 0; k < _source->GetZ(); k++) {
           for (j = 0; j < _source->GetY(); j++) {
             for (i = 0; i < _source->GetX(); i++) {
-              _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _target_min);
+                if ( _source->Get(i, j, k, t) > _SourcePadding) {
+                    _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _target_min);
+                }else {
+                    _source->Put(i, j, k, t, -1);
+                }
             }
           }
         }
@@ -275,7 +285,11 @@ void irtkImageRegistration2::Initialize(int level)
         for (k = 0; k < _source->GetZ(); k++) {
           for (j = 0; j < _source->GetY(); j++) {
             for (i = 0; i < _source->GetX(); i++) {
-              _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _source_min);
+                if ( _source->Get(i, j, k, t) > _SourcePadding) {
+                    _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _source_min);
+                }else {
+                    _source->Put(i, j, k, t, -1);
+                }
             }
           }
         }
@@ -285,6 +299,8 @@ void irtkImageRegistration2::Initialize(int level)
 
   // Pad target image if necessary
   irtkPadding(*_target, _TargetPadding);
+
+  irtkPadding(*_source, _SourcePadding);
 
   // Allocate memory for histogram if necessary
   switch (_SimilarityMeasure) {
@@ -308,6 +324,7 @@ void irtkImageRegistration2::Initialize(int level)
   irtkGenericImage<double> tmp = *_source;
   gradient.SetInput (&tmp);
   gradient.SetOutput(&_sourceGradient);
+  gradient.SetPadding(_SourcePadding);
   gradient.Run();
 
   // Determine attributes of source image
@@ -701,7 +718,7 @@ void irtkImageRegistration2::EvaluateGradientNMI()
           irtkGreyPixel targetValue = *ptr2target;
           irtkRealPixel sourceValue = *ptr2source;
 
-          if ((targetValue >= 0) && (sourceValue >= 0.0f) && (targetValue < _histogram->NumberOfBinsX()) && (sourceValue < _histogram->NumberOfBinsY())) {
+          if ((targetValue < _histogram->NumberOfBinsX()) && (sourceValue < _histogram->NumberOfBinsY())) {
             // The two is added because the image is resample between 2 and bin +2
             // if 64 bins are used the histogram will have 68 bins et the image will be between 2 and 65
 
@@ -956,7 +973,14 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
   }
   if (strstr(buffer1, "Padding value") != NULL) {
     this->_TargetPadding = atoi(buffer2);
+    if(this->_SourcePadding == MIN_GREY){
+        this->_SourcePadding = this->_TargetPadding;
+    }
     ok = true;
+  }
+  if (strstr(buffer1, "Source padding value") != NULL) {
+      this->_SourcePadding = atoi(buffer2);
+      ok = true;
   }
   if (strstr(buffer1, "Similarity measure") != NULL) {
     if (strstr(buffer2, "CC") != NULL) {
@@ -1058,6 +1082,7 @@ void irtkImageRegistration2::Write(ostream &to)
   to << "No. of bins                       = " << this->_NumberOfBins << endl;
   to << "Epsilon                           = " << this->_Epsilon << endl;
   to << "Padding value                     = " << this->_TargetPadding << endl;
+  to << "Source padding value              = " << this->_SourcePadding << endl;
 
   switch (this->_SimilarityMeasure) {
     case K:

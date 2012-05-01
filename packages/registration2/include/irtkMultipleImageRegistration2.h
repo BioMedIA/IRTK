@@ -10,9 +10,9 @@
 
 =========================================================================*/
 
-#ifndef _IRTKIMAGEREGISTRATION2_H
+#ifndef _IRTKMULTIPLEIMAGEREGISTRATION2_H
 
-#define _IRTKIMAGEREGISTRATION2_H
+#define _IRTKMULTIPLEIMAGEREGISTRATION2_H
 
 /**
  * Generic for image registration based on voxel similarity measures.
@@ -26,66 +26,74 @@
  *
  */
 
-class irtkImageRegistration2 : public irtkRegistration2
+class irtkMultipleImageRegistration2 : public irtkRegistration2
 {
 
   /// Interface to input file stream
-  friend istream& operator>> (istream&, irtkImageRegistration2*);
+  friend istream& operator>> (istream&, irtkMultipleImageRegistration2*);
 
   /// Interface to output file stream
-  friend ostream& operator<< (ostream&, const irtkImageRegistration2*);
+  friend ostream& operator<< (ostream&, const irtkMultipleImageRegistration2*);
 
 protected:
 
-  /** First input image. This image is denoted as target image and its
+    /** First set of input image. This image is denoted as target image and its
    *  coordinate system defines the frame of reference for the registration.
    */
-  irtkGenericImage<short> *_target;
+  irtkGreyImage **_target;
 
   /** Second input image. This image is denoted as source image. The goal of
    *  the registration is to find the transformation which maps the source
    *  image into the coordinate system of the target image.
    */
-  irtkGenericImage<short> *_source;
+  irtkGreyImage **_source;
+
+#ifdef HAS_VTK
+  /// Landmark input
+  vtkPolyData *_ptarget;
+
+  /// Landmark input
+  vtkPolyData *_psource;
+
+  /// Landmark gradient
+  vtkPolyData *_pgradient;
+#endif
+
+  /// Number of images (must be equal for source and target images)
+  int _numberOfImages;
 
   /** Current estimate of the source image transformed back into the target
    *  coordinate system. This is updated every time the Update function is
    *  called.
    */
-  irtkGenericImage<double> _transformedSource;
+  irtkGenericImage<double> *_transformedSource;
 
   /// Gradient of the original source
-  irtkGenericImage<double> _sourceGradient;
+  irtkGenericImage<double> *_sourceGradient;
 
   /// Gradient of the transformed source
-  irtkGenericImage<double> _transformedSourceGradient;
+  irtkGenericImage<double> *_transformedSourceGradient;
 
   /// Gradient of the similarity metric
-  irtkGenericImage<double> _similarityGradient;
+  irtkGenericImage<double> *_similarityGradient;
 
   /// Transformation
   irtkTransformation *_transformation;
 
   /// 2D histogram (this is not used for all similarity metrics)
-  irtkHistogram_2D<double> *_histogram;
+  irtkHistogram_2D<double> **_histogram;
 
   /// Interpolator for source image
-  irtkInterpolateImageFunction *_interpolator;
+  irtkInterpolateImageFunction **_interpolator;
 
   /// Interpolator for source image gradient
-  irtkInterpolateImageFunction *_interpolatorGradient;
+  irtkInterpolateImageFunction **_interpolatorGradient;
 
   /// Blurring of target image (in mm)
   double _TargetBlurring[MAX_NO_RESOLUTIONS];
 
-  /// Resolution of target image (in mm)
-  double _TargetResolution[MAX_NO_RESOLUTIONS][3];
-
   /// Blurring of source image (in mm)
   double _SourceBlurring[MAX_NO_RESOLUTIONS];
-
-  /// Resolution of source image (in mm)
-  double _SourceResolution[MAX_NO_RESOLUTIONS][3];
 
   /// Minimum length of steps
   double _MinStep[MAX_NO_RESOLUTIONS];
@@ -99,8 +107,8 @@ protected:
   /// Padding value of target image
   short  _TargetPadding;
 
-  /// Padding value of source image
-  short _SourcePadding;
+  /// Padding value of target image
+  short  _SourcePadding;
 
   /// Number of levels of multiresolution pyramid
   int    _NumberOfLevels;
@@ -126,7 +134,17 @@ protected:
   /// Current min and max voxel values
   int _target_min, _target_max;
   int _source_min, _source_max;
-  int _maxDiff;
+  int *_maxDiff;
+  int _totalVoxels;
+  double _totalWeight;
+
+  /// image lambda weight
+  double **_weight;
+
+  /// Landmark regulation penalty coefficient
+  double _Lregu;
+
+  int _level;
 
   /// Current level in the multi-resolution pyramid
   int _CurrentLevel;
@@ -135,8 +153,8 @@ protected:
   int _CurrentIteration;
 
   /// Source image domain which can be interpolated fast
-  double _source_x1, _source_y1, _source_z1;
-  double _source_x2, _source_y2, _source_z2;
+  double *_source_x1, *_source_y1, *_source_z1;
+  double *_source_x2, *_source_y2, *_source_z2;
 
   /// Initial set up for the registration
   virtual void Initialize();
@@ -171,19 +189,32 @@ protected:
   /// Evaluate gradient of similarity measure: NMI
   virtual void EvaluateGradientNMI();
 
+#ifdef HAS_VTK
+
+  /// Calculate the landmark penalty gradient
+  virtual void EvaluateGradientLandmark();
+
+#endif
+
+  /** Evaluates the smoothness preservation term. */
+  virtual double LandMarkPenalty();
+
 public:
 
   /// Constructor
-  irtkImageRegistration2();
+  irtkMultipleImageRegistration2();
 
   /// Destructor
-  virtual ~irtkImageRegistration2();
+  virtual ~irtkMultipleImageRegistration2();
 
   /// Sets input for the registration filter
-  virtual void SetInput (irtkGreyImage *, irtkGreyImage *);
+  virtual void SetInput (irtkGreyImage **, irtkGreyImage **, int);
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
+
+  /// Sets weighting for different images at different levels
+  virtual void SetWeighting(double **);
 
   /// Runs the registration filter
   virtual void Run();
@@ -211,6 +242,13 @@ public:
 
   /// Prints debugging messages if debugging is enabled
   virtual void Debug(string);
+
+#ifdef HAS_VTK
+
+  /// Sets landmark regulation input for the registration filter
+  virtual void SetLandmarks (vtkPolyData *, vtkPolyData *);
+
+#endif
 
   /// Prints information about the progress of the registration
   virtual void Print() = 0;
@@ -240,20 +278,42 @@ public:
 
 };
 
-inline void irtkImageRegistration2::SetInput(irtkGreyImage *target, irtkGreyImage *source)
+inline void irtkMultipleImageRegistration2::SetInput(irtkGreyImage **target, irtkGreyImage **source, int n)
 {
-  _target = target;
-  _source = source;
+    int i;
+
+    _numberOfImages = n;
+    _target = new irtkGreyImage*[_numberOfImages];
+    _source = new irtkGreyImage*[_numberOfImages];
+    for (i = 0; i < _numberOfImages; i++) {
+        _target[i] = target[i];
+        _source[i] = source[i];
+    }
 }
 
-inline void irtkImageRegistration2::Debug(string message)
+inline void irtkMultipleImageRegistration2::Debug(string message)
 {
   if (_DebugFlag == true) cout << message << endl;
 }
 
-#include <irtkImageRigidRegistration2.h>
-#include <irtkImageAffineRegistration2.h>
-#include <irtkImageFreeFormRegistration2.h>
-#include <irtkSparseFreeFormRegistration.h>
+inline void irtkMultipleImageRegistration2::SetWeighting(double **weight)
+{
+    _weight = weight;
+}
+
+#ifdef HAS_VTK
+
+inline void irtkMultipleImageRegistration2::SetLandmarks (vtkPolyData * target, vtkPolyData * source)
+{
+    _ptarget = target;
+    _psource = source;
+    _pgradient = vtkPolyData::New();
+    _pgradient->DeepCopy(_psource);
+}
+
+#endif
+
+#include <irtkMultipleImageRigidRegistration2.h>
+#include <irtkMultipleImageFreeFormRegistration2.h>
 
 #endif

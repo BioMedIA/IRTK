@@ -10,9 +10,9 @@
 
 =========================================================================*/
 
-#ifndef _IRTKDISCONTINUOUSFREEFORMREGISTRATION_H
+#ifndef _IRTKMULTIPLEIMAGEFREEFORMREGISTRATION2_H
 
-#define _IRTKDISCONTINUOUSFREEFORMREGISTRATION_H
+#define _IRTKMULTIPLEIMAGEFREEFORMREGISTRATION2_H
 
 /**
  * Filter for non-rigid registration based on voxel similarity measures.
@@ -23,7 +23,7 @@
  *
  */
 
-class irtkDiscontinuousFreeFormRegistration : public irtkImageRegistration2
+class irtkMultipleImageFreeFormRegistration2 : public irtkMultipleImageRegistration2
 {
 
 protected:
@@ -34,14 +34,11 @@ protected:
   /// Pointer to the global transformation which is constant
   irtkMultiLevelFreeFormTransformation *_mffd;
 
-  /// Pointer to the local transformation which is currently optimized
-  irtkBSplineFreeFormTransformation *_bsfd;
+  /// Pointer to lattice coordinates for every voxel
+  double **_latticeCoordLUT;
 
-  /// Pointer to the global transformation which is constant
-  irtkMultiLevelFreeFormTransformation *_bssm;
-
-  /// Gradient of the similarity metric
-  irtkGenericImage<double> _gradientResidual;
+  /// Pointer to static displacements for every voxel
+  double **_displacementLUT;
 
   /// Pointer to adjugate Jacobian matrix
   irtkMatrix *_adjugate;
@@ -49,29 +46,29 @@ protected:
   /// Pointer to Jacobian determinant
   double *_determinant;
 
-  /// current gradient
-  double *_currentgradient;
-
-  double _compressrate;
-
-  double *_sparsityindex;
-
-  int _currentffdlevel;
-
-  /// Volume parameter for non-rigid registration
+  /// Smoothness parameter for non-rigid registration
   double _Lambda1;
+
+  /// Volume preservation parameter for non-rigid registration
+  double _Lambda2;
+
+  /// Control point spacing in the x-direction
+  double _DX;
+
+  /// Control point spacing in the y-direction
+  double _DY;
+
+  /// Control point spacing in the z-direction
+  double _DZ;
+
+  /// Subdivide FFD between resolution levels
+  bool _Subdivision;
 
   /// Registration mode
   irtkImageFreeFormRegistrationMode _Mode;
 
-  /// Number of sparse model levels
-  int _NumberOfModels;
-
-  /// Start levels
-  int _LevelOfStart;
-
-  /// Previous ffd number for conjugate
-  int _previousFFD;
+  /// Multilevel mode
+  bool _MFFDMode;
 
   /// Initial set up for the registration
   virtual void Initialize();
@@ -88,14 +85,28 @@ protected:
   /// Update state of the registration based on current transformation estimate
   virtual void Update(bool);
 
-  /// Update jocobian and determine matrixes
-  virtual void UpdateVolume(bool);
+  /// Update state of the registration based on current transformation estimate (source image)
+  virtual void UpdateSource();
+
+  /// Update state of the registration based on current transformation estimate (source image and source image gradient)
+  virtual void UpdateSourceAndGradient();
+
+    /** Evaluates the smoothness preservation term. */
+  virtual double SmoothnessPenalty();
+
+  /** Evaluates the gradient of the smoothness term. */
+  virtual void SmoothnessPenaltyGradient(double *);
 
   /** Evaluates the volume preservation term. */
   virtual double VolumePreservationPenalty();
 
-  /** Evaluates the volume preservation term. */
-  virtual void VolumePreservationPenaltyGradient();
+  /** Evaluates the gradient of the volume preservation term. */
+  virtual void VolumePreservationPenaltyGradient(double *);
+
+#ifdef HAS_VTK
+  /** Evaluate the gradient of the landmark penalty term */
+  virtual void LandmarkGradient(double *);
+#endif HAS_VTK
 
   /** Evaluates the registration. This function evaluates the registration by
    *  looping over the target image and interpolating the transformed source
@@ -105,26 +116,21 @@ protected:
   virtual double Evaluate();
 
   /// Evaluate the gradient of the similarity measure for the current transformation for 2D images
-  virtual void EvaluateGradient2D();
+  virtual void EvaluateGradient2D(double *);
 
   /// Evaluate the gradient of the similarity measure for the current transformation for 3D images
-  virtual void EvaluateGradient3D();
+  virtual void EvaluateGradient3D(double *);
 
   /// Evaluate the gradient of the similarity measure for the current transformation.
   virtual double EvaluateGradient(double *);
 
-  /// Project gradient to B Spline domian
-  virtual void DomainDecomposition();
-
-  /// Choose which level to use
-  virtual void ChooseLevel();
+  /// Normalization of similarity gradient
+  virtual void NormalizeGradient(double *);
 
 public:
 
   /// Constructor
-  irtkDiscontinuousFreeFormRegistration();
-
-  ~irtkDiscontinuousFreeFormRegistration();
+  irtkMultipleImageFreeFormRegistration2();
 
   /// Set output for the registration filter
   virtual void SetOutput(irtkTransformation *);
@@ -147,13 +153,29 @@ public:
   /// Write registration parameters to file
   virtual void Write(ostream &);
 
+  // Access parameters for control point space
+  virtual SetMacro(DX, double);
+  virtual GetMacro(DX, double);
+  virtual SetMacro(DY, double);
+  virtual GetMacro(DY, double);
+  virtual SetMacro(DZ, double);
+  virtual GetMacro(DZ, double);
+
   // Access parameters for registration mode
   virtual SetMacro(Mode, irtkImageFreeFormRegistrationMode);
   virtual GetMacro(Mode, irtkImageFreeFormRegistrationMode);
 
+  virtual SetMacro(MFFDMode, bool);
+  virtual GetMacro(MFFDMode, bool);
+  virtual SetMacro(Subdivision, bool);
+  virtual GetMacro(Subdivision, bool);
+  virtual SetMacro(Lambda1, double);
+  virtual GetMacro(Lambda1, double);
+  virtual SetMacro(Lambda2, double);
+  virtual GetMacro(Lambda2, double);
 };
 
-inline void irtkDiscontinuousFreeFormRegistration::SetOutput(irtkTransformation *transformation)
+inline void irtkMultipleImageFreeFormRegistration2::SetOutput(irtkTransformation *transformation)
 {
   // Print debugging information
   this->Debug("irtkImageFreeFormRegistration::SetOutput");
@@ -167,12 +189,12 @@ inline void irtkDiscontinuousFreeFormRegistration::SetOutput(irtkTransformation 
   _transformation = transformation;
 }
 
-inline const char *irtkDiscontinuousFreeFormRegistration::NameOfClass()
+inline const char *irtkMultipleImageFreeFormRegistration2::NameOfClass()
 {
   return "irtkFreeFormRegistration";
 }
 
-inline void irtkDiscontinuousFreeFormRegistration::Print()
+inline void irtkMultipleImageFreeFormRegistration2::Print()
 {}
 
 #endif
