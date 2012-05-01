@@ -26,7 +26,15 @@
 
 #define MAX_NO_LINE_ITERATIONS 20
 
+#ifdef HAS_VTK
+
 extern irtkGreyImage **tmp_mtarget, **tmp_msource;
+
+#else
+
+irtkGreyImage **tmp_mtarget, **tmp_msource;
+
+#endif
 
 inline double GetBasisSplineValue(double x)
 {
