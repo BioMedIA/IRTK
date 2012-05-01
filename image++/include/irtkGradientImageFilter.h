@@ -31,6 +31,9 @@ protected:
 	/// Type of gradient
 	int _type;
 
+    /// Padding
+    int _Padding;
+
   /** Initialize the filter. This function must be called by any derived
    *  filter class to perform some initialize tasks. */
   virtual void Initialize();
@@ -57,6 +60,9 @@ public:
 
   /// Run the convolution filter
   virtual void Run();
+
+  /// Set Padding
+  virtual SetMacro(Padding,VoxelType);
 };
 
 #endif

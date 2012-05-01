@@ -17,6 +17,8 @@
 template <class VoxelType> irtkGradientImageFilter<VoxelType>::irtkGradientImageFilter(int type)
 {
   _type = type;
+
+  _Padding = MIN_GREY;
 }
 
 template <class VoxelType> bool irtkGradientImageFilter<VoxelType>::RequiresBuffering(void)
@@ -109,17 +111,23 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
         if (x2 > this->_input->GetX()-1) x2 = this->_input->GetX()-1;
 
         // Compute derivatives
-        if (x1 != x2) {
+        if (x1 != x2 
+            && this->_input->Get(x2, y, z) > _Padding
+            && this->_input->Get(x1, y, z) > _Padding) {
           dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
         } else {
           dx = 0;
         }
-        if (y1 != y2) {
+        if (y1 != y2
+            && this->_input->Get(x, y2, z) > _Padding
+            && this->_input->Get(x, y1, z) > _Padding) {
           dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
         } else {
           dy = 0;
         }
-        if (z1 != z2) {
+        if (z1 != z2
+            && this->_input->Get(x, y, z2) > _Padding
+            && this->_input->Get(x, y, z1) > _Padding) {
           dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
         } else {
           dz = 0;
