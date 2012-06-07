@@ -1,10 +1,10 @@
-template <class VoxelType> extern class itkGaussianBlurring
+template <class VoxelType> extern class irtkGaussianBlurring
 {
 public:
-  itkGaussianBlurring(double);
-  ~itkGaussianBlurring();
-  virtual void SetInput(itkGenericImage<VoxelType>* );
-  virtual void SetOutput(itkGenericImage<VoxelType>* );
+  irtkGaussianBlurring(double);
+  ~irtkGaussianBlurring();
+  virtual void SetInput(irtkGenericImage<VoxelType>* );
+  virtual void SetOutput(irtkGenericImage<VoxelType>* );
   virtual void Run();
   void SetSigma(double);
   double GetSigma();

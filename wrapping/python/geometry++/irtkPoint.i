@@ -1,4 +1,4 @@
-extern class itkPoint {
+extern class irtkPoint {
 public:
 
   /// x coordinate of Point
@@ -15,129 +15,129 @@ public:
   //
 
   /// Constructor
-  itkPoint();
+  irtkPoint();
 
   /// Constructor with three coordinates
-  itkPoint(double, double, double);
+  irtkPoint(double, double, double);
 
   /// Constructor with Point
-  itkPoint(const itkPoint &);
+  irtkPoint(const irtkPoint &);
 
   /// Constructor with Vector
-  itkPoint(const itkVector&);
+  irtkPoint(const irtkVector&);
 
   /// Default destructor
-  virtual ~itkPoint(void);
+  virtual ~irtkPoint(void);
 
   //
   // Operators for Point
   //
 
   /// Substraction operator for point
-  itkPoint& operator-=(const itkPoint&);
+  irtkPoint& operator-=(const irtkPoint&);
 
   /// Addition operator for point
-  itkPoint& operator+=(const itkPoint&);
+  irtkPoint& operator+=(const irtkPoint&);
 
   /// Multiplication operator for point
-  itkPoint& operator*=(const itkPoint&);
+  irtkPoint& operator*=(const irtkPoint&);
 
   /// Division operator for point
-  itkPoint& operator/=(const itkPoint&);
+  irtkPoint& operator/=(const irtkPoint&);
 
   /// Return result of point substraction
-  itkPoint  operator- (const itkPoint&);
+  irtkPoint  operator- (const irtkPoint&);
 
   /// Return result of point addition
-  itkPoint  operator+ (const itkPoint&);
+  irtkPoint  operator+ (const irtkPoint&);
 
   /// Return result of point multiplication
-  itkPoint  operator* (const itkPoint&);
+  irtkPoint  operator* (const irtkPoint&);
 
   /// Return result of point division
-  itkPoint  operator/ (const itkPoint&);
+  irtkPoint  operator/ (const irtkPoint&);
 
   // 
   // Operators for comparison
   //
 
   /// Comparison operator ==
-  int    operator==(const itkPoint&);
+  int    operator==(const irtkPoint&);
 
   /// Comparison operator != (if USE_STL is defined, negate == operator)
-  int    operator!=(const itkPoint&);
+  int    operator!=(const irtkPoint&);
 
   /// Comparison operator <
-  int    operator<(const itkPoint&);
+  int    operator<(const irtkPoint&);
 
   /// Comparison operator >
-  int    operator>(const itkPoint&);
+  int    operator>(const irtkPoint&);
 
   //
   // Operators for double
   //
 
   /// Substraction of double
-  itkPoint& operator-=(double);
+  irtkPoint& operator-=(double);
 
   /// Addition of double
-  itkPoint& operator+=(double);
+  irtkPoint& operator+=(double);
 
   /// Multiplication with double
-  itkPoint& operator*=(double);
+  irtkPoint& operator*=(double);
 
   /// Division by double
-  itkPoint& operator/=(double);
+  irtkPoint& operator/=(double);
 
   // Return result of substraction of double
-  itkPoint  operator- (double);
+  irtkPoint  operator- (double);
 
   // Return result of addition of double
-  itkPoint  operator+ (double);
+  irtkPoint  operator+ (double);
 
   // Return result of multiplication with double
-  itkPoint  operator* (double);
+  irtkPoint  operator* (double);
 
   // Return result of division by double
-  itkPoint  operator/ (double);
+  irtkPoint  operator/ (double);
 
   //
   // Operators for Vector
   //
 
   /// Substraction operator for vectors
-  itkPoint& operator-=(const itkVector&);
+  irtkPoint& operator-=(const irtkVector&);
 
   /// Addition operator for vectors
-  itkPoint& operator+=(const itkVector&);
+  irtkPoint& operator+=(const irtkVector&);
 
   /// Multiplication operator for vectors (componentwise)
-  itkPoint& operator*=(const itkVector&);
+  irtkPoint& operator*=(const irtkVector&);
 
   /// Division operator for vectors (componentwise)
-  itkPoint& operator/=(const itkVector&);
+  irtkPoint& operator/=(const irtkVector&);
 
   // Return result of vector substraction
-  itkPoint  operator- (const itkVector&);
+  irtkPoint  operator- (const irtkVector&);
 
   // Return result of vector addition
-  itkPoint  operator+ (const itkVector&);
+  irtkPoint  operator+ (const irtkVector&);
 
   // Return result of vector multiplication
-  itkPoint  operator* (const itkVector&);
+  irtkPoint  operator* (const irtkVector&);
 
   // Return result of vector division
-  itkPoint  operator/ (const itkVector&);
+  irtkPoint  operator/ (const irtkVector&);
 
   //
   // Operators for Matrix
   //
 
   /// Point multiplication operator for matrices
-  itkPoint& operator*=(const itkMatrix&);
+  irtkPoint& operator*=(const irtkMatrix&);
 
   /// Return result from Matrix multiplication
-  itkPoint  operator* (const itkMatrix&);
+  irtkPoint  operator* (const irtkMatrix&);
 
   //
   // Distance methods 
@@ -147,7 +147,7 @@ public:
   double  Distance(void) const;
 
   /// Distance from point
-  double  Distance(const itkPoint&) const;
+  double  Distance(const irtkPoint&) const;
 
 %extend
 {

@@ -1,14 +1,18 @@
-extern class itkRigidTransformation : public itkHomogeneousTransformation {
+extern class irtkRigidTransformation : public irtkHomogeneousTransformation {
 public:
 
+
   /// Constructor (default)
-  itkRigidTransformation();
+  irtkRigidTransformation();
 
   /// Constructor (copy)
-  itkRigidTransformation(const itkRigidTransformation &);
-  
-  /// Destructor 
-  virtual ~itkRigidTransformation();
+  irtkRigidTransformation(const irtkRigidTransformation &);
+
+  /// Destructor
+  virtual ~irtkRigidTransformation();
+
+  /// Reset transformation
+  virtual void Reset();
 
   /// Puts translation along the x-axis (transformation matrix is updated)
   void   PutTranslationX(double);
@@ -55,17 +59,14 @@ public:
   /// Gets a transformation parameter
   virtual double Get(int) const;
 
-  /// Puts the transformation matrix (transformation parameters are updated)
-  virtual void   PutMatrix(const itkMatrix &);
-
-  /// Inverts the transformation
-  virtual void Invert();
-
   /// Transforms a point by the rotation part of the rigid transformation.
   virtual void Rotate(double& INOUT, double& INOUT, double& INOUT);
 
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
+
   /// Checks whether transformation is an identity mapping
-  virtual Bool IsIdentity();
+  virtual bool IsIdentity();
 
   /// Prints the parameters of the transformation
   virtual void Print();
@@ -74,5 +75,27 @@ public:
   static int CheckHeader(char *);
 
   /// Returns a string with the name of the instantiated class
-  virtual char *NameOfClass();
+  virtual const char *NameOfClass();
+
+  /// Reads a transformation from a file
+  virtual irtkCifstream& Read(irtkCifstream&);
+
+  /// Writes a transformation to a file
+  virtual irtkCofstream& Write(irtkCofstream&);
+
+  /// Imports a transformation from a file
+  virtual istream& Import(istream&);
+
+  /// Exports a transformation to a file
+  virtual ostream& Export(ostream&);
+
+  /// Puts the transformation matrix (transformation parameters are updated)
+  virtual void PutMatrix(const irtkMatrix &);
+
+  /// Updates transformation matrix
+  virtual void UpdateMatrix();
+
+  /// Updates transformation parameters
+  virtual void UpdateParameter();
+
 };

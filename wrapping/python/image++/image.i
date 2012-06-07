@@ -1,29 +1,28 @@
-%include <itkBytePixel.h>
-%include <itkGreyPixel.h>
-%include <itkRealPixel.h>
+%include <irtkVoxel.h>
 
-%include "itkBaseImage.i"
-%include "itkGenericImage.i"
-%include "itkGaussianBlurring.i"
+%include "irtkImageAttributes.i"
+%include "irtkBaseImage.i"
+%include "irtkGenericImage.i"
+%include "irtkGaussianBlurring.i"
 
-%template(itkByteImage) itkGenericImage<itkBytePixel>;
-%template(itkGreyImage) itkGenericImage<itkGreyPixel>;
-%template(itkRealImage) itkGenericImage<itkRealPixel>;
-%template(itkVector3DCharImage)  itkGenericImage<itkVector3D<char> >;
-%template(itkVector3DShortImage)  itkGenericImage<itkVector3D<short> >;
-%template(itkVector3DFloatImage)  itkGenericImage<itkVector3D<float> >;
-%template(itkVector3DDoubleImage)  itkGenericImage<itkVector3D<double> >;
-typedef itkGenericImage<itkBytePixel> itkByteImage;
-typedef itkGenericImage<itkGreyPixel> itkGreyImage;
-typedef itkGenericImage<itkRealPixel> itkRealImage;
-typedef itkGenericImage<itkVector3D<char> >  itkVector3DImage;
-typedef itkGenericImage<itkVector3D<short> > itkVector3DShortImage;
-typedef itkGenericImage<itkVector3D<float> > itkVector3DFloatImage;
-typedef itkGenericImage<itkVector3D<double> > itkVector3DDoubleImage;
+%template(irtkByteImage) irtkGenericImage<irtkBytePixel>;
+%template(irtkGreyImage) irtkGenericImage<irtkGreyPixel>;
+%template(irtkRealImage) irtkGenericImage<irtkRealPixel>;
+//// %template(irtkVector3DCharImage)  irtkGenericImage<irtkVector3D<char> >;
+//// %template(irtkVector3DShortImage)  irtkGenericImage<irtkVector3D<short> >;
+//// %template(irtkVector3DFloatImage)  irtkGenericImage<irtkVector3D<float> >;
+//// %template(irtkVector3DDoubleImage)  irtkGenericImage<irtkVector3D<double> >;
+typedef irtkGenericImage<irtkBytePixel> irtkByteImage;
+typedef irtkGenericImage<irtkGreyPixel> irtkGreyImage;
+typedef irtkGenericImage<irtkRealPixel> irtkRealImage;
+//// typedef irtkGenericImage<irtkVector3D<char> >  irtkVector3DImage;
+//// typedef irtkGenericImage<irtkVector3D<short> > irtkVector3DShortImage;
+//// typedef irtkGenericImage<irtkVector3D<float> > irtkVector3DFloatImage;
+//// typedef irtkGenericImage<irtkVector3D<double> > irtkVector3DDoubleImage;
 
-%template(itkByteGaussianBlurring) itkGaussianBlurring<itkBytePixel>;
-%template(itkGreyGaussianBlurring) itkGaussianBlurring<itkGreyPixel>;
-%template(itkRealGaussianBlurring) itkGaussianBlurring<itkRealPixel>;
-typedef itkGaussianBlurring<itkBytePixel> itkByteGaussianBlurring;
-typedef itkGaussianBlurring<itkGreyPixel> itkGreyGaussianBlurring;
-typedef itkGaussianBlurring<itkRealPixel> itkRealGaussianBlurring;
+%template(irtkByteGaussianBlurring) irtkGaussianBlurring<irtkBytePixel>;
+%template(irtkGreyGaussianBlurring) irtkGaussianBlurring<irtkGreyPixel>;
+%template(irtkRealGaussianBlurring) irtkGaussianBlurring<irtkRealPixel>;
+typedef irtkGaussianBlurring<irtkBytePixel> irtkByteGaussianBlurring;
+typedef irtkGaussianBlurring<irtkGreyPixel> irtkGreyGaussianBlurring;
+typedef irtkGaussianBlurring<irtkRealPixel> irtkRealGaussianBlurring;

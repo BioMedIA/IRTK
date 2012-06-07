@@ -1,4 +1,4 @@
-template <typename T> extern class itkVector3D
+template <typename T> extern class irtkVector3D
 {
  public:
   /** The x-component. */
@@ -11,61 +11,61 @@ template <typename T> extern class itkVector3D
   double _z;
 
   /** Constructor. */
-  itkVector3D(double x = 0, double y = 0, double z = 1);
+  irtkVector3D(double x, double y, double z);
 
   /** Normalizes the vector. */
   void Normalize();
 
   /** Operator for multiplying by a scalar. */
-  itkVector3D operator*(double s);
+  irtkVector3D operator*(double s);
 
   /** Operator for adding two vectors. */
-  itkVector3D operator+(const itkVector3D& v);
+  irtkVector3D operator+(const irtkVector3D& v);
 
   /** Operator for subtraction. */
-  itkVector3D operator-(const itkVector3D& v);
+  irtkVector3D operator-(const irtkVector3D& v);
 
   /** Operator for multiplying by a scalar. */
-  itkVector3D& operator*=(double s);
+  irtkVector3D& operator*=(double s);
 
   /** Operator for mulityplying by a vector. */
-  itkVector3D& operator*=(const itkVector3D& v);
+  irtkVector3D& operator*=(const irtkVector3D& v);
 
   /** Operator for adding a vector. */
-  itkVector3D& operator+=(const itkVector3D& v);
+  irtkVector3D& operator+=(const irtkVector3D& v);
 
   /** Operator for subtracting a vector. */
-  itkVector3D& operator-=(const itkVector3D& v);
+  irtkVector3D& operator-=(const irtkVector3D& v);
 
   /** Operator for testing equality of two vectors. */
-  bool operator==(const itkVector3D& v);
+  bool operator==(const irtkVector3D& v);
 
   /** Operator for testing non-equality of two vector. */
-  bool operator!=(const itkVector3D& v);
+  bool operator!=(const irtkVector3D& v);
 
   /** Operator for comparing sizes of vectors. */
-  bool operator<(const itkVector3D& v);
+  bool operator<(const irtkVector3D& v);
 
   /** Operator for comparing sizes of vectors. */
-  bool operator>(const itkVector3D& v);
+  bool operator>(const irtkVector3D& v);
 
   /** Operator for comparing sizes of vectors. */
-  bool operator<=(const itkVector3D& v);
+  bool operator<=(const irtkVector3D& v);
 
   /** Operator for comparing sizes of vectors. */
-  bool operator>=(const itkVector3D& v);
+  bool operator>=(const irtkVector3D& v);
 
   /** Operator for dividing one vector by another. */
-  itkVector3D& operator/=(const itkVector3D& v);
+  irtkVector3D& operator/=(const irtkVector3D& v);
 
   /** Operator for dividing one vector by another. */
-  itkVector3D operator/(const itkVector3D& v);
+  irtkVector3D operator/(const irtkVector3D& v);
 
   /** Takes the cross-product of two vectors. */
-  static itkVector3D CrossProduct(const itkVector3D& v1, const itkVector3D& v2);
+  static irtkVector3D CrossProduct(const irtkVector3D& v1, const irtkVector3D& v2);
 
   /** Takes the dot-product of two vectors. */
-  static double DotProduct(const itkVector3D& v1, const itkVector3D& v2);
+  static double DotProduct(const irtkVector3D& v1, const irtkVector3D& v2);
   
 %extend
 {

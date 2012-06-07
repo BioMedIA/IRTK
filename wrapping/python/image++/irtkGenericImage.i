@@ -1,42 +1,37 @@
-template <class VoxelType> extern class itkGenericImage : public itkBaseImage
+template <class VoxelType> extern class irtkGenericImage : public irtkBaseImage
 {
 public:
-  
+
+
   /// Default constructor
-  itkGenericImage(void);   
-                      
+  irtkGenericImage();
+
   /// Constructor from image file
-  itkGenericImage(char *);                       
+  irtkGenericImage(char *);
 
-  /// Constructor for given image dimensions
-  itkGenericImage(int, int, int = 1);    
-  
-  /// Constructor for given image dimensions and voxel dimensions
-  itkGenericImage(int, int, int, double, double, double);    
+  /// Constructor for given image size
+  irtkGenericImage(int, int, int, int = 1);
 
-  /// Copy constructor for image of type unsigned char
-  itkGenericImage(const itkGenericImage<itkBytePixel> &);
+  /// Copy constructor for image 
+  irtkGenericImage(const irtkGenericImage &);
 
-  /// Copy constructor for image of type short
-  itkGenericImage(const itkGenericImage<itkGreyPixel> &);
+  /// Constructor for given image attributes
+  irtkGenericImage(const irtkImageAttributes &);
 
-  /// Copy constructor for image of type float
-  itkGenericImage(const itkGenericImage<itkRealPixel> &);
+  /// Copy constructor for image of different type
+  template <class T> irtkGenericImage(const irtkGenericImage<T> &);
 
   /// Destructor
-  ~itkGenericImage(void);                      
+  ~irtkGenericImage(void);
 
   /// Initialize an image
-  void Initialize(int, int, int);
+  void Initialize(const irtkImageAttributes &);
 
-  /// Initialize baseimage with given size and dimensions
-  void Initialize(int, int, int, double, double, double);
-
-  /// Initialize an image
-  void Initialize(const itkBaseImage &);
+  /// Clear an image
+  void Clear();
 
   /// Read image from file
-  void Read (const char *); 
+  void Read (const char *);
 
   /// Write image to file
   void Write(const char *);
@@ -44,110 +39,126 @@ public:
   /// Minimum and maximum pixel values get accessor
   void GetMinMax(VoxelType *OUTPUT, VoxelType *OUTPUT) const;
 
-  /// Minimum and maximum pixel values get accessor within a slice
-  void GetMinMax(int,  VoxelType *OUTPUT, VoxelType *OUTPUT) const;
+  /// Average pixel values get accessor
+  VoxelType GetAverage(int = 1) const;
+
+  /// Standard Deviation of the pixels
+  VoxelType GetSD(int = 1) const;
+
+  /// Get Max Intensity position around the point
+  void GetMaxPosition(irtkPoint &, int = 1, int = 0) const;
+
+  /// Get Gravity center position of a given window
+  void GravityCenter(irtkPoint &, int = 1, int = 0) const;
+
+  /// Minimum and maximum pixel values get accessor with padding
+  void GetMinMaxPad(VoxelType *OUTPUT, VoxelType *OUTPUT, VoxelType pad) const;
 
   /// Minimum and maximum pixel values put accessor
   void PutMinMax(VoxelType, VoxelType);
 
-  /// Minimum and maximum pixel values put accessor within a slice
-  void PutMinMax(int, VoxelType,  VoxelType);
+  /// Function for pixel access via pointers
+  VoxelType * GetPointerToVoxels(int = 0, int = 0, int = 0, int = 0) const;
 
   /// Funnction to convert pixel to index
-  int VoxelToIndex(int, int, int) const;
-  
-  /// Function for pixel get access 
-  VoxelType   Get(int, int, int = 0) const;
-  
-  /// Function for pixel get access as double
-  double GetAsDouble(int, int, int = 0) const;
-  
-  /// Function for pixel put access 
+  int VoxelToIndex(int, int, int, int = 0) const;
+
+  /// Function for pixel get access
+  VoxelType   Get(int, int, int, int = 0) const;
+
+  /// Function for pixel put access
   void   Put(int, int, int, VoxelType);
 
-  /// Function for pixel put access 
-  void   PutAsDouble(int, int, int, double);
-  
-  /// Function for image slice put access
-  void     PutRegion(int z, const itkGenericImage &);
+  /// Function for pixel put access
+  void   Put(int, int, int, int, VoxelType);
 
-  /// Function for image slice put access in certain region
-  void     PutRegion(int x1, int y1, int z1, int x2, int y2, int z2,
-		     const itkGenericImage &);
+  /// Function for pixel access from via operators
+  VoxelType& operator()(int, int, int, int = 0);
 
   /// Function for image slice get access
-  itkGenericImage GetRegion(int z) const;
+  irtkGenericImage GetRegion(int z, int t) const;
 
   /// Function for image slice get access in certain region
-  itkGenericImage GetRegion(int x1, int y1, int z1, int x2, int y2, int z2) const;
+  irtkGenericImage GetRegion(int x1, int y1, int z1, int x2, int y2, int z2) const;
+
+  /// Function for image slice get access in certain region
+  irtkGenericImage GetRegion(int x1, int y1, int z1, int t1, int x2, int y2, int z2, int t2) const;
+
+  /// Function for image frame get access
+  irtkGenericImage GetFrame(int t) const;
 
   //
   // Operators for image arithmetics
   //
-
+  
   /// Addition operator
-  itkGenericImage  operator+ (const itkGenericImage &);
+  irtkGenericImage  operator+ (const irtkGenericImage &);
+
   /// Addition operator (stores result)
-  itkGenericImage& operator+=(const itkGenericImage &);
+  irtkGenericImage& operator+=(const irtkGenericImage &);
+
   /// Subtraction operator
-  itkGenericImage  operator- (const itkGenericImage &);
+  irtkGenericImage  operator- (const irtkGenericImage &);
+
   /// Subtraction operator (stores result)
-  itkGenericImage& operator-=(const itkGenericImage &);
+  irtkGenericImage& operator-=(const irtkGenericImage &);
+
   /// Multiplication operator
-  itkGenericImage  operator* (const itkGenericImage &);
+  irtkGenericImage  operator* (const irtkGenericImage &);
+
   /// Multiplication operator (stores result)
-  itkGenericImage& operator*=(const itkGenericImage &);
+  irtkGenericImage& operator*=(const irtkGenericImage &);
+
   /// Division operator
-  itkGenericImage  operator/ (const itkGenericImage &);
+  irtkGenericImage  operator/ (const irtkGenericImage &);
+
   /// Division operator (stores result)
-  itkGenericImage& operator/=(const itkGenericImage &);
+  irtkGenericImage& operator/=(const irtkGenericImage &);
 
   //
   // Operators for image and Type arithmetics
   //
 
   /// Addition operator for type
-  itkGenericImage  operator+ (VoxelType);
+  irtkGenericImage  operator+ (VoxelType);
   /// Addition operator for type (stores result)
-  itkGenericImage& operator+=(VoxelType);
+  irtkGenericImage& operator+=(VoxelType);
   /// Subtraction operator for type
-  itkGenericImage  operator- (VoxelType);
+  irtkGenericImage  operator- (VoxelType);
   /// Subtraction operator for type (stores result)
-  itkGenericImage& operator-=(VoxelType);
+  irtkGenericImage& operator-=(VoxelType);
   /// Multiplication operator for type
-  itkGenericImage  operator* (VoxelType);
+  irtkGenericImage  operator* (VoxelType);
   /// Multiplication operator for type (stores result)
-  itkGenericImage& operator*=(VoxelType);
+  irtkGenericImage& operator*=(VoxelType);
   /// Division operator for type
-  itkGenericImage  operator/ (VoxelType);
+  irtkGenericImage  operator/ (VoxelType);
   /// Division operator for type (stores result)
-  itkGenericImage& operator/=(VoxelType);
+  irtkGenericImage& operator/=(VoxelType);
 
   //
   // Operators for image thresholding
   //
 
   /// Threshold operator >  (sets all values >  given value to that value)
-  itkGenericImage  operator> (VoxelType);
+  irtkGenericImage  operator> (VoxelType);
   /// Threshold operator >= (sets all values >= given value to that value)
-  itkGenericImage& operator>=(VoxelType);
+  irtkGenericImage& operator>=(VoxelType);
   /// Threshold operator <  (sets all values <  given value to that value)
-  itkGenericImage  operator< (VoxelType);
+  irtkGenericImage  operator< (VoxelType);
   /// Threshold operator <= (sets all values <= given value to that value)
-  itkGenericImage& operator<=(VoxelType);
+  irtkGenericImage& operator<=(VoxelType);
 
   /// Comparison operators == (explicit negation yields != operator)
-  int operator==(const itkGenericImage &);
-  /// Comparison operator != (if _HAS_STL is defined, negate == operator)
-  ///  Bool operator!=(const itkGenericImage &);
+  bool operator==(const irtkGenericImage &);
 
-  /// Boolean operation for empty
-  int IsEmpty() const;
-  
+  /// Comparison operator != (if _HAS_STL is defined, negate == operator)
+  ///  bool operator!=(const irtkGenericImage &);
+
   //
   // Reflections and axis flipping
   //
-  
+
   /// Reflect image around x
   void ReflectX();
   /// Reflect image around y
@@ -155,13 +166,58 @@ public:
   /// Reflect image around z
   void ReflectZ();
   /// Flip x and y axis
-  void FlipXY();
+  void FlipXY(int);
   /// Flip x and z axis
-  void FlipXZ();
+  void FlipXZ(int);
   /// Flip y and z axis
-  void FlipYZ();
+  void FlipYZ(int);
+  /// Flip x and t axis
+  void FlipXT(int);
+  /// Flip y and t axis
+  void FlipYT(int);
+  /// Flip z and t axis
+  void FlipZT(int);
+
+  //
+  // Conversions from and to VTK
+  //
+
+#ifdef HAS_VTK
+
+  /// Return the VTK scalar image type of an IRTK image
+  int ImageToVTKScalarType();
+
+  /// Conversion to VTK structured points
+  //  void ImageToVTK(vtkStructuredPoints *);
+
+  /// Conversion from VTK structured points
+  //  void VTKToImage(vtkStructuredPoints *);
+
+#endif
+
+  /// Function for pixel get access as double
+  double GetAsDouble(int, int, int, int = 0) const;
+
+  /// Function for pixel put access
+  void   PutAsDouble(int, int, int, double);
+
+  /// Function for pixel put access
+  void   PutAsDouble(int, int, int, int, double);
+
+  /// Returns the name of the image class
+  const char *NameOfClass();
   
-  /// Returns the name of the image class 
-  char *NameOfClass();
+  /// Function for pixel access via pointers
+  void *GetScalarPointer(int = 0, int = 0, int = 0, int = 0) const;
+
+  /// Function which returns pixel scalar type
+  virtual int GetScalarType() const;
+  
+  /// Function which returns the minimum value the pixel can hold without overflowing
+  virtual double GetScalarTypeMin() const;
+
+  /// Function which returns the minimum value the pixel can hold without overflowing
+  virtual double GetScalarTypeMax() const;
+
 
 };

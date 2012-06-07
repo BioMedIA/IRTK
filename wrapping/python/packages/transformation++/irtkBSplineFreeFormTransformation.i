@@ -1,4 +1,4 @@
-extern class itkBSplineFreeFormTransformation : public itkFreeFormTransformation {
+extern class irtkBSplineFreeFormTransformation : public irtkFreeFormTransformation {
 public:
 
   /// Returns the value of the i-th B-spline basis function
@@ -11,13 +11,13 @@ public:
   static double B_II(int, double);
 
   /// Constructor
-  itkBSplineFreeFormTransformation(double, double, double, double, double, double, double, double, double, double*, double*);
+  irtkBSplineFreeFormTransformation(double, double, double, double, double, double, double, double, double, double*, double*);
 
   /// Copy Constructor
-  itkBSplineFreeFormTransformation(const class itkBSplineFreeFormTransformation &);
+  irtkBSplineFreeFormTransformation(const class irtkBSplineFreeFormTransformation &);
 
   /// Destructor
-  virtual ~itkBSplineFreeFormTransformation();
+  virtual ~irtkBSplineFreeFormTransformation();
 
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FFD which approximates these
@@ -62,7 +62,7 @@ public:
   virtual void LocalDisplacement(double &INOUT, double &INOUT, double &INOUT);
 
   /// Calculate the Jacobian of the transformation
-  virtual void Jacobian(double, double, double, itkMatrix &);
+  virtual void Jacobian(double, double, double, irtkMatrix &);
 
   /// Calculate the bending energy of the transformation
   virtual double Bending(double x, double y, double z);

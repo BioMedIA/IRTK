@@ -6,21 +6,18 @@ For more information about the ITK library see:
 http://www.doc.ic.ac.uk/~dr/software/"
 %enddef
 
-%module(docstring=DOCSTRING) itk
+%module(docstring=DOCSTRING) irtk
 %{
-  #include <itkCommon.h>
-  #include <itkGeometry.h>
-  #include <itkImage.h>
-  #include <itkTransformation.h>
-  #include <itkLatticeFreeFormTransformation.h>
-  #include <itkMultiFrameLatticeFreeFormTransformation.h>
-  #include <itkCardiac.h>
+#include <irtkCommon.h>
+#include <irtkGeometry.h>
+#include <irtkImage.h>
+#include <irtkTransformation.h>
+#include <irtkImageToImage.h>
+#include <irtkGaussianBlurring.h>
 
-  #include <itkImageToImage.h>
-  #include <itkGaussianBlurring.h>
-  #include <itkVector3D.h>
+#include <irtkVector3D.h>
 
-  #include <iomanip>
+#include <iomanip>
 %}
 
 %include "typemaps.i"
@@ -123,4 +120,3 @@ http://www.doc.ic.ac.uk/~dr/software/"
 %include "geometry++/geometry.i"
 %include "image++/image.i"
 %include "packages/transformation++/transformation.i"
-%include "packages/cardiac/cardiac.i"

@@ -5,16 +5,26 @@
 // Enumeration to represent active and passive DOFs.
 enum PyStatus {PyActive, PyPassive};
 
-extern class itkTransformation {
+// Avoid these names disappearing down a chain of sub-classes.
+%rename (Transform_point)  irtkTransformation::Transform(irtkPoint& INOUT);
+%rename (Transform_point_set) irtkTransformation::Transform(irtkPointSet &);
+
+extern class irtkTransformation {
 public:
+
   /** Static constructor. This functions returns a pointer to a concrete
    *  transformation by reading the transformation parameters from a file
    *  and creating the approriate transformation
    */
-  static itkTransformation *New(char *);
+  static irtkTransformation *New(char *);
+
+  /** Static constructor. This functions returns a pointer to a concrete
+   *  transformation by copying the transformation passed to it
+   */
+  static irtkTransformation *New(irtkTransformation *);
 
   /// Virtual destructor
-  virtual ~itkTransformation();
+  virtual ~irtkTransformation();
 
   /// Returns the number of parameters of the transformation (abstract)
   virtual int    NumberOfDOFs() const = 0;
@@ -47,23 +57,84 @@ public:
   }
 }
 
+
   /// Transforms a single point
-  virtual void Transform(itkPoint &);
-
-  /// Transforms a set of points
-  virtual void Transform(itkPointSet &);
+  virtual void Transform(irtkPoint& INOUT);
   
-  /// Transforms a point.
-  virtual void Transform(double& INOUT, double& INOUT, double& INOUT);
+  /// Transforms a set of points
+  virtual void Transform(irtkPointSet &);
 
-  /// Calculate the Jacobian of the transformation
-  virtual void Jacobian(double, double, double, itkMatrix &) = 0;
+  /// Transforms a single point in 4D
+  virtual void Transform(double& INOUT, double& INOUT, double& INOUT, double& INOUT = 0);
 
-  /// Calculate the determinant of the Jacobian of the transformation
-  virtual double Jacobian(double, double, double);
+  /// Transforms a point using the global transformation component only
+  virtual void GlobalTransform(double& INOUT, double& INOUT, double& INOUT, double = 0) = 0;
+
+  /// Transforms a point using the local transformation component only
+  virtual void LocalTransform (double& INOUT, double& INOUT, double& INOUT, double = 0) = 0;
+
+  /// Calculate displacement
+  virtual void Displacement(double& INOUT, double& INOUT, double& INOUT, double = 0) = 0;
+
+  /// Calculates displacement using the global transformation component only
+  virtual void GlobalDisplacement(double& INOUT, double& INOUT, double& INOUT, double = 0);
+
+  /// Calculates displacement using the local transformation component only
+  virtual void LocalDisplacement(double& INOUT, double& INOUT, double& INOUT, double = 0);
+
+  /// Inverts the transformation (abstract)
+  virtual double Inverse(double& INOUT, double& INOUT, double& INOUT, double = 0, double = 0.01) = 0;
+
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
+
+  /// Calculate the Jacobian of the transformation with respect to world coordinates
+  virtual void Jacobian(irtkMatrix &, double, double, double, double = 0) = 0;
+
+  /// Calculate the Jacobian of the local transformation with respect to world coordinates
+  virtual void LocalJacobian(irtkMatrix &, double, double, double, double = 0) = 0;
+
+  /// Calculate the Jacobian of the global transformation with respect to world coordinates
+  virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0) = 0;
+
+  /// Calculate the determinant of the Jacobian of the transformation with respect to world coordinates
+  virtual double Jacobian(double, double, double, double = 0);
+
+  /// Calculate the determinant of the Jacobian of the local transformation with respect to world coordinates
+  virtual double LocalJacobian(double, double, double, double = 0);
+
+  /// Calculate the determinant of the Jacobian of the global transformation with respect to world coordinates
+  virtual double GlobalJacobian(double, double, double, double = 0);
+
+  /// Calculate displacement vectors for image
+  virtual void Displacement(irtkGenericImage<double> &);
 
   /// Checks whether transformation is an identity mapping (abstract)
-  virtual Bool IsIdentity() = 0;
+  virtual bool IsIdentity() = 0;
+
+  /// Reads a transformation from a file
+  virtual void Read (char *);
+
+  /// Writes a transformation to a file
+  virtual void Write(char *);
+
+  /// Imports a transformation from a file
+  virtual void Import(char *);
+
+  /// Exports a transformation to a file
+  virtual void Export(char *);
+
+  /// Reads a transformation from a file (abstract)
+  virtual irtkCifstream& Read(irtkCifstream&) = 0;
+
+  /// Writes a transformation to a file (abstract)
+  virtual irtkCofstream& Write( irtkCofstream&) = 0;
+
+  /// Imports a transformation from a file
+  virtual istream& Import(istream&);
+
+  /// Exports a transformation to a file
+  virtual ostream& Export(ostream&);
 
   /// I/O
   virtual void Draw ();
@@ -72,5 +143,9 @@ public:
   virtual void Print() = 0;
 
   /// Returns a string with the name of the instantiated class (abstract)
-  virtual char *NameOfClass() = 0;
+  virtual const char *NameOfClass() = 0;
+
 };
+
+
+

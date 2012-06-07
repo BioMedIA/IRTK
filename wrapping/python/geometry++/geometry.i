@@ -1,14 +1,13 @@
-%include "itkPoint.i"
-%include "itkMatrix.i"
-%include "itkQuaternion.i"
-%include "itkVector.i"
-%include "itkVector3D.i"
+%include "irtkPoint.i"
+%include "irtkMatrix.i"
+%include "irtkVector.i"
+%include "irtkVector3D.i"
 
-%template(itkVector3DChar) itkVector3D<char>;
-%template(itkVector3DShort) itkVector3D<short>;
-%template(itkVector3DFloat) itkVector3D<float>;
-%template(itkVector3DDouble) itkVector3D<double>;
-typedef itkVector3D<char> itkVector3DChar;
-typedef itkVector3D<short> itkVector3DShort;
-typedef itkVector3D<float> itkVector3DFloat;
-typedef itkVector3D<double> itkVector3DDouble;
+%template(irtkVector3DChar) irtkVector3D<char>;
+%template(irtkVector3DShort) irtkVector3D<short>;
+%template(irtkVector3DFloat) irtkVector3D<float>;
+%template(irtkVector3DDouble) irtkVector3D<double>;
+typedef irtkVector3D<char> irtkVector3DChar;
+typedef irtkVector3D<short> irtkVector3DShort;
+typedef irtkVector3D<float> irtkVector3DFloat;
+typedef irtkVector3D<double> irtkVector3DDouble;
