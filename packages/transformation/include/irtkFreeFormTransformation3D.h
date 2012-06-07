@@ -144,7 +144,7 @@ public:
   virtual _Status GetStatus(int);
 
   /// Calculate the bending energy of the transformation
-  virtual double Bending(double x, double y, double z, double t) = 0;
+  virtual double Bending(double x, double y, double z, double t = 0) = 0;
 
   /// Transforms world coordinates (in mm) to FFD coordinates
   virtual void WorldToLattice(double &, double &, double &) const;
@@ -219,7 +219,7 @@ public:
   virtual void Interpolate(const double* dxs, const double* dys, const double* dzs) = 0;
 
   /// Inverts the transformation (abstract)
-  virtual double Inverse(double &, double &, double &, double, double = 0.01);
+  virtual double Inverse(double &, double &, double &, double = 0, double = 0.01);
 
   /// Checks whether transformation is an identity mapping
   virtual bool IsIdentity();
