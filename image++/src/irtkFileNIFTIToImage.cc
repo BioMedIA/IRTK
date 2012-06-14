@@ -176,11 +176,13 @@ void irtkFileNIFTIToImage::ReadHeader()
   }
 
   // Check intent code
+  /*
   if (hdr.nim->intent_code != 0) {
     cerr << "irtkFileNIFTIToImage::ReadHeader: Unknown intent_code = " <<
          hdr.nim->intent_code << endl;
     exit(1);
   }
+  */
 
   // Check for swapping
 #ifndef WORDS_BIGENDIAN
