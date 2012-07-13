@@ -21,7 +21,9 @@ SET(SEGMENTATION_INCLUDES
 ../include/LinkedBlockList.h
 ../include/instances.inc
 ../include/irtkImageGraphCut.h
-../include/irtkSegmentationFunction.h)
+../include/irtkSegmentationFunction.h
+../include/irtkNormalizeNyul.h
+../include/irtkPatchBasedSegmentation.h)
 
 SET(SEGMENTATION_SRCS
 irtkBiasCorrection.cc
@@ -35,6 +37,7 @@ irtkGaussian.cc
 irtkIntensityMatching.cc
 irtkMultiChannelImage.cc
 irtkMeanShift.cc
+irtkNormalizeNyul.cc
 irtkProbabilisticAtlas.cc
 irtkRician.cc
 irtkReconstruction.cc
@@ -43,6 +46,7 @@ GCoptimization.cpp
 LinkedBlockList.cpp
 irtkImageGraphCut.cc
 irtkMultiImageGraphCut.cc
+irtkPatchBasedSegmentation.cc
 irtkSegmentationFunction.cc)
 
 ADD_LIBRARY(segmentation++ ${SEGMENTATION_INCLUDES} ${SEGMENTATION_SRCS})
