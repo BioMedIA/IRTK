@@ -35,6 +35,8 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ems_hard_segmentation hard_segmentation.cc)
     ADD_EXECUTABLE(enlarge_image enlarge_image.cc)
     ADD_EXECUTABLE(multiimage_graphcut multiimage_graphcut.cc)
+    ADD_EXECUTABLE(patchBasedSegmentation patchBasedSegmentation.cc)
+    ADD_EXECUTABLE(patchBasedSegmentation_native patchBasedSegmentation_native.cc)
     ADD_EXECUTABLE(seg_uncertainty seg_uncertainty.cc)
     ADD_EXECUTABLE(reconstruction reconstruction.cc)
 
