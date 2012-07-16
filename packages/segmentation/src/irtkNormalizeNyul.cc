@@ -1,4 +1,4 @@
-#include <NormalizeNyul.h>
+#include <irtkNormalizeNyul.h>
 
 /* "This program implements intensity normalization algorithm published in "
        "Nyul, L.G.; Udupa, J.K.; Xuan Zhang, "
