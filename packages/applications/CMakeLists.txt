@@ -29,6 +29,7 @@ IF (BUILD_CONDOR_EXE)
   ADD_EXECUTABLE(subtract.condor subtract.cc)
   ADD_EXECUTABLE(volumechange.condor volumechange.cc)
 
+    
 ELSE(BUILD_CONDOR_EXE)
     
     ADD_EXECUTABLE(areg areg.cc)
@@ -81,6 +82,9 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(largedeformations largedeformations.cc)
     ADD_EXECUTABLE(largedeformationsShoot largedeformationShooting.cc)
     ADD_EXECUTABLE(largedeformationsTools largedeformationsTools.cc)
+    ADD_EXECUTABLE(LEAPatlas_selection LEAPatlas_selection.cc)  
+    ADD_EXECUTABLE(LEAPprobabilistic_atlas LEAPprobabilistic_atlas.cc) 
+     ADD_EXECUTABLE(LEAPsimilarity_2 LEAPsimilarity.cc) 
     ADD_EXECUTABLE(mat2dof mat2dof.cc)
     ADD_EXECUTABLE(mareg mareg.cc)
     ADD_EXECUTABLE(mnreg mnreg.cc)
@@ -126,7 +130,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
-INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas cnreg2 compare demons dofcombine dofcomposeN dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdinvert ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof fluid headertool hreg image2dof jacobian largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 motiontrackmultimage mrreg nreg nreg2 nreg2_multiple normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 rreg2_multiple subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg sparse_nreg temporalextract transformation transformation2 trans_uncertainty volumechange vtk2ffd jactest)
+INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas cnreg2 compare demons dofcombine dofcomposeN dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdinvert ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof fluid headertool hreg image2dof jacobian LEAPatlas_selection LEAPprobabilistic_atlas LEAPsimilarity_2 largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 motiontrackmultimage mrreg nreg nreg2 nreg2_multiple normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 rreg2_multiple subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg sparse_nreg temporalextract transformation transformation2 trans_uncertainty volumechange vtk2ffd jactest)
 
 ENDIF (BUILD_CONDOR_EXE)
 
