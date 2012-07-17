@@ -2,7 +2,7 @@
 #define SPECTRALCLUSTERING_H_
 
 #include <irtkEigenAnalysis.h>
-#include <ManifoldLearning.h>
+#include <irtkManifoldLearning.h>
 #include <string>
 
 class irtkSpectralClustering : public irtkManifoldLearning

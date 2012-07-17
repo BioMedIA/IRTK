@@ -24,7 +24,7 @@ double irtkManifoldLearning::GetDistance(int i, int j){
 	if(_distances == NULL){
 		EstablishDistances();
 	}
-	return _distances[i][j];igoogle
+	return _distances[i][j];
 }
 
 void irtkManifoldLearning::EstablishDistances(){
