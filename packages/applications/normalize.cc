@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		argc--;
 		argv++;
 		double padding = atoi(argv[1]);
-        if(padding < 0){
+        if(padding < 0){source = nn.GetOutput();
             cout << "equalize padding value < 0 are you sure about it?" << endl;
         }
 		argc--;
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 	  }
   }
   else{ //if piecewise == true -> use piecewise linear approach proposed by Nyul et al.
-	  NormalizeNyul nn(source, target);
+	  irtkNormalizeNyul nn(source, target);
 	  nn.SetPadding(source_padding, target_padding);
 	  nn.Run();
 	  source = nn.GetOutput();
