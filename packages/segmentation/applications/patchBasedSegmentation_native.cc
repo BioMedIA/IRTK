@@ -93,7 +93,7 @@ int main(int argc, char **argv){
 	argv++;
 	patchSize = patchSize / 2;
 	cout << "Patch size: " << patchSize << endl;
-	patchSize = floor(patchSize);
+
 
 	int neighbourhoodsize = atoi(argv[1]);
 	argc--;
