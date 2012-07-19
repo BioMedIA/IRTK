@@ -1,7 +1,5 @@
 
 #include <irtkRegistration.h>
-#include <PairwiseSimilarity.h>
-#include <SpectralClustering.h>
 
 irtkMatrix read_csv(string csvFilename1, string csvFilename2);
 void writeAtlases(string filename, int * atlases, int nrAtlases);

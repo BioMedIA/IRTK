@@ -1,7 +1,6 @@
 
 #include <irtkRegistration.h>
-#include <PairwiseSimilarity.h>
-#include <SpectralClustering.h>
+#include <irtkSpectralClustering.h>
 
 irtkMatrix read_csv(string csvFilename1, string csvFilename2);
 void writeAtlases(string filename, int * atlases, int nrAtlases);
@@ -81,7 +80,7 @@ int main(int argc, char **argv)
 		}
 		return -1;
 	}
-	SpectralClustering le(w.Rows(), 2);
+	irtkSpectralClustering le(w.Rows(), 2);
 	cout << "Do manifold embedding" << endl;
 	le.Initialize(w);
 	le.DoSpectralEmbedding();

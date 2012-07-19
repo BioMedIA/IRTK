@@ -1,6 +1,6 @@
 
 #include <irtkRegistration.h>
-#include <PairwiseSimilarity.h>
+#include <irtkPairwiseSimilarity.h>
 
 #ifdef HAS_TBB
  #include "tbb/task_scheduler_init.h"
@@ -59,7 +59,7 @@
 
 			cout << "Atlas " << i << ". Image ";
 
-			PairwiseSimilarity ps;
+			irtkPairwiseSimilarity ps;
 			ps.Initialize(_nrImages, _sizeSet2, _useMask, _masks, _simType, _nrMasks);
 			string name = _imagedir + _files[i];
 			_images[0]->Read(name.c_str());
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 
 		cout << "Atlas " << i << ". Image ";
 
-		PairwiseSimilarity ps;
+		irtkPairwiseSimilarity ps;
 		ps.Initialize(nrImages, sizeSet2, useMask, masks, simType, nrMasks);
 		string name = imagedir + files[i];
 		images[0]->Read(name.c_str());
