@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		argc--;
 		argv++;
 		double padding = atoi(argv[1]);
-        if(padding < 0){source = nn.GetOutput();
+        if(padding < 0){
             cout << "equalize padding value < 0 are you sure about it?" << endl;
         }
 		argc--;
