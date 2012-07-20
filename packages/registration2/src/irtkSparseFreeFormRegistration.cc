@@ -242,6 +242,9 @@ void irtkSparseFreeFormRegistration::Image2Transformation(){
 }
 
 void irtkSparseFreeFormRegistration::Transformation2Image(){
+
+    cout << "Transformation 2 Image" << endl;
+
     // Initialize
     int i,j,k;
     double x1,y1,z1,x2,y2,z2;
@@ -282,8 +285,14 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
     // Print debugging information
     this->Debug("irtkSparseFreeFormRegistration::InitializeTransformation()");
 
+    // Previous transformation
+    bool hasprevioustransformation = false;
+    if(_mffd->NumberOfLevels() > 0){
+        hasprevioustransformation = true;
+    }
     // Store and pop all current transformations
-    this->Transformation2Image();
+    if(hasprevioustransformation)
+      this->Transformation2Image();
     // Intialize number of models
     int i,j,k;
     double dx,dy,dz,tdx,tdy,tdz,odx,ody,odz;
@@ -387,7 +396,8 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
     }
 
     // save transformation back to mffd
-    this->Image2Transformation();
+    if(hasprevioustransformation)
+      this->Image2Transformation();
 }
 
 void irtkSparseFreeFormRegistration::InitializeTransformation(int level){
