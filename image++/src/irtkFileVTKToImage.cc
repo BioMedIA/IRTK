@@ -96,25 +96,45 @@ void irtkFileVTKToImage::ReadHeader()
   // Read origin
   this->ReadAsString(buffer, 255);
 
+  double x,y,z;
   // Parse origin, but ignore
-  sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_attr._dx, &this->_attr._dy, &this->_attr._dz);
+  sscanf(buffer, "%s %lf %lf %lf", dummy, &x, &y, &z);
+
   if (strcmp(dummy, "ORIGIN") == 0) {
 
-    // Read voxel dimensions
-    this->ReadAsString(buffer, 255);
+      this->_attr._xorigin = x;
+      this->_attr._yorigin = y;
+      this->_attr._zorigin = z;
 
-    // Parse voxel dimensions
-    sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_attr._dx, &this->_attr._dy, &this->_attr._dz);
-    if ((strcmp(dummy, "SPACING") != 0) &&
-        (strcmp(dummy, "ASPECT_RATIO") != 0)) {
-      cerr << this->NameOfClass()
-           << "::Read_Header: Can't find voxel dimensions" << endl;
-    }
+      // Read voxel dimensions
+      this->ReadAsString(buffer, 255);
+
+      // Parse voxel dimensions
+      sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_attr._dx, &this->_attr._dy, &this->_attr._dz);
+      if ((strcmp(dummy, "SPACING") != 0) &&
+          (strcmp(dummy, "ASPECT_RATIO") != 0)) {
+              cerr << this->NameOfClass()
+                  << "::Read_Header: Can't find voxel dimensions" << endl;
+      }
   } else {
 
-    // Read voxel dimensions
-    this->ReadAsString(buffer, 255);
+      this->_attr._dx = x;
+      this->_attr._dy = y;
+      this->_attr._dz = z;
+
+      // Read voxel dimensions
+      this->ReadAsString(buffer, 255);
+      // Parse voxel dimensions
+      sscanf(buffer, "%s %lf %lf %lf", dummy, &this->_attr._xorigin, &this->_attr._yorigin, &this->_attr._zorigin);
+      if ((strcmp(dummy, "ORIGIN") != 0) ) {
+              cerr << this->NameOfClass()
+                  << "::Read_Header: Can't find voxel origin" << endl;
+      }
   }
+
+  this->_attr._xorigin += this->_attr._x*this->_attr._dx*0.5;
+  this->_attr._yorigin += this->_attr._y*this->_attr._dy*0.5;
+  this->_attr._zorigin += this->_attr._z*this->_attr._dz*0.5;
 
   // Read no. of points
   this->ReadAsString(buffer, 255);

@@ -81,7 +81,7 @@ int main(int argc, char **argv){
 
 	atlases = new irtkRealImage*[nAtlases];
 	labels = new irtkGreyImage*[nAtlases];
-	int ids[nAtlases];
+	int *ids = new int[nAtlases];
 	for(int i = 0; i < nAtlases; i++){
 		ids[i] = atoi(argv[1]);
 		argv++;
@@ -100,7 +100,6 @@ int main(int argc, char **argv){
 	argv++;
 	neighbourhoodsize = neighbourhoodsize / 2;
 	cout << "Neighbourhood size: " << neighbourhoodsize << endl;
-	neighbourhoodsize = floor(neighbourhoodsize);
 
 	char * outName = argv[1];
 	argc--;
@@ -205,7 +204,7 @@ int main(int argc, char **argv){
 
 		/////
 		string atlasName = files[ids[i]];
-		int pos = atlasName.find('.nii.gz');
+		int pos = atlasName.find(".nii.gz");
 		string atlasBaseName = atlasName.substr(0,pos-6);
 		string dofNameAtlas =  dofDir + "/areg-" + atlasBaseName + ".dof.gz" ;
 		char* pch = (char*)malloc( sizeof( char ) *(dofNameAtlas.length() +1) );
@@ -214,7 +213,7 @@ int main(int argc, char **argv){
 		irtkTransformation *transformAtlas = irtkTransformation::New(pch);
 		irtkAffineTransformation *affineAtlas = dynamic_cast<irtkAffineTransformation *>(transformAtlas);
 
-		pos = imageName.find('.nii.gz');
+		pos = imageName.find(".nii.gz");
 		string imageBaseName = imageName.substr(0,pos-6);
 		string dofNameImage =  dofDir + "/areg-" + imageBaseName + ".dof.gz" ;
 		pch = (char*)malloc( sizeof( char ) *(dofNameImage.length() +1) );
@@ -288,7 +287,8 @@ int main(int argc, char **argv){
 		*atlases[i] = nn.GetOutput();
 		cout << "done" << endl;
 
-
+        //finalize
+        delete []ids;
 
 	}
 

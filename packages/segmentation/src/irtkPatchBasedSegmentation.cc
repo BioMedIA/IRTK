@@ -202,7 +202,7 @@ bool irtkPatchBasedSegmentation::IsForeground(int x, int y, int z){
 
 void irtkPatchBasedSegmentation::FindLabel(int atlasNo, int x_image, int y_image, int z_image, double *** tmpVals){
 
-	double probLabels [_nrLabels];
+	double *probLabels = new double[_nrLabels];
 	for(int i = 0; i < _nrLabels; i++){
 		probLabels[i] = 0;
 	}
@@ -247,6 +247,8 @@ void irtkPatchBasedSegmentation::FindLabel(int atlasNo, int x_image, int y_image
 	}
 
 	_segmentations[atlasNo]->Put(x_image, y_image, z_image, maxLabel);
+
+    delete []probLabels;
 }
 
 
@@ -331,13 +333,15 @@ void irtkPatchBasedSegmentation::EstablishPatchMeasures(){
 }
 
 void irtkPatchBasedSegmentation::GetConsensusSegmentation(){
+    
+    // new and delete cost resource so moved out side
+    int *labels = new int[_nrLabels];
 
 	_segmentationOutput.Initialize(_image.GetImageAttributes());
 	for(int x = 0; x < _image.GetX(); x++){
 		for(int y = 0; y < _image.GetY(); y++){
 			for(int z = 0; z < _image.GetZ(); z++){
 				if(_image.Get(x, y, z)>0){
-					int labels[_nrLabels];
 					for(int i = 0; i < _nrLabels; i++){
 						labels[i] = 0;
 					}
@@ -346,7 +350,6 @@ void irtkPatchBasedSegmentation::GetConsensusSegmentation(){
 
 						labels[_segmentations[i]->Get(x, y, z)] += 1;
 					}
-//
 					int maxLabel = -1;
 					int max = 0;
 					for(int i = 0; i < _nrLabels; i++){
@@ -360,6 +363,8 @@ void irtkPatchBasedSegmentation::GetConsensusSegmentation(){
 			}
 		}
 	}
+
+    delete []labels;
 }
 
 void irtkPatchBasedSegmentation::GetProbabilisticSegmentation(){

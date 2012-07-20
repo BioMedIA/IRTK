@@ -65,7 +65,6 @@ int main(int argc, char **argv){
 	argv++;
 	neighbourhoodsize = neighbourhoodsize / 2;
 	cout << "Neighbourhood size: " << neighbourhoodsize << endl;
-	neighbourhoodsize = floor(neighbourhoodsize);
 
 	char * outName = argv[1];
 	argc--;

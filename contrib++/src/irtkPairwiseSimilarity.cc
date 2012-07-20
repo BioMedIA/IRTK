@@ -4,12 +4,10 @@
 #include <fstream>
 #include <vector>
 #include <string>
-//#include <dirent.h>
 #include <math.h>
 #include <sstream>
 #include <algorithm>
 #include <sys/types.h>
-#include <dirent.h>
 #include <errno.h>
 #include <sstream>
 #include <irtkPairwiseSimilarity.h>

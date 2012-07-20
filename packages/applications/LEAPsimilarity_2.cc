@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 		ptr++;
 	}
 
-	double results[files.size()];
+	double *results = new double[files.size()];
 	irtkGreyImage * target;
 	target = new irtkGreyImage();
 	target->Read(targetImage.c_str());
@@ -210,6 +210,6 @@ int main(int argc, char **argv)
 	output.close();
 
 
-
+    delete []results;
 
 }

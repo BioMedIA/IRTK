@@ -59,6 +59,9 @@ protected:
     /// sparsity log barrier
     double _Lambda2;
 
+    /// Largest ffd grid spacing
+    double _LargestSpacing;
+
     /// Marxium similarity
     double _MaxSimilarity;
 

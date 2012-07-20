@@ -39,6 +39,7 @@ irtkSparseFreeFormRegistration::irtkSparseFreeFormRegistration()
   _Lambda1     = 0;
   _Lambda2     = 0;
   _Lambda3     = 0;
+  _LargestSpacing = 128;
   _Mode        = RegisterXYZ;
   _mffd = NULL;
   _affd = NULL;
@@ -128,6 +129,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
   else
       _Lambda2        = 3;
   _Lambda3            = 0.0001;
+  _LargestSpacing     = 128;
 
   // Remaining parameters
   for (i = 0; i < _NumberOfLevels; i++) {
@@ -277,10 +279,10 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
     int i,j,k;
     double dx,dy,dz,tdx,tdy,tdz,odx,ody,odz;
 
-    dx = _target->GetXSize()*128;
-    dy = _target->GetYSize()*128;
+    dx = _target->GetXSize()*_LargestSpacing;
+    dy = _target->GetYSize()*_LargestSpacing;
     if(_target->GetZ() > 1)
-        dz = _target->GetZSize()*128;
+        dz = _target->GetZSize()*_LargestSpacing;
     else
         dz = 1;
 
@@ -386,10 +388,10 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(int level){
     // Intialize number of models
     double dx,dy,dz,tdx,tdy,tdz,odx,ody,odz;
 
-    dx = tmp_target->GetXSize()*128;
-    dy = tmp_target->GetYSize()*128;
+    dx = tmp_target->GetXSize()*_LargestSpacing;
+    dy = tmp_target->GetYSize()*_LargestSpacing;
     if(_target->GetZ() > 1)
-        dz = tmp_target->GetZSize()*128;
+        dz = tmp_target->GetZSize()*_LargestSpacing;
     else
         dz = 1;
 
@@ -1113,12 +1115,12 @@ void irtkSparseFreeFormRegistration::NormalizeGradient()
                     //normalize
                     if(norm > 0){
                         norm = sqrt(norm);
-                        _currentgradient[index1] = _currentgradient[index1]/(spacingnorm);
-                        _currentgradient[index2] = _currentgradient[index2]/(spacingnorm);
-                        _currentgradient[index3] = _currentgradient[index3]/(spacingnorm);
-                        //_currentgradient[index1] = _currentgradient[index1]/(norm + spacingnorm*_Epsilon);
-                        //_currentgradient[index2] = _currentgradient[index2]/(norm + spacingnorm*_Epsilon);
-                        //_currentgradient[index3] = _currentgradient[index3]/(norm + spacingnorm*_Epsilon);
+                        //_currentgradient[index1] = _currentgradient[index1]/(spacingnorm);
+                        //_currentgradient[index2] = _currentgradient[index2]/(spacingnorm);
+                        //_currentgradient[index3] = _currentgradient[index3]/(spacingnorm);
+                        _currentgradient[index1] = _currentgradient[index1]/(norm + spacingnorm*_Epsilon);
+                        _currentgradient[index2] = _currentgradient[index2]/(norm + spacingnorm*_Epsilon);
+                        _currentgradient[index3] = _currentgradient[index3]/(norm + spacingnorm*_Epsilon);
                     }
                 }
             }
@@ -1393,6 +1395,12 @@ bool irtkSparseFreeFormRegistration::Read(char *buffer1, char *buffer2, int &lev
       ok = true;
   }
 
+  if ((strstr(buffer1, "Coarsest spacing") != NULL)) {
+      this->_LargestSpacing = atof(buffer2);
+      cout << "Coarsest grid spacing is ... " << this->_LargestSpacing << endl;
+      ok = true;
+  }
+
   if (ok == false) {
     return this->irtkImageRegistration2::Read(buffer1, buffer2, level);
   } else {
@@ -1405,6 +1413,7 @@ void irtkSparseFreeFormRegistration::Write(ostream &to)
   to << "\n#\n# Sparse non-rigid registration parameters\n#\n\n";
   to << "Bending penalty                     = " << this->_Lambda1 << endl;
   to << "Sparsity constrain                  = " << this->_Lambda3 << endl;
+  to << "Coarsest spacing                    = " << this->_LargestSpacing << endl;
 
   this->irtkImageRegistration2::Write(to);
 }

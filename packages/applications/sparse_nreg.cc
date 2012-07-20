@@ -99,8 +99,8 @@ int main(int argc, char **argv)
   source_z2 = source.GetZ();
 
   // parameters
-  sp = 0;
-  sm = 0;
+  sp = -1;
+  sm = -1;
 
   // Create registration filter
   irtkSparseFreeFormRegistration *registration = NULL;
@@ -430,8 +430,8 @@ int main(int argc, char **argv)
     registration->irtkImageRegistration2::Read(parin_name);
   }
 
-  if(sp != 0) registration->SetLambda1(sp);
-  if(sm != 0) registration->SetLambda3(sm);
+  if(sp != -1) registration->SetLambda1(sp);
+  if(sm != -1) registration->SetLambda3(sm);
 
   // Override parameter settings if necessary
   if (padding != MIN_GREY) {

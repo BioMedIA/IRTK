@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	cout << "Do manifold embedding" << endl;
 	le.Initialize(w);
 	le.DoSpectralEmbedding();
-	int selected_atlases[nrAtlases];
+	int *selected_atlases = new int[nrAtlases];
 	cout << "Select " << nrAtlases << " closest atlases (IDs in [0...nAtlases-1]): " << endl;
 	le.GetNeighbours(w.Rows()-1, nrAtlases, selected_atlases);
 
@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 		writeAtlasNames(outname, selected_atlases, nrAtlases, atlasNames);
 	else
 		writeAtlases(outname, selected_atlases, nrAtlases);
+    delete []selected_atlases;
 }
 
 irtkMatrix read_csv(string csvFilename1, string csvFilename2){
