@@ -71,7 +71,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
   }
 
   // Default parameters for registration
-  _NumberOfLevels     = 5;
+  _NumberOfLevels     = 7;
   // Initial guess of bins with range
   _target->GetMinMax(&min,&max);
   _NumberOfBins       = round((max - min)/5.0);
@@ -82,18 +82,20 @@ void irtkSparseFreeFormRegistration::GuessParameter()
   // Don't be too small
   if(_NumberOfBins < 16){
       _NumberOfBins = 16;
+  }else if(_NumberOfBins > 64){
+      _NumberOfBins = 64;
   }
 
   // Default parameters for optimization
-  _SimilarityMeasure  = SSD;
-  _Epsilon            = 0.000001;
+  _SimilarityMeasure  = NMI;
+  _Epsilon            = 0.00001;
   _InterpolationMode  = Interpolation_BSpline;
 
   // Read target pixel size
   _target->GetPixelSize(&xsize, &ysize, &zsize);
 
   // Default target parameters
-  _TargetBlurring[0]      = 0;
+  _TargetBlurring[0]      = 0.5;
   _TargetResolution[0][0] = GuessResolution(xsize, ysize, zsize);
   _TargetResolution[0][1] = GuessResolution(xsize, ysize, zsize);
   _TargetResolution[0][2] = GuessResolution(xsize, ysize, zsize);
@@ -109,7 +111,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
   _source->GetPixelSize(&xsize, &ysize, &zsize);
 
   // Default source parameters
-  _SourceBlurring[0]      = 0;
+  _SourceBlurring[0]      = 0.5;
   _SourceResolution[0][0] = GuessResolution(xsize, ysize, zsize);
   _SourceResolution[0][1] = GuessResolution(xsize, ysize, zsize);
   _SourceResolution[0][2] = GuessResolution(xsize, ysize, zsize);
@@ -123,12 +125,8 @@ void irtkSparseFreeFormRegistration::GuessParameter()
 
   // Default parameters for non-rigid registration
   // recommended values
-  _Lambda1            = 0.0001; 
-  if(_target->GetZ() == 1)
-      _Lambda2        = 9;
-  else
-      _Lambda2        = 3;
-  _Lambda3            = 0.0001;
+  _Lambda1            = 0.001;
+  _Lambda3            = 0.04;
   _LargestSpacing     = 128;
 
   // Remaining parameters
@@ -149,6 +147,17 @@ void irtkSparseFreeFormRegistration::GuessParameter()
       (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
       (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
     _TargetPadding = _target->Get(0, 0, 0);
+  }
+
+  _SourcePadding = MIN_GREY;
+  if ((_source->Get(_source->GetX()-1, 0, 0)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, _source->GetY()-1, 0)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, 0, _source->GetZ()-1)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, _source->GetY()-1, 0)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, _source->GetY()-1, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, 0, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, _source->GetY()-1, _source->GetZ()-1) == _source->Get(0, 0, 0))) {
+          _SourcePadding = _source->Get(0, 0, 0);
   }
 }
 
