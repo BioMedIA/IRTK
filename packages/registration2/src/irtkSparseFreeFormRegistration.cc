@@ -266,10 +266,10 @@ void irtkSparseFreeFormRegistration::Transformation2Image(){
                 x2 = x1;
                 y2 = y1;
                 z2 = z1;
-                _mffd->Transform(x2,y2,z2);
-                _similarityGradient(i,j,k,0) = x2 - x1;
-                _similarityGradient(i,j,k,1) = y2 - y1;
-                _similarityGradient(i,j,k,2) = z2 - z1;
+                _mffd->LocalDisplacement(x2,y2,z2);
+                _similarityGradient(i,j,k,0) = x2;
+                _similarityGradient(i,j,k,1) = y2;
+                _similarityGradient(i,j,k,2) = z2;
             }
         }
     }
