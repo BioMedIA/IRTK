@@ -209,6 +209,10 @@ void irtkImageRegistration2::Initialize(int level)
       }
     }
   }
+  if(_target_max == MIN_GREY && _target_min == MAX_GREY){
+      _target_max = _TargetPadding;
+      _target_min = _TargetPadding;
+  }
 
   // Find out the min and max values in source image
   _source_max = MIN_GREY;
@@ -228,6 +232,10 @@ void irtkImageRegistration2::Initialize(int level)
         }
       }
     }
+  }
+  if(_source_max == MIN_GREY && _source_min == MAX_GREY){
+      _source_max = _SourcePadding;
+      _source_min = _SourcePadding;
   }
 
   // Check whether dynamic range of data is not to large
