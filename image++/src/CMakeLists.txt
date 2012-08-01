@@ -20,6 +20,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkFileGIPLToImage.h
 ../include/irtkFileNIFTIToImage.h
 ../include/irtkFilePGMToImage.h
+../include/irtkFileBinToImage.h
 ../include/irtkFileOpenCVToImage.h
 ../include/irtkFileToImage.h
 ../include/irtkFileVTKToImage.h
@@ -65,6 +66,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkNIFTI.h
 ../include/irtkNonLocalMedianFilter.h
 ../include/irtkNoise.h
+../include/irtkNormalizeNyul.h
 ../include/irtkPointToImage.h
 ../include/irtkRegionFilter.h
 ../include/irtkResampling.h
@@ -103,6 +105,7 @@ irtkFileANALYZEToImage.cc
 irtkFileNIFTIToImage.cc
 irtkFileGIPLToImage.cc
 irtkFilePGMToImage.cc
+irtkFileBinToImage.cc
 irtkFileOpenCVToImage.cc
 irtkFileToImage.cc
 irtkFileVTKToImage.cc
@@ -143,6 +146,7 @@ irtkNearestNeighborInterpolateImageFunction.cc
 irtkNearestNeighborInterpolateImageFunction2D.cc
 irtkNonLocalMedianFilter.cc
 irtkNoise.cc
+irtkNormalizeNyul.cc
 irtkRegionFilter.cc
 irtkResampling.cc
 irtkResamplingWithPadding.cc
