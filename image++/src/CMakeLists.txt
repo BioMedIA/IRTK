@@ -20,7 +20,6 @@ SET(IMAGE_INCLUDES
 ../include/irtkFileGIPLToImage.h
 ../include/irtkFileNIFTIToImage.h
 ../include/irtkFilePGMToImage.h
-../include/irtkFileBinToImage.h
 ../include/irtkFileOpenCVToImage.h
 ../include/irtkFileToImage.h
 ../include/irtkFileVTKToImage.h
@@ -105,7 +104,6 @@ irtkFileANALYZEToImage.cc
 irtkFileNIFTIToImage.cc
 irtkFileGIPLToImage.cc
 irtkFilePGMToImage.cc
-irtkFileBinToImage.cc
 irtkFileOpenCVToImage.cc
 irtkFileToImage.cc
 irtkFileVTKToImage.cc
