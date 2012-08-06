@@ -56,13 +56,13 @@ void irtkNormalizeNyul::SetPadding(int source_padding, int target_padding){
 
 void irtkNormalizeNyul::Run(){
 	   int verbose=0;
-	  int normalize=0;
-	  int bimodalT=0;
-	  int debug=0;
+//	  int normalize=0;
+//	  int bimodalT=0;
+//	  int debug=0;
 	  int hist_bins=4000;
 	  int steps=10;
-	  int clobber=0;
-	  int fix_zero_padding=0;
+//	  int clobber=0;
+//	  int fix_zero_padding=0;
 
 	  double cut_off=0.01;
 	  float src_min,src_max;
@@ -142,7 +142,7 @@ void irtkNormalizeNyul::Run(){
 	for(int i=0;i<_source.GetNumberOfVoxels();i++)
 	{
 	  //use LUT to map the intensities
-	  int bin;
+	  unsigned int bin;
 	  double input=*ptr;
 
 	  double output=input;
