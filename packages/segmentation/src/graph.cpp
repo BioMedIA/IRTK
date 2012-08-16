@@ -1,5 +1,9 @@
 /* graph.cpp */
 
+/**********************************************************************************
+ * GRAPH. The following methods are taken from the publicly available graph-cut
+ * implementation by Jury Boykov. See http://vision.csd.uwo.ca/code/
+ * *******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>

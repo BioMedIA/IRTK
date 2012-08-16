@@ -7,6 +7,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkEMClassificationMultiComp.h
 ../include/irtkEMClassificationTemplateBiasCorrection.h
 ../include/irtkGaussian.h
+../include/irtkGraphCutSegmentation_4D.h
 ../include/irtkIntensityMatching.h
 ../include/irtkMultiChannelImage.h
 ../include/irtkMultiImageGraphCut.h
@@ -14,6 +15,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkProbabilisticAtlas.h
 ../include/irtkReconstruction.h
 ../include/irtkRician.h
+../include/irtkSubcorticalSegmentation_4D.h
 ../include/block.h
 ../include/graph.h
 ../include/energy.h
@@ -33,12 +35,15 @@ irtkEMClassificationBiasCorrection.cc
 irtkEMClassificationMultiComp.cc
 irtkEMClassificationTemplateBiasCorrection.cc
 irtkGaussian.cc
+irtkGraphCutSegmentation_4D.cc
 irtkIntensityMatching.cc
+maxflow.cc
 irtkMultiChannelImage.cc
 irtkMeanShift.cc
 irtkProbabilisticAtlas.cc
 irtkRician.cc
 irtkReconstruction.cc
+irtkSubcorticalSegmentation_4D.cc
 graph.cpp
 GCoptimization.cpp
 LinkedBlockList.cpp

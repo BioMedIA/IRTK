@@ -13,5 +13,9 @@
 template class Graph<int,int,__int64>;
 #else
 template class Graph<int,int,long long>;
+template class Graph<int,int,int>;
+template class Graph<short,int,int>;
+template class Graph<float,float,float>;
+template class Graph<double,double,double>;
 #endif
 

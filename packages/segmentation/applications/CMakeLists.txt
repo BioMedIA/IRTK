@@ -19,6 +19,7 @@ ELSE(BUILD_CONDOR_EXE)
 
   ELSE (BUILD_MPI_EXE)
 
+    ADD_EXECUTABLE(atrophy_graphcut4D atrophy_graphcut4D.cc)
     ADD_EXECUTABLE(bc bc.cc)
     ADD_EXECUTABLE(bc2 bc2.cc)
     ADD_EXECUTABLE(biasfield biasfield.cc)
