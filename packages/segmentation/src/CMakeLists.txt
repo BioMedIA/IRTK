@@ -37,7 +37,6 @@ irtkEMClassificationTemplateBiasCorrection.cc
 irtkGaussian.cc
 irtkGraphCutSegmentation_4D.cc
 irtkIntensityMatching.cc
-maxflow.cc
 irtkMultiChannelImage.cc
 irtkMeanShift.cc
 irtkProbabilisticAtlas.cc
