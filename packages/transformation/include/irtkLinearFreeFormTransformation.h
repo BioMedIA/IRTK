@@ -134,21 +134,14 @@ public:
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(int, irtkPoint &, irtkPoint &, double = 1) const;
-
-  /** Returns the bounding box for a control point (in mm). The last
-   *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box.
-   */
-  virtual void BoundingBox(int, double &, double &, double &,
-                           double &, double &, double &, double = 1) const;
+  virtual void BoundingBoxCP(int, irtkPoint &, irtkPoint &, double = 1) const;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &,
-                           int &, int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
+                                int &, int &, int &, double = 1) const;
 
   /** Compose this transformation (T1) with second transformation (T2). The
    *  result is defined as T = T1 o T2

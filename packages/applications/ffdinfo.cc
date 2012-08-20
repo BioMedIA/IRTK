@@ -105,7 +105,7 @@ int main(int argc, char **argv)
             for (j = 0; j < ffd->GetY(); j++) {
                 for (k = 0; k < ffd->GetZ(); k++) {
                     _Status sx, sy, sz;
-                    ffd->GetStatus(i, j, k, sx, sy, sz);
+                    ffd->GetStatusCP(i, j, k, sx, sy, sz);
                     if (sx == _Active) {
                         active++;
                     } else {

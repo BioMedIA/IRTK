@@ -152,20 +152,11 @@ public:
   /// Calculate the bending energy of the transformation
   virtual double Bending(double, double, double, double) = 0;
 
-  /// Puts a control point status
-  virtual void   PutStatus(int, int, int, int, _Status);
-
-  /// Puts a control point status
-  virtual void   PutStatus(int, int, int, int, _Status, _Status, _Status);
-
-  /// Puts a control point status
-  virtual void   PutStatus(int, _Status);
-
   /// Gets a control point status
-  virtual void   GetStatus(int, int, int, int, _Status &, _Status &, _Status &);
+  void   GetStatusCP(int, int, int, int, _Status &, _Status &, _Status &);
 
-  /// Gets a control point status
-  virtual _Status GetStatus(int);
+  /// Puts a control point status
+  void   PutStatusCP(int, int, int, int, _Status, _Status, _Status);
 
   /// Transforms world coordinates (in mm) to FFD coordinates
   virtual void WorldToLattice(double &, double &, double &) const;
@@ -200,23 +191,20 @@ public:
   /// Returns the bounding box for FFD (in mm)
   virtual void BoundingBox(irtkPoint &, irtkPoint &) const;
 
-  /// Returns the bounding box for FFD (in mm)
-  virtual void BoundingBox(double &, double &, double &,
-                           double &, double &, double &) const;
-
   /** Returns the bounding box for a control point. The last parameter
    *  specifies what fraction of the bounding box to return. The default
-   *  is 1 which equals 100% of the bounding box.
+   *  is 1 which equals 100% of the bounding box. Note that the bounding
+   *  box is only computed in 3D (time is ignored).
    */
-  virtual void BoundingBox(int, double &, double &, double &, double &,
-                           double &, double &, double &, double &, double = 1) const = 0;
+  virtual void BoundingBoxCP(int, irtkPoint &, irtkPoint &, double = 1) const = 0;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box.
+   *  default is 1 which equals 100% of the bounding box. Note that the
+   *  bounding box is only computed in 3D (time is ignored).
    */
-  virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &, int &,
-                           int &, int &, int &, int &, double = 1) const = 0;
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
+                                int &, int &, double = 1) const = 0;
 
   /// Inverts the transformation (abstract)
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.01);

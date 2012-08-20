@@ -208,8 +208,8 @@ public:
    */
   virtual double EvaluateGradient(float, float *);
 
-  /** Evaluates the smoothness preservation term. */
-  virtual double LandMarkPenalty();
+  /** Evaluates the landmark matching term */
+  virtual double LandmarkPenalty();
 
   /// Returns the name of the class
   virtual const char *NameOfClass() = 0;

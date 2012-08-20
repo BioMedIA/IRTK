@@ -90,7 +90,7 @@ void irtkGraphCutSegmentation_4D::SetInput(const irtkRealImage &input, irtkGener
 			count++;
 		}
 		ptr++;
-		*inpPtr++;
+		inpPtr++;
 	}
 
 	sort(numberOfValues, gradMagnData);

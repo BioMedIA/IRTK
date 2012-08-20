@@ -74,8 +74,11 @@ public:
   /// Destructor
   ~irtkEMClassificationTemplateBiasCorrection();
 
-  /// Intialize segmentation process
-  void Initialise(bool nomatch);
+  /// Initialize segmentation process
+  void Initialise();
+
+  /// Initialize segmentation process (and match intensities)
+  void InitialiseAndMatch();
 
   /// Estimate initial GMM parameters
   void InitialiseGMMParameters();
@@ -84,7 +87,7 @@ public:
   irtkRealImage Resample( irtkRealImage& image);
 
   /// Execute one iteration and return log likelihood for GMM
-  virtual double IterateGMM(int iteration);
+  virtual double IterateGMM(int iteration, bool equal_var, bool uniform_prior);
 
   /// Bias correct target image
   void CorrectTarget();

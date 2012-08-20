@@ -39,7 +39,7 @@ public:
 
   /** Resets the metric.
       \param metric To metric to reset with. */
-  virtual void Reset(irtkGenericHistogramSimilarityMetric& metric);
+  virtual void ResetAndCopy(irtkSimilarityMetric *metric);
 
   /** Puts the min for the metric.
       \param targetMin The target min.
@@ -63,15 +63,13 @@ public:
 
   /** Adds to a bin for a particular time.
       \param targetBin Index to target bin.
-      \param sourceBin Index to source bin.
-      \param count The number to add. */
-  virtual void Add(int targetBin, int sourceBin, int count = 1);
+      \param sourceBin Index to source bin */
+  virtual void Add(int targetBin, int sourceBin);
 
   /** Deletes from a bin for a particular time.
       \param targetBin Index to target bin.
-      \param sourceBin Index to source bin.
-      \param count The number to delete. */
-  virtual void Delete(int targetBin, int sourceBin, int count = 1);
+      \param sourceBin Index to source bin */
+  virtual void Delete(int targetBin, int sourceBin);
 
   /// Returns number of bins in histogram
   virtual int GetNumberOfBinsX() const;
@@ -104,9 +102,16 @@ inline void irtkGenericHistogramSimilarityMetric::Reset()
   this->_histogram->Reset();
 }
 
-inline void irtkGenericHistogramSimilarityMetric::Reset(irtkGenericHistogramSimilarityMetric& metric)
+inline void irtkGenericHistogramSimilarityMetric::ResetAndCopy(irtkSimilarityMetric* metric)
 {
-  this->_histogram->Reset(*(metric._histogram));
+	irtkGenericHistogramSimilarityMetric *m = dynamic_cast<irtkGenericHistogramSimilarityMetric *>(metric);
+
+  if (m == NULL) {
+    cerr << "irtkGenericHistogramSimilarityMetric::Reset: Dynamic cast failed" << endl;
+    exit(1);
+  }
+
+  this->_histogram->Reset(*(m->_histogram));
 }
 
 inline void irtkGenericHistogramSimilarityMetric::PutMin(double targetMin, double sourceMin)
@@ -154,14 +159,14 @@ inline int irtkGenericHistogramSimilarityMetric::NumberOfSamples() const
   return this->_histogram->NumberOfSamples();
 }
 
-inline void irtkGenericHistogramSimilarityMetric::Add(int i, int j, int n)
+inline void irtkGenericHistogramSimilarityMetric::Add(int i, int j)
 {
-  this->_histogram->Add(i, j, n);
+  this->_histogram->Add(i, j);
 }
 
-inline void irtkGenericHistogramSimilarityMetric::Delete(int i, int j, int n)
+inline void irtkGenericHistogramSimilarityMetric::Delete(int i, int j)
 {
-  this->_histogram->Delete(i, j, n);
+  this->_histogram->Delete(i, j);
 }
 
 #endif

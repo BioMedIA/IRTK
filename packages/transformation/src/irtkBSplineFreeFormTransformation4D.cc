@@ -864,7 +864,7 @@ void irtkBSplineFreeFormTransformation4D::Subdivide3D()
   exit(1);
 }
 
-void irtkBSplineFreeFormTransformation4D::BoundingBox(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
+void irtkBSplineFreeFormTransformation4D::BoundingBoxCP(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
 {
   int i, j, k, l;
 
@@ -884,52 +884,32 @@ void irtkBSplineFreeFormTransformation4D::BoundingBox(int index, irtkPoint &p1, 
   this->LatticeToWorld(p2);
 }
 
-void irtkBSplineFreeFormTransformation4D::BoundingBox(int index, double &x1, double &y1, double &z1, double &t1, double &x2, double &y2, double &z2, double &t2, double fraction) const
+void irtkBSplineFreeFormTransformation4D::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
 {
-  if (index >= _x*_y*_z*_t) {
-    index -= _x*_y*_z*_t;
-    if (index >= _x*_y*_z*_t) {
-      index -= _x*_y*_z*_t;
-    }
-  }
-  x1 = index/(_z*_y*_x)-2*fraction;
-  y1 = index%(_z*_y*_x)/(_y*_x)-2*fraction;
-  z1 = index%(_z*_y*_x)%(_y*_x)/_x-2*fraction;
-  t1 = index%(_z*_y*_x)%(_y*_x)%_x-2*fraction;
-  x2 = index/(_z*_y*_x)+2*fraction;
-  y2 = index%(_z*_y*_x)/(_y*_x)+2*fraction;
-  z2 = index%(_z*_y*_x)%(_y*_x)/_x+2*fraction;
-  t2 = index%(_z*_y*_x)%(_y*_x)%_x+2*fraction;
-  this->LatticeToWorld(x1, y1, z1);
-  this->LatticeToWorld(x2, y2, z2);
-  t1 = this->LatticeToTime(t1);
-  t2 = this->LatticeToTime(t2);
-}
-
-void irtkBSplineFreeFormTransformation4D::BoundingBox(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &l1, int &i2, int &j2, int &k2, int &l2, double fraction) const
-{
-  double x1, y1, z1, t1, x2, y2, z2, t2;
+	irtkPoint p1, p2;
+  double x1, y1, z1, x2, y2, z2;
 
   // Calculate bounding box in world coordinates
-  this->BoundingBox(index, x1, y1, z1, t1, x2, y2, z2, t2, fraction);
+  this->BoundingBoxCP(index, p1, p2, fraction);
+  x1 = p1._x;
+  y1 = p1._y;
+  z1 = p1._z;
+  x2 = p2._x;
+  y2 = p2._y;
+  z2 = p2._z;
 
   // Transform world coordinates to image coordinates
   image->WorldToImage(x1, y1, z1);
   image->WorldToImage(x2, y2, z2);
-  t1 = image->TimeToImage(t1);
-  t2 = image->TimeToImage(t1);
 
   // Calculate bounding box in image coordinates
   i1 = (x1 < 0) ? 0 : int(x1)+1;
   j1 = (y1 < 0) ? 0 : int(y1)+1;
   k1 = (z1 < 0) ? 0 : int(z1)+1;
-  l1 = (t1 < 0) ? 0 : int(t1)+1;
   i2 = (int(x2) >= image->GetX()) ? image->GetX()-1 : int(x2);
   j2 = (int(y2) >= image->GetY()) ? image->GetY()-1 : int(y2);
   k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
-  l2 = (int(t2) >= image->GetT()) ? image->GetT()-1 : int(t2);
 }
-
 
 void irtkBSplineFreeFormTransformation4D::Print()
 {

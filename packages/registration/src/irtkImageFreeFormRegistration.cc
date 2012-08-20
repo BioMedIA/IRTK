@@ -226,8 +226,8 @@ void irtkImageFreeFormRegistration::Initialize(int level)
       for (j = 0; j < _affd->GetY(); j++) {
         for (k = 0; k < _affd->GetZ(); k++) {
           _Status sx, sy, sz;
-          _affd->GetStatus(i, j, k, sx, sy, sz);
-          _affd->PutStatus(i, j, k, sx, _Passive, _Passive);
+          _affd->GetStatusCP(i, j, k, sx, sy, sz);
+          _affd->PutStatusCP(i, j, k, sx, _Passive, _Passive);
         }
       }
     }
@@ -239,8 +239,8 @@ void irtkImageFreeFormRegistration::Initialize(int level)
       for (j = 0; j < _affd->GetY(); j++) {
         for (k = 0; k < _affd->GetZ(); k++) {
           _Status sx, sy, sz;
-          _affd->GetStatus(i, j, k, sx, sy, sz);
-          _affd->PutStatus(i, j, k, _Passive, sy, _Passive);
+          _affd->GetStatusCP(i, j, k, sx, sy, sz);
+          _affd->PutStatusCP(i, j, k, _Passive, sy, _Passive);
         }
       }
     }
@@ -252,8 +252,8 @@ void irtkImageFreeFormRegistration::Initialize(int level)
       for (j = 0; j < _affd->GetY(); j++) {
         for (k = 0; k < _affd->GetZ(); k++) {
           _Status sx, sy, sz;
-          _affd->GetStatus(i, j, k, sx, sy, sz);
-          _affd->PutStatus(i, j, k, sx, sy, _Passive);
+          _affd->GetStatusCP(i, j, k, sx, sy, sz);
+          _affd->PutStatusCP(i, j, k, sx, sy, _Passive);
         }
       }
     }
@@ -618,16 +618,16 @@ double irtkImageFreeFormRegistration::EvaluateDerivative(int index, double step)
 #endif
 
   // Initialize metrics for forward and backward derivative steps
-  tmpMetricA->Reset(_metric);
-  tmpMetricB->Reset(_metric);
+  tmpMetricA->ResetAndCopy(_metric);
+  tmpMetricB->ResetAndCopy(_metric);
 
   // Calculate bounding box of control point in world coordinates
-  _affd->BoundingBox(index, p1, p2);
+  _affd->BoundingBoxCP(index, p1, p2);
   _target->WorldToImage(p1);
   _target->WorldToImage(p2);
 
   // Calculate bounding box of control point in image coordinates
-  _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+  _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
   // Calculate incremental changes in lattice coordinates when looping
   // over target

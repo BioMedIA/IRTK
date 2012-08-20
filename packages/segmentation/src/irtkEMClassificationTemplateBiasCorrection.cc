@@ -189,15 +189,19 @@ void irtkEMClassificationTemplateBiasCorrection::PutBoundingBox()
 
 }
 
-void irtkEMClassificationTemplateBiasCorrection::Initialise(bool nomatch)
+void irtkEMClassificationTemplateBiasCorrection::Initialise()
 {
-  if (!nomatch) IStep();
-  //IntensityInit();
   SetInput(_uncorrected);
   InitialiseGMMParameters();
   PrintGMM();
   InitialisePosteriors();
   LogLikelihoodGMM();
+}
+
+void irtkEMClassificationTemplateBiasCorrection::InitialiseAndMatch()
+{
+  IStep();
+  this->Initialise();
 }
 
 void irtkEMClassificationTemplateBiasCorrection::InitialiseGMMParameters()
@@ -350,11 +354,12 @@ irtkRealImage irtkEMClassificationTemplateBiasCorrection::Resample( irtkRealImag
   return i3;
 }
 
-double irtkEMClassificationTemplateBiasCorrection::IterateGMM(int iteration)
+double irtkEMClassificationTemplateBiasCorrection::IterateGMM(int iteration, bool equal_var, bool uniform_prior)
 {
   //if (iteration > 1) this->IStep();
   if (iteration > 1) this->EStepGMM();
-  this->MStepGMM();
+  if (equal_var) this->MStepVarGMM(uniform_prior);
+  else this->MStepGMM(uniform_prior);
   _mi[0]=0;
   _mi[1]=0;
   PrintGMM();

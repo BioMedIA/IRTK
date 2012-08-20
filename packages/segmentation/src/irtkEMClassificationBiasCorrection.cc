@@ -63,10 +63,11 @@ double irtkEMClassificationBiasCorrection::Iterate(int)
   return LogLikelihood();
 }
 
-double irtkEMClassificationBiasCorrection::IterateGMM(int iteration)
+double irtkEMClassificationBiasCorrection::IterateGMM(int iteration, bool equal_var, bool uniform_prior)
 {
   if (iteration > 1) this->EStepGMM();
-  this->MStepGMM();
+  if (equal_var) this->MStepVarGMM(uniform_prior);
+  else this->MStepGMM(uniform_prior);
   PrintGMM();
   this->WStep();
   this->BStep();

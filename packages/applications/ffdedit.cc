@@ -77,7 +77,7 @@ void FFDEdit1(AdaptivityMeasure measure, double value)
 
         // Get index and point from lattice coordinates
         index = ffd->LatticeToIndex(x, y, z);
-        ffd->BoundingBox(target, index, x1, y1, z1, x2, y2, z2);
+        ffd->BoundingBoxImage(target, index, x1, y1, z1, x2, y2, z2);
 
         // Reset histogram and fill
         histo.Reset();
@@ -121,11 +121,11 @@ void FFDEdit1(AdaptivityMeasure measure, double value)
   index = round(value*(double)n);
   for (int i=(int)n; i>index; i--) {
     ffd->IndexToLattice(int(brr[i-1]), x, y, z);
-    ffd->PutStatus(x, y, z, _Active);
+    ffd->PutStatusCP(x, y, z, _Active, _Active, _Active);
   }
   for (int i=index; i>0; i--) {
     ffd->IndexToLattice(int(brr[i-1]), x, y, z);
-    ffd->PutStatus(x, y, z, _Passive);
+    ffd->PutStatusCP(x, y, z, _Passive, _Passive, _Passive);
   }
 
   // Be good
@@ -175,7 +175,7 @@ void FFDEdit2(AdaptivityMeasure measure, double value)
 
         // Get index and point from lattice coordinates
         index = ffd->LatticeToIndex(x, y, z);
-        ffd->BoundingBox(target, index, x1, y1, z1, x2, y2, z2);
+        ffd->BoundingBoxImage(target, index, x1, y1, z1, x2, y2, z2);
 
         // Reset histogram and fill
         histo.Reset();
@@ -207,9 +207,9 @@ void FFDEdit2(AdaptivityMeasure measure, double value)
 
         // Set status according to adaptivity in region
         if (adaptivity < value) {
-          ffd->PutStatus(x, y, z, _Passive);
+          ffd->PutStatusCP(x, y, z, _Passive, _Passive, _Passive);
         } else {
-          ffd->PutStatus(x, y, z, _Active);
+          ffd->PutStatusCP(x, y, z, _Active, _Active, _Active);
         }
       }
     }
@@ -349,7 +349,7 @@ int main(int argc, char **argv)
     for (y = 0; y < ffd->GetY(); y++) {
       for (z = 0; z < ffd->GetZ(); z++) {
         _Status sx, sy, sz;
-        ffd->GetStatus(x, y, z, sx, sy, sz);
+        ffd->GetStatusCP(x, y, z, sx, sy, sz);
         if (sx == _Active) {
           active++;
         } else {

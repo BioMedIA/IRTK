@@ -114,7 +114,7 @@ IF (WIN32)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /TP /Ze /W0")
   ADD_DEFINITIONS(-DvtkCommon_EXPORTS)
 ELSE (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffloat-store -Wall -O2 -Wno-deprecated -Wno-write-strings")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -Wno-deprecated -Wno-write-strings")
 ENDIF (WIN32)
 
 # Option to wrap python.

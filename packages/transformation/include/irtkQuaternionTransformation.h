@@ -469,6 +469,7 @@ inline double irtkQuaternionTransformation::Get(int param) const
     throw irtkException(mesg.str(), __FILE__, __LINE__);
     break;
   }
+  return 0;
 }
 
 inline void irtkQuaternionTransformation::Put(int param, double val)

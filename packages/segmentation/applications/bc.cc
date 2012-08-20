@@ -197,7 +197,7 @@ int main(int argc, char **argv)
   while (i<=iterations) {
 
     cerr<<endl<<endl<<endl<<"Loop "<<i<<"/"<<iterations<<endl<<endl;
-    classification.IterateGMM(i);
+    classification.IterateGMM(i, false, false);
     i++;
   }
   biasfield->Write("bias");

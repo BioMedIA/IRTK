@@ -362,8 +362,8 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
                         for (j = 0; j < _affd->GetY(); j++) {
                             for (k = 0; k < _affd->GetZ(); k++) {
                                 _Status sx, sy, sz;
-                                _affd->GetStatus(i, j, k, sx, sy, sz);
-                                _affd->PutStatus(i, j, k, sx, _Passive, _Passive);
+                                _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                                _affd->PutStatusCP(i, j, k, sx, _Passive, _Passive);
                             }
                         }
                     }
@@ -375,8 +375,8 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
                         for (j = 0; j < _affd->GetY(); j++) {
                             for (k = 0; k < _affd->GetZ(); k++) {
                                 _Status sx, sy, sz;
-                                _affd->GetStatus(i, j, k, sx, sy, sz);
-                                _affd->PutStatus(i, j, k, _Passive, sy, _Passive);
+                                _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                                _affd->PutStatusCP(i, j, k, _Passive, sy, _Passive);
                             }
                         }
                     }
@@ -388,8 +388,8 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
                         for (j = 0; j < _affd->GetY(); j++) {
                             for (k = 0; k < _affd->GetZ(); k++) {
                                 _Status sx, sy, sz;
-                                _affd->GetStatus(i, j, k, sx, sy, sz);
-                                _affd->PutStatus(i, j, k, sx, sy, _Passive);
+                                _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                                _affd->PutStatusCP(i, j, k, sx, sy, _Passive);
                             }
                         }
                     }

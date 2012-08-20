@@ -238,16 +238,16 @@ double irtkImageFluidRegistration::EvaluateDerivative(int index, double step)
   this->Debug("irtkImageFluidRegistration::EvaluateDerivative(int, double)");
 
   // Initialize metrics for forward and backward derivative steps
-  _tmpMetricA->Reset(_metric);
-  _tmpMetricB->Reset(_metric);
+  _tmpMetricA->ResetAndCopy(_metric);
+  _tmpMetricB->ResetAndCopy(_metric);
 
   // Calculate bounding box of control point in world coordinates
-  _affd->BoundingBox(index, p1, p2);
+  _affd->BoundingBoxCP(index, p1, p2);
   _target->WorldToImage(p1);
   _target->WorldToImage(p2);
 
   // Calculate bounding box of control point in image coordinates
-  _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2);
+  _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2);
 
   // Calculate incremental changes in lattice coordinates when looping
   // over target

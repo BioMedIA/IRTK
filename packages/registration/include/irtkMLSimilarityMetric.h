@@ -42,10 +42,10 @@ public:
   irtkMLSimilarityMetric(irtkEMClassification *);
 
   /// Add sample
-  virtual void Add(int, int, double =1);
+  virtual void Add(int, int);
 
   /// Remove sample
-  virtual void Delete(int, int, double =1);
+  virtual void Delete(int, int);
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
@@ -54,7 +54,7 @@ public:
   virtual void Reset();
 
   /// Reset similarity metric
-  virtual void Reset(irtkSimilarityMetric *);
+  virtual void ResetAndCopy(irtkSimilarityMetric *);
 
   /// Evaluate similarity measure
   virtual double Evaluate();
@@ -80,7 +80,7 @@ inline void irtkMLSimilarityMetric::Reset()
   _n=0;
 }
 
-inline void irtkMLSimilarityMetric::Add(int x, int y, double)
+inline void irtkMLSimilarityMetric::Add(int x, int y)
 {
   //cerr<<"Add"<<endl;
   //if ((x>0)&&(y>0))
@@ -89,7 +89,7 @@ inline void irtkMLSimilarityMetric::Add(int x, int y, double)
   _n ++;
 }
 
-inline void irtkMLSimilarityMetric::Delete(int x, int y, double)
+inline void irtkMLSimilarityMetric::Delete(int x, int y)
 {
   _ll -= _classification->PointLogLikelihoodGMM(x,y);
   //  _ll -= (y-x)*(y-x);
@@ -102,12 +102,12 @@ inline void irtkMLSimilarityMetric::Combine(irtkSimilarityMetric *)
   exit(1);
 }
 
-inline void irtkMLSimilarityMetric::Reset(irtkSimilarityMetric *metric)
+inline void irtkMLSimilarityMetric::ResetAndCopy(irtkSimilarityMetric *metric)
 {
   irtkMLSimilarityMetric *m = dynamic_cast<irtkMLSimilarityMetric *>(metric);
 
   if (m == NULL) {
-    cerr << "irtkMLSimilarityMetric::Reset: Dynamic cast failed" << endl;
+    cerr << "irtkMLSimilarityMetric::ResetAndCopy: Dynamic cast failed" << endl;
     exit(1);
   }
 

@@ -85,8 +85,8 @@ int main(int argc, char **argv)
     for (y = 0; y < ffd->GetY(); y++) {
       for (z = 0; z < ffd->GetZ(); z++) {
         _Status sx, sy, sz;
-        ffd->GetStatus(x, y, z, sx, sy, sz);
-        ffd->PutStatus(x, y, z, sx, sy, _Passive);
+        ffd->GetStatusCP(x, y, z, sx, sy, sz);
+        ffd->PutStatusCP(x, y, z, sx, sy, _Passive);
       }
     }
   }

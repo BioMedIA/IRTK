@@ -980,7 +980,7 @@ double irtkMultipleImageRegistration2::LandMarkPenalty ()
 void irtkMultipleImageRegistration2::EvaluateGradientLandmark ()
 {
     int i;
-    double d = 0,distance = 0, p[3],q[3];
+    double p[3], q[3];
 
     if (_ptarget == NULL || _psource == NULL){
         return;

@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 	ofstream output;
 	ostringstream stm;
 	output.open(outname.c_str());
-	for(int i = 0; i < files.size(); i++){
+	for(int i = 0; i < (int)files.size(); i++){
 		output << results[i] << endl;
 	}
 	output.close();

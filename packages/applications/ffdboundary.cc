@@ -122,7 +122,7 @@ int main(int argc, char **argv)
           // Convert control points to index
           index = ffd->LatticeToIndex(i, j, k);
 
-          ffd->PutStatus(i, j, k, status);
+          ffd->PutStatusCP(i, j, k, status, status, status);
         }
       }
     }

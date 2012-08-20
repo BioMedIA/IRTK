@@ -108,7 +108,6 @@ int main(int argc, char **argv){
 	irtkGreyImage mask, normMask;
 	bool useMask = false;
 	bool useNormMask = false;
-	bool useManifold = false;
 	bool winnerTakesAll = false;
 	while (argc > 1){
 		ok = false;

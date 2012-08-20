@@ -129,19 +129,10 @@ public:
   virtual void   Get(int, int, int, double &, double &, double &) const;
 
   /// Puts a control point status
-  virtual void   PutStatus(int, int, int, _Status);
-
-  /// Puts a control point status
-  virtual void   PutStatus(int, int, int, _Status, _Status, _Status);
-
-  /// Puts a control point status
-  virtual void   PutStatus(int, _Status);
+  void   PutStatusCP(int, int, int, _Status, _Status, _Status);
 
   /// Gets a control point status
-  virtual void   GetStatus(int, int, int, _Status &, _Status &, _Status &);
-
-  /// Gets a control point status
-  virtual _Status GetStatus(int);
+  void   GetStatusCP(int, int, int, _Status &, _Status &, _Status &);
 
   /// Calculate the bending energy of the transformation
   virtual double Bending(double x, double y, double z, double t = 0) = 0;
@@ -180,29 +171,18 @@ public:
   /// Returns the bounding box for FFD (in mm)
   virtual void BoundingBox(irtkPoint &, irtkPoint &) const;
 
-  /// Returns the bounding box for FFD (in mm)
-  virtual void BoundingBox(double &, double &, double &,
-                           double &, double &, double &) const;
-
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(int, irtkPoint &, irtkPoint &, double = 1) const = 0;
-
-  /** Returns the bounding box for a control point (in mm). The last
-   *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box.
-   */
-  virtual void BoundingBox(int, double &, double &, double &,
-                           double &, double &, double &, double = 1) const = 0;
+  virtual void BoundingBoxCP(int, irtkPoint &, irtkPoint &, double = 1) const = 0;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &,
-                           int &, int &, int &, double = 1) const = 0;
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
+                                int &, int &, int &, double = 1) const = 0;
 
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FFD which approximates these

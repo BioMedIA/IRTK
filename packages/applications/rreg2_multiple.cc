@@ -67,7 +67,7 @@ int main(int argc, char **argv)
   argc--;
   target_name = &argv[1];
   for(i = 0; i < numberOfImages; i++){
-      if((argv[1][0] == '-' )){
+      if(argv[1][0] == '-' ){
           usage();
           exit(1);
       }
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   }
   source_name = &argv[1];
   for(i = 0; i < numberOfImages; i++){
-      if((argv[1][0] == '-' )){
+      if(argv[1][0] == '-' ){
           usage();
           exit(1);
       }

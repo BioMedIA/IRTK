@@ -170,8 +170,12 @@ void irtkFileNIFTIToImage::ReadHeader()
 #endif
 
   // Check dimension
-  if (hdr.nim->dim[0] > 4) {
-    cerr << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions > 4 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
+  if (hdr.nim->dim[0] > 5) {
+    cerr << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions > 5 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
+    exit(1);
+  }
+  if ((hdr.nim->dim[0] == 5) && (hdr.nim->dim[4] != 1)) {
+    cerr << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions == 5 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
     exit(1);
   }
 
@@ -215,8 +219,13 @@ void irtkFileNIFTIToImage::ReadHeader()
     this->_attr._t  = hdr.nim->dim[4];
     this->_attr._dt = fabs(hdr.nim->pixdim[4]);
   } else {
-    this->_attr._t  = 1;
-    this->_attr._dt = 1;
+    if (hdr.nim->dim[0] == 5) {
+      this->_attr._t  = hdr.nim->dim[5];
+      this->_attr._dt = 1;
+    } else {
+      this->_attr._t  = 1;
+      this->_attr._dt = 1;
+    }
   }
 
   // Check which coordinate system to use

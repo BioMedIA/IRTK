@@ -36,10 +36,10 @@ public:
   irtkSSDSimilarityMetric();
 
   /// Add sample
-  virtual void Add(int, int, double = 1);
+  virtual void Add(int, int);
 
   /// Remove sample
-  virtual void Delete(int, int, double = 1);
+  virtual void Delete(int, int);
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
@@ -48,7 +48,7 @@ public:
   virtual void Reset();
 
   /// Reset similarity metric
-  virtual void Reset(irtkSimilarityMetric *);
+  virtual void ResetAndCopy(irtkSimilarityMetric *);
 
   /// Evaluate similarity measure
   virtual double Evaluate();
@@ -61,16 +61,16 @@ inline irtkSSDSimilarityMetric::irtkSSDSimilarityMetric()
   _n = 0;
 }
 
-inline void irtkSSDSimilarityMetric::Add(int x, int y, double weight)
+inline void irtkSSDSimilarityMetric::Add(int x, int y)
 {
-  _ssd += (x-y)*(x-y)*weight;
-  _n += weight;
+  _ssd += (x-y)*(x-y);
+  _n++;
 }
 
-inline void irtkSSDSimilarityMetric::Delete(int x, int y, double weight)
+inline void irtkSSDSimilarityMetric::Delete(int x, int y)
 {
-  _ssd -= (x-y)*(x-y)*weight;
-  _n -= weight;
+  _ssd -= (x-y)*(x-y);
+  _n--;
 }
 
 inline void irtkSSDSimilarityMetric::Combine(irtkSimilarityMetric *metric)
@@ -93,12 +93,12 @@ inline void irtkSSDSimilarityMetric::Reset()
   _n = 0;
 }
 
-inline void irtkSSDSimilarityMetric::Reset(irtkSimilarityMetric *metric)
+inline void irtkSSDSimilarityMetric::ResetAndCopy(irtkSimilarityMetric *metric)
 {
   irtkSSDSimilarityMetric *m = dynamic_cast<irtkSSDSimilarityMetric *>(metric);
 
   if (m == NULL) {
-    cerr << "irtkSSDSimilarityMetric::Reset: Dynamic cast failed" << endl;
+    cerr << "irtkSSDSimilarityMetric::ResetAndCopy: Dynamic cast failed" << endl;
     exit(1);
   }
 

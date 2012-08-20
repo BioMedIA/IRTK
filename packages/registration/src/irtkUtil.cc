@@ -115,7 +115,7 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding, irtkFreeFormTransf
         index = ffd->LatticeToIndex(i, j, k);
 
         // Calculate bounding box of control point in voxels
-        ffd->BoundingBox(&image, index, x1, y1, z1, x2, y2, z2, 0.5);
+        ffd->BoundingBoxImage(&image, index, x1, y1, z1, x2, y2, z2, 0.5);
 
         ok = false;
         for (t = 0; t < image.GetT(); t++) {
@@ -130,7 +130,7 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding, irtkFreeFormTransf
           }
         }
         if (ok == false) {
-          ffd->PutStatus(i, j, k, _Passive);
+          ffd->PutStatusCP(i, j, k, _Passive, _Passive, _Passive);
         }
       }
     }
@@ -153,7 +153,7 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTrans
 
         for (n = 0; n < numberOfImages; n++) {
           // Calculate bounding box of control point in voxels
-          ffd->BoundingBox(image[n], index, x1, y1, z1, x2, y2, z2);
+          ffd->BoundingBoxImage(image[n], index, x1, y1, z1, x2, y2, z2);
           for (t = 0; t < image[n]->GetT(); t++) {
             for (z = z1; z <= z2; z++) {
               for (y = y1; y <= y2; y++) {
@@ -167,7 +167,7 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkFreeFormTrans
           }
         }
         if (ok == false) {
-          ffd->PutStatus(i, j, k, _Passive);
+          ffd->PutStatusCP(i, j, k, _Passive, _Passive, _Passive);
         }
       }
     }

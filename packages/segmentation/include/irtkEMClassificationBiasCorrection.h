@@ -69,7 +69,7 @@ public:
   virtual double Iterate(int iteration);
 
   /// Execute one iteration and return log likelihood for GMM
-  virtual double IterateGMM(int iteration);
+  virtual double IterateGMM(int iteration, bool equal_var, bool uniform_prior);
 
   /// Compute the bias corrected image
   virtual void ConstructBiasCorrectedImage(irtkRealImage &);

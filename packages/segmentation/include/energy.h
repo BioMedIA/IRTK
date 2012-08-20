@@ -78,7 +78,9 @@
 template <typename captype, typename tcaptype, typename flowtype> class Energy: public Graph<captype,tcaptype,flowtype>
 {
 	typedef Graph<captype,tcaptype,flowtype> GraphT;
+
 public:
+
 	typedef typename GraphT::node_id Var;
 
 	/* Types of energy values.
@@ -203,7 +205,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 inline void Energy<captype,tcaptype,flowtype>::add_term1(Var x,
                               Value A, Value B)
 {
-	add_tweights(x, B, A);
+	this->add_tweights(x, B, A);
 }
 
 template <typename captype, typename tcaptype, typename flowtype> 
@@ -216,7 +218,7 @@ inline void Energy<captype,tcaptype,flowtype>::add_term2(Var x, Var y,
 	       D D     C-D 0
 	   Add edges for the first term
 	*/
-	add_tweights(x, D, A);
+	this->add_tweights(x, D, A);
 	B -= A; C -= D;
 
 	/* now need to represent
@@ -231,9 +233,9 @@ inline void Energy<captype,tcaptype,flowtype>::add_term2(Var x, Var y,
 		   B B  +  -B 0  +  0   0
 		   0 0     -B 0     B+C 0
 		*/
-		add_tweights(x, 0, B); /* first term */
-		add_tweights(y, 0, -B); /* second term */
-		add_edge(x, y, 0, B+C); /* third term */
+		this->add_tweights(x, 0, B); /* first term */
+		this->add_tweights(y, 0, -B); /* second term */
+		this->add_edge(x, y, 0, B+C); /* third term */
 	}
 	else if (C < 0)
 	{
@@ -241,13 +243,13 @@ inline void Energy<captype,tcaptype,flowtype>::add_term2(Var x, Var y,
 		   -C -C  +  C 0  +  0 B+C
 		    0  0     C 0     0 0
 		*/
-		add_tweights(x, 0, -C); /* first term */
-		add_tweights(y, 0, C); /* second term */
-		add_edge(x, y, B+C, 0); /* third term */
+		this->add_tweights(x, 0, -C); /* first term */
+		this->add_tweights(y, 0, C); /* second term */
+		this->add_edge(x, y, B+C, 0); /* third term */
 	}
 	else /* B >= 0, C >= 0 */
 	{
-		add_edge(x, y, B, C);
+		this->add_edge(x, y, B, C);
 	}
 }
 
@@ -324,6 +326,6 @@ inline typename Energy<captype,tcaptype,flowtype>::TotalValue Energy<captype,tca
 return Econst + GraphT::maxflow(); }
 
 template <typename captype, typename tcaptype, typename flowtype> 
-inline int Energy<captype,tcaptype,flowtype>::get_var(Var x) { return (int) what_segment(x); }
+inline int Energy<captype,tcaptype,flowtype>::get_var(Var x) { return (int) this->what_segment(x); }
 
 #endif

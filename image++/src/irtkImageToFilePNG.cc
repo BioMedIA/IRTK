@@ -63,7 +63,7 @@ void irtkImageToFilePNG::Run()
     exit(1);
   }
 
-  if (setjmp(png_ptr->jmpbuf)) {
+  if (setjmp(png_jmpbuf(png_ptr))) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
     exit(1);
   }

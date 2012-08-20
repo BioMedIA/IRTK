@@ -37,10 +37,10 @@ public:
   static irtkSimilarityMetric *New(irtkSimilarityMetric *);
 
   /// Add sample
-  virtual void Add(int, int, double =1) = 0;
+  virtual void Add(int, int) = 0;
 
   /// Remove sample
-  virtual void Delete(int, int, double =1) = 0;
+  virtual void Delete(int, int) = 0;
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *) = 0;
@@ -49,7 +49,7 @@ public:
   virtual void Reset() = 0;
 
   /// Reset similarity metric
-  virtual void Reset(irtkSimilarityMetric *) = 0;
+  virtual void ResetAndCopy(irtkSimilarityMetric *) = 0;
 
   /// Evaluate similarity measure
   virtual double Evaluate() = 0;
@@ -135,6 +135,5 @@ inline irtkSimilarityMetric *irtkSimilarityMetric::New(irtkSimilarityMetric *met
   cerr << "irtkSimilarityMetric::New: Failed" << endl;
   exit(1);
 }
-
 
 #endif

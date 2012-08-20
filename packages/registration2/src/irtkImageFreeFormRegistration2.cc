@@ -194,8 +194,8 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
             for (j = 0; j < _affd->GetY(); j++) {
                 for (k = 0; k < _affd->GetZ(); k++) {
                     _Status sx, sy, sz;
-                    _affd->GetStatus(i, j, k, sx, sy, sz);
-                    _affd->PutStatus(i, j, k, sx, _Passive, _Passive);
+                    _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                    _affd->PutStatusCP(i, j, k, sx, _Passive, _Passive);
                 }
             }
         }
@@ -207,8 +207,8 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
             for (j = 0; j < _affd->GetY(); j++) {
                 for (k = 0; k < _affd->GetZ(); k++) {
                     _Status sx, sy, sz;
-                    _affd->GetStatus(i, j, k, sx, sy, sz);
-                    _affd->PutStatus(i, j, k, _Passive, sy, _Passive);
+                    _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                    _affd->PutStatusCP(i, j, k, _Passive, sy, _Passive);
                 }
             }
         }
@@ -220,8 +220,8 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
             for (j = 0; j < _affd->GetY(); j++) {
                 for (k = 0; k < _affd->GetZ(); k++) {
                     _Status sx, sy, sz;
-                    _affd->GetStatus(i, j, k, sx, sy, sz);
-                    _affd->PutStatus(i, j, k, sx, sy, _Passive);
+                    _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                    _affd->PutStatusCP(i, j, k, sx, sy, _Passive);
                 }
             }
         }
@@ -869,7 +869,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
             if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
                 // If so, calculate bounding box of control point in image coordinates
-                _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
+                _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
 
                 // Loop over all voxels in the target (reference) volume
                 for (j = j1; j <= j2; j++) {
@@ -930,7 +930,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
                 if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
                     // If so, calculate bounding box of control point in image coordinates
-                    _affd->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1);
+                    _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1);
 
                     // Loop over all voxels in the target (reference) volume
                     //

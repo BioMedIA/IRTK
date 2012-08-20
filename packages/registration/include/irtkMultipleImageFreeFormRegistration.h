@@ -116,8 +116,11 @@ protected:
   /// Final set up for the registration
   virtual void Finalize(int);
 
-  /** Evaluates the landmark preservation term. */
-  virtual double LandMarkPenalty(int = -1);
+  /** Evaluates the landmark matching term */
+  virtual double LandmarkPenalty();
+
+  /** Evaluates the landmark matching term for a single control point */
+  virtual double LandmarkPenalty(int);
 
   /** Evaluates the smoothness preservation term. */
   virtual double SmoothnessPenalty();
@@ -239,4 +242,4 @@ inline void irtkMultipleImageFreeFormRegistration::SetWeighting(double **weight)
 
 #endif
 
-#endif // HAS_VTK
+#endif

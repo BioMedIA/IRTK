@@ -166,21 +166,7 @@ bool irtkFreeFormTransformation4D::IsIdentity()
   return true;
 }
 
-void irtkFreeFormTransformation4D::PutStatus(int i, int j, int k, int l, _Status s)
-{
-  if ((i < 0) || (i >= _x) || (j < 0) || (j >= _y) || (k < 0) || (k >= _z) || (l < 0) || (l >= _t)) {
-    cerr << "irtkFreeFormTransformation4D::PutStatus: No such control point"
-         << endl;
-    exit(1);
-  }
-
-  int index = this->LatticeToIndex(i, j, k, l);
-  _status[index] = s;
-  _status[index+_x*_y*_z*_t] = s;
-  _status[index+2*_x*_y*_z*_t] = s;
-}
-
-void irtkFreeFormTransformation4D::PutStatus(int i, int j, int k, int l, _Status status_x, _Status status_y, _Status status_z)
+void irtkFreeFormTransformation4D::PutStatusCP(int i, int j, int k, int l, _Status status_x, _Status status_y, _Status status_z)
 {
   if ((i < 0) || (i >= _x) || (j < 0) || (j >= _y) || (k < 0) || (k >= _z) || (l < 0) || (l >= _t)) {
     cerr << "irtkFreeFormTransformation4D::PutStatus: No such control point"
@@ -194,7 +180,7 @@ void irtkFreeFormTransformation4D::PutStatus(int i, int j, int k, int l, _Status
   _status[index+2*_x*_y*_z] = status_z;
 }
 
-void irtkFreeFormTransformation4D::GetStatus(int i, int j, int k, int l,  _Status &status_x, _Status &status_y, _Status &status_z)
+void irtkFreeFormTransformation4D::GetStatusCP(int i, int j, int k, int l,  _Status &status_x, _Status &status_y, _Status &status_z)
 {
   if ((i < 0) || (i >= _x) || (j < 0) || (j >= _y) || (k < 0) || (k >= _z) || (l < 0) || (l >= _t)) {
     cerr << "irtkFreeFormTransformation4D::GetStatus: No such control point"
@@ -206,24 +192,6 @@ void irtkFreeFormTransformation4D::GetStatus(int i, int j, int k, int l,  _Statu
   status_x = _status[index];
   status_y = _status[index+_x*_y*_z*_t];
   status_z = _status[index+2*_x*_y*_z*_t];
-}
-
-void irtkFreeFormTransformation4D::PutStatus(int i, _Status status)
-{
-  if ((i < 0) || (i >= 3*_x*_y*_z*_t)) {
-    cerr << "irtkFreeFormTransformation4D::GetStatus: No such control point" << endl;
-    exit(1);
-  }
-  _status[i] = status;
-}
-
-_Status irtkFreeFormTransformation4D::GetStatus(int i)
-{
-  if ((i < 0) || (i >= 3*_x*_y*_z*_t)) {
-    cerr << "irtkFreeFormTransformation4D::GetStatus: No such control point" << endl;
-    exit(1);
-  }
-  return _status[i];
 }
 
 irtkPoint irtkFreeFormTransformation4D::ControlPointLocation(int index) const
@@ -272,18 +240,6 @@ void irtkFreeFormTransformation4D::BoundingBox(irtkPoint &p1, irtkPoint &p2) con
   p2._z = _z - 1;
   this->LatticeToWorld(p1);
   this->LatticeToWorld(p2);
-}
-
-void irtkFreeFormTransformation4D::BoundingBox(double &x1, double &y1, double &z1, double &x2, double &y2, double &z2) const
-{
-  x1 = 0;
-  y1 = 0;
-  z1 = 0;
-  x2 = _x - 1;
-  y2 = _y - 1;
-  z2 = _z - 1;
-  this->LatticeToWorld(x1, y1, z1);
-  this->LatticeToWorld(x2, y2, z2);
 }
 
 double irtkFreeFormTransformation4D::Inverse(double &x, double &y, double &z, double, double tolerance)

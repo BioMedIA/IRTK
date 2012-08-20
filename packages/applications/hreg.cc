@@ -94,7 +94,7 @@ void padding(irtkGreyImage image, irtkMultiLevelFreeFormTransformation *mffd)
         index = ffd->LatticeToIndex(i, j, k);
 
         // Calculate bounding box of control point in voxels
-        ffd->BoundingBox(&image, index, x1, y1, z1, x2, y2, z2);
+        ffd->BoundingBoxImage(&image, index, x1, y1, z1, x2, y2, z2);
 
         ok = false;
         for (z = z1; z <= z2; z++) {
@@ -107,7 +107,7 @@ void padding(irtkGreyImage image, irtkMultiLevelFreeFormTransformation *mffd)
           }
         }
         if (ok == false) {
-          ffd->PutStatus(i, j, k, _Passive);
+          ffd->PutStatusCP(i, j, k, _Passive, _Passive, _Passive);
         }
       }
     }

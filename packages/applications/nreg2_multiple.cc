@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
   target_name = &argv[1];
   for(i = 0; i < numberOfImages; i++){
-      if((argv[1][0] == '-' )){
+      if(argv[1][0] == '-' ){
           usage();
           exit(1);
       }
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   }
   source_name = &argv[1];
   for(i = 0; i < numberOfImages; i++){
-      if((argv[1][0] == '-' )){
+      if(argv[1][0] == '-' ){
           usage();
           exit(1);
       }
@@ -277,8 +277,7 @@ int main(int argc, char **argv)
 
   // Is there a mask to use?
   if (mask_name != NULL) {
-    int voxels, i;
-    irtkGreyPixel *ptr2target, *ptr2mask;
+    int i;
     irtkGreyImage mask(mask_name);
 
     if (mask.GetX() != target[0]->GetX() ||

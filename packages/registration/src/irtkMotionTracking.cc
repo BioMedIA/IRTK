@@ -856,7 +856,7 @@ double irtkMotionTracking::EvaluateDerivative(int index, double step)
   float *ptr;
   irtkPoint p1, p2;
   double bi, bj, bk, dx, dy, dz, p[3];
-  int i, j, k, t, i1, i2, j1, j2, k1, k2, t1, t2, dim;
+  int i, j, k, t, i1, i2, j1, j2, k1, k2, dim;
   irtkGreyPixel *ptr2image, *ptr2mask, *ptr2tmp;
   irtkSimilarityMetric *tmpMetricA, *tmpMetricB;
 
@@ -867,16 +867,16 @@ double irtkMotionTracking::EvaluateDerivative(int index, double step)
   tmpMetricB = _tmpMetricB;
 
   // Initialize metrics for forward and backward derivative steps
-  tmpMetricA->Reset(_metric);
-  tmpMetricB->Reset(_metric);
+  tmpMetricA->ResetAndCopy(_metric);
+  tmpMetricB->ResetAndCopy(_metric);
 
   // Calculate bounding box of control point in world coordinates
-  _affd->BoundingBox(index, p1, p2);
+  _affd->BoundingBoxCP(index, p1, p2);
   _image->WorldToImage(p1);
   _image->WorldToImage(p2);
 
   // Calculate bounding box of control point in image coordinates
-  _affd->BoundingBox(_image, index, i1, j1, k1, t1, i2, j2, k2, t2, 1.0 / _SpeedupFactor);
+  _affd->BoundingBoxImage(_image, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
   // Calculate incremental changes in lattice coordinates when looping
   // over target

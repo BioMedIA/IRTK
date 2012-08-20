@@ -942,7 +942,7 @@ double irtkLinearFreeFormTransformation::Bending3D(int i, int j, int k)
     return dx + dy + dz;
 }
 
-void irtkLinearFreeFormTransformation::BoundingBox(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
+void irtkLinearFreeFormTransformation::BoundingBoxCP(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
 {
   int i, j, k;
 
@@ -961,30 +961,19 @@ void irtkLinearFreeFormTransformation::BoundingBox(int index, irtkPoint &p1, irt
   this->LatticeToWorld(p2);
 }
 
-void irtkLinearFreeFormTransformation::BoundingBox(int index, double &x1, double &y1, double &z1, double &x2, double &y2, double &z2, double fraction) const
+void irtkLinearFreeFormTransformation::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
 {
-  if (index >= _x*_y*_z) {
-    index -= _x*_y*_z;
-    if (index >= _x*_y*_z) {
-      index -= _x*_y*_z;
-    }
-  }
-  x1 = index/(_y*_z)-fraction;
-  y1 = index%(_y*_z)/_z-fraction;
-  z1 = index%(_y*_z)%_z-fraction;
-  x2 = index/(_y*_z)+fraction;
-  y2 = index%(_y*_z)/_z+fraction;
-  z2 = index%(_y*_z)%_z+fraction;
-  this->LatticeToWorld(x1, y1, z1);
-  this->LatticeToWorld(x2, y2, z2);
-}
-
-void irtkLinearFreeFormTransformation::BoundingBox(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
-{
+	irtkPoint p1, p2;
   double x1, y1, z1, x2, y2, z2;
 
   // Calculate bounding box in world coordinates
-  this->BoundingBox(index, x1, y1, z1, x2, y2, z2, fraction);
+  this->BoundingBoxCP(index, p1, p2, fraction);
+  x1 = p1._x;
+  y1 = p1._y;
+  z1 = p1._z;
+  x2 = p2._x;
+  y2 = p2._y;
+  z2 = p2._z;
 
   // Transform world coordinates to image coordinates
   image->WorldToImage(x1, y1, z1);

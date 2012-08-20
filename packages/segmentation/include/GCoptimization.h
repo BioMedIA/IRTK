@@ -474,7 +474,7 @@ private:
 	class GreedyIter {
 	public:
 		GreedyIter(DataCostT& dc, SiteID numSites)
-		: m_dc(dc), m_site(0), m_numSites(numSites), m_label(0), m_lbegin(0), m_lend(0)
+		: m_site(0), m_dc(dc), m_numSites(numSites), m_label(0), m_lbegin(0), m_lend(0)
 		{ }
 
 		OLGA_INLINE void start(const LabelID* labels, LabelID labelCount=1)

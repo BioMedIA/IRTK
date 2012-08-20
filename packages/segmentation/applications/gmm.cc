@@ -126,7 +126,7 @@ int main(int argc, char **argv)
   i=1;
   do {
 	  cout << "Iteration = " << i << " / " << iterations << endl;
-	  rel_diff = classification.IterateGMM(i);
+	  rel_diff = classification.IterateGMM(i, false, false);
 	  i++;
   } while ((rel_diff>0.001)&&(i<50));
 

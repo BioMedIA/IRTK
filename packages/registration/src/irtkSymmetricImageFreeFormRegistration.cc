@@ -698,16 +698,16 @@ double irtkSymmetricImageFreeFormRegistration::EvaluateDerivative1(int index, do
   tmp1MetricB = _tmp1MetricB;
 
   // Initialize metrics for forward and backward derivative steps
-  tmp1MetricA->Reset(_metric1);
-  tmp1MetricB->Reset(_metric1);
+  tmp1MetricA->ResetAndCopy(_metric1);
+  tmp1MetricB->ResetAndCopy(_metric1);
 
   // Calculate bounding box of control point in world coordinates
-  _affd1->BoundingBox(index, p1, p2);
+  _affd1->BoundingBoxCP(index, p1, p2);
   _target->WorldToImage(p1);
   _target->WorldToImage(p2);
 
   // Calculate bounding box of control point in image coordinates
-  _affd1->BoundingBox(_target, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+  _affd1->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
   // Calculate incremental changes in lattice coordinates when looping
   // over target
@@ -854,16 +854,16 @@ double irtkSymmetricImageFreeFormRegistration::EvaluateDerivative2(int index, do
   tmp2MetricB = _tmp2MetricB;
 
   // Initialize metrics for forward and backward derivative steps
-  tmp2MetricA->Reset(_metric2);
-  tmp2MetricB->Reset(_metric2);
+  tmp2MetricA->ResetAndCopy(_metric2);
+  tmp2MetricB->ResetAndCopy(_metric2);
 
   // Calculate bounding box of control point in world coordinates
-  _affd2->BoundingBox(index, p1, p2);
+  _affd2->BoundingBoxCP(index, p1, p2);
   _source->WorldToImage(p1);
   _source->WorldToImage(p2);
 
   // Calculate bounding box of control point in image coordinates
-  _affd2->BoundingBox(_source, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+  _affd2->BoundingBoxImage(_source, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
   // Calculate incremental changes in lattice coordinates when looping
   // over target

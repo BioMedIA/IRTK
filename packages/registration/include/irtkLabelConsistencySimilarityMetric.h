@@ -36,15 +36,15 @@ public:
   irtkLabelConsistencySimilarityMetric();
 
   /// Add sample
-  virtual void Add(int, int, double =1);
+  virtual void Add(int, int);
   /// Remove sample
-  virtual void Delete(int, int, double =1);
+  virtual void Delete(int, int);
 
   /// Reset similarity metric
   virtual void Reset();
 
   /// Reset similarity metric
-  virtual void Reset(irtkSimilarityMetric *);
+  virtual void ResetAndCopy(irtkSimilarityMetric *);
 
   /// Evaluate similarity measure
   virtual double Evaluate();
@@ -57,13 +57,13 @@ inline irtkLabelConsistencySimilarityMetric::irtkLabelConsistencySimilarityMetri
   _n = 0;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y, double)
+inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y)
 {
   if (x == y) _match++;
   _n++;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y, double)
+inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y)
 {
   if (x == y) _match--;
   _n--;
@@ -75,7 +75,7 @@ inline void irtkLabelConsistencySimilarityMetric::Reset()
   _n = 0;
 }
 
-inline void irtkLabelConsistencySimilarityMetric::Reset(irtkSimilarityMetric *metric)
+inline void irtkLabelConsistencySimilarityMetric::ResetAndCopy(irtkSimilarityMetric *metric)
 {
   irtkLabelConsistencySimilarityMetric *m = dynamic_cast<irtkLabelConsistencySimilarityMetric *>(metric);
 

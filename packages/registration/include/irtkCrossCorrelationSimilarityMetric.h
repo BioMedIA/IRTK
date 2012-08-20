@@ -36,10 +36,10 @@ public:
   irtkCrossCorrelationSimilarityMetric();
 
   /// Add sample
-  virtual void Add(int, int, double = 1);
+  virtual void Add(int, int);
 
   /// Remove sample
-  virtual void Delete(int, int, double = 1);
+  virtual void Delete(int, int);
 
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
@@ -48,7 +48,7 @@ public:
   virtual void Reset();
 
   /// Reset similarity metric
-  virtual void Reset(irtkSimilarityMetric *);
+  virtual void ResetAndCopy(irtkSimilarityMetric *);
 
   /// Evaluate similarity measure
   virtual double Evaluate();
@@ -65,24 +65,24 @@ inline irtkCrossCorrelationSimilarityMetric::irtkCrossCorrelationSimilarityMetri
   _n  = 0;
 }
 
-inline void irtkCrossCorrelationSimilarityMetric::Add(int x, int y, double weight)
+inline void irtkCrossCorrelationSimilarityMetric::Add(int x, int y)
 {
-  _xy += weight*x*y;
-  _x  += weight*x;
-  _x2 += weight*x*x;
-  _y  += weight*y;
-  _y2 += weight*y*y;
-  _n  += weight;
+  _xy += x*y;
+  _x  += x;
+  _x2 += x*x;
+  _y  += y;
+  _y2 += y*y;
+  _n++;
 }
 
-inline void irtkCrossCorrelationSimilarityMetric::Delete(int x, int y, double weight)
+inline void irtkCrossCorrelationSimilarityMetric::Delete(int x, int y)
 {
-  _xy -= weight*x*y;
-  _x  -= weight*x;
-  _x2 -= weight*x*x;
-  _y  -= weight*y;
-  _y2 -= weight*y*y;
-  _n  -= weight;
+  _xy -= x*y;
+  _x  -= x;
+  _x2 -= x*x;
+  _y  -= y;
+  _y2 -= y*y;
+  _n--;
 }
 
 inline void irtkCrossCorrelationSimilarityMetric::Combine(irtkSimilarityMetric *metric)
@@ -114,12 +114,12 @@ inline void irtkCrossCorrelationSimilarityMetric::Reset()
   _n  = 0;
 }
 
-inline void irtkCrossCorrelationSimilarityMetric::Reset(irtkSimilarityMetric *metric)
+inline void irtkCrossCorrelationSimilarityMetric::ResetAndCopy(irtkSimilarityMetric *metric)
 {
   irtkCrossCorrelationSimilarityMetric *m = dynamic_cast<irtkCrossCorrelationSimilarityMetric *>(metric);
 
   if (m == NULL) {
-    cerr << "irtkCrossCorrelationSimilarityMetric::Reset: Dynamic cast failed" << endl;
+    cerr << "irtkCrossCorrelationSimilarityMetric::ResetAndCopy: Dynamic cast failed" << endl;
     exit(1);
   }
 

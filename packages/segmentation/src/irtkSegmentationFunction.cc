@@ -703,7 +703,7 @@ void irtkSegmentationFunction::Normalize(irtkRealImage *target, irtkRealImage *s
   cout << "Segmenting target tissues"<<endl;
   do {
     ///cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = classification.IterateGMM(i);
+    rel_diff = classification.IterateGMM(i, false, false);
     i++;
   } while ((rel_diff>treshold)&&(i<iterations));
   classification.GetMean(targetmean);
@@ -728,7 +728,7 @@ void irtkSegmentationFunction::Normalize(irtkRealImage *target, irtkRealImage *s
   cout << "Segmenting source tissues"<<endl;
   do {
     ///cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = classification.IterateGMM(i);
+    rel_diff = classification.IterateGMM(i, false, false);
     i++;
   } while ((rel_diff>treshold)&&(i<iterations));
   classification.GetMean(sourcemean);
@@ -804,7 +804,7 @@ void irtkSegmentationFunction::DetectBackGround(irtkRealImage *target, irtkRealI
   cout << "Segmenting target tissues"<<endl;
   do {
     ///cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = classification.IterateGMM(i);
+    rel_diff = classification.IterateGMM(i, false, false);
     i++;
   } while ((rel_diff>treshold)&&(i<iterations));
   classification.ConstructSegmentationNoBG(*target);
@@ -829,7 +829,7 @@ void irtkSegmentationFunction::DetectBackGround(irtkRealImage *target, irtkRealI
   cout << "Segmenting source tissues"<<endl;
   do {
     ///cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = sclassification.IterateGMM(i);
+    rel_diff = sclassification.IterateGMM(i, false, false);
     i++;
   } while ((rel_diff>treshold)&&(i<iterations));
   sclassification.ConstructSegmentationNoBG(*source);
@@ -893,7 +893,7 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkGreyImage *threshold, irtkG
   int i=1;
   do {
     cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = classification->IterateGMM(i);
+    rel_diff = classification->IterateGMM(i, false, false);
     i++;
   } while ((rel_diff>treshold)&&(i<iterations));
 
@@ -953,7 +953,7 @@ void irtkSegmentationFunction::EvaluateThreshold (irtkRealImage *threshold, irtk
   do {
     tmp_diff = rel_diff;
     ///cout << "Iteration = " << i << " / " << iterations << endl;
-    rel_diff = classification.IterateGMM(i);
+    rel_diff = classification.IterateGMM(i, false, false);
     i++;
   } while ((rel_diff>treshold)&&(i<iterations)&&(tmp_diff > rel_diff));
   cout << "Segmentation done, threshold matrix outputted"<<endl;

@@ -157,8 +157,8 @@ void irtkMultipleImageFreeFormRegistration2::Initialize(int level)
           for (j = 0; j < _affd->GetY(); j++) {
               for (k = 0; k < _affd->GetZ(); k++) {
                   _Status sx, sy, sz;
-                  _affd->GetStatus(i, j, k, sx, sy, sz);
-                  _affd->PutStatus(i, j, k, sx, _Passive, _Passive);
+                  _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                  _affd->PutStatusCP(i, j, k, sx, _Passive, _Passive);
               }
           }
       }
@@ -170,8 +170,8 @@ void irtkMultipleImageFreeFormRegistration2::Initialize(int level)
           for (j = 0; j < _affd->GetY(); j++) {
               for (k = 0; k < _affd->GetZ(); k++) {
                   _Status sx, sy, sz;
-                  _affd->GetStatus(i, j, k, sx, sy, sz);
-                  _affd->PutStatus(i, j, k, _Passive, sy, _Passive);
+                  _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                  _affd->PutStatusCP(i, j, k, _Passive, sy, _Passive);
               }
           }
       }
@@ -183,8 +183,8 @@ void irtkMultipleImageFreeFormRegistration2::Initialize(int level)
           for (j = 0; j < _affd->GetY(); j++) {
               for (k = 0; k < _affd->GetZ(); k++) {
                   _Status sx, sy, sz;
-                  _affd->GetStatus(i, j, k, sx, sy, sz);
-                  _affd->PutStatus(i, j, k, sx, sy, _Passive);
+                  _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                  _affd->PutStatusCP(i, j, k, sx, sy, _Passive);
               }
           }
       }
@@ -795,7 +795,7 @@ void irtkMultipleImageFreeFormRegistration2::EvaluateGradient2D(double *gradient
               if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
                   // If so, calculate bounding box of control point in image coordinates
-                  _affd->MultiBoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1);
+                  _affd->MultiBoundingBoxImage(_target[n], index, i1, j1, k1, i2, j2, k2, 1);
 
                   // Loop over all voxels in the target (reference) volume
                   for (j = j1; j <= j2; j++) {
@@ -858,7 +858,7 @@ void irtkMultipleImageFreeFormRegistration2::EvaluateGradient3D(double *gradient
                   if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
 
                       // If so, calculate bounding box of control point in image coordinates
-                      _affd->MultiBoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1);
+                      _affd->MultiBoundingBoxImage(_target[n], index, i1, j1, k1, i2, j2, k2, 1);
 
                       // Loop over all voxels in the target (reference) volume
                       //
@@ -889,7 +889,7 @@ void irtkMultipleImageFreeFormRegistration2::EvaluateGradient3D(double *gradient
 
 void irtkMultipleImageFreeFormRegistration2::NormalizeGradient(double *gradient)
 {
-    int x,y,z,n,index1,index2,index3,offset;
+    int x, y, z, index1, index2, index3, offset;
     double norm,spacingnorm;
 
     offset = _affd->GetX()*_affd->GetY()*_affd->GetZ();

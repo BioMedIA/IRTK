@@ -90,7 +90,6 @@ void irtkPatchBasedSegmentation::EvaluateNeighbourhood(int x_image, int y_image,
 	double my_i = _patchMean[0]->Get(x_image, y_image, z_image);
 	double sigma_i = _patchStd[0]->Get(x_image, y_image, z_image);
 	irtkRealImage i;
-	int ctr = 0;
 	for(int x = x_image-_neighbourhoodSize; x <= x_image+_neighbourhoodSize; x++){
 		int yCtr = 0;
 		for(int y = y_image-_neighbourhoodSize; y <= y_image+_neighbourhoodSize; y++){

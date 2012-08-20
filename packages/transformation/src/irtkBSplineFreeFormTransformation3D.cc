@@ -96,6 +96,83 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D()
   }
 }
 
+irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkGenericImage<double> &image)
+{
+  int i, j, k;
+  double x, y, z;
+
+  // Get out the image attributes
+  irtkImageAttributes attr = image.GetImageAttributes();
+
+  // and copy
+  _x         = attr._x;
+  _y         = attr._y;
+  _z         = attr._z;
+  _dx        = attr._dx;
+  _dy        = attr._dy;
+  _dz        = attr._dz;
+  _origin._x = attr._xorigin;
+  _origin._y = attr._yorigin;
+  _origin._z = attr._zorigin;
+
+  // Copy axis
+  image.GetOrientation(_xaxis, _yaxis, _zaxis);
+
+  // Initialize transformation matrix
+  _matL2W = irtkMatrix(4, 4);
+  _matW2L = irtkMatrix(4, 4);
+
+  // Update transformation matrix
+  this->UpdateMatrix();
+
+  // Intialize memory for control point values
+  _data = this->Allocate(_data, _x, _y, _z);
+  for (i = 0; i < _x; i++) {
+    for (j = 0; j < _y; j++) {
+      for (k = 0; k < _z; k++) {
+      	x = i;
+      	y = j;
+      	z = k;
+      	image.ImageToWorld(x, y, z);
+        _data[k][j][i]._x = image(i, j, k, 0) - x;
+        _data[k][j][i]._y = image(i, j, k, 1) - y;
+        _data[k][j][i]._z = image(i, j, k, 2) - z;
+      }
+    }
+  }
+
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z];
+  if (_z == 1) {
+    for (i = 0; i < 2*_x*_y*_z; i++) {
+      _status[i] = _Active;
+    }
+    for (i = 2*_x*_y*_z; i < 3*_x*_y*_z; i++) {
+      _status[i] = _Passive;
+    }
+  } else {
+    for (i = 0; i < 3*_x*_y*_z; i++) {
+      _status[i] = _Active;
+    }
+  }
+
+  // Initialize lookup table
+  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
+    this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
+    this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
+    this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
+    this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
+    this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
+    this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
+    this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
+    this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
+    this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
+    this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
+    this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
+    this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
+  }
+}
+
 irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkBaseImage &image, double dx, double dy, double dz)
 {
   int i;
@@ -2713,7 +2790,7 @@ void irtkBSplineFreeFormTransformation3D::ComputeCoefficients3D(const double* dx
   delete[] zdata;
 }
 
-void irtkBSplineFreeFormTransformation3D::BoundingBox(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
+void irtkBSplineFreeFormTransformation3D::BoundingBoxCP(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
 {
   int i, j, k;
 
@@ -2732,30 +2809,19 @@ void irtkBSplineFreeFormTransformation3D::BoundingBox(int index, irtkPoint &p1, 
   this->LatticeToWorld(p2);
 }
 
-void irtkBSplineFreeFormTransformation3D::BoundingBox(int index, double &x1, double &y1, double &z1, double &x2, double &y2, double &z2, double fraction) const
+void irtkBSplineFreeFormTransformation3D::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
 {
-  if (index >= _x*_y*_z) {
-    index -= _x*_y*_z;
-    if (index >= _x*_y*_z) {
-      index -= _x*_y*_z;
-    }
-  }
-  x1 = index/(_y*_z)-2*fraction;
-  y1 = index%(_y*_z)/_z-2*fraction;
-  z1 = index%(_y*_z)%_z-2*fraction;
-  x2 = index/(_y*_z)+2*fraction;
-  y2 = index%(_y*_z)/_z+2*fraction;
-  z2 = index%(_y*_z)%_z+2*fraction;
-  this->LatticeToWorld(x1, y1, z1);
-  this->LatticeToWorld(x2, y2, z2);
-}
-
-void irtkBSplineFreeFormTransformation3D::BoundingBox(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
-{
+	irtkPoint p1, p2;
   double x1, y1, z1, x2, y2, z2;
 
   // Calculate bounding box in world coordinates
-  this->BoundingBox(index, x1, y1, z1, x2, y2, z2, fraction);
+  this->BoundingBoxCP(index, p1, p2, fraction);
+  x1 = p1._x;
+  y1 = p1._y;
+  z1 = p1._z;
+  x2 = p2._x;
+  y2 = p2._y;
+  z2 = p2._z;
 
   // Transform world coordinates to image coordinates
   image->WorldToImage(x1, y1, z1);
@@ -2770,12 +2836,19 @@ void irtkBSplineFreeFormTransformation3D::BoundingBox(irtkGreyImage *image, int 
   k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
 }
 
-void irtkBSplineFreeFormTransformation3D::MultiBoundingBox(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
+void irtkBSplineFreeFormTransformation3D::MultiBoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
 {
+	irtkPoint p1, p2;
   double x1, y1, z1, x2, y2, z2;
 
   // Calculate bounding box in world coordinates
-  this->BoundingBox(index, x1, y1, z1, x2, y2, z2, fraction*2);
+  this->BoundingBoxCP(index, p1, p2, fraction*2);
+  x1 = p1._x;
+  y1 = p1._y;
+  z1 = p1._z;
+  x2 = p2._x;
+  y2 = p2._y;
+  z2 = p2._z;
 
   // Transform world coordinates to image coordinates
   image->WorldToImage(x1, y1, z1);

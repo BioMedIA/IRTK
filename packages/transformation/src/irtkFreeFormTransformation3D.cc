@@ -216,21 +216,7 @@ bool irtkFreeFormTransformation3D::IsIdentity()
   return true;
 }
 
-void irtkFreeFormTransformation3D::PutStatus(int i, int j, int k, _Status s)
-{
-  if ((i >= _x) || (j >= _y) || (k >= _z)) {
-    cerr << "irtkFreeFormTransformation3D::PutStatus: No such control point"
-         << endl;
-    exit(1);
-  }
-
-  int index = this->LatticeToIndex(i, j, k);
-  _status[index] = s;
-  _status[index+_x*_y*_z] = s;
-  _status[index+2*_x*_y*_z] = s;
-}
-
-void irtkFreeFormTransformation3D::PutStatus(int i, int j, int k,
+void irtkFreeFormTransformation3D::PutStatusCP(int i, int j, int k,
     _Status status_x,
     _Status status_y,
     _Status status_z)
@@ -247,7 +233,7 @@ void irtkFreeFormTransformation3D::PutStatus(int i, int j, int k,
   _status[index+2*_x*_y*_z] = status_z;
 }
 
-void irtkFreeFormTransformation3D::GetStatus(int i, int j, int k,
+void irtkFreeFormTransformation3D::GetStatusCP(int i, int j, int k,
     _Status &status_x,
     _Status &status_y,
     _Status &status_z)
@@ -262,24 +248,6 @@ void irtkFreeFormTransformation3D::GetStatus(int i, int j, int k,
   status_x = _status[index];
   status_y = _status[index+_x*_y*_z];
   status_z = _status[index+2*_x*_y*_z];
-}
-
-void irtkFreeFormTransformation3D::PutStatus(int i, _Status status)
-{
-  if ((i < 0) || (i >= 3*_x*_y*_z)) {
-    cerr << "irtkFreeFormTransformation3D::GetStatus: No such control point" << endl;
-    exit(1);
-  }
-  _status[i] = status;
-}
-
-_Status irtkFreeFormTransformation3D::GetStatus(int i)
-{
-  if ((i < 0) || (i >= 3*_x*_y*_z)) {
-    cerr << "irtkFreeFormTransformation3D::GetStatus: No such control point" << endl;
-    exit(1);
-  }
-  return _status[i];
 }
 
 irtkPoint irtkFreeFormTransformation3D::ControlPointLocation(int index) const
@@ -324,18 +292,6 @@ void irtkFreeFormTransformation3D::BoundingBox(irtkPoint &p1, irtkPoint &p2) con
   p2._z = _z - 1;
   this->LatticeToWorld(p1);
   this->LatticeToWorld(p2);
-}
-
-void irtkFreeFormTransformation3D::BoundingBox(double &x1, double &y1, double &z1, double &x2, double &y2, double &z2) const
-{
-  x1 = 0;
-  y1 = 0;
-  z1 = 0;
-  x2 = _x - 1;
-  y2 = _y - 1;
-  z2 = _z - 1;
-  this->LatticeToWorld(x1, y1, z1);
-  this->LatticeToWorld(x2, y2, z2);
 }
 
 double irtkFreeFormTransformation3D::Inverse(double &x, double &y, double &z, double, double tolerance)

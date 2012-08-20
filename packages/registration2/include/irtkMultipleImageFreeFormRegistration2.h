@@ -104,9 +104,11 @@ protected:
   virtual void VolumePreservationPenaltyGradient(double *);
 
 #ifdef HAS_VTK
+
   /** Evaluate the gradient of the landmark penalty term */
   virtual void LandmarkGradient(double *);
-#endif HAS_VTK
+
+#endif
 
   /** Evaluates the registration. This function evaluates the registration by
    *  looping over the target image and interpolating the transformed source

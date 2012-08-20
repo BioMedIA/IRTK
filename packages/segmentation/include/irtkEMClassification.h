@@ -62,17 +62,14 @@ protected:
   /// Probability maps (atlas)
   irtkProbabilisticAtlas _atlas;
 
-  /// image segmentation
+  /// Image segmentation
   irtkRealImage _segmentation;
 
-  /// distance map
+  /// Distance map
   irtkRealImage _distance;
 
-  ///Subcortical mask
+  /// Subcortical mask
   irtkGreyImage _smask;
-
-
-
 
   /// Number of tissues
   int _number_of_tissues;
@@ -83,9 +80,11 @@ protected:
   /// Gaussian distribution parameters for each tissue type
   double *_mi;
   double *_sigma;
-  /// mixing coefficients for GMM
+
+  /// Mixing coefficients for GMM
   double *_c;
 
+  /// Gaussians
   irtkGaussian *_G;
 
   /// Likelihood
@@ -94,10 +93,11 @@ protected:
   /// Padding value
   irtkRealPixel _padding;
 
+  /// Backgrouynd tissue
   int _background_tissue;
 
+  /// Debug flag
   bool _debug;
-
 
 public:
 
@@ -167,7 +167,7 @@ public:
   /// Initialize PV segmentation
   void InitialisePVSegmentation();
 
-  /// Initialize Gaussian Mixture Parameters and calculate initial posteriors
+  /// Initialize Gaussian mixture parameters and calculate initial posteriors
   void InitialiseGMMParameters(int n, double *m, double *s, double *c);
 
   /// Set image
@@ -180,28 +180,33 @@ public:
   virtual double Iterate(int iteration);
 
   /// Execute one iteration and return log likelihood
-  virtual double IterateGMM(int iteration, bool equal_var = false, bool uniform_prior = false);
+  virtual double IterateGMM(int iteration, bool equal_var, bool uniform_prior);
 
   /// Construct segmentation based on current posterior probabilities
   virtual void ConstructSegmentation(irtkRealImage &);
+
   /// Construct segmentation based on current posterior probabilities
   virtual void ConstructSegmentation();
+
   /// Construct segmentation based on current PV segmentation
   virtual void ConstructSegmentationFromPV();
+
   /// Construct segmentation based on current posterior probabilities
   virtual void ConstructSegmentationWithPadding(irtkRealImage &);
+
   /// Construct segmentation based on current posterior probabilities
   virtual void ConstructSegmentationNoBG(irtkRealImage &);
+
   /// Construct PV soft segmentation based on current segmentation and posterior probabilities
   virtual void ConstructPVSegmentation();
+
   /// Construct PV segmentation with specific application for neonatal brain
   void ConstructSegmentationBrainNonBrain(int wm1Label, int wm2Label, int cortexLabel, int csfLabel, int backgroundLabel, irtkGreyImage* smask);
 
-
-
-  ///Write probability map into a file
+  /// Write probability map into a file
   void WriteProbMap(int i, const char *filename);
-  ///Write Gaussian parameters into a file
+
+  /// Write Gaussian parameters into a file
   void WriteGaussianParameters(const char *file_name, int flag = 0);
   ///Write image estimate
   void WriteEstimate(const char *filename);

@@ -43,18 +43,6 @@ public:
   /// Returns the number of parameters of the transformation
   virtual int NumberOfDOFs() const = 0;
 
-  /// Puts a control point value
-  virtual void   Put(int, double) = 0;
-
-  /// Gets a control point value
-  virtual double Get(int) const = 0;
-
-  /// Puts a control point status
-  virtual void   PutStatus(int, _Status) = 0;
-
-  /// Gets a control point status
-  virtual _Status GetStatus(int) = 0;
-
   /// Subdivide FFD
   virtual void Subdivide() = 0;
 

@@ -616,7 +616,7 @@ void irtkMultipleImageRegistration::Run()
     this->Finalize();
 }
 
-double irtkMultipleImageRegistration::LandMarkPenalty ()
+double irtkMultipleImageRegistration::LandmarkPenalty()
 {
 
 #ifdef HAS_VTK

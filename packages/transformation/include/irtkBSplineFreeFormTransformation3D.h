@@ -197,6 +197,9 @@ public:
   irtkBSplineFreeFormTransformation3D(irtkBaseImage &, double, double, double);
 
   /// Constructor
+  irtkBSplineFreeFormTransformation3D(irtkGenericImage<double> &);
+
+  /// Constructor
   irtkBSplineFreeFormTransformation3D(double x1, double y1, double z1,
                                       double x2, double y2, double z2,
                                       double dx, double dy, double dz,
@@ -289,28 +292,21 @@ public:
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(int, irtkPoint &, irtkPoint &, double = 1) const;
-
-  /** Returns the bounding box for a control point (in mm). The last
-   *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box.
-   */
-  virtual void BoundingBox(int, double &, double &, double &,
-                           double &, double &, double &, double = 1) const;
+  virtual void BoundingBoxCP(int, irtkPoint &, irtkPoint &, double = 1) const;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(irtkGreyImage *, int, int &, int &, int &,
-                           int &, int &, int &, double = 1) const;
-
-  /** Returns the bounding box for a control point (in pixels). The last
-   *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box.
-   */
-  virtual void MultiBoundingBox(irtkGreyImage *, int, int &, int &, int &,
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
                                 int &, int &, int &, double = 1) const;
+
+  /** Returns the bounding box for a control point (in pixels). The last
+   *  parameter specifies what fraction of the bounding box to return. The
+   *  default is 1 which equals 100% of the bounding box.
+   */
+  virtual void MultiBoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
+                                     int &, int &, int &, double = 1) const;
 
   /// Prints the parameters of the transformation
   virtual void Print();
