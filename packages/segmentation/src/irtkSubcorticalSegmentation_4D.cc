@@ -99,8 +99,8 @@ void irtkSubcorticalSegmentation_4D::generateGaussians(double minPerc){
 	vector<double> mi(numTissues);
 	vector<double> *structureValues = new vector<double>[numTissues];
 	irtkRealPixel *ptr = input.GetPointerToVoxels();
-	int min[numTissues];
-	int max[numTissues];
+	int *min = new int[numTissues];
+	int *max = new int[numTissues];
 	irtkRealPixel *maxPerc = new irtkRealPixel[numTissues];
 	for(int k = 0; k < numTissues; k++){
 		min[k]=32767;
@@ -209,6 +209,8 @@ void irtkSubcorticalSegmentation_4D::generateGaussians(double minPerc){
 
   	delete []structureValues;
   	delete []maxPerc;
+  	delete []min;
+  	delete []max;
 }
 
 void irtkSubcorticalSegmentation_4D::doSegmentation(double l, double g, double c, double sigmaG){
