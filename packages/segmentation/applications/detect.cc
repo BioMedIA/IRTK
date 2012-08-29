@@ -27,7 +27,7 @@ void usage()
 int main(int argc, char **argv)
 {
   double scale;
-  int ok,image_type,marginalvalue;
+  int ok,image_type,marginalvalue, i, j, k;
   irtkSegmentationFunction segmentationfunction;
 #ifdef HAS_OPENCV
   CvHaarClassifierCascade *_classifier = NULL;

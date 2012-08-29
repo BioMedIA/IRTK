@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
 	bool useMask = true; //always use a mask
 	int simType = 1; //NMI
-	out << "Using NMI as similarity metric" << endl;
+	cout << "Using NMI as similarity metric" << endl;
 	if(useSSD){
 		simType = 2; //SSD
 		cout << "Using SSD as similarity metric" << endl;

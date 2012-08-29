@@ -43,7 +43,7 @@ ELSE(BUILD_CONDOR_EXE)
 
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin biasfield biascorrect createsamples detect ems emsbc emsmc graphcut multiimage_graphcut patchBasedSegmentation patchBasedSegmentation_native seg_uncertainty)
+INSTALL_TARGETS(/bin atrophy_graphcut4D biasfield biascorrect createsamples detect ems emsbc emsmc graphcut multiimage_graphcut patchBasedSegmentation patchBasedSegmentation_native seg_uncertainty)
 
 ENDIF (BUILD_CONDOR_EXE)
 

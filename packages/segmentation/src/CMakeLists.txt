@@ -7,7 +7,6 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkEMClassificationMultiComp.h
 ../include/irtkEMClassificationTemplateBiasCorrection.h
 ../include/irtkGaussian.h
-../include/irtkGraphCutSegmentation_4D.h
 ../include/irtkIntensityMatching.h
 ../include/irtkMultiChannelImage.h
 ../include/irtkMultiImageGraphCut.h
@@ -22,6 +21,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/GCoptimization.h
 ../include/LinkedBlockList.h
 ../include/instances.inc
+../include/irtkGraphCutSegmentation_4D.h
 ../include/irtkImageGraphCut.h
 ../include/irtkSegmentationFunction.h
 ../include/irtkPatchBasedSegmentation.h)
@@ -35,7 +35,6 @@ irtkEMClassificationBiasCorrection.cc
 irtkEMClassificationMultiComp.cc
 irtkEMClassificationTemplateBiasCorrection.cc
 irtkGaussian.cc
-irtkGraphCutSegmentation_4D.cc
 irtkIntensityMatching.cc
 irtkMultiChannelImage.cc
 irtkMeanShift.cc
@@ -46,6 +45,7 @@ irtkSubcorticalSegmentation_4D.cc
 graph.cpp
 GCoptimization.cpp
 LinkedBlockList.cpp
+irtkGraphCutSegmentation_4D.cc
 irtkImageGraphCut.cc
 irtkMultiImageGraphCut.cc
 irtkPatchBasedSegmentation.cc
