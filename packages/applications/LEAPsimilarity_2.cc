@@ -20,6 +20,7 @@
 	 irtkGreyImage ** _masks;
 	 int _simType;
 	 int _nrMasks;
+	 bool _useSSD;
 	 double * _results_nmi;
 	// vector<pair<double,int> > * _results;
 	 vector<string> _files;
@@ -30,7 +31,7 @@
 
 
  public:
- 	MultiThreadedLeapSimilarity(string imagedir, irtkGreyImage ** masks, double * results_nmi, irtkGreyImage *target, vector<string> files){
+ 	MultiThreadedLeapSimilarity(string imagedir, irtkGreyImage ** masks, double * results_nmi, irtkGreyImage *target, vector<string> files, bool useSSD){
  		_useMask = true; //always use a mask --> if not read in, it is generated here
 		_simType = 1; //NMI
 		_sizeSet2 = 1; // we only compare one image to all the others
@@ -42,6 +43,10 @@
 		_files = files;
 		_imagedir = imagedir;
 		_target = target;
+		_useSSD = useSSD;
+		if(_useSSD){
+			_simType = 2; //SSD
+		}
 
 
  	}
@@ -84,6 +89,7 @@
 void usage()
 {
 	cerr << "usage LEAPsimilarity [atlasNames] [atlasDir] [targetImage] [ROI] [outFile]" << endl;
+	cerr << "-SSD Use SSD instead of NMI as similarity measure." << endl;
 
 		
 }
@@ -111,8 +117,16 @@ int main(int argc, char **argv)
 	argv++;
 
 	bool ok;
+	bool useSSD = false;
 	while (argc > 1){
 		ok = false;
+		if ((ok == false) && (strcmp(argv[1], "-SSD") == 0)){
+
+		  argc--;
+		  argv++;
+		  useSSD = true;
+		  ok = true;
+		}
 		if (ok == false){
 			cerr << "Can not parse argument " << argv[1] << endl;
 			usage();
@@ -163,7 +177,7 @@ int main(int argc, char **argv)
 
 	#ifdef HAS_TBB
 	task_scheduler_init init;
-	MultiThreadedLeapSimilarity evaluate(imagedir, masks, results, target, files);
+	MultiThreadedLeapSimilarity evaluate(imagedir, masks, results, target, files, useSSD);
 	int blocks = 2;
 	parallel_for(blocked_range<int>(0, int(files.size()), int(blocks)), evaluate);
 
@@ -171,6 +185,11 @@ int main(int argc, char **argv)
 
 	bool useMask = true; //always use a mask
 	int simType = 1; //NMI
+	out << "Using NMI as similarity metric" << endl;
+	if(useSSD){
+		simType = 2; //SSD
+		cout << "Using SSD as similarity metric" << endl;
+	}
 	int sizeSet2 = 1; // we only compare one image to all the others
 	int nrMasks = 1; // always use one mask
 	int nrImages = 1; // one image after the other
@@ -189,6 +208,7 @@ int main(int argc, char **argv)
 		cout << "Atlas " << i << ". Image ";
 
 		irtkPairwiseSimilarity ps;
+
 		ps.Initialize(nrImages, sizeSet2, useMask, masks, simType, nrMasks);
 		string name = imagedir + files[i];
 		images[0]->Read(name.c_str());
