@@ -41,6 +41,12 @@ public:
   /// Remove sample
   virtual void Delete(int, int);
 
+  /// Add sample
+  virtual void AddWeightedSample(int, int, double = 1);
+
+  /// Remove sample
+  virtual void DeleteWeightedSample(int, int, double = 1);
+
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
 
@@ -71,6 +77,18 @@ inline void irtkSSDSimilarityMetric::Delete(int x, int y)
 {
   _ssd -= (x-y)*(x-y);
   _n--;
+}
+
+inline void irtkSSDSimilarityMetric::AddWeightedSample(int x, int y, double weight)
+{
+  _ssd += (x-y)*(x-y)*weight;
+  _n += weight;
+}
+
+inline void irtkSSDSimilarityMetric::DeleteWeightedSample(int x, int y, double weight)
+{
+  _ssd -= (x-y)*(x-y)*weight;
+  _n -= weight;
 }
 
 inline void irtkSSDSimilarityMetric::Combine(irtkSimilarityMetric *metric)

@@ -57,7 +57,7 @@ void irtkBep::EvaluateInfarction (irtkRealImage *threshold, irtkRealImage **inpu
     i=1;
     do {
         cout << "Iteration = " << i << " / " << iterations << endl;
-        rel_diff = classification->IterateGMM(i);
+        rel_diff = classification->Iterate(i);
         i++;
     } while ((rel_diff>treshold)&&(i<iterations));
 

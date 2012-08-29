@@ -558,7 +558,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
                   n = _affd->LatticeToIndex(i, j, k);
 
                   // Calculate bounding box of control point in voxels
-                  _affd->BoundingBox(n, p1, p2);
+                  _affd->BoundingBoxCP(n, p1, p2);
                   _target[0]->WorldToImage(p1);
                   _target[0]->WorldToImage(p2);
                   dx = (FFDLOOKUPTABLESIZE-1)/(p2._x-p1._x);
@@ -582,7 +582,7 @@ void irtkCardiac3DImageFreeFormRegistration::Initialize(int level)
                       }
                   }
                   if (ok == true) {
-                      _affd->PutStatus(i, j, k, _Active);
+                      _affd->PutStatusCP(i, j, k, _Active, _Active, _Active);
                   }
               }
           }
@@ -863,7 +863,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 					  if ( weight > 0 ) {
 						  *ptr2tmp =  round(_interpolator[n]->EvaluateInside(x, y, z, t));
                           if(*ptr2tmp > _TargetPadding){
-                              _metric[n]->Add(*ptr2target, *ptr2tmp, weight);
+                              _metric[n]->AddWeightedSample(*ptr2target, *ptr2tmp, weight);
                               sweight[n] += weight;
                               l1 += weight;
                           }
@@ -937,7 +937,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 					  if (threshold > 2) {
 						  *ptr2utmp =  round(_uinterpolator[n]->EvaluateInside(x, y, z, t));
                           if(*ptr2utmp > _TargetPadding){
-                              _umetric[n]->Add(*ptr2utarget, *ptr2utmp,10.0 - weight);
+                              _umetric[n]->AddWeightedSample(*ptr2utarget, *ptr2utmp,10.0 - weight);
                               tweight[n] += 10.0 - weight;
                               l2 += 10.0 - weight;
                           }
@@ -963,7 +963,7 @@ double irtkCardiac3DImageFreeFormRegistration::Evaluate()
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarity += this->_Lregu * this->LandMarkPenalty();
+	  similarity += this->_Lregu * this->LandmarkPenalty();
   }
   // Add penalty for smoothness
   if (this->_Lambda1 > 0) {
@@ -1031,7 +1031,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
   l1a=l2a=l1b=l2b=0;
 
   // Calculate bounding box of control point in world coordinates
-  _affd->BoundingBox(index, p1, p2);
+  _affd->BoundingBoxCP(index, p1, p2);
   _target[0]->WorldToImage(p1);
   _target[0]->WorldToImage(p2);
 
@@ -1046,12 +1046,12 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   for (n = 0; n < _numberOfImages; n++) {
 	  // Initialize metrics for forward and backward derivative steps
-	  tmpMetricA[n]->Reset(_metric[n]);
-	  tmpMetricB[n]->Reset(_metric[n]);
+	  tmpMetricA[n]->ResetAndCopy(_metric[n]);
+	  tmpMetricB[n]->ResetAndCopy(_metric[n]);
       sweight[n] = 0;
 
     // Calculate bounding box of control point in image coordinates
-    _affd->MultiBoundingBox(_target[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+    _affd->MultiBoundingBoxImage(_target[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
     // Loop over all voxels in the target (reference) volume
 	for (t = 0; t < _target[n]->GetT(); t++) {
@@ -1090,8 +1090,8 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
                                         if(weight < 1.0) weight = 1.0;
                                     }
 									if (*ptr2tmp > _TargetPadding && weight > 0) {
-										tmpMetricA[n]->Delete(*ptr2target, *ptr2tmp, weight);
-										tmpMetricB[n]->Delete(*ptr2target, *ptr2tmp, weight);
+										tmpMetricA[n]->DeleteWeightedSample(*ptr2target, *ptr2tmp, weight);
+										tmpMetricB[n]->DeleteWeightedSample(*ptr2target, *ptr2tmp, weight);
 									}
 
 									p[0] = ptr[0];
@@ -1111,7 +1111,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 											// Add sample to metric
                                                 sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
-                                                    tmpMetricA[n]->Add(*ptr2target,sample ,weight);
+                                                    tmpMetricA[n]->AddWeightedSample(*ptr2target,sample ,weight);
                                                     l1a += weight;
                                                     sweight[n] += weight;
                                                 }
@@ -1135,7 +1135,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 												// Add sample to metric
                                                 sample = round(_interpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
-                                                    tmpMetricB[n]->Add(*ptr2target,sample,weight);
+                                                    tmpMetricB[n]->AddWeightedSample(*ptr2target,sample,weight);
                                                     l1b += weight;
                                                     sweight[n] += weight;
                                                 }
@@ -1155,12 +1155,12 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
   }
 
   for (n = 0; n < _numberOfuImages; n++) {
-	  utmpMetricA[n]->Reset(_umetric[n]);
-	  utmpMetricB[n]->Reset(_umetric[n]);
+	  utmpMetricA[n]->ResetAndCopy(_umetric[n]);
+	  utmpMetricB[n]->ResetAndCopy(_umetric[n]);
 	  tweight[n] = 0;
 
     // Calculate bounding box of control point in image coordinates
-    _affd->MultiBoundingBox(_utarget[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+    _affd->MultiBoundingBoxImage(_utarget[n], index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
     // Loop over all voxels in the target (reference) volume
 	for (t = 0; t < _utarget[n]->GetT(); t++) {
@@ -1211,8 +1211,8 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
                                         if(weight < 1.0) weight = 1.0;
                                     }
 									if (*ptr2utmp > _TargetPadding && threshold > 2) {
-										utmpMetricA[n]->Delete(*ptr2utarget, *ptr2utmp, 10.0 - weight);
-										utmpMetricB[n]->Delete(*ptr2utarget, *ptr2utmp, 10.0 - weight);
+										utmpMetricA[n]->DeleteWeightedSample(*ptr2utarget, *ptr2utmp, 10.0 - weight);
+										utmpMetricB[n]->DeleteWeightedSample(*ptr2utarget, *ptr2utmp, 10.0 - weight);
 									}
 
 									p[0] = ptr[0];
@@ -1232,7 +1232,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 											// Add sample to metric
                                                 sample = round(_uinterpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
-                                                    utmpMetricA[n]->Add(*ptr2utarget, sample,10.0 - weight);
+                                                    utmpMetricA[n]->AddWeightedSample(*ptr2utarget, sample,10.0 - weight);
                                                     l2a += 10.0 - weight;
                                                     tweight[n] += 10.0 - weight;
                                                 }
@@ -1257,7 +1257,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
                                                 // Add sample to metric
                                                 sample = round(_uinterpolator[n]->EvaluateInside(p[0], p[1], p[2], t));
                                                 if(sample > _TargetPadding){
-                                                    utmpMetricB[n]->Add(*ptr2utarget,sample ,10.0 - weight);
+                                                    utmpMetricB[n]->AddWeightedSample(*ptr2utarget,sample ,10.0 - weight);
                                                     l2b += 10.0 - weight;
                                                     tweight[n] += 10.0 - weight;
                                                 }
@@ -1288,7 +1288,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
    // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityA += this->_Lregu * this->LandMarkPenalty(index);
+	  similarityA += this->_Lregu * this->LandmarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {
@@ -1312,7 +1312,7 @@ double irtkCardiac3DImageFreeFormRegistration::EvaluateDerivative(int index, dou
 
   // Add penalty for landmark regulation
   if (this->_Lregu > 0) {
-	  similarityB += this->_Lregu * this->LandMarkPenalty(index);
+	  similarityB += this->_Lregu * this->LandmarkPenalty(index);
   }
   // Smoothness
   if (this->_Lambda1 > 0) {
@@ -1732,11 +1732,11 @@ void irtkCardiac3DImageFreeFormRegistration::EvaluateOmega (int index){
 
 
 	// Calculate bounding box of control point in world coordinates
-	_affd->BoundingBox(index, p1, p2);
+	_affd->BoundingBoxCP(index, p1, p2);
 	_target[0]->WorldToImage(p1);
 	_target[0]->WorldToImage(p2);
 	// Calculate bounding box of control point in image coordinates
-	_affd->MultiBoundingBox(_threshold, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
+	_affd->MultiBoundingBoxImage(_threshold, index, i1, j1, k1, i2, j2, k2, 1.0 / _SpeedupFactor);
 
 	// Calculate incremental changes in lattice coordinates when looping
 	// over target

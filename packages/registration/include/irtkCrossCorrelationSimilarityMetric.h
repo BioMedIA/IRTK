@@ -41,6 +41,12 @@ public:
   /// Remove sample
   virtual void Delete(int, int);
 
+  /// Add weighted sample
+  virtual void AddWeightedSample(int, int, double = 1);
+
+  /// Remove weighted sample
+  virtual void DeleteWeightedSample(int, int, double = 1);
+
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *);
 
@@ -83,6 +89,26 @@ inline void irtkCrossCorrelationSimilarityMetric::Delete(int x, int y)
   _y  -= y;
   _y2 -= y*y;
   _n--;
+}
+
+inline void irtkCrossCorrelationSimilarityMetric::AddWeightedSample(int x, int y, double weight)
+{
+  _xy += weight*x*y;
+  _x  += weight*x;
+  _x2 += weight*x*x;
+  _y  += weight*y;
+  _y2 += weight*y*y;
+  _n  += weight;
+}
+
+inline void irtkCrossCorrelationSimilarityMetric::DeleteWeightedSample(int x, int y, double weight)
+{
+  _xy -= weight*x*y;
+  _x  -= weight*x;
+  _x2 -= weight*x*x;
+  _y  -= weight*y;
+  _y2 -= weight*y*y;
+  _n  -= weight;
 }
 
 inline void irtkCrossCorrelationSimilarityMetric::Combine(irtkSimilarityMetric *metric)

@@ -42,6 +42,12 @@ public:
   /// Remove sample
   virtual void Delete(int, int) = 0;
 
+  /// Add sample
+  virtual void AddWeightedSample(int, int, double = 1) = 0;
+
+  /// Remove sample
+  virtual void DeleteWeightedSample(int, int, double = 1) = 0;
+
   /// Combine similarity metrics
   virtual void Combine(irtkSimilarityMetric *) = 0;
 

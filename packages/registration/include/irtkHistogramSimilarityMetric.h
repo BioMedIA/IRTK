@@ -44,6 +44,11 @@ public:
 	/// Remove sample
 	virtual void Delete(int, int);
 
+  virtual void AddWeightedSample(int, int, double = 1);
+
+	/// Remove sample
+  virtual void DeleteWeightedSample(int, int, double = 1);
+
 	/// Combine similarity metrics
 	virtual void Combine(irtkSimilarityMetric *);
 
@@ -82,6 +87,16 @@ inline void irtkHistogramSimilarityMetric::Add(int x, int y)
 inline void irtkHistogramSimilarityMetric::Delete(int x, int y)
 {
 	_histogram->Delete(x, y);
+}
+
+inline void irtkHistogramSimilarityMetric::AddWeightedSample(int x, int y, double weight)
+{
+  _histogram->Add(x, y, weight);
+}
+
+inline void irtkHistogramSimilarityMetric::DeleteWeightedSample(int x, int y, double weight)
+{
+  _histogram->Delete(x, y, weight);
 }
 
 inline void irtkHistogramSimilarityMetric::Combine(irtkSimilarityMetric *metric)

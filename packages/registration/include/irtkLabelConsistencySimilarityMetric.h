@@ -40,6 +40,10 @@ public:
   /// Remove sample
   virtual void Delete(int, int);
 
+  virtual void AddWeightedSample(int, int, double =1);
+  /// Remove sample
+  virtual void DeleteWeightedSample(int, int, double =1);
+
   /// Reset similarity metric
   virtual void Reset();
 
@@ -64,6 +68,18 @@ inline void irtkLabelConsistencySimilarityMetric::Add(int x, int y)
 }
 
 inline void irtkLabelConsistencySimilarityMetric::Delete(int x, int y)
+{
+  if (x == y) _match--;
+  _n--;
+}
+
+inline void irtkLabelConsistencySimilarityMetric::AddWeightedSample(int x, int y, double)
+{
+  if (x == y) _match++;
+  _n++;
+}
+
+inline void irtkLabelConsistencySimilarityMetric::DeleteWeightedSample(int x, int y, double)
 {
   if (x == y) _match--;
   _n--;
