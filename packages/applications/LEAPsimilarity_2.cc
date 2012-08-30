@@ -90,7 +90,7 @@ void usage()
 {
 	cerr << "usage LEAPsimilarity [atlasNames] [atlasDir] [targetImage] [ROI] [outFile]" << endl;
 	cerr << "-SSD Use SSD instead of NMI as similarity measure." << endl;
-
+	cerr << "-WriteTopAtlases [N] [outFile] writes the N top ranked atlases to outFile" << endl;
 		
 }
 int main(int argc, char **argv)
