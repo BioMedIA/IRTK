@@ -159,9 +159,8 @@ int main(int argc, char **argv)
     size = xsize;
     size = (size < ysize) ? size : ysize;
     size = (size < zsize) ? size : zsize;
-    cerr << "Resampling image to isotropic voxel size (in mm): "
-    << size << "z axis times " << isotropic << endl;
-    xsize = size; ysize = size; zsize = size*isotropic;
+    xsize = size*isotropic; ysize = size*isotropic; zsize = size*isotropic;
+    cerr << "Resampling image to isotropic voxel size (in mm): " << xsize << endl;
   } else {
     cout << "Resampling ... "; cout.flush();
   }
