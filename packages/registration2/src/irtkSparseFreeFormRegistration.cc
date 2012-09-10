@@ -496,24 +496,24 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
         this->irtkImageRegistration2::Evaluate();
 
         // Compute _currentgradient with respect to displacements
-        if(this->irtkImageRegistration2::EvaluateGradient(&norm)>0){
 
-            this->ParametricGradient();
+        this->ParametricGradient();
 
-            if (this->_Lambda1 > 0){
-                this->SmoothnessPenaltyGradient();
+        if (this->_Lambda1 > 0){
+            this->SmoothnessPenaltyGradient();
+        }
+
+        norm = 0;
+        count = 0;
+
+        for(int i = 0; i < _NumberOfDofs; i++){
+            if(fabs(_currentgradient[i]) > 0){
+                count ++;
             }
+            norm += fabs(_currentgradient[i]);
+        }
 
-            norm = 0;
-            count = 0;
-
-            for(int i = 0; i < _NumberOfDofs; i++){
-                if(fabs(_currentgradient[i]) > 0){
-                    count ++;
-                }
-                norm += fabs(_currentgradient[i]);
-            }
-
+        if(count > 0){
             norm = norm/count;
 
             _Lambda2 = 1.0;
@@ -521,6 +521,7 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
             cout << "normalized sparsity penalty with respect to finate convergence property is:" << _Lambda3 << endl;
         }else{
             _Lambda3 = 0;
+            cout << "current gradient is 0!" << endl;
         }
     }
 }
