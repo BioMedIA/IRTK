@@ -39,7 +39,8 @@ irtkSparseFreeFormRegistration::irtkSparseFreeFormRegistration()
     _Lambda1     = 0;
     _Lambda2     = 0;
     _Lambda3     = 0;
-    _LargestSpacing = 128;
+    _LargestSpacing = 512;
+    _FinestSpacing = 1;
     _Mode        = RegisterXYZ;
     _mffd = NULL;
     _affd = NULL;
@@ -136,6 +137,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     _Lambda1            = 0.001;
     _Lambda3            = 0.04;
     _LargestSpacing     = 512;
+    _FinestSpacing      = 1;
 
     // Remaining parameters
     for (i = 0; i < _NumberOfLevels; i++) {
@@ -190,6 +192,11 @@ void irtkSparseFreeFormRegistration::Initialize()
 
     if(_Lambda3 > 0)
         _Lambda3tmp = _Lambda3;
+
+    if(_FinestSpacing >= _LargestSpacing){
+        cout << "Finest spacing larger than largest spacing!" << endl;
+        exit(1);
+    }
 }
 
 void irtkSparseFreeFormRegistration::Image2Transformation(){
@@ -317,8 +324,8 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
     odx = 0;
     ody = 0;
     odz = 0;
-    while(dx > _target->GetXSize() && dy > _target->GetYSize()
-        &&(dz > _target->GetZSize() || _target->GetZ() == 1)){
+    while(dx > _target->GetXSize()*_FinestSpacing && dy > _target->GetYSize()*_FinestSpacing
+        &&(dz > _target->GetZSize()*_FinestSpacing || _target->GetZ() == 1)){
 
             if(dx > _target->GetXSize()*_target->GetX()/3.0){
                 tdx = _target->GetXSize()*_target->GetX()/3.0;
@@ -427,8 +434,8 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(int level){
     odx = 0;
     ody = 0;
     odz = 0;
-    while(dx > _target->GetXSize() && dy > _target->GetYSize()
-        &&(dz > _target->GetZSize() || _target->GetZ() == 1)){
+    while(dx > _target->GetXSize()*_FinestSpacing && dy > _target->GetYSize()*_FinestSpacing
+        &&(dz > _target->GetZSize()*_FinestSpacing || _target->GetZ() == 1)){
 
             if(dx > _target->GetXSize()*_target->GetX()/3.0){
                 tdx = _target->GetXSize()*_target->GetX()/3.0;
@@ -1435,6 +1442,12 @@ bool irtkSparseFreeFormRegistration::Read(char *buffer1, char *buffer2, int &lev
         ok = true;
     }
 
+    if ((strstr(buffer1, "Finest spacing") != NULL)) {
+        this->_FinestSpacing = atof(buffer2);
+        cout << "Finest grid spacing is ... " << this->_FinestSpacing << endl;
+        ok = true;
+    }
+
     if (ok == false) {
         return this->irtkImageRegistration2::Read(buffer1, buffer2, level);
     } else {
@@ -1448,6 +1461,7 @@ void irtkSparseFreeFormRegistration::Write(ostream &to)
     to << "Bending penalty                     = " << this->_Lambda1 << endl;
     to << "Sparsity constrain                  = " << this->_Lambda3 << endl;
     to << "Coarsest spacing                    = " << this->_LargestSpacing << endl;
+    to << "Finest spacing                      = " << this->_FinestSpacing << endl;
 
     this->irtkImageRegistration2::Write(to);
 }

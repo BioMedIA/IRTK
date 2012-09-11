@@ -62,6 +62,9 @@ protected:
     /// Largest ffd grid spacing
     double _LargestSpacing;
 
+    /// Finest ffd grid spacing
+    double _FinestSpacing;
+
     /// Marxium similarity
     double _MaxSimilarity;
 
