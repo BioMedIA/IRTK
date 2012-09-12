@@ -97,6 +97,27 @@ void irtkSparseFreeFormRegistration::GuessParameter()
 
     // Default target parameters
     _TargetBlurring[0]      = 0.5;
+    if(xsize < _TargetBlurring[0]*2){
+        _TargetBlurring[0] = xsize / 2;
+    }
+    if(ysize < _TargetBlurring[0]*2){
+        _TargetBlurring[0] = ysize / 2;
+    }
+    if(zsize < _TargetBlurring[0]*2){
+        _TargetBlurring[0] = zsize / 2;
+    }
+
+    _SourceBlurring[0]      = 0.5;
+    if(xsize < _SourceBlurring[0]*2){
+        _SourceBlurring[0] = xsize / 2;
+    }
+    if(ysize < _SourceBlurring[0]*2){
+        _SourceBlurring[0] = ysize / 2;
+    }
+    if(zsize < _SourceBlurring[0]*2){
+        _SourceBlurring[0] = zsize / 2;
+    }
+
     _TargetResolution[0][0] = xsize;
     _TargetResolution[0][1] = ysize;
     if (_target->GetZ() > 1) {
@@ -116,7 +137,6 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     _source->GetPixelSize(&xsize, &ysize, &zsize);
 
     // Default source parameters
-    _SourceBlurring[0]      = 0.5;
     _SourceResolution[0][0] = xsize;
     _SourceResolution[0][1] = ysize;
     if (_source->GetZ() > 1) {
@@ -142,7 +162,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     // Remaining parameters
     for (i = 0; i < _NumberOfLevels; i++) {
         _NumberOfIterations[i] = 100;
-        _MinStep[i]            = 0.01;
+        _MinStep[i]            = 0.001;
         _MaxStep[i]            = pow(2.0,i);
     }
 
@@ -182,7 +202,14 @@ void irtkSparseFreeFormRegistration::Initialize()
     // Pointer to multi-level FFD
     _mffd = (irtkMultiLevelFreeFormTransformation *)_transformation;
 
+    if(_FinestSpacing >= _LargestSpacing){
+        cout << "Finest spacing larger than largest spacing!" << endl;
+        exit(1);
+    }
+
     this->InitializeTransformation();
+
+    _Lambda2 = _target->GetNumberOfVoxels();
 
     if(_SimilarityMeasure == SSD){
         _MaxSimilarity = MAX_SSD;
@@ -193,10 +220,6 @@ void irtkSparseFreeFormRegistration::Initialize()
     if(_Lambda3 > 0)
         _Lambda3tmp = _Lambda3;
 
-    if(_FinestSpacing >= _LargestSpacing){
-        cout << "Finest spacing larger than largest spacing!" << endl;
-        exit(1);
-    }
 }
 
 void irtkSparseFreeFormRegistration::Image2Transformation(){
@@ -503,6 +526,7 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
         this->irtkImageRegistration2::Evaluate();
 
         // Compute _currentgradient with respect to displacements
+        this->irtkImageRegistration2::EvaluateGradient(&norm);
 
         this->ParametricGradient();
 
@@ -522,9 +546,7 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
 
         if(count > 0){
             norm = norm/count;
-
-            _Lambda2 = 1.0;
-            _Lambda3 = norm*_Lambda3tmp/_Lambda2;
+            _Lambda3 = norm*_Lambda3tmp;
             cout << "normalized sparsity penalty with respect to finate convergence property is:" << _Lambda3 << endl;
         }else{
             _Lambda3 = 0;
@@ -610,7 +632,7 @@ void irtkSparseFreeFormRegistration::SmoothnessPenaltyGradient()
         // Allocate memory
         double *tmp_gradient = new double[_affd->NumberOfDOFs()];
 
-        // and initialize memory (thanks to Stefan for his bug fix)
+        // and initialize memory
         for (i = 0; i < _affd->NumberOfDOFs(); i++) {
             tmp_gradient[i] = 0.0;
         }
@@ -634,17 +656,17 @@ double irtkSparseFreeFormRegistration::SparsePenalty()
     int t,index;
     double sparsity,norm;
 
-    norm = _NumberOfDofs;
+    if(_target->GetZ() > 1){
+        norm = 3.0*_Lambda2/8.0;
+    }else{
+        norm = 2.0*_Lambda2/4.0;
+    }
 
     sparsity = 0;
     for (t = 0; t < _NumberOfModels; t++){
         _affd = (irtkBSplineFreeFormTransformation *)_mffd->GetLocalTransformation(t);
         // approximate using a b spline model.
         for(index = 0; index < _affd->NumberOfDOFs(); index++){
-            /*if(fabs(_Lambda2*_affd->Get(index)) < 1)
-            sparsity += pow(fabs(_Lambda2*_affd->Get(index)),2-fabs(_Lambda2*_affd->Get(index)));
-            else
-            sparsity += fabs(_Lambda2*_affd->Get(index));*/
             sparsity += fabs(_affd->Get(index));
         }
     }
@@ -663,18 +685,6 @@ void irtkSparseFreeFormRegistration::SparsePenaltyGradient()
         _affd = (irtkBSplineFreeFormTransformation *)_mffd->GetLocalTransformation(t);
         // approximate using a b spline model.
         for (i = 0; i < _affd->NumberOfDOFs(); i++){
-            /*if(fabs(_Lambda2*_affd->Get(i)) < 1){
-            if(fabs(_Lambda2*_affd->Get(i)) > 0){
-            tmp1 = pow(_Lambda2*_affd->Get(i),2.0);
-            tmp2 = fabs(_Lambda2*_affd->Get(i));
-            sparsity = pow(tmp1,0.5*(1-tmp2))*(-2*tmp1+4*tmp2-tmp1*log(tmp1))/2*_affd->Get(i);
-            }else{
-            sparsity = 0;
-            }
-            }
-            else{
-            sparsity = _Lambda2*_affd->Get(i)/fabs(_affd->Get(i));
-            }*/
             if(_affd->Get(i) != 0){
                 sparsity = _affd->Get(i)/fabs(_affd->Get(i));
             }else{
