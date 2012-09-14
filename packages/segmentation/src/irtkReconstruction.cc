@@ -151,6 +151,21 @@ irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,
 	return average;
 }
 
+irtkRealImage irtkReconstruction::CreateMask(irtkRealImage image)
+{
+  //binarize mask
+  irtkRealPixel* ptr = image.GetPointerToVoxels();
+  for (int i = 0; i < image.GetNumberOfVoxels(); i++)
+  {
+    if (*ptr > 0.5)
+      *ptr = 1;
+    else
+      *ptr = 0;
+    ptr++;
+  }
+  return image;
+}
+
 void irtkReconstruction::SetMask(irtkRealImage * mask, double sigma)
 {
 	if (!_template_created)
@@ -421,6 +436,142 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 	}
 }
 
+void irtkReconstruction::RestoreSliceIntensities()
+{
+  if (_debug)
+    cout << "Restoring the intensities of the slices. "<<endl;
+  unsigned int inputIndex;
+  int i;
+  double factor;
+  irtkRealPixel *p;
+  
+  for (inputIndex=0;inputIndex<_slices.size();inputIndex++)
+  {
+    //calculate scling factor
+    factor = _stack_average[_stack_index[inputIndex]]/_average_value;
+    
+    // read the poiner to current slice
+    p=_slices[inputIndex].GetPointerToVoxels();
+    for(i=0;i<_slices[inputIndex].GetNumberOfVoxels();i++)
+    {
+      if(*p>0) *p = *p * factor;
+      p++;
+    } 
+  }
+
+}
+
+
+void irtkReconstruction::ScaleVolume()
+{
+  unsigned int inputIndex;
+  int i, j, k, n;
+  irtkRealImage slice, w, sim;
+  POINT p;
+
+  if (_debug)
+    cout << "Scaling volume: ";
+
+  double scalenum = 0, scaleden = 0;
+
+  for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+  {
+    // read the current slice
+    slice = _slices[inputIndex];
+
+    //read the current weight image
+    w = _weights[inputIndex];
+
+    //Calculate simulated slice
+    sim = slice;
+    ClearImage(sim, 0);
+
+    for (i = 0; i < slice.GetX(); i++)
+      for (j = 0; j < slice.GetY(); j++)
+        if (slice(i, j, 0) != -1)
+        {
+          n = _volcoeffs[inputIndex][i][j].size();
+          for (k = 0; k < n; k++)
+          {
+	    p = _volcoeffs[inputIndex][i][j][k];
+	    sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+	  }
+
+	  //scale - intensity matching
+	  scalenum += w(i, j, 0) * _slice_weight[inputIndex] * slice(i, j, 0) * sim(i, j, 0);
+	  scaleden += w(i, j, 0) * _slice_weight[inputIndex] * sim(i, j, 0) * sim(i, j, 0);
+	}
+
+  //end of loop for a slice inputIndex
+  }
+  //calculate scale for the volume
+  double scale = scalenum / scaleden;
+  
+  cout<<" scale = "<<scale;
+  
+  irtkRealPixel *ptr = _reconstructed.GetPointerToVoxels();
+  for(i=0;i<_reconstructed.GetNumberOfVoxels();i++)
+  {
+    if(*ptr>0) *ptr = *ptr * scale;
+    ptr++;
+  }
+  cout<<endl;
+}
+
+
+void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
+{
+  if (_debug)
+    cout<<"Simulating stacks."<<endl;
+  
+  unsigned int inputIndex;
+  int i, j, k, n;
+  irtkRealImage slice, sim;
+  POINT p;
+  
+  int z, current_stack;
+  z=-1;//this is the z coordinate of the stack
+  current_stack=-1; //we need to know when to start a new stack
+
+
+  for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+  {
+    // read the current slice
+    slice = _slices[inputIndex];
+
+    //Calculate simulated slice
+    sim = slice;
+    ClearImage(sim, 0);
+
+    for (i = 0; i < slice.GetX(); i++)
+      for (j = 0; j < slice.GetY(); j++)
+        if (slice(i, j, 0) != -1)
+        {
+          n = _volcoeffs[inputIndex][i][j].size();
+          for (k = 0; k < n; k++)
+          {
+	    p = _volcoeffs[inputIndex][i][j][k];
+	    sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+	  }
+	}
+
+    if (_stack_index[inputIndex]==current_stack)
+      z++;
+    else
+    {
+      current_stack=_stack_index[inputIndex];
+      z=0;
+    }
+        
+    for(i=0;i<sim.GetX();i++)
+      for(j=0;j<sim.GetY();j++)
+      {
+	stacks[_stack_index[inputIndex]](i,j,z)=sim(i,j,0);
+      }
+  //end of loop for a slice inputIndex
+  }   
+}
+
 void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 		vector<irtkRigidTransformation>& stack_transformations, double averageValue)
 {
@@ -429,16 +580,18 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 		cout << "Matching intensities of stacks. ";
 
 	//Calculate the averages of intensities for all stacks
-	vector<double> average;
 	double sum, num;
 	char buffer[256];
 	unsigned int ind;
 	int i, j, k;
 	double x, y, z;
-
+        
+	//rememeber the set average value
+	_average_value = averageValue;
+	
 	//averages need to be calculated only in ROI
 	for (ind = 0; ind < stacks.size(); ind++)
-			{
+	{
 		sum = 0;
 		num = 0;
 		for (i = 0; i < stacks[ind].GetX(); i++)
@@ -471,7 +624,7 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 				}
 		//calculate average for the stack
 		if (num > 0)
-			average.push_back(sum / num);
+			_stack_average.push_back(sum / num);
 		else
 		{
 			cerr << "Stack " << ind << " has no overlap with ROI" << endl;
@@ -482,8 +635,8 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 	if (_debug)
 	{
 		cout << "Stack average intensities are ";
-		for (ind = 0; ind < average.size(); ind++)
-			cout << average[ind] << " ";
+		for (ind = 0; ind < _stack_average.size(); ind++)
+			cout << _stack_average[ind] << " ";
 		cout << endl;
 		cout << "The new average value is " << averageValue << endl;
 		cout.flush();
@@ -494,7 +647,7 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 	double factor;
 	for (ind = 0; ind < stacks.size(); ind++)
 			{
-		factor = averageValue / average[ind];
+		factor = averageValue / _stack_average[ind];
 		ptr = stacks[ind].GetPointerToVoxels();
 		for (i = 0; i < stacks[ind].GetNumberOfVoxels(); i++)
 				{
@@ -546,6 +699,8 @@ void irtkReconstruction::CreateSlicesAndTransformations(vector<irtkRealImage>& s
 			slice.PutPixelSize(attr._dx, attr._dy, thickness[i]);
 			//remember the slice
 			_slices.push_back(slice);
+			//remeber stack index for this slice
+			_stack_index.push_back(i);
 			//initialize slice transformation with the stack transformation
 			_transformations.push_back(stack_transformations[i]);
 		}
@@ -584,7 +739,10 @@ void irtkReconstruction::MaskSlices()
 		irtkRealImage slice = _slices[inputIndex];
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
-					{
+			{
+			        //if the value is smaller than 1 assume it is padding
+			        if (slice(i,j,0) < 0.01)
+				  slice(i,j,0) = -1;
 				//image coordinates of a slice voxel
 				x = i;
 				y = j;
@@ -623,7 +781,7 @@ void irtkReconstruction::SliceToVolumeRegistration()
 	unsigned int inputIndex;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			{
+	{
 
 		target = _slices[inputIndex];
 
@@ -635,8 +793,8 @@ void irtkReconstruction::SliceToVolumeRegistration()
 			registration.SetOutput(&_transformations[inputIndex]);
 			registration.GuessParameterSliceToVolume();
 			registration.SetTargetPadding(-1);
-			if (_debug)
-				registration.irtkImageRegistration::Write((char *) "parout-slice.rreg");
+			//if (_debug)
+				//registration.irtkImageRegistration::Write((char *) "parout-slice.rreg");
 			registration.Run();
 		}
 	}
@@ -1664,7 +1822,7 @@ void irtkReconstruction::Superresolution(int iter)
 	ClearImage(_confidence_map, 0);
 
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
-			{
+	{
 		// read the current slice
 		slice = _slices[inputIndex];
 		//read the current weight image
