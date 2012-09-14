@@ -35,7 +35,7 @@ void usage()
   cerr << "\t                        will be resampled as template." << endl;
   cerr << "\t" << endl;
   cerr << "Options:" << endl;
-  cerr << "\t-thickness [th_1] .. [th_N] Give slice thickness.[Default: voxel size in z direction]"<<endl;
+  cerr << "\t-thickness [th_1] .. [th_N] Give slice thickness.[Default: twice voxel size in z direction]"<<endl;
   cerr << "\t-mask [mask]              Binary mask to define the region od interest. [Default: whole image]"<<endl;
   cerr << "\t-iterations [iter]        Number of registration-reconstruction iterations. [Default: 9]"<<endl;
   cerr << "\t-sigma [sigma]            Stdev for bias field. [Default: 12mm]"<<endl;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   irtkRealImage *mask=NULL;
   int iterations = 9;
   bool debug = false;
-  double sigma=12;
+  double sigma=20;
   double resolution = 0.75;
   double lambda = 0.02;
   double delta = 150;
@@ -338,7 +338,7 @@ int main(int argc, char **argv)
     }
   }
   
-  //Initialise slice thickness if not given by user
+  //Initialise 2*slice thickness if not given by user
   if (thickness.size()==0)
   {
     cout<< "Slice thickness is ";
@@ -346,7 +346,7 @@ int main(int argc, char **argv)
     {
       double dx,dy,dz;
       stacks[i].GetPixelSize(&dx,&dy,&dz);
-      thickness.push_back(dz);
+      thickness.push_back(dz*2);
       cout<<thickness[i]<<" ";
     }
     cout<<"."<<endl;
@@ -376,7 +376,12 @@ int main(int argc, char **argv)
     cerr<<"Please identify the template by assigning id transformation."<<endl;
     exit(1);
   }  
-  
+  //If no mask was given and flag "remove_black_background" is false, try to create mask from the template image in case it was padded
+  if ((mask==NULL)&&(!remove_black_background))
+  {
+    mask = new irtkRealImage(stacks[templateNumber]);
+    *mask = reconstruction.CreateMask(*mask);
+  }
   //Before creating the template we will crop template stack according to the given mask
   if (mask !=NULL)
   {
@@ -445,7 +450,7 @@ int main(int argc, char **argv)
     if ((i==templateNumber)&&(!remove_black_background)) continue;
     //transform the mask
     irtkRealImage m=reconstruction.GetMask();
-    reconstruction.TransformMask(stacks[i],m,stack_transformations[templateNumber]);
+    reconstruction.TransformMask(stacks[i],m,stack_transformations[i]);
     //Crop template stack
     reconstruction.CropImage(stacks[i],m);
     if (debug)
@@ -487,7 +492,7 @@ int main(int argc, char **argv)
   {
     //cerr<<"Please set sigma larger than zero. Current value: "<<sigma<<endl;
     //exit(1);
-    reconstruction.SetSigma(12);
+    reconstruction.SetSigma(20);
   }
   
   //Set global bias correction flag
@@ -627,6 +632,8 @@ int main(int argc, char **argv)
   }// end of interleaved registration-reconstruction iterations
 
   //save final result
+  reconstruction.RestoreSliceIntensities();
+  reconstruction.ScaleVolume();
   reconstructed=reconstruction.GetReconstructed();
   reconstructed.Write(output_name); 
   reconstruction.SaveTransformations();
@@ -636,6 +643,12 @@ int main(int argc, char **argv)
     reconstruction.SaveWeights();
     reconstruction.SaveBiasFields();
     reconstruction.SaveConfidenceMap();
+    reconstruction.SimulateStacks(stacks);
+    for (i=0;i<stacks.size();i++)
+    {
+      sprintf(buffer,"simulated%i.nii.gz",i);
+      stacks[i].Write(buffer);
+    }
   }
   
   //The end of main()
