@@ -162,7 +162,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     // Remaining parameters
     for (i = 0; i < _NumberOfLevels; i++) {
         _NumberOfIterations[i] = 100;
-        _MinStep[i]            = 0.001;
+        _MinStep[i]            = 0.01;
         _MaxStep[i]            = pow(2.0,i);
     }
 
@@ -209,16 +209,13 @@ void irtkSparseFreeFormRegistration::Initialize()
 
     this->InitializeTransformation();
 
-    _Lambda2 = _target->GetNumberOfVoxels();
-
     if(_SimilarityMeasure == SSD){
         _MaxSimilarity = MAX_SSD;
     }else if(_SimilarityMeasure == NMI){
         _MaxSimilarity = MAX_NMI;
     }
-
-    if(_Lambda3 > 0)
-        _Lambda3tmp = _Lambda3;
+        
+    _Lambda3tmp = _Lambda3;
 
 }
 
@@ -457,8 +454,9 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(int level){
     odx = 0;
     ody = 0;
     odz = 0;
-    while(dx > _target->GetXSize()*_FinestSpacing && dy > _target->GetYSize()*_FinestSpacing
-        &&(dz > _target->GetZSize()*_FinestSpacing || _target->GetZ() == 1)){
+    while(dx > _target->GetXSize() && dy > _target->GetYSize()
+        &&(dz > _target->GetZSize() || _target->GetZ() == 1)
+        && _NumberOfModels < _mffd->NumberOfLevels()){
 
             if(dx > _target->GetXSize()*_target->GetX()/3.0){
                 tdx = _target->GetXSize()*_target->GetX()/3.0;
@@ -656,11 +654,7 @@ double irtkSparseFreeFormRegistration::SparsePenalty()
     int t,index;
     double sparsity,norm;
 
-    if(_target->GetZ() > 1){
-        norm = 3.0*_Lambda2/8.0;
-    }else{
-        norm = 2.0*_Lambda2/4.0;
-    }
+    norm = _NumberOfDofs;
 
     sparsity = 0;
     for (t = 0; t < _NumberOfModels; t++){
@@ -1341,14 +1335,18 @@ void irtkSparseFreeFormRegistration::Run()
                 if(_Lambda3 > 0){
                     // Define steps
                     norm = 0;
+                    int count = 0;
                     for (j = 0; j < _NumberOfModels; j++){
                         _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
                         // Move along _gradient direction
                         for (k = 0; k < _affd->NumberOfDOFs(); k++) {
-                            norm += fabs(_affd->Get(k));
+                            if(_affd->GetStatus(k) == Active){
+                                norm += fabs(_affd->Get(k));
+                                count ++;
+                            }
                         }
                     }
-                    norm = norm / _NumberOfDofs;
+                    norm = norm / count;
 
                     if(min_step < norm){
                         min_step = norm / 128;

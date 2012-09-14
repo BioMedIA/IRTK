@@ -18,12 +18,14 @@ void usage()
 {
     cerr << "Usage: ffdinfo [dofin]\n" << endl;
     cerr << "<-output file>       ffd value output file, prefix for each level, " << endl;
+    cerr << "<-outputffd file>    ffd output file, prefix for each level, " << endl;
     cerr << "for example info (output will be info0.txt...infon.txt)" << endl;
     cerr << "<-sparsityoutput file>       sparsity value output file " << endl;
     exit(1);
 }
 
 char *resultout_name = NULL;
+char *levelout_name = NULL;
 char *sparsityresultout_name = NULL;
 
 int main(int argc, char **argv)
@@ -51,6 +53,14 @@ int main(int argc, char **argv)
             argc--;
             argv++;
             resultout_name = argv[1];
+            argc--;
+            argv++;
+            ok = true;
+        }
+        if ((ok == false) && (strcmp(argv[1], "-outputffd") == 0)){
+            argc--;
+            argv++;
+            levelout_name = argv[1];
             argc--;
             argv++;
             ok = true;
@@ -141,6 +151,20 @@ int main(int argc, char **argv)
             << active*100.0/(active+passive) << "%)" << endl;
         cout << "Passive control points: " << passive << " ("
             << passive*100.0/(active+passive) << "%)" << endl;
+
+        if(levelout_name){
+            for(i = 0; i < ffd->NumberOfDOFs(); i++){
+                ffd->Put(i,ffd->Get(i));
+            }
+            char buffer[255];
+            sprintf(buffer, "%s%d.dof.gz",levelout_name,n);
+            cerr << "Writing Results: " << buffer << endl;
+            irtkMultiLevelFreeFormTransformation *tmpffd = new irtkMultiLevelFreeFormTransformation();
+            tmpffd->PushLocalTransformation(ffd);
+            tmpffd->irtkTransformation::Write(buffer);
+
+            mffd->irtkTransformation::Write("levelall.dof.gz");
+        }
 
         if(resultout_name){
             char buffer[255];
