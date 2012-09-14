@@ -124,6 +124,11 @@ protected:
   ///low intensity cutoff for bias field estimation
   double _low_intensity_cutoff;
   
+  //to restore original signal intensity of the MRI slices
+  vector<double> _stack_average;
+  double _average_value;
+  vector<int> _stack_index;
+  
   //forced excluded slices
   vector<int> _force_excluded;
   
@@ -148,6 +153,8 @@ public:
 
   ///Create zero image as a template for reconstructed volume
   double CreateTemplate(irtkRealImage stack, double resolution = 0);
+  ///If template image has been masked instead of creating the mask in separate file, this function can be used to create mask from the template image
+  irtkRealImage CreateMask(irtkRealImage image);
   ///Remember volumetric mask and smooth it if necessary
   void SetMask(irtkRealImage * mask, double sigma);  
   ///Create mask from black background if the flag is set
@@ -244,6 +251,14 @@ public:
   
   /// Read Transformations
   void ReadTransformation(char* folder);
+  
+  //To recover original scaling
+  ///Restore slice intensities to their original values
+  void RestoreSliceIntensities();
+  ///Scale volume to match the slice intensities
+  void ScaleVolume();
+  //To compare how simulation from the reconstructed volume matches the original stacks
+  void SimulateStacks(vector<irtkRealImage>& stacks);
 
   
 };
