@@ -105,6 +105,8 @@
 #error Requires Visual C++ 2005 (VC8) compiler or later.
 #endif
 
+#include <stddef.h>
+
 #include "energy.h"
 
 /////////////////////////////////////////////////////////////////////
