@@ -63,8 +63,18 @@ void irtkImageFreeFormRegistration2::GuessParameter()
     // Read target pixel size
     _target->GetPixelSize(&xsize, &ysize, &zsize);
 
-    // Use xsize as spacing
-    spacing = xsize;
+    // Default parameters for non-rigid registration
+    _Lambda1            = 0; //recommended value 0.0001
+    _Lambda2            = 0; //recommended value 1
+    _Lambda3            = 0;
+    _DX                 = _target->GetX() * xsize / 10.0;
+    _DY                 = _target->GetY() * ysize / 10.0;
+    if (_target->GetZ() > 1) {
+        _DZ               = _target->GetZ() * zsize / 10.0;
+    } else {
+        _DZ               = 1;
+    }
+    _Subdivision        = true;
 
     // Default target parameters
     _TargetBlurring[0]      = GuessResolution(xsize, ysize, zsize) / 2.0;
@@ -102,19 +112,6 @@ void irtkImageFreeFormRegistration2::GuessParameter()
         _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
         _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
     }
-
-    // Default parameters for non-rigid registration
-    _Lambda1            = 0; //recommended value 0.0001
-    _Lambda2            = 0; //recommended value 1
-    _Lambda3            = 0;
-    _DX                 = _target->GetX() * spacing / 10.0;
-    _DY                 = _target->GetY() * spacing / 10.0;
-    if (_target->GetZ() > 1) {
-        _DZ               = _target->GetZ() * spacing / 10.0;
-    } else {
-        _DZ               = 1;
-    }
-    _Subdivision        = true;
 
     // Remaining parameters
     for (i = 0; i < _NumberOfLevels; i++) {

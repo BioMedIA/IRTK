@@ -135,7 +135,7 @@ int main(int argc, char **argv)
   }
   else
   {
-  	cout << "blur: Unknown data type, quitting." << endl;
+  	cout << "blur: Unknown data type: "<< dataType <<", quitting." << endl;
   	exit(1);
   }
 

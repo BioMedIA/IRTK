@@ -38,6 +38,9 @@ int irtkFileOpenCVToImage::CheckHeader(const char *filename)
 void irtkFileOpenCVToImage::SetInput(const char *filename){
     _pimage = NULL;
     _pimage= cvLoadImage(filename,0);
+
+    // Read header
+    this->ReadHeader();
 }
 
 irtkImage * irtkFileOpenCVToImage::GetOutput(){
@@ -51,7 +54,8 @@ irtkImage * irtkFileOpenCVToImage::GetOutput(){
 
 void irtkFileOpenCVToImage::ReadHeader()
 {
-
+    this->_type  = IRTK_VOXEL_SHORT;
+    this->_bytes = 2;
 }
 
 #endif
