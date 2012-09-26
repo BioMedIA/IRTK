@@ -903,6 +903,7 @@ void irtkViewer::DrawObject(vtkPointSet **object, irtkGreyImage *image,
 			break;
 		}
 
+        glLineWidth(_rview->GetLineThickness());
 		this->DrawObject(object[i], image, _DisplayObjectWarp, _DisplayObjectGrid, transformation);
 	}
 }
