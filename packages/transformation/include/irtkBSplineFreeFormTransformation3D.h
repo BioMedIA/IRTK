@@ -149,17 +149,11 @@ protected:
   /// Calculate the bending energy of the transformation at control points (2D)
   virtual double Bending2D(int i, int j);
 
-  /// Calculate the bending energy of the transformation at control points (2D)
-  virtual double BendingSparse2D(int i, int j);
-
   /// Calculate the bending energy of the transformation at arbitrary points  (2D)
   virtual double Bending2D(double x, double y);
 
   /// Calculate the bending energy of the transformation at control points (3D)
   virtual double Bending3D(int i, int j, int k);
-
-  /// Calculate the bending energy of the transformation at control points (3D)
-  virtual double BendingSparse3D(int i, int j, int k);
 
   /// Calculate the bending energy of the transformation at arbitrary points  (3D)
   virtual double Bending3D(double x, double y, double z);
@@ -169,12 +163,6 @@ protected:
 
   /// Calculate the gradient of the bending energy with respect to the parameters
   virtual void BendingGradient3D(double *gradient);
-
-  /// Calculate the gradient of the bending energy with respect to the parameters
-  virtual void BendingGradientSparse2D(double *gradient);
-
-  /// Calculate the gradient of the bending energy with respect to the parameters
-  virtual void BendingGradientSparse3D(double *gradient);
 
 public:
 
@@ -276,17 +264,11 @@ public:
   /// Calculate total bending energy
   virtual double Bending();
 
-  /// Calculate total bending energy
-  virtual double BendingSparse();
-
   /// Calculate bending energy
   virtual double Bending(double, double, double, double = 0);
 
   /// Calculate the gradient of the bending energy with respect to the parameters
   virtual void BendingGradient(double *gradient);
-
-  /// Calculate the gradient of the bending energy with respect to the parameters
-  virtual void BendingGradientSparse(double *gradient);
 
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The

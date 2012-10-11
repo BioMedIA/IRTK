@@ -38,19 +38,19 @@ int main(int argc, char **argv)
   argc--;
   argv++;
   while (argc > 1) {
-    ok = false;
-    if ((ok == false) && (strcmp(argv[1], "-time") == 0)) {
-      argc--;
-      argv++;
-      output_name = argv[1];
-	  argc--;
-      argv++;
-      ok = true;
-    }
-    if (ok == false) {
-      cerr << "Can not parse argument " << argv[1] << endl;
-      usage();
-    }
+      ok = false;
+      if ((ok == false) && (strcmp(argv[1], "-time") == 0)) {
+          argc--;
+          argv++;
+          output_name = argv[1];
+          argc--;
+          argv++;
+          ok = true;
+      }
+      if (ok == false) {
+          cerr << "Can not parse argument " << argv[1] << endl;
+          usage();
+      }
   }
   reader->Print();
   

@@ -170,13 +170,13 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     // If all values are the same we assume that they correspond to the padding value
     _TargetPadding = MIN_GREY;
     if ((_target->Get(_target->GetX()-1, 0, 0)                                 == _target->Get(0, 0, 0)) &&
-    (_target->Get(0, _target->GetY()-1, 0)                                 == _target->Get(0, 0, 0)) &&
-    (_target->Get(0, 0, _target->GetZ()-1)                                 == _target->Get(0, 0, 0)) &&
-    (_target->Get(_target->GetX()-1, _target->GetY()-1, 0)                 == _target->Get(0, 0, 0)) &&
-    (_target->Get(0, _target->GetY()-1, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
-    (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
-    (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
-    _TargetPadding = _target->Get(0, 0, 0);
+        (_target->Get(0, _target->GetY()-1, 0)                                 == _target->Get(0, 0, 0)) &&
+        (_target->Get(0, 0, _target->GetZ()-1)                                 == _target->Get(0, 0, 0)) &&
+        (_target->Get(_target->GetX()-1, _target->GetY()-1, 0)                 == _target->Get(0, 0, 0)) &&
+        (_target->Get(0, _target->GetY()-1, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+        (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+        (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
+            _TargetPadding = _target->Get(0, 0, 0);
     }
 
     _SourcePadding = MIN_GREY;
@@ -214,7 +214,7 @@ void irtkSparseFreeFormRegistration::Initialize()
     }else if(_SimilarityMeasure == NMI){
         _MaxSimilarity = MAX_NMI;
     }
-        
+
     _Lambda3tmp = _Lambda3;
 
 }
@@ -535,22 +535,32 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
         norm = 0;
         count = 0;
 
-        for(int i = 0; i < _NumberOfDofs; i++){
-            if(fabs(_currentgradient[i]) > 0){
-                count ++;
+        for (int j = 0; j < _NumberOfModels; j++){
+            _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
+            // Move along _gradient direction
+            for (int k = 0; k < _affd->NumberOfDOFs(); k++) {
+                if(_affd->GetStatus(k) == Active){
+                    count ++;
+                }
             }
+        }
+
+        for(int i = 0; i < _NumberOfDofs; i++){
             norm += fabs(_currentgradient[i]);
         }
 
-        if(count > 0){
+        if(norm > 0){
+            cout << norm << " " << count ;
             norm = norm/count;
             _Lambda3 = norm*_Lambda3tmp;
-            cout << "normalized sparsity penalty with respect to finate convergence property is:" << _Lambda3 << endl;
+            cout << "normalized sparsity penalty with respect to finite convergence property is:" << _Lambda3 << endl;
         }else{
             _Lambda3 = 0;
             cout << "current gradient is 0!" << endl;
         }
     }
+
+    _Lambda2 = _Lambda3;
 }
 
 void irtkSparseFreeFormRegistration::Finalize()
@@ -603,9 +613,9 @@ double irtkSparseFreeFormRegistration::SmoothnessPenalty()
     for(i = 0; i < _NumberOfModels; i++){
         _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(i);
         if (_affd->GetZ() == 1) {
-            penalty += _affd->BendingSparse() / double(_affd->GetX()*_affd->GetY());
+            penalty += _affd->Bending() / double(_affd->GetX()*_affd->GetY());
         } else {
-            penalty += _affd->BendingSparse() / double(_affd->GetX()*_affd->GetY()*_affd->GetZ());
+            penalty += _affd->Bending() / double(_affd->GetX()*_affd->GetY()*_affd->GetZ());
         }
     }
     return penalty;
@@ -636,7 +646,7 @@ void irtkSparseFreeFormRegistration::SmoothnessPenaltyGradient()
         }
 
         // Compute gradient of smoothness term
-        _affd->BendingGradientSparse(tmp_gradient);
+        _affd->BendingGradient(tmp_gradient);
 
         // Add gradient to existing gradient
         for (i = 0; i < _affd->NumberOfDOFs(); i++) {
@@ -654,17 +664,23 @@ double irtkSparseFreeFormRegistration::SparsePenalty()
     int t,index;
     double sparsity,norm;
 
-    norm = _NumberOfDofs;
+    norm = 0;
 
     sparsity = 0;
     for (t = 0; t < _NumberOfModels; t++){
         _affd = (irtkBSplineFreeFormTransformation *)_mffd->GetLocalTransformation(t);
         // approximate using a b spline model.
         for(index = 0; index < _affd->NumberOfDOFs(); index++){
-            sparsity += fabs(_affd->Get(index));
+            if(_affd->GetStatus(index) == _Active){
+                sparsity += fabs(_affd->Get(index));
+                norm ++;
+            }
         }
     }
-    return sparsity/norm;
+    if(sparsity > 0)
+        return sparsity/norm;
+    else
+        return 0;
 }
 
 void irtkSparseFreeFormRegistration::SparsePenaltyGradient()
@@ -740,6 +756,11 @@ void irtkSparseFreeFormRegistration::InitializeIteration()
     // Update source image
     this->Update(true);
 
+    if(this->SparsePenalty() > 0){
+        _Lambda3 = _Lambda2;
+    }else{
+        _Lambda3 = 0;
+    }
 }
 
 void irtkSparseFreeFormRegistration::FinalizeIteration()
