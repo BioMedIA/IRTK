@@ -11,6 +11,8 @@
 =========================================================================*/
 #include <irtkImage.h>
 
+#include <irtkGaussianBlurring.h>
+
 char *cine_name = NULL;
 char *out_ED_name = NULL;
 char *out_ES_name = NULL;
@@ -25,7 +27,7 @@ int main( int argc, char** argv )
 {
 	int ok,i,j,k,t,esphase,frames;
     short cine_max,cine_min,cinedis;
-	double *similarity,dif;
+	double *similarity,*smoothsimilarity,dif;
 	// Check command line
 	if (argc < 4) {
 		usage();
@@ -44,9 +46,15 @@ int main( int argc, char** argv )
 
     // Create images
     irtkGreyImage cine(cine_name);
+
+    irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(2);
+    gaussianBlurring.SetInput (&cine);
+    gaussianBlurring.SetOutput(&cine);
+    gaussianBlurring.Run();
     
     irtkImageAttributes atr = cine.GetImageAttributes();
     similarity = new double[atr._t];
+    smoothsimilarity = new double[atr._t];
     frames = atr._t;
     atr._t = 1;
 
@@ -56,8 +64,10 @@ int main( int argc, char** argv )
     // Create similarity
     cine.GetMinMax(&cine_min,&cine_max);
     cinedis = cine_max - cine_min;
-    for(i = 0; i < frames; i++)
+    for(i = 0; i < frames; i++){
         similarity[i] = 0;
+        smoothsimilarity[i] = 0;
+    }
     // Evaluate similarity
     for ( t = 0; t < frames; t++){
         for ( k = 0; k < cine.GetZ(); k++){
@@ -74,12 +84,12 @@ int main( int argc, char** argv )
         similarity[i] = sqrt(similarity[i]);
     // Smooth similarity
     for(i = 1; i < frames - 1; i++)
-        similarity[i] = (similarity[i-1] + similarity[i] + similarity[i+1])/3;
+        smoothsimilarity[i] = (similarity[i-1] + similarity[i] + similarity[i+1])/3;
     // Find min similarity
     dif = 0;
     for(i = 0; i < frames; i++){
-        if(dif < similarity[i]){
-            dif = similarity[i];
+        if(dif < smoothsimilarity[i]){
+            dif = smoothsimilarity[i];
             esphase = i;
         }
     }

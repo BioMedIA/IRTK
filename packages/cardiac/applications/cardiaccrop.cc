@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: cardiaccurvature.cc 382 2011-07-20 12:27:01Z ws207 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2011-07-20 13:27:01 +0100 (Wed, 20 Jul 2011) $
-  Version   : $Revision: 382 $
-  Changes   : $Author: ws207 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 #include <irtkImage.h>
