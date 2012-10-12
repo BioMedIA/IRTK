@@ -19,6 +19,8 @@ ELSE(BUILD_CONDOR_EXE)
 
   ELSE (BUILD_MPI_EXE)
     ADD_EXECUTABLE(bep bep.cc)
+    ADD_EXECUTABLE(cardiaccrop cardiaccrop.cc)
+    ADD_EXECUTABLE(cardiacphasedetection cardiacphasedetection.cc)
     ADD_EXECUTABLE(cardiaccurvature cardiaccurvature.cc)
     ADD_EXECUTABLE(cardiacdof2vtk cardiacdof2vtk.cc)
     ADD_EXECUTABLE(cardiacdotspacing cardiacdotspacing.cc)
@@ -33,7 +35,7 @@ ELSE(BUILD_CONDOR_EXE)
 
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin bep cardiaccurvature cardiacdof2vtk cardiacdotspacing cardiacsurfacecompare cardiacsurfacevolume comparebep ejecfrac late motiontrackcardiac spatial_correct tracktag)
+INSTALL_TARGETS(/bin bep cardiaccrop cardiacphasedetection cardiaccurvature cardiacdof2vtk cardiacdotspacing cardiacsurfacecompare cardiacsurfacevolume comparebep ejecfrac late motiontrackcardiac spatial_correct tracktag)
 
 ENDIF (BUILD_CONDOR_EXE)
 

@@ -154,7 +154,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
 
     // Default parameters for non-rigid registration
     // recommended values
-    _Lambda1            = 0.001;
+    _Lambda1            = 0.0001;
     _Lambda3            = 0.04;
     _LargestSpacing     = 512;
     _FinestSpacing      = 1;
