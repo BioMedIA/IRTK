@@ -67,12 +67,12 @@ public:
 %extend
 {
   /// Puts a control point status
-  virtual void   PutStatus(int i, int j, int k, PyStatus status)
+  virtual void   PutStatus(int i, PyStatus status)
   {
     if (status == PyActive)
-      self->PutStatus(i, j, k, _Active);
+      self->PutStatus(i, _Active);
     else
-      self->PutStatus(i, j, k, _Passive);
+      self->PutStatus(i, _Passive);
   }
 
 }
@@ -114,28 +114,19 @@ public:
   /// Returns the bounding box for FFD (in mm)
   virtual void BoundingBox(irtkPoint &, irtkPoint &) const;
 
-  /// Returns the bounding box for FFD (in mm)
-  virtual void BoundingBox(double &INOUT, double &INOUT, double &INOUT,
-                           double &INOUT, double &INOUT, double &INOUT) const;
 
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(int, irtkPoint &, irtkPoint &, double = 1) const = 0;
+  virtual void BoundingBoxCP(int, irtkPoint &, irtkPoint &, double = 1) const = 0;
 
-  /** Returns the bounding box for a control point (in mm). The last
-   *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box.
-   */
-  virtual void BoundingBox(int, double &INOUT, double &INOUT, double &INOUT,
-			   double &INOUT, double &INOUT, double &INOUT, double = 1) const = 0;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
    *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBox(irtkGreyImage *, int, int &INOUT, int &INOUT, int &INOUT,
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &INOUT, int &INOUT, int &INOUT,
 			   int &INOUT, int &INOUT, int &INOUT, double = 1) const = 0;
 
   /** Approximate displacements: This function takes a set of points and a
