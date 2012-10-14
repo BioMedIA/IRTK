@@ -54,7 +54,6 @@ int main( int argc, char** argv )
     
     irtkImageAttributes atr = cine.GetImageAttributes();
     similarity = new double[atr._t];
-    smoothsimilarity = new double[atr._t];
     frames = atr._t;
     atr._t = 1;
 

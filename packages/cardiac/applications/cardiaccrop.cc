@@ -30,13 +30,15 @@ int main( int argc, char** argv )
 		usage();
 	}
 
+     size = 10;
+
 	// Parse source and target images
 	input_name = argv[1];
 	argc--;
 	argv++;
-    seg_name = argv[1];
-    argc--;
-    argv++;
+     seg_name = argv[1];
+     argc--;
+     argv++;
 	out_name = argv[1];
 	argc--;
 	argv++;
