@@ -93,7 +93,7 @@ int main( int argc, char** argv )
     miny -= size;
     if(miny < 0) 
         miny = 0;
-    maxy -= size;
+    maxy += size;
     if(maxy > input.GetY() - 1) 
         miny = input.GetY() - 1;
 
