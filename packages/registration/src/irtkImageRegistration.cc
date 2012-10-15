@@ -108,7 +108,6 @@ void irtkImageRegistration::Initialize()
   // Do not currently support different t-dimensions.
   if (_target->GetT() != _source->GetT()) {
     cerr << this->NameOfClass() << "::Initialize() : Images have different t-dimensions." << endl;
-    exit(1);
   }
 }
 
