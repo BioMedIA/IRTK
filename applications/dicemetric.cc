@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: padding.cc 2 2008-12-23 12:40:14Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2008-12-23 12:40:14 +0000 (�? 23 十二�?2008) $
-  Version   : $Revision: 2 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 
@@ -16,10 +16,9 @@ char *outputname = NULL;
 void usage()
 {
   cerr << "Usage: dicemetric [segmentationimageA] [segmentationimageB]" << endl;
-  cerr << "Dicemetric of two images from label min to lable max" << endl;
   cerr << "<-output file>       Result output file" << endl;
-  cerr << "<-minvalue value>        Min counting value of label default 1" << endl;
-  cerr << "<-maxvalue value>        Max counting value of label default 1" << endl;
+  cerr << "<-minvalue value>         Min counting value in image default 1" << endl;
+  cerr << "<-maxvalue value>         Max counting value in image default 1" << endl;
   cerr << "<-minZ value>             Min Z slice number to evaluate default 0" << endl;
   cerr << "<-maxZ value>             Max Z slice number to evaluate default max" << endl;
   exit(1);
@@ -28,13 +27,14 @@ void usage()
 int main(int argc, char **argv)
 {
   double min,max;
-  int i,j,k,l,ok,minz,maxz;
-  int *countAnd, *countA, *countB, fraction;
+  int i,j,k,l,a,b,ok,minz,maxz;
+  int countAnd, countA, countB, fraction;
 
   if (argc < 3) {
     usage();
   }
-  min = 1; max = 1;
+  min = 1; 
+  max = 1;
 
   irtkGreyImage imageA(argv[1]);
   argc--;
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	  argv++;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-maxvalue") == 0)) {
+	if ((ok == false) && (strcmp(argv[1], "-maxvalue") == 0)) {
       argc--;
       argv++;
       max = atoi(argv[1]);
@@ -95,67 +95,55 @@ int main(int argc, char **argv)
       usage();
     }
   }
-
-  // Initialize
-  countA = new int[int(max-min+1)];
-  countB = new int[int(max-min+1)];
-  countAnd = new int[int(max-min+1)];
-
-  for(i = 0; i < max-min+1; i++){
-      countA[i] = 0;
-      countB[i] = 0;
-      countAnd[i] = 0;
-  }
-
   for(l = 0; l < imageA.GetT(); l++ ){
+      countAnd = 0; countA = 0; countB = 0;
 	  for(k = minz; k < maxz; k++){
 		  for(j = 0; j < imageA.GetY(); j++){
 			  for(i = 0; i < imageA.GetX(); i++){
+				  a = 0;b = 0;
 				  if(imageA.GetAsDouble(i,j,k,l) >= min && imageA.GetAsDouble(i,j,k,l) <= max){
-					countA[int(imageA.GetAsDouble(i,j,k,l) - min)]++;
+					countA++;
+					a = 1;
 				  }
 				  if(imageB.GetAsDouble(i,j,k,l) >= min && imageB.GetAsDouble(i,j,k,l) <= max){
-					countB[int(imageB.GetAsDouble(i,j,k,l) - min)]++;
+					countB++;
+					b = 1;
 				  }
-				  if(imageA.GetAsDouble(i,j,k,l) ==  imageB.GetAsDouble(i,j,k,l)){
-					countAnd[int(imageA.GetAsDouble(i,j,k,l) - min)]++;
+				  if(a && b){
+					countAnd++;
 				  }
 			  }
 		  }
 
 	  }
-
-      //output
-      for(i = 0; i < max-min+1; i++){
-          fraction = (countA[i]+countB[i])/2;
-          if(fraction != 0)
-              cout << "Dice metric of frame "<< l << " label " << i+min << " is " << double(countAnd[i])/double(fraction) << endl;
-          else
-              cout << "Dice metric of frame "<< l << " label " << i+min << " is 1"<< endl;
-          if(outputname){
-              cerr << "Writing Results: " << outputname << endl;
-              ofstream fout(outputname,ios::app);
-              if(fraction != 0)
-                  fout << double(countAnd[i])/double(fraction);
-              else
-                  fout << 1;
-              fout.close();
-          }
-          fraction = countA[i]+countB[i]-countAnd[i];
-          if(fraction != 0)
-              cout << "Overlap metric of frame "<< l << " label " << i+min << " is " << double(countAnd[i])/double(fraction) << endl;
-          else
-              cout << "Overlap metric of frame "<< l << " label " << i+min << " is 1"<< endl;
-          if(outputname){
-              cerr << "Writing Results: " << outputname << endl;
-              ofstream fout(outputname,ios::app);
-              if(fraction != 0)
-                  fout << " " << double(countAnd[i])/double(fraction) <<endl;
-              else
-                  fout << " " << 1 <<endl;
-              fout.close();
-          }
-      }
+	  fraction = (countA+countB)/2;
+	  if(fraction != 0)
+		  cout << "Dice metric of frame "<< l << " is " << double(countAnd)/double(fraction) << endl;
+	  else
+		  cout << "Dice metric of frame "<< l << " is 1"<< endl;
+	  if(outputname){
+		  cerr << "Writing Results: " << outputname << endl;
+		  ofstream fout(outputname,ios::app);
+		  if(fraction != 0)
+			  fout << double(countAnd)/double(fraction);
+		  else
+			  fout << 1;
+		  fout.close();
+	  }
+	  fraction = countA+countB-countAnd;
+	  if(fraction != 0)
+		cout << "Overlap metric of frame "<< l << " is " << double(countAnd)/double(fraction) << endl;
+	  else
+		cout << "Overlap metric of frame "<< l << " is 1"<< endl;
+	  if(outputname){
+		  cerr << "Writing Results: " << outputname << endl;
+		  ofstream fout(outputname,ios::app);
+		  if(fraction != 0)
+			  fout << " " << double(countAnd)/double(fraction) <<endl;
+		  else
+			  fout << " " << 1 <<endl;
+		  fout.close();
+	  }
   }
 
   return 0;
