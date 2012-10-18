@@ -46,14 +46,17 @@ int main( int argc, char** argv )
 
     // Create images
     irtkGreyImage cine(cine_name);
+    irtkGreyImage blured;
+    blured.Initialize(cine.GetImageAttributes());
 
     irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(2);
     gaussianBlurring.SetInput (&cine);
-    gaussianBlurring.SetOutput(&cine);
+    gaussianBlurring.SetOutput(&blured);
     gaussianBlurring.Run();
     
     irtkImageAttributes atr = cine.GetImageAttributes();
     similarity = new double[atr._t];
+    smoothsimilarity = new double[atr._t];
     frames = atr._t;
     atr._t = 1;
 
@@ -61,7 +64,7 @@ int main( int argc, char** argv )
     irtkGreyImage out_ES(atr);
     out_ED = cine.GetFrame(0);
     // Create similarity
-    cine.GetMinMax(&cine_min,&cine_max);
+    blured.GetMinMax(&cine_min,&cine_max);
     cinedis = cine_max - cine_min;
     for(i = 0; i < frames; i++){
         similarity[i] = 0;
@@ -72,7 +75,7 @@ int main( int argc, char** argv )
         for ( k = 0; k < cine.GetZ(); k++){
             for ( j = 0; j< cine.GetY(); j++){
                 for ( i = 0; i<cine.GetX(); i++){
-                   dif = (cine.GetAsDouble(i,j,k,t) - cine.GetAsDouble(i,j,k,0))/cinedis;
+                   dif = (blured.GetAsDouble(i,j,k,t) - blured.GetAsDouble(i,j,k,0))/cinedis;
                    similarity[t] += dif*dif;
                 }
             }
@@ -99,5 +102,6 @@ int main( int argc, char** argv )
     // Output
     out_ED.Write(out_ED_name);
     out_ES.Write(out_ES_name);
-    delete similarity;
+    delete []smoothsimilarity;
+    delete []similarity;
 }
