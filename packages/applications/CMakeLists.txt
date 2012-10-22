@@ -2,6 +2,14 @@ IF(APPLE)
   SET(EXECUTABLE_FLAG MACOSX_BUNDLE)
 ENDIF(APPLE)
 
+# NOTE The fluid executable (fluid.cc) is intentionally excluded as it
+#      is deprecated and should not be used. In fact, the executable
+#      already only outputs that it should not be used and exists with
+#      an error doing nothing. Moreover, the target name "fluid" conflicts
+#      with the fluid executable target imported from the FLTK
+#      (see also <fltk-prefix>/lib/FLTK-1.3/FLTKLibraries.cmake).
+#      --andreas (as12312)
+
 IF (BUILD_CONDOR_EXE)
   #  SET (CMAKE_CXX_COMPILER "condor_compile ${CMAKE_CXX_COMPILER}")
   # This is a hack since the line above doesn't work: this local 
@@ -25,11 +33,9 @@ IF (BUILD_CONDOR_EXE)
   ADD_EXECUTABLE(dofsubtract.condor dofsubtract.cc)
   ADD_EXECUTABLE(jacobian.condor jacobian.cc)
   ADD_EXECUTABLE(hreg.condor hreg.cc)
-  ADD_EXECUTABLE(fluid.condor fluid.cc)
   ADD_EXECUTABLE(subtract.condor subtract.cc)
   ADD_EXECUTABLE(volumechange.condor volumechange.cc)
 
-    
 ELSE(BUILD_CONDOR_EXE)
     
     ADD_EXECUTABLE(areg areg.cc)
@@ -73,7 +79,6 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(ffdsubtract ffdsubtract.cc)
     ADD_EXECUTABLE(ffdtransform ffdtransform.cc)
     ADD_EXECUTABLE(flirt2dof flirt2dof.cc)
-    ADD_EXECUTABLE(fluid fluid.cc)
     ADD_EXECUTABLE(gridevaluation gridevaluation.cc)
     ADD_EXECUTABLE(gridtransformation gridtransformation.cc)
     ADD_EXECUTABLE(headertool headertool.cc)
@@ -132,7 +137,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(volumechange volumechange.cc)
     ADD_EXECUTABLE(vtk2ffd vtk2ffd.cc)
  
-INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas cnreg2 compare demons dofcombine dofcomposeN dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdinvert ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof fluid gridevaluation gridtransformation headertool hreg image2dof jacobian LEAPatlas_selection LEAPprobabilistic_atlas LEAPsimilarity_2 largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 motiontrackmultimage mrreg nreg nreg2 nreg2_multiple normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 rreg2_multiple subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg sparse_nreg temporalextract transformation transformation2 trans_uncertainty volumechange vtk2ffd jactest)
+INSTALL_TARGETS(/bin approximate approximate4D areg areg2 atlas cnreg2 compare demons dofcombine dofcomposeN dof2flirt dofinvert dof2mat dof2vtk dofsubtract dofprint evaluation ffd2D ffd2vtk ffdadd  ffdboundary ffdcollapse ffdcompose ffdcomposeN ffdcreate ffddecompose ffdedit ffdinfo ffdinvert ffdmovie ffdpadding ffdsubdivide ffdsubtract ffdtransform flirt2dof gridevaluation gridtransformation headertool hreg image2dof jacobian LEAPatlas_selection LEAPprobabilistic_atlas LEAPsimilarity_2 largedeformationsShoot largedeformationsTools mat2dof mareg mnreg motiontrack motiontrack2 motiontrackmultimage mrreg nreg nreg2 nreg2_multiple normalize pareg pevaluation phreg pnreg prreg ptransformation rreg rreg2 rreg2_multiple subtract sareg sevaluation shreg snreg srreg stransformation subtract symnreg sparse_nreg temporalextract transformation transformation2 trans_uncertainty volumechange vtk2ffd jactest)
 
 ENDIF (BUILD_CONDOR_EXE)
 

@@ -8,6 +8,8 @@
   Version   : $Revision$
   Changes   : $Author$
 
+  DEPRECATED
+
 =========================================================================*/
 
 #include <irtkRegistration.h>
