@@ -71,5 +71,6 @@ template irtkGenericImage<double>::irtkGenericImage(const irtkGenericImage<int> 
 template irtkGenericImage<double>::irtkGenericImage(const irtkGenericImage<float> &);
 
 template irtkGenericImage<float>& irtkGenericImage<float>::operator=(const irtkGenericImage<short> &);
+template irtkGenericImage<short>& irtkGenericImage<short>::operator=(const irtkGenericImage<float> &);
 
 #endif
