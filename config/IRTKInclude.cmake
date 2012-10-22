@@ -1,3 +1,6 @@
+# Compatible with CMake 2.6.x
+GET_FILENAME_COMPONENT(CMAKE_CURRENT_LIST_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
+
 # Prefer project-own Find<Package>.cmake modules for FIND_PACKAGE().
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
