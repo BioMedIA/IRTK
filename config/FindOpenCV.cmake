@@ -10,7 +10,6 @@
 # @par 2. Variable
 #
 # The following are set after configuration is done: 
-#  
 # - OpenCV_FOUND
 # - OpenCV_LIBS
 # - OpenCV_INCLUDE_DIR
@@ -19,13 +18,14 @@
 #
 # The following variables are used to maintain compatibility with other
 # Find<Pkg>.cmake modules, including the FindOpenCV.cmake module of
-# of Jan Woetzel (2006/09, www.mip.informatik.uni-kiel.de/~jw):
+# Jan Woetzel (2006/09, www.mip.informatik.uni-kiel.de/~jw):
 # - OpenCV_INCLUDE_DIRS
 # - OpenCV_LIBRARIES
 # - OpenCV_LINK_DIRECTORIES
 # 
 # @par 3. Version
 #
+# 2012/10/22 Andreas Schuh, Find OpenCV 2 also if OpenCVConfig.cmake missing.
 # 2012/02/28 Andreas Schuh, Reimplemented module to work also for OpenCV 1.x.
 # 2010/04/07 Benoit Rat, Correct a bug when OpenCVConfig.cmake is not found.
 # 2010/03/24 Benoit Rat, Add compatibility for when OpenCVConfig.cmake is not found.
@@ -258,7 +258,7 @@ if (EXISTS "${OpenCV_DIR}")
     endforeach ()
 
     # restore library suffixes
-    set (OpenCV_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+    set (CMAKE_FIND_LIBRARY_SUFFIXES "${OpenCV_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES}")
 
     # compatibility with OpenCV 2
     set (OpenCV_INCLUDE_DIRS "${OpenCV_INCLUDE_DIR}")
