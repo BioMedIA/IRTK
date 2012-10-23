@@ -144,6 +144,19 @@ int main(int argc, char **argv)
 	  }
 	  x1 = landmarks(0)._x; x2 = landmarks(1)._x;
 	  y1 = landmarks(0)._y; y2 = landmarks(1)._y;
+	  z1 = landmarks(0)._z; z2 = landmarks(1)._z;
+	  if (x1 > x2){
+	    swap(x1, x2);
+	  }
+	  if (y1 > y2){
+	    swap(y1, y2);
+	  }
+	  if (z1 > z2){
+	    swap(z1, z2);
+	  }
+	  cout << "Using landmarks to define ROI in image coordinates. The two corners are:" << endl;
+	  cout << "    (" << x1 << ", " << y1 << ", " << z1 << ")" << endl;
+	  cout << "    (" << x2 << ", " << y2 << ", " << z2 << ")" << endl;
       argc--;
       argv++;
       ok = true;
