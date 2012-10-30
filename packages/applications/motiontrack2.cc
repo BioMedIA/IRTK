@@ -40,6 +40,8 @@ void usage()
     cerr << "<-Rz2 value>         Region of interest in images" << endl;
     cerr << "<-Rt2 value>         Region of interest in images" << endl;
     cerr << "<-Tp  value>         Padding value" << endl;
+    cerr << "<-Sp  value>         Smoothness preservation value" << endl;
+    cerr << "<-Vp  value>         Volume preservation value" << endl;
     cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
     cerr << "<-adaptive weight>   Adapt regulation weight using the weight" << endl;
     cerr << "<-mode 0/1>          Registration mode normal/sparse" << endl;
@@ -49,7 +51,7 @@ void usage()
 int main(int argc, char **argv)
 {
     int t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, framemode, ok, debug;
-    double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3];
+    double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3], sp, vp;
     irtkGreyPixel padding;
     irtkImageFreeFormRegistrationMode mode;
     irtkMultiLevelFreeFormTransformation *mffd;
@@ -87,6 +89,8 @@ int main(int argc, char **argv)
     debug = false;
     adaptive = 0;
     framemode = 0;
+    sp = -1;
+    vp = -1;
 
     // Parse remaining parameters
     while (argc > 1) {
@@ -240,7 +244,22 @@ int main(int argc, char **argv)
             mode = RegisterXY;
             ok = true;
         }
-
+        if ((ok == false) && (strcmp(argv[1], "-Sp") == 0)) {
+            argc--;
+            argv++;
+            sp = atof(argv[1]);
+            argc--;
+            argv++;
+            ok = true;
+        }
+        if ((ok == false) && (strcmp(argv[1], "-Vp") == 0)) {
+            argc--;
+            argv++;
+            vp = atof(argv[1]);
+            argc--;
+            argv++;
+            ok = true;
+        }
         if (ok == false) {
             cerr << "Can not parse argument " << argv[1] << endl;
             usage();
@@ -342,15 +361,20 @@ int main(int argc, char **argv)
                 registration->irtkImageRegistration2::Read(parin_name);
             }
 
+            if(sp != -1) registration->SetLambda1(sp);
+            if(vp != -1) registration->SetLambda2(vp);
+
             // Override parameter settings if necessary
             if (padding != MIN_GREY) {
                 registration->SetTargetPadding(padding);
             }
+
             if (spacing > 0) {
                 registration->SetDX(spacing);
                 registration->SetDY(spacing);
                 registration->SetDZ(spacing);
             }
+
             if (adaptive > 0) {
                 int times = 0;
                 t < round(image->GetT() / 3) ? (times = t) : (times = round(image->GetT() / 3));

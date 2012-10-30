@@ -96,6 +96,8 @@ int main(int argc, char **argv){
 			argc--;
 			argv++;
 			padding = atoi(argv[1]);
+            argc--;
+            argv++;
 			ok = true;
 		}
 

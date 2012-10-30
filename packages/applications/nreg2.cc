@@ -47,7 +47,7 @@ void usage()
   cerr << "<-Tp  value>         Padding value in target image" << endl;
   cerr << "<-ds  value>         Initial control point spacing" << endl;
   cerr << "<-Sp  value>         Smoothness preservation value" << endl;
-  cerr << "<-Gn  value>         Gradient normalize value" << endl;
+  cerr << "<-Vp  value>         Volume preservation value" << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
   cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
   cerr << "                     must have the same dimensions as the target." << endl;
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   int ok, padding, mask_dilation = 0;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
-  double sp,gn;
+  double sp,vp;
 
   // Check command line
   if (argc < 3) {
@@ -101,8 +101,8 @@ int main(int argc, char **argv)
   source_x2 = source.GetX();
   source_y2 = source.GetY();
   source_z2 = source.GetZ();
-  sp = 0;
-  gn = 0;
+  sp = -1;
+  vp = -1;
 
   // Create registration filter
   irtkImageFreeFormRegistration2 *registration = NULL;
@@ -308,10 +308,10 @@ int main(int argc, char **argv)
         argv++;
         ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-Gn") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Vp") == 0)) {
         argc--;
         argv++;
-        gn = atof(argv[1]);
+        vp = atof(argv[1]);
         argc--;
         argv++;
         ok = true;
@@ -460,8 +460,8 @@ int main(int argc, char **argv)
     registration->irtkImageRegistration2::Read(parin_name);
   }
 
-  if(sp != 0) registration->SetLambda1(sp);
-  if(gn != 0) registration->SetLambda3(gn);
+  if(sp != -1) registration->SetLambda1(sp);
+  if(vp != -1) registration->SetLambda2(vp);
 
   // Override parameter settings if necessary
   if (padding != MIN_GREY) {
