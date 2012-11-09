@@ -128,6 +128,7 @@ int main(int argc, char **argv)
   double xaxis[3] = {1, 0, 0};
   double yaxis[3] = {0, 1, 0};
   double zaxis[3] = {0, 0, 1};
+
   irtkBSplineFreeFormTransformation *affd =  new
   irtkBSplineFreeFormTransformation(p1._x, p1._y, p1._z, p2._x, p2._y, p2._z, dx, dy, dz, xaxis, yaxis, zaxis);
 

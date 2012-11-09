@@ -332,7 +332,7 @@ void irtkImageRegistration2::Initialize(int level)
   irtkGenericImage<double> tmp = *_source;
   gradient.SetInput (&tmp);
   gradient.SetOutput(&_sourceGradient);
-  gradient.SetPadding(_SourcePadding);
+  gradient.SetPadding(-1);
   gradient.Run();
 
   // Determine attributes of source image

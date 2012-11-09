@@ -191,7 +191,7 @@ void irtkMultipleImageFreeFormRegistration2::Initialize(int level)
   }
 
   // Padding of FFD
-  irtkPadding(_target, this->_TargetPadding, _affd, _numberOfImages);
+  irtkPadding(_target, -1, _affd, _numberOfImages);
 
   for(n = 0; n < _numberOfImages; n++){
 

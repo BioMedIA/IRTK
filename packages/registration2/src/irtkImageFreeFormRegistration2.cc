@@ -183,7 +183,7 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
     this->irtkImageRegistration2::Initialize(level);
 
     // Padding of FFD
-    irtkPadding(*_target, this->_TargetPadding, _affd);
+    irtkPadding(*_target, -1, _affd);
 
     // Register in the x-direction only
     if (_Mode == RegisterX) {
@@ -1146,6 +1146,8 @@ void irtkImageFreeFormRegistration2::Run()
             if (_DebugFlag == true){
                 sprintf(buffer, "transformedsource_%d.nii.gz", _CurrentLevel);
                 _transformedSource.Write(buffer);
+                sprintf(buffer, "transformedsourcegradient_%d.nii.gz", _CurrentLevel);
+                _transformedSourceGradient.Write(buffer);
             }
 
             // Compute current metric value
@@ -1154,6 +1156,11 @@ void irtkImageFreeFormRegistration2::Run()
 
             // Compute gradient of similarity metric. The function EvaluateGradient() returns the maximum control point length in the gradient
             max_length = this->EvaluateGradient(gradient);
+
+            if (_DebugFlag == true){
+                sprintf(buffer, "gradient_%d.nii.gz", _CurrentLevel);
+                _similarityGradient.Write(buffer);
+            }
 
             // Step along gradient direction until no further improvement is necessary
             i = 0;
