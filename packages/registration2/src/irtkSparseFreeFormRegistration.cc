@@ -378,6 +378,46 @@ void irtkSparseFreeFormRegistration::InitializeTransformation(){
 
                 _affd = new irtkBSplineFreeFormTransformation3D(*_target, tdx, tdy, tdz);
                 _mdffd->PushLocalTransformation(_affd);
+                // Padding of FFD
+                irtkPadding(*_target, this->_TargetPadding, _affd);
+                // Register in the x-direction only
+                if (_Mode == RegisterX) {
+                    for (i = 0; i < _affd->GetX(); i++) {
+                        for (j = 0; j < _affd->GetY(); j++) {
+                            for (k = 0; k < _affd->GetZ(); k++) {
+                                _Status sx, sy, sz;
+                                _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                                _affd->PutStatusCP(i, j, k, sx, _Passive, _Passive);
+                            }
+                        }
+                    }
+                }
+
+                // Register in the y-direction only
+                if (_Mode == RegisterY) {
+                    for (i = 0; i < _affd->GetX(); i++) {
+                        for (j = 0; j < _affd->GetY(); j++) {
+                            for (k = 0; k < _affd->GetZ(); k++) {
+                                _Status sx, sy, sz;
+                                _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                                _affd->PutStatusCP(i, j, k, _Passive, sy, _Passive);
+                            }
+                        }
+                    }
+                }
+
+                // Register in the x- and y-direction only
+                if (_Mode == RegisterXY) {
+                    for (i = 0; i < _affd->GetX(); i++) {
+                        for (j = 0; j < _affd->GetY(); j++) {
+                            for (k = 0; k < _affd->GetZ(); k++) {
+                                _Status sx, sy, sz;
+                                _affd->GetStatusCP(i, j, k, sx, sy, sz);
+                                _affd->PutStatusCP(i, j, k, sx, sy, _Passive);
+                            }
+                        }
+                    }
+                }
 
                 _affd = new irtkBSplineFreeFormTransformation3D(*_target, tdx, tdy, tdz);
                 _mffd->PushLocalTransformation(_affd);
