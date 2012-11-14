@@ -13,6 +13,7 @@
 #                            - Fix raising of error when FLTK not found by changing FLTK_REQUIRED to FLTK_FIND_REQUIRED.
 #                            - Change FLTK_IMAGES_LIBS to FLTK_IMAGES_LIBRARIES.
 #                            - Remove backwards compatible settings for CMake 1.4.
+# 14/11/2012 Andreas Schuh   - Set FLTK_INCLUDE_DIR to FLTK_INCLUDE_DIRS as used by FLTK 1.1.
 #
 # Find the native FLTK includes and library.  This is a hacked about version of
 # the FindFLTK.cmake module provided with CMake.
