@@ -37,8 +37,7 @@ void usage()
 int main(int argc, char **argv)
 {
   bool ok, padding;
-  int isotropic;
-  double xsize, ysize, zsize;
+  double xsize, ysize, zsize, isotropic;
   irtkImage *image;
   irtkImageFunction *interpolator = NULL;
   irtkGreyPixel padding_value = MIN_GREY;
@@ -64,7 +63,7 @@ int main(int argc, char **argv)
   ysize = 1;
   zsize = 1;
   padding = false;
-  isotropic = false;
+  isotropic = 0;
 
   while (argc > 1) {
     ok = false;
@@ -92,11 +91,11 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       if (argc > 1 && argv[1][0] != '-') {
-        isotropic = atoi(argv[1]);
+        isotropic = atof(argv[1]);
         argc--;
         argv++;
       } else
-        isotropic = 1;
+        isotropic = 1.0;
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
@@ -152,16 +151,16 @@ int main(int argc, char **argv)
   }
 
   // Isotropic?
-  if(isotropic) {
+  if(isotropic > 0) {
     // Resample image to isotropic voxels (smallest voxel dimension)
     double size;
     image->GetPixelSize(&xsize, &ysize, &zsize);
     size = xsize;
     size = (size < ysize) ? size : ysize;
     size = (size < zsize) ? size : zsize;
-    xsize = size*(double)(isotropic); 
-    ysize = size*(double)(isotropic); 
-    zsize = size*(double)(isotropic);
+    xsize = size*isotropic; 
+    ysize = size*isotropic; 
+    zsize = size*isotropic;
     cerr << "Resampling image to isotropic voxel size (in mm): " << xsize << endl;
   } else {
     cout << "Resampling ... "; cout.flush();
