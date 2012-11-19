@@ -12,8 +12,6 @@
 
 #include <irtkImage.h>
 
-#include <irtkFileToImage.h>
-
 #include <irtkTransformation.h>
 
 char *dofout_name = NULL;
@@ -27,58 +25,9 @@ void usage()
   exit(1);
 }
 
-// Returns D*inv(M)*inv(D) in MJ's notes
-irtkMatrix get_matrix(irtkGreyImage &image, int bReflect)
-{
-  int i, dims[3];
-  double vdims[3];
-  irtkMatrix C, D(4,4), D_inv(4,4), M(4,4);
-
-  //
-  image.GetPixelSize(&vdims[0], &vdims[1], &vdims[2]);
-  dims[0] = image.GetX();
-  dims[1] = image.GetY();
-  dims[2] = image.GetZ();
-
-  // D, and inverse
-  for (i = 0; i < 3; i++) {
-    D(i, i) = vdims[i];
-  }
-  D(3, 3) = 1;
-  D_inv = D;
-  D_inv.Invert();
-
-  // M, and inverse
-  for (i = 0; i < 4; i++) {
-    M(i, i) = 1;
-  }
-  for (i = 0; i < 3; i++) {
-    M(i, 3) = 0.5*(dims[i]-1);
-  }
-  M.Invert();
-
-  // C
-  C = D * M * D_inv;
-
-  if (bReflect == true) {
-    cerr << "Reflecting...\n";
-    irtkMatrix Fy(4, 4);
-    Fy(0, 0) = 1;
-    Fy(1, 1) = -1;
-    Fy(2, 2) = 1;
-    Fy(3, 3) = 1;
-    Fy(1, 3) = (image.GetY()-1)*vdims[1];
-    C *= Fy;
-  }
-
-  cerr << "C: " << endl;
-  C.Print();
-  return C;
-}
-
 int main(int argc, char **argv)
 {
-  int i, j, ok, bTargetY, bSourceY;
+  int i, j, ok;
   double val;
 
   // Check command line
@@ -94,21 +43,21 @@ int main(int argc, char **argv)
   }
   argc--;
   argv++;
-  irtkMatrix matrix(4, 4), matrix_save(4, 4);
+
+  irtkMatrix flirt_matrix(4, 4);
   for (i = 0; i < 4; i++) {
     for (j = 0; j < 4; j++) {
       from >> val;
-      matrix.Put(i, j, val);
+      flirt_matrix.Put(i, j, val);
     }
   }
-  matrix_save = matrix;
+
 
   // Read in image pairs to deal with different coordinate systems
-  irtkFileToImage *target_reader = irtkFileToImage::New(argv[1]);
   irtkGreyImage target(argv[1]);
   argc--;
   argv++;
-  irtkFileToImage *source_reader = irtkFileToImage::New(argv[1]);
+
   irtkGreyImage source(argv[1]);
   argc--;
   argv++;
@@ -118,28 +67,34 @@ int main(int argc, char **argv)
   argc--;
   argv++;
 
-  // Check for Analyze images
-  if (strcmp(target_reader->NameOfClass(), "irtkFileANALYZEToImage") == 0) {
-    bTargetY = true;
-  } else {
-    bTargetY = false;
-  }
-  if (strcmp(source_reader->NameOfClass(), "irtkFileANALYZEToImage") == 0) {
-    bSourceY = true;
-  } else {
-    bSourceY = false;
-  }
+  irtkMatrix w2iTgt = target.GetWorldToImageMatrix();
 
-  // Get conversion matrices
-  irtkMatrix Ctgt = get_matrix(target, bTargetY);
-  irtkMatrix Csrc = get_matrix(source, bSourceY);
-  Ctgt.Invert();
-  matrix.Invert();
-  matrix = Csrc * matrix * Ctgt;
+  irtkMatrix i2wSrc = source.GetImageToWorldMatrix();
+
+  irtkMatrix samplingTarget(4,4);
+  irtkMatrix samplingSource(4,4);
+
+  samplingTarget.Ident();
+  samplingSource.Ident();
+
+  samplingTarget(0, 0) = target.GetXSize();
+  samplingTarget(1, 1) = target.GetYSize();
+  samplingTarget(2, 2) = target.GetZSize();
+
+  samplingSource(0, 0) = source.GetXSize();
+  samplingSource(1, 1) = source.GetYSize();
+  samplingSource(2, 2) = source.GetZSize();
+
+  irtkMatrix outputMatrix(4, 4);
+
+  // See fsl/src/newimage/newimagefns.cc : raw_affine_transform(..)
+  flirt_matrix.Invert();
+  samplingSource.Invert();
+  outputMatrix = i2wSrc * samplingSource * flirt_matrix * samplingTarget * w2iTgt;
 
   // Set matrix
   irtkAffineTransformation transformation;
-  transformation.PutMatrix(matrix); // updates parameters
+  transformation.PutMatrix(outputMatrix); // updates parameters
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -151,8 +106,10 @@ int main(int argc, char **argv)
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-print") == 0)) {
-      matrix_save.Print();
-      matrix.Print();
+      // Print flirt matrix that was read in.
+      flirt_matrix.Invert();
+      flirt_matrix.Print();
+      outputMatrix.Print();
       argc--;
       argv++;
       ok = true;
