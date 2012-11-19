@@ -23,7 +23,7 @@
 
 // Default filenames
 char *input_name = NULL, *output_name = NULL;
-char *dof_name  = NULL;
+char *dof_name  = NULL, *irtkoutput_name = NULL;
 
 void usage()
 {
@@ -34,6 +34,7 @@ void usage()
   cerr << "<-source image>    reference source image" << endl;
   cerr << "<-target image>    reference target image" << endl;
   cerr << "<-partial number>  Transform 0-number points copy rest"<<endl;
+  cerr << "<-irtk filename>   output the result in irtk format"<<endl;
   exit(1);
 }
 
@@ -43,6 +44,7 @@ int main(int argc, char **argv)
   irtkPointSet output, input;
   irtkTransformation *transformation;
   irtkGreyImage target,source;
+  irtkPointSet irtkpointset;
 
   // Check command line
   if (argc < 3) {
@@ -107,6 +109,14 @@ int main(int argc, char **argv)
 		argc--;
 		argv++;
     }
+    if ((ok == false) && (strcmp(argv[1], "-irtk") == 0)) {
+        argc--;
+        argv++;
+        irtkoutput_name = argv[1];
+        ok = true;
+        argc--;
+        argv++;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -145,6 +155,7 @@ int main(int argc, char **argv)
 		}
 	}
     points->SetPoint(i,p);
+    irtkpointset.Add(p);
   }
 
   // Write the final set
@@ -152,6 +163,10 @@ int main(int argc, char **argv)
   writer->SetFileName(output_name);
   writer->SetInput(surface);
   writer->Write();
+
+  if(irtkoutput_name){
+      irtkpointset.WriteVTK(irtkoutput_name);
+  }
 }
 
 #else
