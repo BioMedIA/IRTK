@@ -1,18 +1,12 @@
-/*=========================================================================
 
-  Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id$
-  Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2009 onwards
-  Date      : $Date$
-  Version   : $Revision$
-  Changes   : $Author$
 
-=========================================================================*/
 
-#ifndef _IRTKIMAGEREGISTRATION2_H
 
-#define _IRTKIMAGEREGISTRATION2_H
+
+
+#ifndef _IRTKTEMPROALIMAGEREGISTRATION_H
+
+#define _IRTKTEMPROALIMAGEREGISTRATION_H
 
 /**
  * Generic for image registration based on voxel similarity measures.
@@ -26,25 +20,26 @@
  *
  */
 
-class irtkImageRegistration2 : public irtkRegistration2
+class irtkTemporalImageRegistration : public irtkRegistration2
 {
 
   /// Interface to input file stream
-  friend istream& operator>> (istream&, irtkImageRegistration2*);
+  friend istream& operator>> (istream&, irtkTemporalImageRegistration*);
 
   /// Interface to output file stream
-  friend ostream& operator<< (ostream&, const irtkImageRegistration2*);
+  friend ostream& operator<< (ostream&, const irtkTemporalImageRegistration*);
 
 protected:
 
-  /** First input image. This image is denoted as target image and its
-   *  coordinate system defines the frame of reference for the registration.
+  /** Input image sequence. This image sequence is denoted as target images and its
+   *  coordinate systems define the frames of reference for the registration.
    */
-  irtkGenericImage<short> *_target;
+  irtkGenericImage<short> **_target;
+  int _N_target;
 
   /** Second input image. This image is denoted as source image. The goal of
    *  the registration is to find the transformation which maps the source
-   *  image into the coordinate system of the target image.
+   *  image into the coordinate system of the target image sequence.
    */
   irtkGenericImage<short> *_source;
 
@@ -52,16 +47,16 @@ protected:
    *  coordinate system. This is updated every time the Update function is
    *  called.
    */
-  irtkGenericImage<double> _transformedSource;
+  irtkGenericImage<double> *_transformedSource;
 
   /// Gradient of the original source
   irtkGenericImage<double> _sourceGradient;
 
   /// Gradient of the transformed source
-  irtkGenericImage<double> _transformedSourceGradient;
+  irtkGenericImage<double> *_transformedSourceGradient;
 
   /// Gradient of the similarity metric
-  irtkGenericImage<double> _similarityGradient;
+  irtkGenericImage<double> *_similarityGradient;
 
   /// Transformation
   irtkTransformation *_transformation;
@@ -99,9 +94,6 @@ protected:
   /// Padding value of target image
   short  _TargetPadding;
 
-  /// Padding value of source image
-  short _SourcePadding;
-
   /// Number of levels of multiresolution pyramid
   int    _NumberOfLevels;
 
@@ -137,6 +129,12 @@ protected:
   /// Source image domain which can be interpolated fast
   double _source_x1, _source_y1, _source_z1;
   double _source_x2, _source_y2, _source_z2;
+
+  /// Dimension of subdivision (4 = 4D, 3 = 3D, 2 = 2D(x,y))
+  int _SubdivisionDim[MAX_NO_RESOLUTIONS];
+
+  /// Array containing the real (relative) time points of the targets
+  double * _t_real;
 
   /// Initial set up for the registration
   virtual void Initialize();
@@ -174,16 +172,22 @@ protected:
 public:
 
   /// Constructor
-  irtkImageRegistration2();
+  irtkTemporalImageRegistration();
 
   /// Destructor
-  virtual ~irtkImageRegistration2();
+  virtual ~irtkTemporalImageRegistration();
 
   /// Sets input for the registration filter
-  virtual void SetInput (irtkGreyImage *, irtkGreyImage *);
+  virtual void SetInput (irtkGreyImage **, irtkGreyImage *, int);
+
+  /// Sets source for the registration filter
+  virtual void SetInput (irtkGreyImage *);
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
+
+  /// Set array containing the real (relative) time points of the targets
+  virtual void SetTime(double *);
 
   /// Runs the registration filter
   virtual void Run();
@@ -240,22 +244,30 @@ public:
 
 };
 
-inline void irtkImageRegistration2::SetInput(irtkGreyImage *target, irtkGreyImage *source)
+inline void irtkTemporalImageRegistration::SetInput(irtkGreyImage **target, irtkGreyImage *source, int N_target)
 {
-  _target = target;
+  _N_target = N_target;
+  _target = new irtkGreyImage *[_N_target];
+  for (int i=0; i<_N_target; i++)
+    _target[i] = target[i];
   _source = source;
 }
 
-inline void irtkImageRegistration2::Debug(string message)
+inline void irtkTemporalImageRegistration::SetInput(irtkGreyImage *source)
+{
+  _source = source;
+}
+
+inline void irtkTemporalImageRegistration::SetTime(double * t)
+{
+  _t_real = t;
+}
+
+inline void irtkTemporalImageRegistration::Debug(string message)
 {
   if (_DebugFlag == true) cout << message << endl;
 }
 
-#include <irtkImageRigidRegistration2.h>
-#include <irtkImageAffineRegistration2.h>
-#include <irtkImageFreeFormRegistration2.h>
-#include <irtkSparseFreeFormRegistration.h>
-#include <irtkTemporalImageRegistration.h>
 #include <irtkImageTFFDRegistration.h>
 
 #endif

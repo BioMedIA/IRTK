@@ -7,6 +7,15 @@ SET(REGISTRATION2_INCLUDES
 ../include/irtkMultipleImageRigidRegistration2.h
 ../include/irtkMultipleImageFreeFormRegistration2.h
 ../include/irtkSparseFreeFormRegistration.h
+
+../include/irtkImageSequenceRegistration.h
+../include/irtkImageSequenceRegistrationI.h
+
+../include/irtkImageRespSequenceRegistration.h
+../include/irtkRespMotionRegistration.h
+
+../include/irtkTemporalImageRegistration.h
+../include/irtkImageTFFDRegistration.h
 )
 
 SET(REGISTRATION2_SRCS 
@@ -18,6 +27,8 @@ irtkMultipleImageFreeFormRegistration2
 irtkImageRegistration2.cc
 irtkImageRigidRegistration2.cc
 irtkSparseFreeFormRegistration.cc
+irtkTemporalImageRegistration.cc
+irtkImageTFFDRegistration.cc
 )
 
 ADD_LIBRARY(registration2++ ${REGISTRATION2_INCLUDES} ${REGISTRATION2_SRCS})
