@@ -1,28 +1,24 @@
-/*=========================================================================
 
-  Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id$
-  Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date$
-  Version   : $Revision$
-  Changes   : $Author$
 
-=========================================================================*/
+
+
+
 
 #include <irtkTransformation.h>
 
 #define LUTSIZE (double)(FFDLOOKUPTABLESIZE-1)
 
-double irtkBSplineFreeFormTransformation4D::LookupTable   [FFDLOOKUPTABLESIZE][4];
+double irtkBSplineFreeFormTransformationPeriodic::LookupTable   [FFDLOOKUPTABLESIZE][4];
 
-double irtkBSplineFreeFormTransformation4D::LookupTable_I [FFDLOOKUPTABLESIZE][4];
+double irtkBSplineFreeFormTransformationPeriodic::LookupTable_I [FFDLOOKUPTABLESIZE][4];
 
-double irtkBSplineFreeFormTransformation4D::LookupTable_II[FFDLOOKUPTABLESIZE][4];
+double irtkBSplineFreeFormTransformationPeriodic::LookupTable_II[FFDLOOKUPTABLESIZE][4];
 
-irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D()
+irtkBSplineFreeFormTransformationPeriodic::irtkBSplineFreeFormTransformationPeriodic()
 {
-  int i;
+  int i, x, y, z;
+
+  _periodic = true;
 
   // Initialize control point domain
   _origin._x = 0.5;
@@ -78,6 +74,15 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D()
     _status[i] = _Active;
   }
 
+  // set control points for t==_t-1 to passive
+  for (z = 0; z < _z; z++) {
+  	for (y = 0; y < _y; y++) {
+  	  for (x = 0; x < _x; x++) {
+  	    this->PutStatusCP(x, y, z, _t-1, _Passive, _Passive, _Passive);
+  	  }
+  	}
+  }
+
   // Initialize lookup table
   for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
     this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
@@ -95,10 +100,12 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D()
   }
 }
 
-irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBaseImage &image, double dx, double dy, double dz, double dt)
+irtkBSplineFreeFormTransformationPeriodic::irtkBSplineFreeFormTransformationPeriodic(irtkBaseImage &image, double dx, double dy, double dz, double dt)
 {
-  int i;
+  int i, x ,y, z;
   double x1, y1, z1, x2, y2, z2;
+
+  _periodic = true;
 
   // Figure out FOV
   x1 = 0;
@@ -116,8 +123,8 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBas
   _origin._z = (z2 + z1) / 2.0;
 
   // Initialize control point domain
-  _tMin = image.ImageToTime(0);
-  _tMax = image.ImageToTime(image.GetT()-1);
+  _tMin = 0;
+  _tMax = 1;
 
   // Initialize x-axis and y-axis
   image.GetOrientation(_xaxis, _yaxis, _zaxis);
@@ -165,6 +172,15 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBas
     _status[i] = _Active;
   }
 
+  // set control points for t==_t-1 to passive
+  for (z = 0; z < _z; z++) {
+	for (y = 0; y < _y; y++) {
+	  for (x = 0; x < _x; x++) {
+		this->PutStatusCP(x, y, z, _t-1, _Passive, _Passive, _Passive);
+	  }
+	}
+  }
+
   // Initialize lookup table
   for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
     this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
@@ -182,12 +198,14 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBas
   }
 }
 
-irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double x1, double y1, double z1, double t1,
+irtkBSplineFreeFormTransformationPeriodic::irtkBSplineFreeFormTransformationPeriodic(double x1, double y1, double z1, double t1,
     double x2, double y2, double z2, double t2,
     double dx, double dy, double dz, double dt,
     double* xaxis, double* yaxis, double* zaxis)
 {
-  int i;
+  int i, x, y, z;
+
+  _periodic = true;
 
   // Initialize control point domain
   _origin._x = (x2 + x1) / 2.0;
@@ -250,6 +268,15 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double 
     _status[i] = _Active;
   }
 
+  // set control points for t==_t-1 to passive
+  for (z = 0; z < _z; z++) {
+	for (y = 0; y < _y; y++) {
+	  for (x = 0; x < _x; x++) {
+		this->PutStatusCP(x, y, z, _t-1, _Passive, _Passive, _Passive);
+	  }
+	}
+  }
+
   // Initialize lookup table
   for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
     this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
@@ -267,9 +294,11 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double 
   }
 }
 
-irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const irtkBSplineFreeFormTransformation4D &ffd) : irtkFreeFormTransformation4D(ffd)
+irtkBSplineFreeFormTransformationPeriodic::irtkBSplineFreeFormTransformationPeriodic(const irtkBSplineFreeFormTransformationPeriodic &ffd) : irtkFreeFormTransformation4D(ffd)
 {
   int i, j, k, l;
+
+  _periodic = true;
 
   // Initialize origin
   _origin = ffd._origin;
@@ -351,7 +380,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const i
   }
 }
 
-irtkBSplineFreeFormTransformation4D::~irtkBSplineFreeFormTransformation4D()
+irtkBSplineFreeFormTransformationPeriodic::~irtkBSplineFreeFormTransformationPeriodic()
 {
   // Free memory for control points if necessary
   if (_xdata != NULL) _xdata = this->Deallocate(_xdata, _x, _y, _z, _t);
@@ -363,29 +392,53 @@ irtkBSplineFreeFormTransformation4D::~irtkBSplineFreeFormTransformation4D()
   _z = 0;
 }
 
-void irtkBSplineFreeFormTransformation4D::FFD1(double &x, double &y, double &z, double time) const
+void irtkBSplineFreeFormTransformationPeriodic::FFD1(double &x, double &y, double &z, double time) const
 {
   double s, t, u, v, B_I, B_J, B_K, B_L;
   int a, b, c, d, i, j, k, l, S, T, U, V;
+  int tp; // time point used for periodicity
+  double timep;
 
+//  // Check if there is some work to do
+//  if ((x < -2) || (y < -2) || (z < -2) || (time < -2) || (x > _x+1) || (y > _y+1) || (z > _z+1) || (time > _t+1)) {
+//    x = 0;
+//    y = 0;
+//    z = 0;
+//    return;
+//  }
   // Check if there is some work to do
-  if ((x < -2) || (y < -2) || (z < -2) || (time < -2) || (x > _x+1) || (y > _y+1) || (z > _z+1) || (time > _t+1)) {
+  if ((x < -2) || (y < -2) || (z < -2) || (x > _x+1) || (y > _y+1) || (z > _z+1)) {
     x = 0;
     y = 0;
     z = 0;
     return;
   }
+  // periodic model:
+  timep = time;
+  if (_periodic) {
+    while (timep < 0)
+	  timep += double(_t-1);
+    while (timep >= _t-1)
+	  timep -= double(_t-1);
+  } else {
+	  if ((time < -2) || (time > _t+1)) {
+	    x = 0;
+	    y = 0;
+	    z = 0;
+	    return;
+	  }
+  }
 
   // Now calculate the real stuff
   a = (int)floor(x)-1;
   b = (int)floor(y)-1;
   c = (int)floor(z)-1;
-  d = (int)floor(time)-1;
+  d = (int)floor(timep)-1;
 
   s = x-(a+1);
   t = y-(b+1);
   u = z-(c+1);
-  v = time-(d+1);
+  v = timep-(d+1);
 
   S = round(LUTSIZE*s);
   T = round(LUTSIZE*t);
@@ -405,19 +458,25 @@ void irtkBSplineFreeFormTransformation4D::FFD1(double &x, double &y, double &z, 
         B_J = this->LookupTable[T][j] * B_K;
         for (i = 0; i < 4; i++) {
           B_I = this->LookupTable[S][i] * B_J;
-          x += B_I * _xdata[d+l][c+k][b+j][a+i];
-          y += B_I * _ydata[d+l][c+k][b+j][a+i];
-          z += B_I * _zdata[d+l][c+k][b+j][a+i];
+
+          // periodic model:
+          tp = ( (d+l)<0 ) 	   ? (d+l+_t-1) : (d+l);
+          tp = ( (d+l)>=_t-1 ) ? (d+l-_t+1) : (d+l);
+
+          x += B_I * _xdata[tp][c+k][b+j][a+i];
+          y += B_I * _ydata[tp][c+k][b+j][a+i];
+          z += B_I * _zdata[tp][c+k][b+j][a+i];
         }
       }
     }
   }
 }
 
-void irtkBSplineFreeFormTransformation4D::FFD2(double &x, double &y, double &z, double time) const
+void irtkBSplineFreeFormTransformationPeriodic::FFD2(double &x, double &y, double &z, double time) const
 {
   double s, t, u, v, B_I, B_J, B_K, B_L;
   int a, b, c, d, i, j, k, l, S, T, U, V;
+  int tp; // time point used for periodicity
 
   // Now calculate the real stuff
   a = (int)floor(x)-1;
@@ -448,19 +507,25 @@ void irtkBSplineFreeFormTransformation4D::FFD2(double &x, double &y, double &z, 
         B_J = this->LookupTable[T][j] * B_K;
         for (i = 0; i < 4; i++) {
           B_I = this->LookupTable[S][i] * B_J;
-          x += B_I * _xdata[d+l][c+k][b+j][a+i];
-          y += B_I * _ydata[d+l][c+k][b+j][a+i];
-          z += B_I * _zdata[d+l][c+k][b+j][a+i];
+
+          // periodic model:
+          tp = ( (d+l)<0 ) 	   ? (d+l+_t-1) : (d+l);
+		  tp = ( (d+l)>=_t-1 ) ? (d+l-_t+1) : (d+l);
+
+          x += B_I * _xdata[tp][c+k][b+j][a+i];
+          y += B_I * _ydata[tp][c+k][b+j][a+i];
+          z += B_I * _zdata[tp][c+k][b+j][a+i];
         }
       }
     }
   }
 }
 
-double irtkBSplineFreeFormTransformation4D::Approximate(double *x1, double *y1, double *z1, double *t1, double *x2, double *y2, double *z2, int no)
+double irtkBSplineFreeFormTransformationPeriodic::Approximate(double *x1, double *y1, double *z1, double *t1, double *x2, double *y2, double *z2, int no)
 {
   int a, b, c, d, i, j, k, l, I, J, K, L, S, T, U, V, index;
   double s, t, u, v, x, y, z, B_I, B_J, B_K, B_L, basis, basis2, error, phi, norm, time;
+  int tp; // time point used for periodicity
 
   // Allocate memory
   double ****dx = NULL;
@@ -505,6 +570,15 @@ double irtkBSplineFreeFormTransformation4D::Approximate(double *x1, double *y1, 
     time = t1[index];
     this->WorldToLattice(x, y, z);
     time = this->TimeToLattice(time);
+
+    // periodic model:
+    if (_periodic) {
+      while (time < 0)
+  	  time += double(_t-1);
+      while (time >= _t-1)
+  	  time -= double(_t-1);
+    }
+
     a = (int)floor(x);
     b = (int)floor(y);
     c = (int)floor(z);
@@ -534,6 +608,11 @@ double irtkBSplineFreeFormTransformation4D::Approximate(double *x1, double *y1, 
     for (l = 0; l < 4; l++) {
       B_L = this->LookupTable[V][l];
       L = l + d - 1;
+
+      // periodic model:
+	  L = ( (L)<0 )     ? (L+_t-1) : (L);
+	  L = ( (L)>=_t-1 ) ? (L-_t+1) : (L);
+
       if ((L >= -2) && (L < _t+2)) {
         for (k = 0; k < 4; k++) {
           B_K = B_L * this->LookupTable[U][k];
@@ -620,12 +699,12 @@ double irtkBSplineFreeFormTransformation4D::Approximate(double *x1, double *y1, 
   return error;
 }
 
-void irtkBSplineFreeFormTransformation4D::Jacobian(irtkMatrix &jac, double x, double y, double z, double t)
+void irtkBSplineFreeFormTransformationPeriodic::Jacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
   this->LocalJacobian(jac, x, y, z, t);
 }
 
-void irtkBSplineFreeFormTransformation4D::GlobalJacobian(irtkMatrix &jac, double, double, double, double)
+void irtkBSplineFreeFormTransformationPeriodic::GlobalJacobian(irtkMatrix &jac, double, double, double, double)
 {
   // Jacobian matrix is 3 x 3
   jac.Initialize(3, 3);
@@ -636,7 +715,7 @@ void irtkBSplineFreeFormTransformation4D::GlobalJacobian(irtkMatrix &jac, double
   jac(2, 2) = 1;
 }
 
-void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double x, double y, double z, double t)
+void irtkBSplineFreeFormTransformationPeriodic::LocalJacobian(irtkMatrix &jac, double x, double y, double z, double t)
 {
   int i, j, k, l;
   int floor_x, floor_y, floor_z, floor_t;
@@ -677,6 +756,11 @@ void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double 
 
   for (l = 0; l < 4; l++){
   	L = l + floor_t - 1;
+
+  	// periodic model:
+	L = ( (L)<0 )     ? (L+_t-1) : (L);
+    L = ( (L)>=_t-1 ) ? (L-_t+1) : (L);
+
 
   	if ((L >= 0) && (L < _t)){
 			B_L   = this->LookupTable[IND_T][l];
@@ -750,26 +834,193 @@ void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double 
   jac(2, 2) += 1;
 }
 
-double irtkBSplineFreeFormTransformation4D::Bending(double, double, double, double)
+double irtkBSplineFreeFormTransformationPeriodic::Bending(double, double, double, double)
 {
-  cerr << "irtkBSplineFreeFormTransformation4D::Bending: Not implemented yet" << endl;
+  cerr << "irtkBSplineFreeFormTransformationPeriodic::Bending: Not implemented yet" << endl;
   exit(1);
 }
 
-int irtkBSplineFreeFormTransformation4D::CheckHeader(char *)
+int irtkBSplineFreeFormTransformationPeriodic::CheckHeader(char *)
 {
   return false;
 }
 
-void irtkBSplineFreeFormTransformation4D::Interpolate(double *, double *, double *)
+void irtkBSplineFreeFormTransformationPeriodic::Interpolate(double *, double *, double *)
 {
-  cerr << "irtkBSplineFreeFormTransformation4D::Interpolate: Not implemented yet" << endl;
+  cerr << "irtkBSplineFreeFormTransformationPeriodic::Interpolate: Not implemented yet" << endl;
   exit(1);
 }
 
-void irtkBSplineFreeFormTransformation4D::Subdivide()
+void irtkBSplineFreeFormTransformationPeriodic::Subdivide()
 {
+  int noTime = 1;
+  if (noTime){
+	this->Subdivide3D();
+  }
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::Subdivide2D()
+{
+  int i, j, k, l, i1, j1, k1, i2, j2, k2;
+
+  // Weights for subdivision
+  double w[2][3];
+  w[1][0] = 0;
+  w[1][1] = 1.0/2.0;
+  w[1][2] = 1.0/2.0;
+  w[0][0] = 1.0/8.0;
+  w[0][1] = 6.0/8.0;
+  w[0][2] = 1.0/8.0;
+
+  // Allocate memory for new control points
+  double ****x = NULL;
+  double ****y = NULL;
+  double ****z = NULL;
+  x = this->Allocate(x, 2*_x-1, 2*_y-1, _z, _t);
+  y = this->Allocate(y, 2*_x-1, 2*_y-1, _z, _t);
+  z = this->Allocate(z, 2*_x-1, 2*_y-1, _z, _t);
+
+  for (i = 0; i < _x; i++) {
+	for (j = 0; j < _y; j++) {
+	  for (k = 0; k < _z; k++) {
+		for (l = 0; l < _t; l++) {
+		  for (i1 = 0; i1 < 2; i1++) {
+			for (j1 = 0; j1 < 2; j1++) {
+			  x[l][k][2*j+j1][2*i+i1] = 0;
+			  y[l][k][2*j+j1][2*i+i1] = 0;
+			  z[l][k][2*j+j1][2*i+i1] = 0;
+			  for (i2 = 0; i2 < 3; i2++) {
+				for (j2 = 0; j2 < 3; j2++) {
+				  x[l][k][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * _xdata[l][k][j+j2-1][i+i2-1];
+				  y[l][k][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * _ydata[l][k][j+j2-1][i+i2-1];
+				  z[l][k][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * _zdata[l][k][j+j2-1][i+i2-1];
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	}
+  }
+
+  // Deallocate points
+  this->Deallocate(_xdata, _x, _y, _z, _t);
+  this->Deallocate(_ydata, _x, _y, _z, _t);
+  this->Deallocate(_zdata, _x, _y, _z, _t);
+  delete []_status;
+
+  // Update pointers to control points
+  _xdata = x;
+  _ydata = y;
+  _zdata = z;
+
+  // Increase number of control points
+  _x = 2*_x - 1;
+  _y = 2*_y - 1;
+  _z = _z;
+  _t = _t;
+
+  // Recalculate control point spacing
+  _dx /= 2.0;
+  _dy /= 2.0;
+  _dz  = _dz;
+  _dt  = _dt;
+
+  // Update transformation matrix
+  this->UpdateMatrix();
+
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z*_t];
+  for (i = 0; i < 3*_x*_y*_z*_t; i++) {
+	_status[i] = _Active;
+  }
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::Subdivide3D()
+{
+  int i, j, k, l, i1, j1, k1, i2, j2, k2;
+
+  // Weights for subdivision
+  double w[2][3];
+  w[1][0] = 0;
+  w[1][1] = 1.0/2.0;
+  w[1][2] = 1.0/2.0;
+  w[0][0] = 1.0/8.0;
+  w[0][1] = 6.0/8.0;
+  w[0][2] = 1.0/8.0;
+
+  // Allocate memory for new control points
+  double ****x = NULL;
+  double ****y = NULL;
+  double ****z = NULL;
+  x = this->Allocate(x, 2*_x-1, 2*_y-1, 2*_z-1, _t);
+  y = this->Allocate(y, 2*_x-1, 2*_y-1, 2*_z-1, _t);
+  z = this->Allocate(z, 2*_x-1, 2*_y-1, 2*_z-1, _t);
+
+  for (i = 0; i < _x; i++) {
+	for (j = 0; j < _y; j++) {
+	  for (k = 0; k < _z; k++) {
+		for (l = 0; l < _t; l++) {
+		  for (i1 = 0; i1 < 2; i1++) {
+			for (j1 = 0; j1 < 2; j1++) {
+			  for (k1 = 0; k1 < 2; k1++) {
+				x[l][2*k+k1][2*j+j1][2*i+i1] = 0;
+				y[l][2*k+k1][2*j+j1][2*i+i1] = 0;
+				z[l][2*k+k1][2*j+j1][2*i+i1] = 0;
+				for (i2 = 0; i2 < 3; i2++) {
+				  for (j2 = 0; j2 < 3; j2++) {
+					for (k2 = 0; k2 < 3; k2++) {
+					  x[l][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * _xdata[l][k+k2-1][j+j2-1][i+i2-1];
+					  y[l][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * _ydata[l][k+k2-1][j+j2-1][i+i2-1];
+					  z[l][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * _zdata[l][k+k2-1][j+j2-1][i+i2-1];
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	}
+  }
+
+  // Deallocate points
+  this->Deallocate(_xdata, _x, _y, _z, _t);
+  this->Deallocate(_ydata, _x, _y, _z, _t);
+  this->Deallocate(_zdata, _x, _y, _z, _t);
+  delete []_status;
+
+  // Update pointers to control points
+  _xdata = x;
+  _ydata = y;
+  _zdata = z;
+
+  // Increase number of control points
+  _x = 2*_x - 1;
+  _y = 2*_y - 1;
+  _z = 2*_z - 1;
+  _t = _t;
+
+  // Recalculate control point spacing
+  _dx /= 2.0;
+  _dy /= 2.0;
+  _dz /= 2.0;
+  _dt  = _dt;
+
+  // Update transformation matrix
+  this->UpdateMatrix();
+
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z*_t];
+  for (i = 0; i < 3*_x*_y*_z*_t; i++) {
+	_status[i] = _Active;
+  }
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::Subdivide4D()
+  {
   int i, j, k, l, i1, j1, k1, l1, i2, j2, k2, l2;
+  int ip, jp, kp, lp;
 
   // Weights for subdivision
   double w[2][3];
@@ -803,9 +1054,21 @@ void irtkBSplineFreeFormTransformation4D::Subdivide()
                     for (j2 = 0; j2 < 3; j2++) {
                       for (k2 = 0; k2 < 3; k2++) {
                         for (l2 = 0; l2 < 3; l2++) {
-                          x[2*l+l1][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * w[l1][l2] * _xdata[l+l2-1][k+k2-1][j+j2-1][i+i2-1];
-                          y[2*l+l1][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * w[l1][l2] * _ydata[l+l2-1][k+k2-1][j+j2-1][i+i2-1];
-                          z[2*l+l1][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * w[l1][l2] * _zdata[l+l2-1][k+k2-1][j+j2-1][i+i2-1];
+                          ip = i+i2-1;
+                          jp = j+j2-1;
+						  kp = k+k2-1;
+						  // periodic model (time)
+						  lp = l+l2-1;
+						  if (_periodic) {
+						    if (lp < 0)
+							  lp += _t-1;
+						    if (lp >= _t-1)
+							  lp -= _t-1;
+						  }
+
+                          x[2*l+l1][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * w[l1][l2] * _xdata[lp][kp][jp][ip];
+                          y[2*l+l1][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * w[l1][l2] * _ydata[lp][kp][jp][ip];
+                          z[2*l+l1][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * w[l1][l2] * _zdata[lp][kp][jp][ip];
                         }
                       }
                     }
@@ -852,19 +1115,7 @@ void irtkBSplineFreeFormTransformation4D::Subdivide()
   }
 }
 
-void irtkBSplineFreeFormTransformation4D::Subdivide2D()
-{
-  cerr << "irtkBSplineFreeFormTransformation4D::Subdivide2D: Not implemented yet" << endl;
-  exit(1);
-}
-
-void irtkBSplineFreeFormTransformation4D::Subdivide3D()
-{
-  cerr << "irtkBSplineFreeFormTransformation4D::Subdivide3D: Not implemented yet" << endl;
-  exit(1);
-}
-
-void irtkBSplineFreeFormTransformation4D::BoundingBoxCP(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxCP(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
 {
   int i, j, k, l;
 
@@ -884,7 +1135,7 @@ void irtkBSplineFreeFormTransformation4D::BoundingBoxCP(int index, irtkPoint &p1
   this->LatticeToWorld(p2);
 }
 
-void irtkBSplineFreeFormTransformation4D::BoundingBoxCP(int index, double &x1, double &y1, double &z1, double &t1, double &x2, double &y2, double &z2, double &t2, double fraction) const
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxCP(int index, double &x1, double &y1, double &z1, double &t1, double &x2, double &y2, double &z2, double &t2, double fraction) const
 {
   if (index >= _x*_y*_z*_t) {
     index -= _x*_y*_z*_t;
@@ -895,45 +1146,62 @@ void irtkBSplineFreeFormTransformation4D::BoundingBoxCP(int index, double &x1, d
   x1 = index%(_z*_y*_x)%(_y*_x)%_x-2*fraction;
   y1 = index%(_z*_y*_x)%(_y*_x)/_x-2*fraction;
   z1 = index%(_z*_y*_x)/(_y*_x)-2*fraction;
-  t1 = index/(_z*_y*_x)-2*fraction;
+  t1 = index/(_z*_y*_x)-2*fraction;					///////////////////////////////////////////////////
   x2 = index%(_z*_y*_x)%(_y*_x)%_x+2*fraction;
   y2 = index%(_z*_y*_x)%(_y*_x)/_x+2*fraction;
   z2 = index%(_z*_y*_x)/(_y*_x)+2*fraction;
-  t2 = index/(_z*_y*_x)+2*fraction;
+  t2 = index/(_z*_y*_x)+2*fraction;					///////////////////////////////////////////////////
   this->LatticeToWorld(x1, y1, z1);
   this->LatticeToWorld(x2, y2, z2);
-  t1 = this->LatticeToTime(t1);
-  t2 = this->LatticeToTime(t2);
+//  t1 = this->LatticeToTime(t1);
+//  t2 = this->LatticeToTime(t2);
 }
 
-void irtkBSplineFreeFormTransformation4D::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, int &t1, int &t2, double fraction) const
 {
-	irtkPoint p1, p2;
+  cerr << "irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage: Not applicable for this Transformation" << endl;
+  exit(1);
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
+{
+  cerr << "irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage: Not applicable for this Transformation" << endl;
+  exit(1);
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkGreyImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double &t1, double &t2, double fraction) const
+{
   double x1, y1, z1, x2, y2, z2;
 
   // Calculate bounding box in world coordinates
-  this->BoundingBoxCP(index, p1, p2, fraction);
-  x1 = p1._x;
-  y1 = p1._y;
-  z1 = p1._z;
-  x2 = p2._x;
-  y2 = p2._y;
-  z2 = p2._z;
+  this->BoundingBoxCP(index, x1, y1, z1, t1, x2, y2, z2, t2, fraction);
 
   // Transform world coordinates to image coordinates
   image->WorldToImage(x1, y1, z1);
   image->WorldToImage(x2, y2, z2);
-
+//  t1 = image->TimeToImage(t1);
+//  t2 = image->TimeToImage(t1);
+//  cout<<"[BondingBox] x: "<<x1<<" - "<<x2<<" ; y: "<<y1<<" - "<<y2<<" ; z: "<<z1<<" - "<<z2<<endl;
   // Calculate bounding box in image coordinates
   i1 = (x1 < 0) ? 0 : int(x1)+1;
   j1 = (y1 < 0) ? 0 : int(y1)+1;
   k1 = (z1 < 0) ? 0 : int(z1)+1;
-  i2 = (int(x2) >= image->GetX()) ? image->GetX()-1 : int(x2);
-  j2 = (int(y2) >= image->GetY()) ? image->GetY()-1 : int(y2);
-  k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
+//  l1 = (t1 < 0) ? 0 : int(t1)+1;
+  i2 = (x2 < 0) ? -1 : int(x2);
+  j2 = (y2 < 0) ? -1 : int(y2);
+  k2 = (z2 < 0) ? -1 : int(z2);
+  i2 = (i2 >= image->GetX()) ? image->GetX()-1 : i2;
+  j2 = (j2 >= image->GetY()) ? image->GetY()-1 : j2;
+  k2 = (k2 >= image->GetZ()) ? image->GetZ()-1 : k2;
+//  i2 = (int(x2) >= image->GetX()) ? image->GetX()-1 : int(x2);
+//  j2 = (int(y2) >= image->GetY()) ? image->GetY()-1 : int(y2);
+//  k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
+//  l2 = (int(t2) >= image->GetT()) ? image->GetT()-1 : int(t2);
+//  cout<<"[BondingBox] i: "<<i1<<" - "<<i2<<" ; j: "<<j1<<" - "<<j2<<" ; k: "<<k1<<" - "<<k2<<endl;
 }
 
-void irtkBSplineFreeFormTransformation4D::Print()
+
+void irtkBSplineFreeFormTransformationPeriodic::Print()
 {
   // Print keyword and no. of DOFs
   cout << "BSplineFFD4D: " << this->NumberOfDOFs() << endl;
@@ -951,7 +1219,7 @@ void irtkBSplineFreeFormTransformation4D::Print()
   cout << "Z-axis is " << _zaxis[0] << " " << _zaxis[1] << " " << _zaxis[2] << endl;
 }
 
-irtkCifstream& irtkBSplineFreeFormTransformation4D::Read(irtkCifstream& from)
+irtkCifstream& irtkBSplineFreeFormTransformationPeriodic::Read(irtkCifstream& from)
 {
   double *data;
   int i, j, k, l, index;
@@ -960,14 +1228,14 @@ irtkCifstream& irtkBSplineFreeFormTransformation4D::Read(irtkCifstream& from)
   // Read magic no. for transformations
   from.ReadAsUInt(&magic_no, 1);
   if (magic_no != IRTKTRANSFORMATION_MAGIC) {
-    cerr << "irtkBSplineFreeFormTransformation4D::Read: Not a vaild transformation file" << endl;
+    cerr << "irtkBSplineFreeFormTransformationPeriodic::Read: Not a vaild transformation file" << endl;
     exit(1);
   }
 
   // Read transformation type
   from.ReadAsUInt(&trans_type, 1);
-  if (trans_type != IRTKTRANSFORMATION_BSPLINE_FFD_4D) {
-    cerr << "irtkBSplineFreeFormTransformation4D::Read: Not a vaild B-Spline FFD transformation" << endl;
+  if (trans_type != IRTKTRANSFORMATION_PERIODIC) {
+    cerr << "irtkBSplineFreeFormTransformationPeriodic::Read: Not a vaild B-Spline FFD transformation" << endl;
     exit(1);
   }
 
@@ -1057,7 +1325,7 @@ irtkCifstream& irtkBSplineFreeFormTransformation4D::Read(irtkCifstream& from)
   return from;
 }
 
-irtkCofstream& irtkBSplineFreeFormTransformation4D::Write(irtkCofstream& to)
+irtkCofstream& irtkBSplineFreeFormTransformationPeriodic::Write(irtkCofstream& to)
 {
   double *data;
   int i, j, k, l, index;
@@ -1068,7 +1336,7 @@ irtkCofstream& irtkBSplineFreeFormTransformation4D::Write(irtkCofstream& to)
   to.WriteAsUInt(&magic_no, 1);
 
   // Write transformation type
-  trans_type = IRTKTRANSFORMATION_BSPLINE_FFD_4D;
+  trans_type = IRTKTRANSFORMATION_PERIODIC;
   to.WriteAsUInt(&trans_type, 1);
 
   // Write no of control points
@@ -1126,3 +1394,431 @@ irtkCofstream& irtkBSplineFreeFormTransformation4D::Write(irtkCofstream& to)
 
   return to;
 }
+
+
+
+irtkBSplineFreeFormTransformation3D *irtkBSplineFreeFormTransformationPeriodic::Compute3DFFD1(double time)
+{
+	int i ,j ,k, t, d, V, l;
+	double v, B_L, CPx, CPy, CPz;
+
+	// initialise 3D FFD
+	double x1, y1, z1, x2, y2, z2;
+	x1 = y1 = z1 = 0;
+	this->LatticeToWorld(x1, y1, z1);
+	x2 = _x-1; y2 = _y-1; z2 = _z-1;
+	this->LatticeToWorld(x2, y2, z2);
+	irtkBSplineFreeFormTransformation3D * transform = new irtkBSplineFreeFormTransformation3D(x1, y1, z1, x2, y2, z2, _dx, _dy, _dz, _xaxis, _yaxis, _zaxis);
+
+	// periodic model:
+	if (_periodic) {
+	  while (time < 0)
+	    time += double(_t-1);
+	  while (time >= _t-1)
+		time -= double(_t-1);
+	} else {
+	  if ((time < -2) || (time > _t+1)) {
+		cerr << "time out of bounds" << endl;
+		exit(1);
+	  }
+	}
+
+	d = (int)floor(time)-1;
+	v = time-(d+1);
+	V = round(LUTSIZE*v);
+
+	// calculate 3D FFD
+//	irtkMatrix BS = new irtkMatrix(_x*_y*_z, _x*_y*_z);
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  CPx = 0;
+		  CPy = 0;
+		  CPz = 0;
+
+		  for (l = 0; l < 4; l++) {
+		    B_L = this->LookupTable[V][l];
+		    CPx += B_L * _xdata[d+l][k][j][i];
+		    CPy += B_L * _ydata[d+l][k][j][i];
+		    CPz += B_L * _zdata[d+l][k][j][i];
+		  }
+
+		  transform->Put(i, j, k, CPx, CPy, CPz);
+//		  transform->Put(i, j, k, CP[0][k*_x*_y + j*_x + i], CP[1][k*_x*_y + j*_x + i], CP[2][k*_x*_y + j*_x + i]);
+		}
+	  }
+	}
+
+	return transform;
+}
+
+irtkBSplineFreeFormTransformation3D *irtkBSplineFreeFormTransformationPeriodic::Compute3DFFD2(double time)
+{
+	cerr << "doesn't work (use Approximate function)" << endl;
+	exit(1);
+
+	int i, j, k, t, iC, jC, kC, m, n, o, a;
+	double B_I, B_J, B_K;
+	double **CP = new double *[3];
+	double **CP_old = new double *[3];
+	for (i = 0; i < 3; i++) {
+	  CP[i] = new double [_x*_y*_z];
+	  CP_old[i] = new double [_x*_y*_z];
+	}
+
+	// initialise 3D FFD
+	double x1, y1, z1, x2, y2, z2;
+	x1 = y1 = z1 = 0;
+	this->LatticeToWorld(x1, y1, z1);
+	x2 = _x-1; y2 = _y-1; z2 = _z-1;
+	this->LatticeToWorld(x2, y2, z2);
+	irtkBSplineFreeFormTransformation3D * transform = new irtkBSplineFreeFormTransformation3D(x1, y1, z1, x2, y2, z2, _dx, _dy, _dz, _xaxis, _yaxis, _zaxis);
+
+	// periodic model:
+	if (_periodic) {
+	  while (time < 0)
+	    time += double(_t-1);
+	  while (time >= _t-1)
+		time -= double(_t-1);
+	} else {
+	  if ((time < -2) || (time > _t+1)) {
+		cerr << "time out of bounds" << endl;
+		exit(1);
+	  }
+	}
+
+	// calculate 3D FFD conversion matrix (same for all 3 displacement components (x, y, z))
+	cout<<"fill matrix"<<endl;
+	irtkMatrix BS = irtkMatrix(_x*_y*_z, _x*_y*_z);
+	// loops over all rows
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+
+		  // loops over all columns in current row
+		  for (iC = 0; iC < _x; iC++) {
+			for (jC = 0; jC < _y; jC++) {
+			  for (kC = 0; kC < _z; kC++) {
+				BS((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC)) = 0;
+
+				// loops over all BSplines
+				for (m = -1; m < 3; m++) {
+				  for (n = -1; n < 3; n++) {
+					for (o = -1; o < 3; o++) {
+					  if (i+o == iC && j+n == jC && k+m == kC) {
+					    B_K = this->LookupTable[0][m+1];
+					    B_J = this->LookupTable[0][n+1] * B_K;
+					    B_I = this->LookupTable[0][o+1] * B_J;
+
+					    BS((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC)) = B_I;
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	}
+	// invert matrix
+	cout<<"invert matrix"<<endl;
+	BS.Invert();
+
+	// fill in diplacement vector
+	cout<<"fill displacement vector"<<endl;
+	double xDisp, yDisp, zDisp;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  xDisp = i;
+		  yDisp = j;
+		  zDisp = k;
+		  this->LocalDisplacement(xDisp, yDisp, zDisp, time);
+		  CP_old[0][k*_x*_y + j*_x + i] = xDisp;
+		  CP_old[1][k*_x*_y + j*_x + i] = yDisp;
+		  CP_old[2][k*_x*_y + j*_x + i] = zDisp;
+		}
+	  }
+	}
+
+	// compute new control point values
+	cout<<"compute new control point values"<<endl;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  CP[a][k*_x*_y + j*_x + i] = 0.;
+
+		  for (iC = 0; iC < _x; iC++) {
+			for (jC = 0; jC < _y; jC++) {
+			  for (kC = 0; kC < _z; kC++) {
+				for (a = 0; a < 3; a++) {
+				  CP[a][k*_x*_y + j*_x + i] += BS((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC))*CP_old[a][kC*_x*_y + jC*_x + iC];
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	}
+
+	// write to transformation
+	cout<<"write new transformation"<<endl;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  transform->Put(i, j, k, CP[0][k*_x*_y + j*_x + i], CP[1][k*_x*_y + j*_x + i], CP[2][k*_x*_y + j*_x + i]);
+		}
+	  }
+	}
+
+	return transform;
+}
+
+
+irtkBSplineFreeFormTransformation3D *irtkBSplineFreeFormTransformationPeriodic::Compute3DFFD3(double time)
+{
+	cerr << "doesn't work (use Approximate function)" << endl;
+	exit(1);
+
+	int i, j, k, t, iC, jC, kC, m, n, o, a;
+	double B_I, B_J, B_K, delta, stepsize, stepsize_max, stepsize_min, metric_new, metric_old;
+	double **CP = new double *[3];
+	double **gradient = new double *[3];
+	double **Ab = new double *[3];
+	double **b = new double *[3];
+	for (i = 0; i < 3; i++) {
+	  CP[i] = new double [_x*_y*_z];
+	  gradient[i] = new double [_x*_y*_z];
+	  Ab[i] = new double [_x*_y*_z];
+	  b[i] = new double [_x*_y*_z];
+	}
+
+	stepsize_max = stepsize = 2;
+	stepsize_min = 0.01;
+
+	// initialise 3D FFD
+	double x1, y1, z1, x2, y2, z2;
+	x1 = y1 = z1 = 0;
+	this->LatticeToWorld(x1, y1, z1);
+	x2 = _x-1; y2 = _y-1; z2 = _z-1;
+	this->LatticeToWorld(x2, y2, z2);
+	irtkBSplineFreeFormTransformation3D * transform = new irtkBSplineFreeFormTransformation3D(x1, y1, z1, x2, y2, z2, _dx, _dy, _dz, _xaxis, _yaxis, _zaxis);
+
+	// periodic model:
+	if (_periodic) {
+	  while (time < 0)
+	    time += double(_t-1);
+	  while (time >= _t-1)
+		time -= double(_t-1);
+	} else {
+	  if ((time < -2) || (time > _t+1)) {
+		cerr << "time out of bounds" << endl;
+		exit(1);
+	  }
+	}
+
+	// calculate 3D FFD conversion matrix (same for all 3 displacement components (x, y, z))
+	cout<<"fill matrix (A)"<<endl;
+	irtkMatrix BS = irtkMatrix(_x*_y*_z, _x*_y*_z);
+	// loops over all rows
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+
+		  // loops over all columns in current row
+		  for (iC = 0; iC < _x; iC++) {
+			for (jC = 0; jC < _y; jC++) {
+			  for (kC = 0; kC < _z; kC++) {
+				BS((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC)) = 0;
+
+				// loops over all BSplines
+				for (m = -1; m < 3; m++) {
+				  for (n = -1; n < 3; n++) {
+					for (o = -1; o < 3; o++) {
+					  if (i+o == iC && j+n == jC && k+m == kC) {
+					    B_K = this->LookupTable[0][m];
+					    B_J = this->LookupTable[0][n] * B_K;
+					    B_I = this->LookupTable[0][o] * B_J;
+
+					    BS((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC)) = B_I;
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	}
+
+	// fill in diplacement vector
+	cout<<"initialize gradient components (A*A), (A*b), (A) and (b)"<<endl;
+	double xDisp, yDisp, zDisp;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  xDisp = i;
+		  yDisp = j;
+		  zDisp = k;
+		  this->LocalDisplacement(xDisp, yDisp, zDisp, time);
+		  gradient[0][k*_x*_y + j*_x + i] = b[0][k*_x*_y + j*_x + i] = xDisp;
+		  gradient[1][k*_x*_y + j*_x + i] = b[1][k*_x*_y + j*_x + i] = yDisp;
+		  gradient[2][k*_x*_y + j*_x + i] = b[2][k*_x*_y + j*_x + i] = zDisp;
+		}
+	  }
+	}
+	// and multiply it with B-spline matrix (A)
+	irtkMatrix BSTranspose = ~BS;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  Ab[0][k*_x*_y + j*_x + i] = 0;
+		  Ab[1][k*_x*_y + j*_x + i] = 0;
+		  Ab[2][k*_x*_y + j*_x + i] = 0;
+		  for (iC = 0; iC < _x; iC++) {
+			for (jC = 0; jC < _y; jC++) {
+			  for (kC = 0; kC < _z; kC++) {
+				for (a = 0; a < 3; a++) {
+				  Ab[a][k*_x*_y + j*_x + i] += BSTranspose((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC))*gradient[a][kC*_x*_y + jC*_x + iC];
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	}
+	// build matrix (A*A)
+	BS = BSTranspose*BS;
+	BSTranspose.Transpose();
+
+	// get initialisation for new control point values
+	cout<<"get initialisation for new control point values"<<endl;
+	delete transform;
+	transform = this->Compute3DFFD1(time);
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  transform->Get(i, j, k, CP[0][k*_x*_y + j*_x + i], CP[1][k*_x*_y + j*_x + i], CP[2][k*_x*_y + j*_x + i]);
+		}
+	  }
+	}
+	// build metric of initialisation
+	metric_new = 0;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  for (a = 0; a < 3; a++) {
+			double tmp = 0;
+			for (iC = 0; iC < _x; iC++) {
+			  for (jC = 0; jC < _y; jC++) {
+			    for (kC = 0; kC < _z; kC++) {
+				  tmp += BSTranspose((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC))*CP[a][kC*_x*_y + jC*_x + iC];
+				}
+			  }
+			}
+			metric_new += (tmp - b[a][k*_x*_y + j*_x + i]) * (tmp - b[a][k*_x*_y + j*_x + i]);
+		  }
+		}
+	  }
+	}
+	metric_old = metric_new;
+
+	// compute new control point values
+	// x(n+1) = x(n) - 2*A*(A*x(n) - b)
+	cout<<"compute new control point values"<<endl;
+	delta = 1;
+	do {
+
+	  // build gradient 2*(A*A-A*b)
+	  for (i = 0; i < _x; i++) {
+		for (j = 0; j < _y; j++) {
+		  for (k = 0; k < _z; k++) {
+			gradient[0][k*_x*_y + j*_x + i] = 0;
+			gradient[1][k*_x*_y + j*_x + i] = 0;
+			gradient[2][k*_x*_y + j*_x + i] = 0;
+			for (iC = 0; iC < _x; iC++) {
+			  for (jC = 0; jC < _y; jC++) {
+				for (kC = 0; kC < _z; kC++) {
+				  for (a = 0; a < 3; a++) {
+					gradient[a][k*_x*_y + j*_x + i] -= BS((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC))*CP[a][kC*_x*_y + jC*_x + iC];
+				  }
+				}
+			  }
+			}
+			gradient[0][k*_x*_y + j*_x + i] -= Ab[0][k*_x*_y + j*_x + i];
+			gradient[1][k*_x*_y + j*_x + i] -= Ab[1][k*_x*_y + j*_x + i];
+			gradient[2][k*_x*_y + j*_x + i] -= Ab[2][k*_x*_y + j*_x + i];
+			gradient[0][k*_x*_y + j*_x + i] *= 2;
+			gradient[1][k*_x*_y + j*_x + i] *= 2;
+			gradient[2][k*_x*_y + j*_x + i] *= 2;
+		  }
+		}
+	  }
+
+	  // update x(n+1)
+	  for (i = 0; i < _x; i++) {
+		for (j = 0; j < _y; j++) {
+		  for (k = 0; k < _z; k++) {
+			for (a = 0; a < 3; a++) {
+			  CP[a][k*_x*_y + j*_x + i] -= stepsize*gradient[a][k*_x*_y + j*_x + i];
+			}
+		  }
+		}
+	  }
+
+	  // build metric
+	  metric_new = 0;
+	  for (i = 0; i < _x; i++) {
+		for (j = 0; j < _y; j++) {
+		  for (k = 0; k < _z; k++) {
+			for (a = 0; a < 3; a++) {
+			  double tmp = 0;
+			  for (iC = 0; iC < _x; iC++) {
+			    for (jC = 0; jC < _y; jC++) {
+				  for (kC = 0; kC < _z; kC++) {
+				    tmp += BSTranspose((k*_x*_y + j*_x + i), (kC*_x*_y + jC*_x + iC))*CP[a][kC*_x*_y + jC*_x + iC];
+				  }
+			    }
+			  }
+			  metric_new += (tmp - b[a][k*_x*_y + j*_x + i]) * (tmp - b[a][k*_x*_y + j*_x + i]);
+			}
+		  }
+		}
+	  }
+
+	  if (metric_new < metric_old) {
+		delta = metric_old - metric_new;
+		metric_old = metric_new;
+		stepsize = stepsize_max;
+	  } else {
+		for (i = 0; i < _x; i++) {
+		  for (j = 0; j < _y; j++) {
+			for (k = 0; k < _z; k++) {
+			  for (a = 0; a < 3; a++) {
+				CP[a][k*_x*_y + j*_x + i] += stepsize*gradient[a][k*_x*_y + j*_x + i];
+			  }
+			}
+		  }
+		}
+		stepsize *= 0.5;
+		if (stepsize < stepsize_min)
+		  break;
+	  }
+
+	} while (delta < 0.0001);
+
+	// write to transformation
+	cout<<"write new transformation"<<endl;
+	for (i = 0; i < _x; i++) {
+	  for (j = 0; j < _y; j++) {
+		for (k = 0; k < _z; k++) {
+		  transform->Put(i, j, k, CP[0][k*_x*_y + j*_x + i], CP[1][k*_x*_y + j*_x + i], CP[2][k*_x*_y + j*_x + i]);
+		}
+	  }
+	}
+
+	return transform;
+}
+

@@ -35,6 +35,7 @@ typedef enum { _Active, _Passive, _Unknown } _Status;
 #define IRTKTRANSFORMATION_BSPLINE_FFD_EXT1 12
 #define IRTKTRANSFORMATION_LINEAR_FFD_EXT1  13
 #define IRTKTRANSFORMATION_BSPLINE_FFD_4D   14
+#define IRTKTRANSFORMATION_PERIODIC         20
 
 /**
  * Abstract base class for general transformations.
@@ -339,6 +340,8 @@ inline ostream& irtkTransformation::Export(ostream &)
 #include <irtkImageTransformation.h>
 #include <irtkImageTransformation2.h>
 #include <irtkImageHomogeneousTransformation.h>
+
+#include <irtkBSplineFreeFormTransformationPeriodic.h>
 
 // For backwards compatibility
 typedef class irtkBSplineFreeFormTransformation3D irtkBSplineFreeFormTransformation;

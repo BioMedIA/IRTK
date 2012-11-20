@@ -1,18 +1,12 @@
-/*=========================================================================
 
-  Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id$
-  Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date$
-  Version   : $Revision$
-  Changes   : $Author$
 
-=========================================================================*/
 
-#ifndef _IRTKBSPLINEFREEFORMTRANSFORMATION4D_H
 
-#define _IRTKBSPLINEFREEFORMTRANSFORMATION4D_H
+
+
+#ifndef _IRTKBSPLINEFREEFORMTRANSFORMATIONPERIODIC_H
+
+#define _IRTKBSPLINEFREEFORMTRANSFORMATIONPERIODIC_H
 
 #include <irtkGeometry.h>
 
@@ -25,10 +19,12 @@
  * Transactions on Visualization and Computer Graphics, Vol. 3, No. 3, 1997.
  */
 
-class irtkBSplineFreeFormTransformation4D : public irtkFreeFormTransformation4D
+class irtkBSplineFreeFormTransformationPeriodic : public irtkFreeFormTransformation4D
 {
 
 protected:
+
+  int _periodic;
 
   /// Returns the value of the first B-spline basis function
   static double B0(double);
@@ -66,12 +62,6 @@ protected:
   /// Returns the 2nd derivative value of the fourth B-spline basis function
   static double B3_II(double);
 
-  /// Subdivide FFD in 2D
-  virtual void Subdivide2D();
-
-  /// Subdivide FFD in 3D
-  virtual void Subdivide3D();
-
   /// Memory for lookup table for B-spline basis function values
   static    double LookupTable[FFDLOOKUPTABLESIZE][4];
 
@@ -98,22 +88,22 @@ public:
   static double B_II(int, double);
 
   /// Constructor
-  irtkBSplineFreeFormTransformation4D();
+  irtkBSplineFreeFormTransformationPeriodic();
 
   /// Constructor
-  irtkBSplineFreeFormTransformation4D(irtkBaseImage &, double, double, double, double);
+  irtkBSplineFreeFormTransformationPeriodic(irtkBaseImage &, double, double, double, double);
 
   /// Constructor
-  irtkBSplineFreeFormTransformation4D(double x1, double y1, double z1, double t1,
-                                      double x2, double y2, double z2, double t2,
-                                      double dx, double dy, double dz, double dt,
-                                      double* xaxis, double* yaxis, double* zaxis);
+  irtkBSplineFreeFormTransformationPeriodic(double x1, double y1, double z1, double t1,
+											double x2, double y2, double z2, double t2,
+											double dx, double dy, double dz, double dt,
+											double* xaxis, double* yaxis, double* zaxis);
 
   /// Copy Constructor
-  irtkBSplineFreeFormTransformation4D(const class irtkBSplineFreeFormTransformation4D &);
+  irtkBSplineFreeFormTransformationPeriodic(const class irtkBSplineFreeFormTransformationPeriodic &);
 
   /// Destructor
-  virtual ~irtkBSplineFreeFormTransformation4D();
+  virtual ~irtkBSplineFreeFormTransformationPeriodic();
 
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FFD which approximates these
@@ -132,6 +122,15 @@ public:
 
   /// Subdivide FFD
   virtual void Subdivide();
+
+  /// Subdivide FFD in 2D
+  virtual void Subdivide2D();
+
+  /// Subdivide FFD in 3D
+  virtual void Subdivide3D();
+
+  /// Subdivide FFD in 4D
+  virtual void Subdivide4D();
 
   /// Calculates the FFD (for a point in FFD coordinates) with checks
   virtual void FFD1(double &, double &, double &, double) const;
@@ -160,6 +159,9 @@ public:
   /// Calculates displacement using the local transformation component only
   virtual void LocalDisplacement(double &, double &, double &, double = 0);
 
+  /// new (periodic) TimeToLattice function
+  double TimeToLattice(double) const;
+
   /// Calculate the Jacobian of the transformation
   virtual void Jacobian(irtkMatrix &, double, double, double, double = 0);
 
@@ -172,23 +174,35 @@ public:
   /// Calculate the bending energy of the transformation
   virtual double Bending(double, double, double, double);
 
-  /** Returns the bounding box for a control point. The last parameter
-   *  specifies what fraction of the bounding box to return. The default
-   *  is 1 which equals 100% of the bounding box. Note that the bounding
-   *  box is only computed in 3D (time is ignored).
+  /** Returns the bounding box for a control point (in mm). The last
+   *  parameter specifies what fraction of the bounding box to return. The
+   *  default is 1 which equals 100% of the bounding box.
    */
   virtual void BoundingBoxCP(int, irtkPoint &, irtkPoint &, double = 1) const;
-  /// Bounding box in 4D
+
+  /** Returns the bounding box for a control point. The last parameter
+   *  specifies what fraction of the bounding box to return. The default
+   *  is 1 which equals 100% of the bounding box.
+   */
   virtual void BoundingBoxCP(int, double &, double &, double &, double &, double &,
                            double &, double &, double &, double = 1) const;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
-   *  default is 1 which equals 100% of the bounding box. Note that the
-   *  bounding box is only computed in 3D (time is ignored).
+   *  default is 1 which equals 100% of the bounding box.
    */
-  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
-  		                          int &, int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
+                           int &, int &, int &, int &, double = 1) const;
+  // temporal bounding box is in continuous space (no discrete frames!)
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
+                           int &, int &, double &, double &, double = 1) const;
+  // for inheritance
+  virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
+                           int &, int &, double = 1) const;
+
+//  // alternative bounding box without index
+//  virtual void BoundingBox(irtkGreyImage *, int &, int &, int &, int &,
+//                           int &, int &, double &, double &, double = 1) const;
 
   /// Prints the parameters of the transformation
   virtual void Print();
@@ -204,9 +218,42 @@ public:
 
   /// Writes a transformation to a file
   virtual irtkCofstream& Write(irtkCofstream&);
+
+  /// Use periodic time on/off
+  void PeriodicOn();
+  void PeriodicOff();
+
+  /// Calculates the 3D FFD at time t
+  irtkBSplineFreeFormTransformation3D *Compute3DFFD1(double);
+  irtkBSplineFreeFormTransformation3D *Compute3DFFD2(double);
+  irtkBSplineFreeFormTransformation3D *Compute3DFFD3(double);
+
 };
 
-inline double irtkBSplineFreeFormTransformation4D::B(double x)
+inline void irtkBSplineFreeFormTransformationPeriodic::PeriodicOn()
+{
+  _periodic = true;
+}
+
+inline void irtkBSplineFreeFormTransformationPeriodic::PeriodicOff()
+{
+  _periodic = false;
+}
+
+inline double irtkBSplineFreeFormTransformationPeriodic::TimeToLattice(double t) const
+{
+  double tt = t;
+  if (_periodic) {
+    while (tt < 0)
+      tt += 1.;
+    while (tt >= 1)
+      tt -= 1.;
+  }
+  tt = (tt - _tMin)*(_t - 1)/(_tMax - _tMin);
+  return tt;
+}
+
+inline double irtkBSplineFreeFormTransformationPeriodic::B(double x)
 {
   x = fabs(x);
   double value=0.0;
@@ -221,7 +268,7 @@ inline double irtkBSplineFreeFormTransformation4D::B(double x)
   return value;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B(int i, double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B(int i, double t)
 {
   switch (i) {
   case 0:
@@ -236,7 +283,7 @@ inline double irtkBSplineFreeFormTransformation4D::B(int i, double t)
   return 0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B_I(int i, double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B_I(int i, double t)
 {
   switch (i) {
   case 0:
@@ -251,7 +298,7 @@ inline double irtkBSplineFreeFormTransformation4D::B_I(int i, double t)
   return 0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B_II(int i, double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B_II(int i, double t)
 {
   switch (i) {
   case 0:
@@ -266,67 +313,67 @@ inline double irtkBSplineFreeFormTransformation4D::B_II(int i, double t)
   return 0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B0(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B0(double t)
 {
   return (1-t)*(1-t)*(1-t)/6.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B1(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B1(double t)
 {
   return (3*t*t*t - 6*t*t + 4)/6.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B2(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B2(double t)
 {
   return (-3*t*t*t + 3*t*t + 3*t + 1)/6.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B3(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B3(double t)
 {
   return (t*t*t)/6.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B0_I(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B0_I(double t)
 {
   return -(1-t)*(1-t)/2.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B1_I(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B1_I(double t)
 {
   return (9*t*t - 12*t)/6.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B2_I(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B2_I(double t)
 {
   return (-9*t*t + 6*t + 3)/6.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B3_I(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B3_I(double t)
 {
   return (t*t)/2.0;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B0_II(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B0_II(double t)
 {
   return 1 - t;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B1_II(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B1_II(double t)
 {
   return 3*t - 2;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B2_II(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B2_II(double t)
 {
   return -3*t + 1;
 }
 
-inline double irtkBSplineFreeFormTransformation4D::B3_II(double t)
+inline double irtkBSplineFreeFormTransformationPeriodic::B3_II(double t)
 {
   return t;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::Transform(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformationPeriodic::Transform(double &x, double &y, double &z, double t)
 {
   double u, v, w;
 
@@ -346,7 +393,7 @@ inline void irtkBSplineFreeFormTransformation4D::Transform(double &x, double &y,
   z += w;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::Transform2(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformationPeriodic::Transform2(double &x, double &y, double &z, double t)
 {
   double u, v, w;
 
@@ -366,10 +413,10 @@ inline void irtkBSplineFreeFormTransformation4D::Transform2(double &x, double &y
   z += w;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::GlobalTransform(double &, double &, double &, double)
+inline void irtkBSplineFreeFormTransformationPeriodic::GlobalTransform(double &, double &, double &, double)
 {}
 
-inline void irtkBSplineFreeFormTransformation4D::LocalTransform(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformationPeriodic::LocalTransform(double &x, double &y, double &z, double t)
 {
   double u, v, w;
 
@@ -386,14 +433,14 @@ inline void irtkBSplineFreeFormTransformation4D::LocalTransform(double &x, doubl
   z += w;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::GlobalDisplacement(double &x, double &y, double &z, double)
+inline void irtkBSplineFreeFormTransformationPeriodic::GlobalDisplacement(double &x, double &y, double &z, double)
 {
   x = 0;
   y = 0;
   z = 0;
 }
 
-inline void irtkBSplineFreeFormTransformation4D::LocalDisplacement(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformationPeriodic::LocalDisplacement(double &x, double &y, double &z, double t)
 {
   // Convert world coordinates in to FFD coordinates
   this->WorldToLattice(x, y, z);
@@ -402,14 +449,14 @@ inline void irtkBSplineFreeFormTransformation4D::LocalDisplacement(double &x, do
   this->FFD1(x, y, z, this->TimeToLattice(t));
 }
 
-inline void irtkBSplineFreeFormTransformation4D::Displacement(double &x, double &y, double &z, double t)
+inline void irtkBSplineFreeFormTransformationPeriodic::Displacement(double &x, double &y, double &z, double t)
 {
 	this->LocalDisplacement(x, y, z, t);
 }
 
-inline const char *irtkBSplineFreeFormTransformation4D::NameOfClass()
+inline const char *irtkBSplineFreeFormTransformationPeriodic::NameOfClass()
 {
-  return "irtkBSplineFreeFormTransformation4D";
+  return "irtkBSplineFreeFormTransformationPeriodic";
 }
 
 #endif

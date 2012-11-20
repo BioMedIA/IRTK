@@ -157,6 +157,10 @@ irtkTransformation *irtkTransformation::New(char *name)
     transformation = new irtkEigenFreeFormTransformation;
     transformation->Read(name);
     return transformation;
+  case IRTKTRANSFORMATION_PERIODIC:
+	transformation = new irtkBSplineFreeFormTransformationPeriodic;
+	transformation->Read(name);
+	return transformation;
 #ifdef HAS_SUBDIVISION
   case IRTKTRANSFORMATION_LATTICE_FFD:
     transformation = new irtkLatticeFreeFormTransformation;

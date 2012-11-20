@@ -47,6 +47,11 @@ irtkMultiLevelFreeFormTransformation::irtkMultiLevelFreeFormTransformation(const
       irtkBSplineFreeFormTransformation4D *ffd = dynamic_cast<irtkBSplineFreeFormTransformation4D *>(transformation._localTransformation[i]);
       _localTransformation[i] = new irtkBSplineFreeFormTransformation4D(*ffd);
     }
+    if (strcmp(transformation._localTransformation[i]->NameOfClass(),
+			   "irtkBSplineFreeFormTransformationPeriodic") == 0) {
+	  irtkBSplineFreeFormTransformationPeriodic *ffd = dynamic_cast<irtkBSplineFreeFormTransformationPeriodic *>(transformation._localTransformation[i]);
+	  _localTransformation[i] = new irtkBSplineFreeFormTransformationPeriodic(*ffd);
+	}
   }
 
   _NumberOfLevels = transformation._NumberOfLevels;
@@ -778,6 +783,11 @@ irtkCifstream& irtkMultiLevelFreeFormTransformation::Read(irtkCifstream& from)
         _localTransformation[i] = new irtkLinearFreeFormTransformation;
         ((irtkLinearFreeFormTransformation *)_localTransformation[i])->Read(from);
         break;
+      case IRTKTRANSFORMATION_PERIODIC:
+    	from.Seek(offset);
+    	_localTransformation[i] = new irtkBSplineFreeFormTransformationPeriodic;
+    	((irtkBSplineFreeFormTransformationPeriodic *)_localTransformation[i])->Read(from);
+    	break;
       default:
         cerr << "irtkMultiLevelFreeFormTransformation::Read: No a valid transformation type at = " << offset << endl;
         exit(1);

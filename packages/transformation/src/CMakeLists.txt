@@ -18,7 +18,8 @@ SET(TRANSFORMATION_INCLUDES
 ../include/irtkQuaternionTransformation.h
 ../include/irtkRigidTransformation.h
 ../include/irtkTransformation.h
-../include/newt2.h)
+../include/newt2.h
+../include/irtkBSplineFreeFormTransformationPeriodic.h)
 
 SET(TRANSFORMATION_SRCS
 irtkAffineTransformation.cc
@@ -39,7 +40,8 @@ irtkMultiLevelFreeFormTransformation.cc
 irtkQuaternionTransformation.cc
 irtkRigidTransformation.cc
 irtkTransformation.cc
-newt2.cc)
+newt2.cc
+irtkBSplineFreeFormTransformationPeriodic.cc)
 
 ADD_LIBRARY(transformation++ ${TRANSFORMATION_SRCS} ${TRANSFORMATION_INCLUDES})
 
