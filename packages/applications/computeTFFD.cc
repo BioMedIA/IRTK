@@ -136,8 +136,8 @@ int main(int argc, char **argv)
   gn = 0;
 
   // Create registration filter
-  irtkImageSequencePeriodicRegistration *registration = NULL;
-  registration = new irtkImageSequencePeriodicRegistration;
+  irtkImageTFFDRegistration *registration = NULL;
+  registration = new irtkImageTFFDRegistration;
 
   // Create initial multi-level free-form deformation
   irtkMultiLevelFreeFormTransformation *mffd = NULL;
@@ -519,7 +519,7 @@ int main(int argc, char **argv)
   registration->GuessParameter();
   // Overrride with any the user has set.
   if (parin_name != NULL) {
-    registration->irtkImageSequenceRegistration::Read(parin_name);
+    registration->irtkTemporalImageRegistration::Read(parin_name);
   }
 
   if(sp != 0) registration->SetLambda1(sp);
@@ -539,7 +539,7 @@ int main(int argc, char **argv)
 
   // Write parameters if necessary
   if (parout_name != NULL) {
-    registration->irtkImageSequenceRegistration::Write(parout_name);
+    registration->irtkTemporalImageRegistration::Write(parout_name);
   }
 
   // Run registration filter
