@@ -7,13 +7,6 @@ SET(REGISTRATION2_INCLUDES
 ../include/irtkMultipleImageRigidRegistration2.h
 ../include/irtkMultipleImageFreeFormRegistration2.h
 ../include/irtkSparseFreeFormRegistration.h
-
-../include/irtkImageSequenceRegistration.h
-../include/irtkImageSequenceRegistrationI.h
-
-../include/irtkImageRespSequenceRegistration.h
-../include/irtkRespMotionRegistration.h
-
 ../include/irtkTemporalImageRegistration.h
 ../include/irtkImageTFFDRegistration.h
 )
