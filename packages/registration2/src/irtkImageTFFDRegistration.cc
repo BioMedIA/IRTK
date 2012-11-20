@@ -110,12 +110,12 @@ void irtkImageTFFDRegistration::GuessParameter()
   _Lambda1            = 0; //recommended value 0.0001
   _Lambda2            = 0; //recommended value 1
   _Lambda3            = 0;
-  _DX = xsize * pow(2,_NumberOfLevels-1);
-  _DY = ysize * pow(2,_NumberOfLevels-1);
+  _DX = xsize * pow(2.0,_NumberOfLevels-1);
+  _DY = ysize * pow(2.0,_NumberOfLevels-1);
   if (slices) {
     _DZ               = 1;
   } else {
-    _DZ               = zsize * pow(2,_NumberOfLevels-1);
+    _DZ               = zsize * pow(2.0,_NumberOfLevels-1);
   }
   _DT				  = 0.05;
   _Subdivision        = true;
