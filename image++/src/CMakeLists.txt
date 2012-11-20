@@ -81,7 +81,9 @@ SET(IMAGE_INCLUDES
 ../include/irtkUniformNoiseWithPadding.h
 ../include/irtkVoxel.h
 ../include/irtkVTK.h
-../include/irtkAnisoDiffusion.h)
+../include/irtkAnisoDiffusion.h
+../include/irtkGaussianBlurring2D.h
+../include/irtkGaussianBlurringWithPadding2D.h)
 
 SET(IMAGE_SRCS 
 irtkBSplineInterpolateImageFunction.cc
@@ -158,6 +160,8 @@ irtkUniformNoise.cc
 irtkUniformNoiseWithPadding.cc
 irtkAnisoDiffusion.cc
 irtkVoxel.cc
+irtkGaussianBlurring2D.cc
+irtkGaussianBlurringWithPadding2D.cc
 )
 
 ADD_LIBRARY(image++ ${IMAGE_SRCS} ${IMAGE_INCLUDES})
