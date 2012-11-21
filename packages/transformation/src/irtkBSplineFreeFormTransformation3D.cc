@@ -1577,29 +1577,27 @@ void irtkBSplineFreeFormTransformation3D::ApproximateGradient2D(const double *x1
     }
     // Initial loop: Calculate change of control points
     for (index = 0; index < no; index++) {
-        if(this->irtkTransformation::GetStatus(index) == _Active){
-            x = x1[index];
-            y = y1[index];
-            z = z1[index];
-            this->WorldToLattice(x, y, z);
-            l = (int)floor(x);
-            m = (int)floor(y);
-            s = x-l;
-            t = y-m;
-            S = round(LUTSIZE*s);
-            T = round(LUTSIZE*t);
-            for (j = 0; j < 4; j++) {
-                J = j + m - 1;
-                if ((J >= 0) && (J < _y)) {
-                    B_J = this->LookupTable[T][j];
-                    for (i = 0; i < 4; i++) {
-                        I = i + l - 1;
-                        if ((I >= 0) && (I < _x)) {
-                            B_I = B_J * this->LookupTable[S][i];
-                            basis = B_I;
-                            data[0][J][I]._x += x2[index] * basis;
-                            data[0][J][I]._y += y2[index] * basis;
-                        }
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        s = x-l;
+        t = y-m;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        for (j = 0; j < 4; j++) {
+            J = j + m - 1;
+            if ((J >= 0) && (J < _y)) {
+                B_J = this->LookupTable[T][j];
+                for (i = 0; i < 4; i++) {
+                    I = i + l - 1;
+                    if ((I >= 0) && (I < _x)) {
+                        B_I = B_J * this->LookupTable[S][i];
+                        basis = B_I;
+                        data[0][J][I]._x += x2[index] * basis;
+                        data[0][J][I]._y += y2[index] * basis;
                     }
                 }
             }
@@ -1610,9 +1608,15 @@ void irtkBSplineFreeFormTransformation3D::ApproximateGradient2D(const double *x1
     for (j = 0; j < _y; j++) {
         for (i = 0; i < _x; i++) {
             index = this->LatticeToIndex(i,j,0);
-            gradient[index] = data[0][j][i]._x;
-            gradient[index + _x*_y*_z] = data[0][j][i]._y;
-            gradient[index + 2*_x*_y*_z] = 0;
+            if(this->irtkTransformation::GetStatus(index) == _Active){
+                gradient[index] = data[0][j][i]._x;
+                gradient[index + _x*_y*_z] = data[0][j][i]._y;
+                gradient[index + 2*_x*_y*_z] = 0;
+            }else{
+                gradient[index] = 0;
+                gradient[index + _x*_y*_z] = 0;
+                gradient[index + 2*_x*_y*_z] = 0;
+            }
         }
     }
 
@@ -1642,37 +1646,35 @@ void irtkBSplineFreeFormTransformation3D::ApproximateGradient3D(const double *x1
     }
     // Initial loop: Calculate change of control points
     for (index = 0; index < no; index++) {
-        if(this->irtkTransformation::GetStatus(index) == _Active){
-            x = x1[index];
-            y = y1[index];
-            z = z1[index];
-            this->WorldToLattice(x, y, z);
-            l = (int)floor(x);
-            m = (int)floor(y);
-            n = (int)floor(z);
-            s = x-l;
-            t = y-m;
-            u = z-n;
-            S = round(LUTSIZE*s);
-            T = round(LUTSIZE*t);
-            U = round(LUTSIZE*u);
-            for (k = 0; k < 4; k++) {
-                K = k + n - 1;
-                if ((K >= 0) && (K < _z)) {
-                    B_K = this->LookupTable[U][k];
-                    for (j = 0; j < 4; j++) {
-                        J = j + m - 1;
-                        if ((J >= 0) && (J < _y)) {
-                            B_J = B_K * this->LookupTable[T][j];
-                            for (i = 0; i < 4; i++) {             
-                                I = i + l - 1;
-                                if ((I >= 0) && (I < _x)) {
-                                    B_I = B_J * this->LookupTable[S][i];
-                                    basis = B_I;
-                                    data[K][J][I]._x += x2[index] * basis;
-                                    data[K][J][I]._y += y2[index] * basis;
-                                    data[K][J][I]._z += z2[index] * basis;
-                                }
+        x = x1[index];
+        y = y1[index];
+        z = z1[index];
+        this->WorldToLattice(x, y, z);
+        l = (int)floor(x);
+        m = (int)floor(y);
+        n = (int)floor(z);
+        s = x-l;
+        t = y-m;
+        u = z-n;
+        S = round(LUTSIZE*s);
+        T = round(LUTSIZE*t);
+        U = round(LUTSIZE*u);
+        for (k = 0; k < 4; k++) {
+            K = k + n - 1;
+            if ((K >= 0) && (K < _z)) {
+                B_K = this->LookupTable[U][k];
+                for (j = 0; j < 4; j++) {
+                    J = j + m - 1;
+                    if ((J >= 0) && (J < _y)) {
+                        B_J = B_K * this->LookupTable[T][j];
+                        for (i = 0; i < 4; i++) {             
+                            I = i + l - 1;
+                            if ((I >= 0) && (I < _x)) {
+                                B_I = B_J * this->LookupTable[S][i];
+                                basis = B_I;
+                                data[K][J][I]._x += x2[index] * basis;
+                                data[K][J][I]._y += y2[index] * basis;
+                                data[K][J][I]._z += z2[index] * basis;
                             }
                         }
                     }
@@ -1686,9 +1688,15 @@ void irtkBSplineFreeFormTransformation3D::ApproximateGradient3D(const double *x1
         for (j = 0; j < _y; j++) {
             for (i = 0; i < _x; i++) {
                 index = this->LatticeToIndex(i,j,k);
-                gradient[index] = data[k][j][i]._x;
-                gradient[index + _x*_y*_z] = data[k][j][i]._y;
-                gradient[index + 2*_x*_y*_z] = data[k][j][i]._z;
+                if(this->irtkTransformation::GetStatus(index) == _Active){
+                    gradient[index] = data[k][j][i]._x;
+                    gradient[index + _x*_y*_z] = data[k][j][i]._y;
+                    gradient[index + 2*_x*_y*_z] = data[k][j][i]._z;
+                }else{
+                    gradient[index] = 0;
+                    gradient[index + _x*_y*_z] = 0;
+                    gradient[index + 2*_x*_y*_z] = 0;
+                }
             }
         }
     }
