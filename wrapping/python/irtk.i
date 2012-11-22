@@ -1,7 +1,7 @@
 %define DOCSTRING
-"This module contains wrapper classes for the `Image Registration Toolkit` (ITK) library.
+"This module contains wrapper classes for the `Image Registration Toolkit` (IRTK) library.
 
-For more information about the ITK library see:
+For more information about the IRTK library see:
 
 http://www.doc.ic.ac.uk/~dr/software/"
 %enddef
