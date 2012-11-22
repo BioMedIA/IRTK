@@ -31,13 +31,13 @@ public:
   /// Destructor
   virtual ~irtkFreeFormTransformation();
 
-  /// Returns the of control points in x
+  /// Returns the number of control points in x
   virtual int GetX() const = 0;
 
-  /// Returns the of control points in y
+  /// Returns the number of control points in y
   virtual int GetY() const = 0;
 
-  /// Returns the of control points in z
+  /// Returns the number of control points in z
   virtual int GetZ() const = 0;
 
   /// Returns the number of parameters of the transformation

@@ -117,7 +117,7 @@ public:
 
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FFD which approximates these
-      displacements. After approximatation the displacements replaced by
+      displacements. After approximation the displacements replaced by
       the residual displacement errors at the points */
   virtual double Approximate(double *, double *, double *, double *,
                              double *, double *, double *, int);
