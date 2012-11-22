@@ -14,6 +14,7 @@
 #                            - Change FLTK_IMAGES_LIBS to FLTK_IMAGES_LIBRARIES.
 #                            - Remove backwards compatible settings for CMake 1.4.
 # 14/11/2012 Andreas Schuh   - Set FLTK_INCLUDE_DIR to FLTK_INCLUDE_DIRS as used by FLTK 1.1.
+# 22/11/2012 Andreas Schuh   - Fix/improve support of FLTK build and installed on Windows.
 #
 # Find the native FLTK includes and library.  This is a hacked about version of
 # the FindFLTK.cmake module provided with CMake.
@@ -32,7 +33,13 @@
 # FLTK_IMAGES_LIBRARY  = the full path to fltk_images library
 
 # Help string for FLTK_DIR.
-SET(_FLTK_DIR_STRING "directory containing the FLTKConfig.cmake file (e.g., <prefix>/lib/FLTK-1.3) or installation prefix of FLTK")
+SET(_FLTK_DIR_STRING "directory containing the FLTKConfig.cmake file, e.g.,\n\t")
+IF(WIN32)
+  SET(_FLTK_DIR_STRING "${_FLTK_DIR_STRING}C:\\Program Files\\FLTK\\CMake")
+ELSE(WIN32)
+  SET(_FLTK_DIR_STRING "${_FLTK_DIR_STRING}/usr/local/lib/FLTK-1.3")
+ENDIF(WIN32)
+SET(_FLTK_DIR_STRING "${_FLTK_DIR_STRING}\nor installation prefix of FLTK")
 
 # Platform dependent libraries required by FLTK
 IF(WIN32)
@@ -74,8 +81,12 @@ IF(NOT FLTK_DIR)
   SET(_FLTK_CONFIG_SEARCH "")
   SET(_FLTK_DIR_SEARCH    "")
   FOREACH(_FLTK_dir ${_FLTK_DIR_SEARCH_PATH})
-    SET(_FLTK_CONFIG_SEARCH ${_FLTK_CONFIG_SEARCH} "${_FLTK_dir}/.." "${_FLTK_dir}/../lib/fltk" "${_FLTK_dir}/../lib/FLTK")
-    SET(_FLTK_DIR_SEARCH    ${_FLTK_DIR_SEARCH}    "${_FLTK_dir}/..")
+    IF(WIN32)
+      SET(_FLTK_CONFIG_SEARCH ${_FLTK_CONFIG_SEARCH} "${_FLTK_dir}/.." "${_FLTK_dir}/../CMake")
+    ELSE(WIN32)
+      SET(_FLTK_CONFIG_SEARCH ${_FLTK_CONFIG_SEARCH} "${_FLTK_dir}/.." "${_FLTK_dir}/../lib/fltk" "${_FLTK_dir}/../lib/FLTK")
+    ENDIF(WIN32)
+    SET(_FLTK_DIR_SEARCH ${_FLTK_DIR_SEARCH} "${_FLTK_dir}/..")
   ENDFOREACH(_FLTK_dir)
   UNSET(_FLTK_dir)
 
@@ -106,6 +117,8 @@ IF(NOT FLTK_DIR)
       [HKEY_CURRENT_USER\\Software\\Kitware\\CMakeSetup\\Settings\\StartPath;WhereBuild8]
       [HKEY_CURRENT_USER\\Software\\Kitware\\CMakeSetup\\Settings\\StartPath;WhereBuild9]
       [HKEY_CURRENT_USER\\Software\\Kitware\\CMakeSetup\\Settings\\StartPath;WhereBuild10]
+      # Look in standard Windows install locations.
+      "C:/Program Files/FLTK/CMake"
     # Help the user find it if we cannot.
     DOC "The ${_FLTK_DIR_STRING}."
   )
@@ -132,6 +145,8 @@ IF(NOT FLTK_DIR)
       /usr/include
       /usr/local/fltk
       /usr/X11R6/include
+      # Look in standard Windows install locations.
+      "C:/Program Files/FLTK"
     # Help the user find it if we cannot.
     DOC "The ${_FLTK_DIR_STRING}."
   )
@@ -145,35 +160,39 @@ ENDIF(NOT FLTK_DIR)
 # Look for FLTK CMake configuration file or installed files and directories.
 IF(FLTK_DIR)
 
-  IF(EXISTS ${FLTK_DIR}/FLTKConfig.cmake)
+  IF(EXISTS ${FLTK_DIR}/FLTKConfig.cmake OR EXISTS ${FLTK_DIR}/CMake/FLTKConfig.cmake)
     SET(FLTK_BUILT_WITH_CMAKE 1)
-  ENDIF(EXISTS ${FLTK_DIR}/FLTKConfig.cmake)
+  ENDIF(EXISTS ${FLTK_DIR}/FLTKConfig.cmake OR EXISTS ${FLTK_DIR}/CMake/FLTKConfig.cmake)
 
   IF(FLTK_BUILT_WITH_CMAKE)
 
     SET(FLTK_FOUND 1)
-    INCLUDE(${FLTK_DIR}/FLTKConfig.cmake)
+    IF(EXISTS ${FLTK_DIR}/CMake/FLTKConfig.cmake)
+      INCLUDE(${FLTK_DIR}/CMake/FLTKConfig.cmake)
+    ELSE(EXISTS ${FLTK_DIR}/CMake/FLTKConfig.cmake)
+      INCLUDE(${FLTK_DIR}/FLTKConfig.cmake)
+    ENDIF(EXISTS ${FLTK_DIR}/CMake/FLTKConfig.cmake)
 
     IF(NOT FLTK_INCLUDE_DIR AND FLTK_INCLUDE_DIRS)
       SET(FLTK_INCLUDE_DIR "${FLTK_INCLUDE_DIRS}")
     ENDIF(NOT FLTK_INCLUDE_DIR AND FLTK_INCLUDE_DIRS)
 
-    SET(FLTK_BASE_LIBRARY fltk)
-    SET(FLTK_GL_LIBRARY fltk_gl)
-    SET(FLTK_FORMS_LIBRARY fltk_forms)
+    SET(FLTK_BASE_LIBRARY   fltk)
+    SET(FLTK_GL_LIBRARY     fltk_gl)
+    SET(FLTK_FORMS_LIBRARY  fltk_forms)
     SET(FLTK_IMAGES_LIBRARY fltk_images)
 
   ELSE(FLTK_BUILT_WITH_CMAKE)
 
-    FIND_PROGRAM(FLTK_CONFIG_SCRIPT    NAMES fltk-config PATHS ${FLTK_DIR}/bin ${FLTK_DIR}       NO_DEFAULT_PATH)
-    FIND_PROGRAM(FLTK_FLUID_EXECUTABLE NAMES fluid       PATHS ${FLTK_DIR}/bin ${FLTK_DIR}/fluid NO_DEFAULT_PATH)
+    FIND_PROGRAM(FLTK_CONFIG_SCRIPT    NAMES fltk-config PATHS ${FLTK_DIR}/bin ${FLTK_DIR}/bin/Release ${FLTK_DIR}/bin/Debug ${FLTK_DIR}       NO_DEFAULT_PATH)
+    FIND_PROGRAM(FLTK_FLUID_EXECUTABLE NAMES fluid       PATHS ${FLTK_DIR}/bin ${FLTK_DIR}/bin/Release ${FLTK_DIR}/bin/Debug ${FLTK_DIR}/fluid NO_DEFAULT_PATH)
 
     FIND_PATH(FLTK_INCLUDE_DIR NAMES FL/Fl.h FL/Fl.H PATHS ${FLTK_DIR}/include ${FLTK_DIR} NO_DEFAULT_PATH)
 
-    FIND_LIBRARY(FLTK_BASE_LIBRARY   NAMES fltk       fltkd                   PATHS ${FLTK_DIR}/lib NO_DEFAULT_PATH)
-    FIND_LIBRARY(FLTK_GL_LIBRARY     NAMES fltkgl     fltkgld     fltk_gl     PATHS ${FLTK_DIR}/lib NO_DEFAULT_PATH)
-    FIND_LIBRARY(FLTK_FORMS_LIBRARY  NAMES fltkforms  fltkformsd  fltk_forms  PATHS ${FLTK_DIR}/lib NO_DEFAULT_PATH)
-    FIND_LIBRARY(FLTK_IMAGES_LIBRARY NAMES fltkimages fltkimagesd fltk_images PATHS ${FLTK_DIR}/lib NO_DEFAULT_PATH)
+    FIND_LIBRARY(FLTK_BASE_LIBRARY   NAMES fltk       fltkd                   PATHS ${FLTK_DIR}/lib ${FLTK_DIR}/lib/Release ${FLTK_DIR}/lib/Debug NO_DEFAULT_PATH)
+    FIND_LIBRARY(FLTK_GL_LIBRARY     NAMES fltkgl     fltkgld     fltk_gl     PATHS ${FLTK_DIR}/lib ${FLTK_DIR}/lib/Release ${FLTK_DIR}/lib/Debug NO_DEFAULT_PATH)
+    FIND_LIBRARY(FLTK_FORMS_LIBRARY  NAMES fltkforms  fltkformsd  fltk_forms  PATHS ${FLTK_DIR}/lib ${FLTK_DIR}/lib/Release ${FLTK_DIR}/lib/Debug NO_DEFAULT_PATH)
+    FIND_LIBRARY(FLTK_IMAGES_LIBRARY NAMES fltkimages fltkimagesd fltk_images PATHS ${FLTK_DIR}/lib ${FLTK_DIR}/lib/Release ${FLTK_DIR}/lib/Debug NO_DEFAULT_PATH)
 
     # extra libraries needed by the fltk_images library
     IF(UNIX AND FLTK_CONFIG_SCRIPT)
@@ -194,13 +213,13 @@ ENDIF(FLTK_DIR)
 
 # Determine whether all required files were found.
 SET(FLTK_FOUND 1)
-FOREACH(_FLTK_var FLTK_INCLUDE_DIR FLTK_BASE_LIBRARY FLTK_GL_LIBRARY FLTK_FORMS_LIBRARY FLTK_IMAGES_LIBRARY)
-  IF(NOT ${_FLTK_var})
+SET(_FLTK_MISSING_VARS)
+FOREACH(_FLTK_VAR IN ITEMS FLTK_INCLUDE_DIR FLTK_BASE_LIBRARY FLTK_GL_LIBRARY FLTK_FORMS_LIBRARY FLTK_IMAGES_LIBRARY)
+  IF(NOT ${_FLTK_VAR})
     SET(FLTK_FOUND 0)
-    BREAK()
-  ENDIF(NOT ${_FLTK_var})
-ENDFOREACH(_FLTK_var)
-UNSET(_FLTK_var)
+    LIST(APPEND _FLTK_MISSING_VARS ${_FLTK_VAR})
+  ENDIF(NOT ${_FLTK_VAR})
+ENDFOREACH(_FLTK_VAR)
 
 # Set uncached variables, in particular, FLTK_LIBRARIES list.
 IF(FLTK_FOUND)
@@ -228,16 +247,23 @@ IF(FLTK_FOUND)
 ENDIF(FLTK_FOUND)
 
 # Mark cache entries set by this module as advanced (except of the FLTK_DIR).
-MARK_AS_ADVANCED(
-  FLTK_CONFIG_SCRIPT
-  FLTK_FLUID_EXECUTABLE
-  FLTK_INCLUDE_DIR
-  FLTK_LIBRARIES
-  FLTK_BASE_LIBRARY 
-  FLTK_GL_LIBRARY
-  FLTK_FORMS_LIBRARY
-  FLTK_IMAGES_LIBRARY
-)
+FOREACH(_FLTK_VAR IN ITEMS
+    FLTK_CONFIG_SCRIPT
+    FLTK_FLUID_EXECUTABLE
+    FLTK_INCLUDE_DIR
+    FLTK_BASE_LIBRARY 
+    FLTK_GL_LIBRARY
+    FLTK_FORMS_LIBRARY
+    FLTK_IMAGES_LIBRARY)
+  # hide all advanced variables if set or FLTK_DIR not specified yet
+  IF(${_FLTK_VAR} OR NOT FLTK_DIR)
+    MARK_AS_ADVANCED(FORCE ${_FLTK_VAR})
+  # otherwise, show advanced variable to the user so they are aware it has to be set
+  ELSE(${_FLTK_VAR} OR NOT FLTK_DIR)
+    MARK_AS_ADVANCED(CLEAR ${_FLTK_VAR})
+  ENDIF(${_FLTK_VAR} OR NOT FLTK_DIR)
+ENDFOREACH(_FLTK_VAR)
+MARK_AS_ADVANCED(FLTK_LIBRARIES)
 
 # Handle standard arguments.
 IF(FLTK_FOUND)
@@ -246,7 +272,13 @@ IF(FLTK_FOUND)
   ENDIF(NOT FLTK_FIND_QUIETLY)
 ELSE(FLTK_FOUND)
   IF(FLTK_FIND_REQUIRED)
-    MESSAGE(FATAL_ERROR "Could NOT find FLTK!\nPlease set FLTK_DIR to the ${_FLTK_DIR_STRING}.")
+    IF(FLTK_DIR)
+      MESSAGE(FATAL_ERROR "Could NOT find FLTK! Please choose a proper FLTK_DIR by setting"
+                          " it to the ${_FLTK_DIR_STRING} or set the following"
+                          " variables:\n\t${_FLTK_MISSING_VARS}\n")
+    ELSE(FLTK_DIR)
+      MESSAGE(FATAL_ERROR "Could NOT find FLTK!\nPlease set FLTK_DIR to the ${_FLTK_DIR_STRING}.")
+    ENDIF(FLTK_DIR)
   ELSE(FLTK_FIND_REQUIRED)
     IF(NOT FLTK_FIND_QUIETLY)
       MESSAGE( STATUS "Looking for FLTK -- not found" )
@@ -255,5 +287,7 @@ ELSE(FLTK_FOUND)
 ENDIF(FLTK_FOUND)
 
 # Unset private variables.
+UNSET(_FLTK_VAR)
 UNSET(_FLTK_DIR_STRING)
 UNSET(_FLTK_PLATFORM_DEPENDENT_LIBRARIES)
+UNSET(_FLTK_MISSING_VARS)
