@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <irtkRegistration2.h>
 
 #include <irtkResamplingWithPadding.h>
@@ -21,7 +15,8 @@
 
 #define MAX_NO_LINE_ITERATIONS 20
 
-extern irtkGreyImage **tmp_target, *tmp_source;
+irtkGreyImage **tmp_ttarget;
+extern irtkGreyImage *tmp_source;
 
 inline double GetBasisSplineValue(double x)
 {
@@ -179,12 +174,12 @@ void irtkTemporalImageRegistration::Initialize(int level)
 	cout << "done" << endl;
   }
 
-  tmp_target = new irtkGreyImage *[_N_target];
+  tmp_ttarget = new irtkGreyImage *[_N_target];
   for (n = 0; n < _N_target; n++) {
 	// Copy target to temp space
-	tmp_target[n] = new irtkGreyImage(*_target[n]);
+	tmp_ttarget[n] = new irtkGreyImage(*_target[n]);
 	// Swap target with temp space copies
-	swap(tmp_target[n], _target[n]);
+	swap(tmp_ttarget[n], _target[n]);
   }
 
   _target_max = MIN_GREY;
@@ -427,16 +422,16 @@ void irtkTemporalImageRegistration::Finalize(int level)
 
   // Swap source, target and time array back with temp space copies (see Initialize)
   for (i = 0; i < _N_target; i++) {
-    swap(tmp_target[i], _target[i]);
+    swap(tmp_ttarget[i], _target[i]);
   }
   swap(tmp_source, _source);
 
   for (i = 0; i < _N_target; i++) {
-    delete tmp_target[i];
-    tmp_target[i] = NULL;
+    delete tmp_ttarget[i];
+    tmp_ttarget[i] = NULL;
   }
-  delete [] tmp_target;
-  tmp_target = NULL;
+  delete [] tmp_ttarget;
+  tmp_ttarget = NULL;
   delete tmp_source;
   tmp_source = NULL;
   delete _interpolator;

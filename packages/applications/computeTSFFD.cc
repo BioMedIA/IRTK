@@ -14,7 +14,7 @@
 
 void usage()
 {
-  cerr << "Usage: computeTFFD [source] [N] [target] [t_real] <options> \n" << endl;
+  cerr << "Usage: computeTSFFD [source] [N] [target] [t_real] <options> \n" << endl;
   cerr << "takes in a reference image [source] and [N] [target] images with \n" << endl;
   cerr << "a text file [t_real] containing the time points of the target image\n" << endl;
   cerr << "whith <options> is one or more of the following:\n" << endl;
@@ -41,10 +41,8 @@ void usage()
   cerr << "<-Sy2 value>         Region of interest in source image" << endl;
   cerr << "<-Sz2 value>         Region of interest in source image" << endl;
   cerr << "<-Tp  value>         Padding value in target image" << endl;
-  cerr << "<-ds  value>         Initial control point spacing" << endl;
-  cerr << "<-dsT value>         Initial temporal control point spacing" << endl;
   cerr << "<-Sp  value>         Smoothness preservation value" << endl;
-  cerr << "<-Gn  value>         Gradient normalize value" << endl;
+  cerr << "<-Sm  value>         Sparsity Constraint value" << endl;
   cerr << "<-debug>             Enable debugging information" << endl;
   cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
   cerr << "                     must have the same dimensions as the target." << endl;
@@ -57,7 +55,6 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  double spacing, spacingT;
   int ok, padding, mask_dilation = 0;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
@@ -142,16 +139,14 @@ int main(int argc, char **argv)
   gn = 0;
 
   // Create registration filter
-  irtkImageTFFDRegistration *registration = NULL;
-  registration = new irtkImageTFFDRegistration;
+  irtkImageTSFFDRegistration *registration = NULL;
+  registration = new irtkImageTSFFDRegistration;
 
   // Create initial multi-level free-form deformation
   irtkMultiLevelFreeFormTransformation *mffd = NULL;
 
   // Default parameters
   padding   = MIN_GREY;
-  spacing   = 0;
-  spacingT   = 0;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -330,22 +325,6 @@ int main(int argc, char **argv)
       ok = true;
       registration->SetDebugFlag(true);
     }
-    if ((ok == false) && (strcmp(argv[1], "-ds") == 0)) {
-      argc--;
-      argv++;
-      spacing = atof(argv[1]);
-      argc--;
-      argv++;
-      ok = true;
-    }
-    if ((ok == false) && (strcmp(argv[1], "-dsT") == 0)) {
-	  argc--;
-	  argv++;
-	  spacingT = atof(argv[1]);
-	  argc--;
-	  argv++;
-	  ok = true;
-	}
     if ((ok == false) && (strcmp(argv[1], "-Sp") == 0)) {
         argc--;
         argv++;
@@ -354,7 +333,7 @@ int main(int argc, char **argv)
         argv++;
         ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-Gn") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-Sm") == 0)) {
         argc--;
         argv++;
         gn = atof(argv[1]);
@@ -535,13 +514,6 @@ int main(int argc, char **argv)
   if (padding != MIN_GREY) {
     registration->SetTargetPadding(padding);
   }
-  if (spacing > 0) {
-    registration->SetDX(spacing);
-    registration->SetDY(spacing);
-    registration->SetDZ(spacing);
-  }
-  if (spacingT > 0)
-	registration->SetDT(spacingT);
 
   // Write parameters if necessary
   if (parout_name != NULL) {

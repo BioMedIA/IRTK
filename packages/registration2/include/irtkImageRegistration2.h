@@ -257,5 +257,6 @@ inline void irtkImageRegistration2::Debug(string message)
 #include <irtkSparseFreeFormRegistration.h>
 #include <irtkTemporalImageRegistration.h>
 #include <irtkImageTFFDRegistration.h>
+#include <irtkImageTSFFDRegistration.h>
 
 #endif

@@ -9,6 +9,7 @@ SET(REGISTRATION2_INCLUDES
 ../include/irtkSparseFreeFormRegistration.h
 ../include/irtkTemporalImageRegistration.h
 ../include/irtkImageTFFDRegistration.h
+../include/irtkImageTSFFDRegistration.h
 )
 
 SET(REGISTRATION2_SRCS 
@@ -22,6 +23,7 @@ irtkImageRigidRegistration2.cc
 irtkSparseFreeFormRegistration.cc
 irtkTemporalImageRegistration.cc
 irtkImageTFFDRegistration.cc
+irtkImageTSFFDRegistration.cc
 )
 
 ADD_LIBRARY(registration2++ ${REGISTRATION2_INCLUDES} ${REGISTRATION2_SRCS})

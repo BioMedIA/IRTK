@@ -1,8 +1,14 @@
+/*=========================================================================
 
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id: irtkImageRegistration2.h 709 2012-11-20 16:47:48Z mj2111 $
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2009 onwards
+  Date      : $Date: 2012-11-20 16:47:48 +0000 (Tue, 20 Nov 2012) $
+  Version   : $Revision: 709 $
+  Changes   : $Author: mj2111 $
 
-
-
-
+=========================================================================*/
 
 #include <irtkRegistration2.h>
 
@@ -1195,6 +1201,7 @@ void irtkImageTFFDRegistration::NormalizeGradient(double *gradient)
       for (y = 0; y < _affd->GetY(); y++) {
 		for (x = 0; x < _affd->GetX(); x++) {
 		  for (t = 0; t < _affd->GetT(); t++) {
+            //weired to me
 			index  = (((0*_affd->GetT() + t)*_affd->GetZ() + z)*_affd->GetY() + y)*_affd->GetX() + x;
 			index1 = (((1*_affd->GetT() + t)*_affd->GetZ() + z)*_affd->GetY() + y)*_affd->GetX() + x;
 			index2 = (((2*_affd->GetT() + t)*_affd->GetZ() + z)*_affd->GetY() + y)*_affd->GetX() + x;

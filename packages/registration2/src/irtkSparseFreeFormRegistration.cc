@@ -45,7 +45,6 @@ irtkSparseFreeFormRegistration::irtkSparseFreeFormRegistration()
     _mffd = NULL;
     _affd = NULL;
     _mdffd = new irtkMultiLevelFreeFormTransformation;
-    _affd = NULL;
     _NumberOfModels = 0;
     _currentgradient = NULL;
     _tmp = NULL;
@@ -286,7 +285,7 @@ void irtkSparseFreeFormRegistration::Transformation2Image(){
     // Determine attributes of source image
     irtkImageAttributes attr = _target->GetImageAttributes();
 
-    // Set up gradient of similarity metric
+    // Set up _currentgradient of similarity metric
     attr._t = 3;
     _similarityGradient.Initialize(attr);
 
@@ -577,7 +576,7 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
 
         for (int j = 0; j < _NumberOfModels; j++){
             _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
-            // Move along _gradient direction
+            // Move along __currentgradient direction
             for (int k = 0; k < _affd->NumberOfDOFs(); k++) {
                 if(_affd->GetStatus(k) == Active){
                     count ++;
@@ -596,7 +595,7 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
             cout << "normalized sparsity penalty with respect to finite convergence property is:" << _Lambda3 << endl;
         }else{
             _Lambda3 = 0;
-            cout << "current gradient is 0!" << endl;
+            cout << "current _currentgradient is 0!" << endl;
         }
     }
 
@@ -678,24 +677,24 @@ void irtkSparseFreeFormRegistration::SmoothnessPenaltyGradient()
         }
 
         // Allocate memory
-        double *tmp_gradient = new double[_affd->NumberOfDOFs()];
+        double *tmp__currentgradient = new double[_affd->NumberOfDOFs()];
 
         // and initialize memory
         for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-            tmp_gradient[i] = 0.0;
+            tmp__currentgradient[i] = 0.0;
         }
 
-        // Compute gradient of smoothness term
-        _affd->BendingGradient(tmp_gradient);
+        // Compute _currentgradient of smoothness term
+        _affd->BendingGradient(tmp__currentgradient);
 
-        // Add gradient to existing gradient
+        // Add _currentgradient to existing _currentgradient
         for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-            _currentgradient[index] += this->_Lambda1 * tmp_gradient[i] * norm;
+            _currentgradient[index] += this->_Lambda1 * tmp__currentgradient[i] * norm;
             index++;
         }
 
         // Free memory
-        delete []tmp_gradient;
+        delete []tmp__currentgradient;
     }
 }
 
@@ -729,7 +728,7 @@ void irtkSparseFreeFormRegistration::SparsePenaltyGradient()
 
     double sparsity;
 
-    // Sparsity gradient
+    // Sparsity _currentgradient
     index = 0;
     for (t = 0; t < _NumberOfModels; t++){
         _affd = (irtkBSplineFreeFormTransformation *)_mffd->GetLocalTransformation(t);
@@ -817,6 +816,12 @@ void irtkSparseFreeFormRegistration::ParametricGradient()
 
     cout << "Evaluation of similarity gradient" << endl;
 
+    /*if (_affd->GetZ() == 1) {
+    this->EvaluateGradient2D();
+    } else {
+    this->EvaluateGradient3D();
+    }*/
+
     // approximate start point
     int i,j,k,t,index,numberofpoints;
     double *x_pos,*y_pos,*z_pos,*x_dis,*y_dis,*z_dis;
@@ -870,6 +875,137 @@ void irtkSparseFreeFormRegistration::ParametricGradient()
     delete []x_dis;
     delete []y_dis;
     delete []z_dis;
+}
+
+void irtkSparseFreeFormRegistration::EvaluateGradient2D()
+{
+    double basis, pos[3];
+    int i, j, m, i1, i2, j1, j2, k1, k2, x, y, index, index2, index3, globaloffset;
+
+    globaloffset = 0;
+    for (m = 0; m < _NumberOfModels; m++){
+        _affd = (irtkBSplineFreeFormTransformation *)_mffd->GetLocalTransformation(m);
+        // Initialize _currentgradient to zero
+        for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+            _currentgradient[i+globaloffset] = 0;
+        }
+
+        // Loop over control points
+        for (y = 0; y < _affd->GetY(); y++) {
+            for (x = 0; x < _affd->GetX(); x++) {
+
+                // Compute DoFs corresponding to the control point
+                index  = _affd->LatticeToIndex(x, y, 0);
+                index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+                index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
+
+                // Check if any DoF corresponding to the control point is active
+                if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
+
+                    // If so, calculate bounding box of control point in image coordinates
+                    _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
+
+                    // Loop over all voxels in the target (reference) volume
+                    for (j = j1; j <= j2; j++) {
+                        for (i = i1; i <= i2; i++) {
+
+                            // Check whether reference point is valid
+                            if ((_target->Get(i, j, 0) >= 0) && (_transformedSource(i, j, 0) >= 0)) {
+
+                                // Convert position from voxel coordinates to world coordinates
+                                pos[0] = i;
+                                pos[1] = j;
+                                pos[2] = 0;
+                                _target->ImageToWorld(pos[0], pos[1], pos[2]);
+
+                                // Convert world coordinates into lattice coordinates
+                                _affd->WorldToLattice(pos[0], pos[1], pos[2]);
+
+                                // Compute B-spline tensor product at pos
+                                basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y);
+
+                                // Convert voxel-based _currentgradient into _currentgradient with respect to parameters (chain rule)
+                                //
+                                // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
+                                //
+                                _currentgradient[index + globaloffset]  += basis * _similarityGradient(i, j, 0, 0);
+                                _currentgradient[index2 + globaloffset] += basis * _similarityGradient(i, j, 0, 1);
+                                _currentgradient[index3 + globaloffset] += 0;
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+        globaloffset += _affd->NumberOfDOFs();
+    }
+}
+
+void irtkSparseFreeFormRegistration::EvaluateGradient3D()
+{
+    double basis, pos[3];
+    int i, j, k, m, i1, i2, j1, j2, k1, k2, x, y, z, index, index2, index3, globaloffset;
+    globaloffset = 0;
+    for (m = 0; m < _NumberOfModels; m++){
+        _affd = (irtkBSplineFreeFormTransformation *)_mffd->GetLocalTransformation(m);
+        // Initialize _currentgradient to zero
+        for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+            _currentgradient[i+globaloffset] = 0;
+        }
+
+        // Loop over control points
+        for (z = 0; z < _affd->GetZ(); z++) {
+            for (y = 0; y < _affd->GetY(); y++) {
+                for (x = 0; x < _affd->GetX(); x++) {
+
+                    // Compute DoFs corresponding to the control point
+                    index  = _affd->LatticeToIndex(x, y, z);
+                    index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+                    index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
+
+                    // Check if any DoF corresponding to the control point is active
+                    if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
+
+                        // If so, calculate bounding box of control point in image coordinates
+                        _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1);
+
+                        // Loop over all voxels in the target (reference) volume
+                        //
+                        // NOTE: This currently assumes that the control point lattice is aligned with the target image
+                        //
+                        for (k = k1; k <= k2; k++) {
+                            for (j = j1; j <= j2; j++) {
+                                for (i = i1; i <= i2; i++) {
+                                    // Check whether reference point is valid
+                                    if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
+                                        pos[0] = i;
+                                        pos[1] = j;
+                                        pos[2] = k;
+                                        _target->ImageToWorld(pos[0], pos[1], pos[2]);
+
+                                        // Convert world coordinates into lattice coordinates
+                                        _affd->WorldToLattice(pos[0], pos[1], pos[2]);
+                                        // Compute B-spline tensor product at current position
+                                        basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+
+                                        // Convert voxel-based _currentgradient into _currentgradient with respect to parameters (chain rule)
+                                        //
+                                        // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
+                                        //
+                                        _currentgradient[index+globaloffset]  += basis * _similarityGradient(i, j, k, 0);
+                                        _currentgradient[index2+globaloffset] += basis * _similarityGradient(i, j, k, 1);
+                                        _currentgradient[index3+globaloffset] += basis * _similarityGradient(i, j, k, 2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        globaloffset += _affd->NumberOfDOFs();
+    }
 }
 
 void irtkSparseFreeFormRegistration::Update(bool updateGradient)
@@ -1069,7 +1205,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
                                 ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
                                 _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
 
-                                // Linear interpolation in gradient image
+                                // Linear interpolation in _currentgradient image
                                 ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 0);
                                 _transformedSourceGradient(i, j, 0, 0) = t1 * (u2 * ptr2[offset2] + u1 * ptr2[offset4]) + t2 * (u2 * ptr2[offset1] + u1 * ptr2[offset3]);
                                 ptr2 = _sourceGradient.GetPointerToVoxels(a, b, 0, 1);
@@ -1079,7 +1215,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
                                 // Interpolation in source image
                                 _transformedSource(i, j, 0) = _interpolator->Evaluate(x, y, 0);
 
-                                // Interpolation in gradient image
+                                // Interpolation in _currentgradient image
                                 _transformedSourceGradient(i, j, 0, 0) = _interpolatorGradient->Evaluate(x, y, 0, 0);
                                 _transformedSourceGradient(i, j, 0, 1) = _interpolatorGradient->Evaluate(x, y, 0, 1);
                             }
@@ -1134,7 +1270,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
                                         t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
                                         u1 * (v2 * ptr1[offset3] + v1 * ptr1[offset7])));
 
-                                    // Linear interpolation in gradient image
+                                    // Linear interpolation in _currentgradient image
                                     ptr2 = _sourceGradient.GetPointerToVoxels(a, b, c, 0);
                                     _transformedSourceGradient(i, j, k, 0) = (t1 * (u2 * (v2 * ptr2[offset2] + v1 * ptr2[offset6]) +
                                         u1 * (v2 * ptr2[offset4] + v1 * ptr2[offset8])) +
@@ -1155,7 +1291,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
                                     // Interpolation in source image
                                     _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
 
-                                    // Interpolation in gradient image
+                                    // Interpolation in _currentgradient image
                                     _transformedSourceGradient(i, j, k, 0) = _interpolatorGradient->Evaluate(x, y, z, 0);
                                     _transformedSourceGradient(i, j, k, 1) = _interpolatorGradient->Evaluate(x, y, z, 1);
                                     _transformedSourceGradient(i, j, k, 2) = _interpolatorGradient->Evaluate(x, y, z, 2);
@@ -1246,7 +1382,7 @@ double irtkSparseFreeFormRegistration::EvaluateGradient(double *gradient)
     if(_DebugFlag){
         _target->Write("target.nii.gz");
         _transformedSource.Write("source.nii.gz");
-        _transformedSourceGradient.Write("sourcegradient.nii.gz");
+        _transformedSourceGradient.Write("source_currentgradient.nii.gz");
     }
 
     this->ParametricGradient();
@@ -1399,7 +1535,7 @@ void irtkSparseFreeFormRegistration::Run()
                     int count = 0;
                     for (j = 0; j < _NumberOfModels; j++){
                         _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
-                        // Move along _gradient direction
+                        // Move along __currentgradient direction
                         for (k = 0; k < _affd->NumberOfDOFs(); k++) {
                             if(_affd->GetStatus(k) == Active){
                                 norm += fabs(_affd->Get(k));
@@ -1421,7 +1557,7 @@ void irtkSparseFreeFormRegistration::Run()
                     index = 0;
                     for (j = 0; j < _NumberOfModels; j++){
                         _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
-                        // Move along _gradient direction
+                        // Move along __currentgradient direction
                         for (k = 0; k < _affd->NumberOfDOFs(); k++) {
                             _tmp[index] = _affd->Get(k);
                             if(_currentgradient[index] != 0){

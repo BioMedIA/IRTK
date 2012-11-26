@@ -47,6 +47,9 @@ protected:
 
     int _NumberOfDofs;
 
+    /// Number of sparse model levels
+    int _NumberOfModels;
+
     /// Bending energy
     double _Lambda1;
 
@@ -73,9 +76,6 @@ protected:
 
     /// Registration mode
     irtkImageFreeFormRegistrationMode _Mode;
-
-    /// Number of sparse model levels
-    int _NumberOfModels;
 
     /// Initial set up for the registration
     virtual void Initialize();
@@ -134,6 +134,12 @@ protected:
 
     /// Evaluate the gradient of the similarity measure for the current transformation.
     virtual double EvaluateGradient(double *);
+
+    /// Evaluate the gradient of the similarity measure for the current transformation for 2D images
+    virtual void EvaluateGradient2D();
+
+    /// Evaluate the gradient of the similarity measure for the current transformation for 3D images
+    virtual void EvaluateGradient3D();
 
     /// Normalize similarity gradient
     virtual void NormalizeGradient();
