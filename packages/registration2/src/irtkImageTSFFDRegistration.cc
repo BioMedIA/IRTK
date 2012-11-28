@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Library   : Image Registration Toolkit (IRTK)
-Module    : $Id: irtkFreeFormTransformation3D.h 660 2012-08-20 17:22:48Z dr $
+Module    : $Id$
 Copyright : Imperial College, Department of Computing
 Visual Information Processing (VIP), 2008 onwards
-Date      : $Date: 2012-08-20 18:22:48 +0100 (Mon, 20 Aug 2012) $
-Version   : $Revision: 660 $
-Changes   : $Author: dr $
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
 =========================================================================*/
 
@@ -22,6 +22,8 @@ Changes   : $Author: dr $
 #define MAX_SSD 0
 #define MAX_NMI 2
 
+extern irtkGreyImage **tmp_ttarget, *tmp_source;
+
 irtkImageTSFFDRegistration::irtkImageTSFFDRegistration()
 {
     // Print debugging information
@@ -34,6 +36,7 @@ irtkImageTSFFDRegistration::irtkImageTSFFDRegistration()
     _Lambda1     = 0;
     _Lambda2     = 0;
     _Lambda3     = 0;
+    _Lambda3off  = true;
     _LargestSpacing = 512;
     _FinestSpacing = 1;
     _Mode        = RegisterXYZ;
@@ -117,7 +120,7 @@ void irtkImageTSFFDRegistration::GuessParameter()
 
     // Default parameters for non-rigid registration
     _Lambda1            = 0.0001;
-    _Lambda3            = 0.04;
+    _Lambda3            = 0.01;
     _LargestSpacing     = 512;
     _FinestSpacing      = 1;
 
@@ -149,6 +152,15 @@ void irtkImageTSFFDRegistration::Initialize()
         exit(1);
     }
 
+    for(int i = 0; i < _N_target; i++){
+        if(_target[0]->GetX() != _target[i]->GetX() || 
+            _target[0]->GetY() != _target[i]->GetY() || 
+            _target[0]->GetZ() != _target[i]->GetZ()){
+                cout << "target image need to be the same image at different phase" << endl;
+                exit(1);
+        }
+    }
+
     this->InitializeTransformation();
 
     if(_SimilarityMeasure == SSD){
@@ -176,7 +188,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
     int i,j,k,t;
     double dx,dy,dz,dt,tdx,tdy,tdz,tdt,odx,ody,odz,odt,interval;
 
-    interval = 0.5/(this->_N_target+1.0);
+    interval = 0.25/(this->_N_target);
 
     dx = _source->GetXSize()*_LargestSpacing;
     dy = _source->GetYSize()*_LargestSpacing;
@@ -292,6 +304,37 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
     }
 }
 
+void irtkImageTSFFDRegistration::InitializeCoordLut()
+{
+    int i, j, k, n;
+    double x, y, z, *ptr2latt;
+    // Allocate memory for lattice coordinates
+    _latticeCoordLUT = new double*[_NumberOfModels];
+
+    for (n = 0; n < _NumberOfModels; n++) {
+        _affd = (irtkBSplineFreeFormTransformationPeriodic *)_mffd->GetLocalTransformation(n);
+        _latticeCoordLUT[n] = new double[_target[0]->GetNumberOfVoxels() * 3];
+
+        ptr2latt = _latticeCoordLUT[n];
+
+        for (k = 0; k < _target[0]->GetZ(); k++) {
+            for (j = 0; j < _target[0]->GetY(); j++) {
+                for (i = 0; i < _target[0]->GetX(); i++) {
+                    x = i;
+                    y = j;
+                    z = k;
+                    _target[0]->ImageToWorld(x, y, z);
+                    _affd->WorldToLattice(x, y, z);
+                    ptr2latt[0] = x;
+                    ptr2latt[1] = y;
+                    ptr2latt[2] = z;
+                    ptr2latt += 3;
+                }
+            }
+        }
+    }
+}
+
 void irtkImageTSFFDRegistration::InitilizeSparsityParmeter()
 {
     // Initialize lambda3
@@ -299,17 +342,25 @@ void irtkImageTSFFDRegistration::InitilizeSparsityParmeter()
         _Lambda3 = 0;
         this->Update(true);
         double norm;
-        int count;
-
-        this->Evaluate();
+        int count, i, j;;
 
         // Compute _currentgradient with respect to displacements
-        this->EvaluateGradient();
+        this->irtkTemporalImageRegistration::EvaluateGradient(&norm);
+
+        if (_affd->GetZ() == 1) {
+            this->EvaluateGradient2D();
+        } else {
+            this->EvaluateGradient3D();
+        }
+
+        if (this->_Lambda1 > 0) {
+            this->SmoothnessPenaltyGradient();
+        }
 
         norm = 0;
         count = 0;
 
-        for (int j = 0; j < _NumberOfModels; j++){
+        for (j = 0; j < _NumberOfModels; j++){
             _affd = (irtkBSplineFreeFormTransformationPeriodic*)_mffd->GetLocalTransformation(j);
             // Move along _gradient direction
             for (int k = 0; k < _affd->NumberOfDOFs(); k++) {
@@ -319,7 +370,7 @@ void irtkImageTSFFDRegistration::InitilizeSparsityParmeter()
             }
         }
 
-        for(int i = 0; i < _NumberOfDofs; i++){
+        for(i = 0; i < _NumberOfDofs; i++){
             norm += fabs(_currentgradient[i]);
         }
 
@@ -337,9 +388,6 @@ void irtkImageTSFFDRegistration::InitilizeSparsityParmeter()
 
 void irtkImageTSFFDRegistration::Initialize(int level)
 {
-    int i, j, k, l, n;
-    double x, y, z, t, *ptr2latt, *ptr2disp;
-
     // Print debugging information
     this->Debug("irtkImageTSFFDRegistration::Initialize(int)");
 
@@ -354,6 +402,8 @@ void irtkImageTSFFDRegistration::Initialize(int level)
     _currentgradient = new double[_NumberOfDofs];
     _tmp = new double[_NumberOfDofs];
     _mask = new bool[_NumberOfDofs];
+
+    this->InitializeCoordLut();
 
     this->InitilizeSparsityParmeter();
 }
@@ -395,6 +445,14 @@ void irtkImageTSFFDRegistration::Finalize(int level)
         delete []_mask;
     }
     _mask = NULL;
+
+    if(_latticeCoordLUT != NULL){
+        for (int n = 0; n < _NumberOfModels; n++) {
+            delete []_latticeCoordLUT[n];
+        }
+        delete []_latticeCoordLUT;
+    }
+    _latticeCoordLUT = NULL;
 }
 
 double irtkImageTSFFDRegistration::SparsePenalty()
@@ -774,7 +832,7 @@ void irtkImageTSFFDRegistration::Update(bool updateGradient)
 
 double irtkImageTSFFDRegistration::SmoothnessPenalty()
 {
-    cerr << "irtkImageTSFFDRegistration::SmoothnessPenalty: Not implemented yet" << endl;
+    //cerr << "irtkImageTSFFDRegistration::SmoothnessPenalty: Not implemented yet" << endl;
     return 0;
     //exit(1);
 
@@ -788,7 +846,7 @@ double irtkImageTSFFDRegistration::SmoothnessPenalty()
 
 void irtkImageTSFFDRegistration::SmoothnessPenaltyGradient()
 {
-    cerr << "irtkImageTSFFDRegistration::SmoothnessPenaltyGradient: Not implemented yet" << endl;
+    //cerr << "irtkImageTSFFDRegistration::SmoothnessPenaltyGradient: Not implemented yet" << endl;
     return;
     //exit(1);
 
@@ -830,10 +888,10 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
     int i,j,k,t;
     double dx,dy,dz,dt,tdx,tdy,tdz,tdt,odx,ody,odz,odt,interval;
 
-    interval = 0.5/(this->_N_target+1.0);
+    interval = 0.25/(this->_N_target);
 
-    dx = _source->GetXSize()*_LargestSpacing;
-    dy = _source->GetYSize()*_LargestSpacing;
+    dx = tmp_source->GetXSize()*_LargestSpacing;
+    dy = tmp_source->GetYSize()*_LargestSpacing;
     if(_source->GetZ() > 1)
         dz = _source->GetZSize()*_LargestSpacing;
     else
@@ -903,7 +961,6 @@ double irtkImageTSFFDRegistration::Evaluate()
 
     // Evaluate similarity
     similarity = this->irtkTemporalImageRegistration::Evaluate();
-    cout << "Similarity = " << similarity << "\t";
 
     // Current derivative base
     _CurrentSimilarity = _MaxSimilarity - similarity;
@@ -920,11 +977,13 @@ double irtkImageTSFFDRegistration::Evaluate()
         similarity += tmp;
     }
 
-    if (this->_Lambda3 > 0 || !_Lambda3off) {
+    if (this->_Lambda3 > 0 && _Lambda3off == false) {
         tmp = this->_Lambda3*this->SparsePenalty();
         cout << " + Sparsity: " << tmp;
         similarity += tmp;
     }
+
+    cout << endl;
 
     //Return similarity measure + penalty terms
     return similarity;
@@ -1046,10 +1105,11 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
     int i, j, k, n, m, i1, i2, j1, j2, k1, k2, x, y, z, t, index,index1, index2, index3, globaloffset, offset;
     _Status stat[3];
     double dist, dist1, dist2;
-    double x1, y1, z1, x2, y2, z2, xi, yi, zi;
-    double pos[3];
+    double x1, y1, z1, x2, y2, z2;
 
     globaloffset = 0;
+
+    cout<<"irtkImageTSFFDRegistration::EvaluateGradient3D start"<<endl;
 
     for(m = 0; m < _NumberOfModels; m++){
         _affd = (irtkBSplineFreeFormTransformationPeriodic *)_mffd->GetLocalTransformation(m);
@@ -1059,17 +1119,14 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
         }
 
         offset = _affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
-        cout<<"irtkImageTSFFDRegistration::EvaluateGradient3D start"<<endl;
-        int bla = 0, blablub = _affd->NumberOfDOFs()/3;
-        cout<<bla<<"/"<<blablub<<";";
+        int blablub = offset;
+        cout<<"number of control points: "<<blablub<<";";
+        cout.flush();
         // Loop over control points
-        for (z = 0; z < _affd->GetZ(); z++) {
-            for (y = 0; y < _affd->GetY(); y++) {
-                for (x = 0; x < _affd->GetX(); x++) {
-                    for (t = 0; t < _affd->GetT(); t++) {
-                        cout<<"\r";
-                        cout<<bla<<"/"<<blablub<<";"; bla++;
-
+        for (t = 0; t < _affd->GetT(); t++) {
+            for (z = 0; z < _affd->GetZ(); z++) {
+                for (y = 0; y < _affd->GetY(); y++) {
+                    for (x = 0; x < _affd->GetX(); x++) {
                         // Get status of DoFs corresponding to the control point
                         _affd->GetStatusCP(x, y, z, t, stat[0], stat[1], stat[2]);
                         // Check if any DoF corresponding to the control point is active
@@ -1081,13 +1138,11 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
                             // t1, t2 not in lattice coordinates at the moment!!!!!!!
                             // spatial coordinates in world system
                             //		    _affd->BoundingBoxCP(index, x1, y1, z1, t1, x2, y2, z2, t2, 1.0);
+                            // t1, t2 not in lattice coordinates at the moment!!!!!!!
+                            _affd->BoundingBoxImage(_target[0], index, i1, j1, k1, i2, j2, k2, t1, t2, 1.0);
 
                             // loop over all target images
                             for (n = 0; n < _N_target; n++) {
-
-                                // t1, t2 not in lattice coordinates at the moment!!!!!!!
-                                _affd->BoundingBoxImage(_target[n], index, i1, j1, k1, i2, j2, k2, t1, t2, 1.0);
-
                                 // transform time point of current target image to lattice coordinates and check for periodicity
                                 tt = _t_real[n];
                                 // map time to relative time intervall [0,1]
@@ -1098,34 +1153,37 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
                                 tt = _affd->TimeToLattice(tt);
 
                                 // check whether time point of current target image is in temporal bounding box (check in lattice coord.)
-                                if (    ( (t1 >= 0) && (t2 < _affd->GetT()-1) &&  (tt >= t1) && (tt<=t2) )
-                                    || ( (t1 <  0) && 							( (tt <= t2) || (tt >= t1+_affd->GetT()-1) ) )
-                                    || ( (t2 >= _affd->GetT()-1) && 			    ( (tt >= t1) || (tt <= t2-_affd->GetT()+1) ) ) ) {
+                                if (( (t1 >= 0) 
+                                    && (t2 < _affd->GetT()-1) 
+                                    &&  (tt >= t1) 
+                                    && (tt<=t2) )
+                                    || ( (t1 <  0) 
+                                    && ( (tt <= t2) 
+                                    || (tt >= t1+_affd->GetT()-1) ) )
+                                    || ( (t2 >= _affd->GetT()-1) 
+                                    && ( (tt >= t1) 
+                                    || (tt <= t2-_affd->GetT()+1) ) ) ) {
 
                                         // Loop over all voxels in the target (reference) volume
                                         for (k = k1; k <= k2; k++) {
                                             for (j = j1; j <= j2; j++) {
+                                                ptr = &(_latticeCoordLUT[m]
+                                                [3 * (k * (_target[0]->GetX()*_target[0]->GetY())
+                                                    + j * _target[0]->GetX() + i1)]);
                                                 for (i = i1; i <= i2; i++) {
 
                                                     // Check whether reference point is valid
                                                     if ((_target[n]->Get(i, j, k) >= 0) && (_transformedSource[n](i, j, k) >= 0)) {
 
-                                                        // Convert world coordinates into lattice coordinates
-                                                        pos[0] = i;
-                                                        pos[1] = j;
-                                                        pos[2] = k;
-                                                        _target[n]->ImageToWorld(pos[0], pos[1], pos[2]);
-                                                        _affd->WorldToLattice(pos[0], pos[1], pos[2]);
-
-                                                        // Compute B-spline tensor product at pos
-                                                        basis = _affd->B(pos[0] - x) * _affd->B(pos[1] - y) * _affd->B(pos[2] - z);
+                                                        // Compute B-spline tensor product at current position
+                                                        basis = _affd->B(ptr[0] - x) * _affd->B(ptr[1] - y) * _affd->B(ptr[2] - z);
                                                         // with time:
                                                         dist1 = tt - t;
                                                         dist2 = (dist1<0) ? ((tt - _affd->GetT()+1) - t) : ((tt + _affd->GetT()-1) - t);
                                                         dist = (abs(dist1)<abs(dist2)) ? dist1 : dist2;
                                                         basis *= _affd->B(dist);
 
-                                                        index1 = _affd->LatticeToIndex(x,y,z,t) + globaloffset;
+                                                        index1 = index + globaloffset;
                                                         index2 = index1 + offset;
                                                         index3 = index2 + offset;
                                                         // Convert voxel-based _currentgradient into _currentgradient with respect to parameters (chain rule)
@@ -1134,6 +1192,7 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
                                                         _currentgradient[index2] += basis * _similarityGradient[n](i, j, k, 1);
                                                         _currentgradient[index3] += basis * _similarityGradient[n](i, j, k, 2);
                                                     }
+                                                    ptr += 3;
                                                 }
                                             }
                                         }
@@ -1145,8 +1204,8 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
             }
         }
         globaloffset += _affd->NumberOfDOFs();
+        cout<<endl;
     }
-    cout<<endl;
 
     cout<<"irtkImageTSFFDRegistration::EvaluateGradient3D end"<<endl;
 }
@@ -1162,12 +1221,7 @@ void irtkImageTSFFDRegistration::NormalizeGradient()
         _affd = (irtkBSplineFreeFormTransformationPeriodic *)_mffd->GetLocalTransformation(m);
         offset = _affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
 
-        // Compute normalization factor
-        if (_affd->GetZ() == 1) {
-            spacingnorm = (double(_source->GetNumberOfVoxels()) / double(_affd->GetX()*_affd->GetY()));
-        } else {
-            spacingnorm = (double(_source->GetNumberOfVoxels()) / double(_affd->GetX()*_affd->GetY()*_affd->GetZ()));
-        }
+        spacingnorm = (double(_source->GetNumberOfVoxels()*_N_target) / double(offset));
 
         // approximate using a b spline model.
         for (t = 0; t < _affd->GetT(); t++){
@@ -1201,10 +1255,10 @@ double irtkImageTSFFDRegistration::EvaluateGradient()
 {
     double norm, max_length;
     int i, x, y, z, t, index, index2, index3;
-    static double *g = NULL, *h = NULL, gg, dgg, gamma;
+    double gg, dgg, gamma;
 
     // Compute _currentgradient with respect to displacements
-    this->irtkTemporalImageRegistration::EvaluateGradient(_currentgradient);
+    this->irtkTemporalImageRegistration::EvaluateGradient(&norm);
 
     // Start timing
     clock_t start, end;
@@ -1221,7 +1275,7 @@ double irtkImageTSFFDRegistration::EvaluateGradient()
         this->SmoothnessPenaltyGradient();
     }
 
-    if(_Lambda3 > 0 || !_Lambda3off){
+    if(_Lambda3 > 0  && _Lambda3off == false){
         this->SparsePenaltyGradient();
     }
 
@@ -1265,7 +1319,7 @@ double irtkImageTSFFDRegistration::EvaluateGradient()
                     for (x = 0; x < _affd->GetX(); x++) {
                         index  = m+_affd->LatticeToIndex(x, y, z, t);
                         index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
-                        index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
+                        index3 = index2+_affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
                         norm = sqrt(_currentgradient[index] * _currentgradient[index] 
                         + _currentgradient[index2] * _currentgradient[index2] 
                         + _currentgradient[index3] * _currentgradient[index3]);
@@ -1329,7 +1383,7 @@ void irtkImageTSFFDRegistration::Run()
 
         // Initialize for this level
         this->Initialize(_CurrentLevel);
-        cout<<"Initialize("<<_CurrentLevel<<") done";
+        cout<<"Initialize("<<_CurrentLevel<<") done"<<endl;
 
         // Save pre-processed images if we are debugging
         //    _DebugFlag = true;
@@ -1340,9 +1394,6 @@ void irtkImageTSFFDRegistration::Run()
             if (_DebugFlag == true) _target[n]->Write(buffer);
         }
         _DebugFlag = false;
-
-        // Allocate memory for _currentgradient vector
-        _currentgradient = new double[_affd->NumberOfDOFs()];
 
         // Run the registration filter at this resolution
         _CurrentIteration = 0;
@@ -1404,7 +1455,7 @@ void irtkImageTSFFDRegistration::Run()
                         if(_currentgradient[index] != 0){
                             _affd->Put(k, _affd->Get(k) + current *  _currentgradient[index]);
                             //sign changed
-                            if(_mask[index] == true && _tmp[index] * _affd->Get(k) < 0)
+                            if(_mask[index] == true && _tmp[index] * _affd->Get(k) <= 0)
                                 _affd->Put(k,0);
                         }
                         index++;
@@ -1414,10 +1465,16 @@ void irtkImageTSFFDRegistration::Run()
                 // We have just changed the transformation parameters, so we need to update
                 this->Update(false);
 
+                cout << "Current metric value is ";
+
+                new_similarity = this->Evaluate();
+
                 if (new_similarity < best_similarity - _Epsilon) {
                     cout << " = " << new_similarity << " accepted; step = " << step << endl;
                     best_similarity = new_similarity;
                     delta += step;
+
+                    _Lambda3off = false;
 
                     step = step * 1.1;
                 } else {
@@ -1446,9 +1503,6 @@ void irtkImageTSFFDRegistration::Run()
             // Check for convergence
             if (delta == 0) break;
         }
-
-        // Delete _currentgradient
-        delete _currentgradient;
 
         // Do the final cleaning up for this level
         this->Finalize(_CurrentLevel);

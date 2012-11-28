@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: irtkFreeFormTransformation3D.h 660 2012-08-20 17:22:48Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2012-08-20 18:22:48 +0100 (Mon, 20 Aug 2012) $
-  Version   : $Revision: 660 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 
@@ -15,7 +15,7 @@
 void usage()
 {
   cerr << "Usage: computeTSFFD [source] [N] [target] [t_real] <options> \n" << endl;
-  cerr << "takes in a reference image [source] and [N] [target] images with \n" << endl;
+  cerr << "takes in a reference image [source] and [N] [target] images start from time !0! with \n" << endl;
   cerr << "a text file [t_real] containing the time points of the target image\n" << endl;
   cerr << "whith <options> is one or more of the following:\n" << endl;
   cerr << "<-parin file>        Read parameter from file" << endl;
@@ -114,7 +114,10 @@ int main(int argc, char **argv)
 	    char * line = new char[STRING.size()];
 	    for (int j=0; j<STRING.size(); j++) line[j] = STRING[j];
 	    t_real[n] = atof(line);
-	  }
+      }else{
+          cerr << "not enough time lines, use line break between tiem points" << endl;
+          exit(1);
+      }
     }
   } else {
 	cerr<<"coudn't open time file "<<timeFile_name<<endl;

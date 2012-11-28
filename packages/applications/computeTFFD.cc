@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: irtkFreeFormTransformation3D.h 660 2012-08-20 17:22:48Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2012-08-20 18:22:48 +0100 (Mon, 20 Aug 2012) $
-  Version   : $Revision: 660 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

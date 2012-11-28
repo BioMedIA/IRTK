@@ -1,18 +1,14 @@
-
-
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: irtkFreeFormTransformation3D.h 660 2012-08-20 17:22:48Z dr $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2012-08-20 18:22:48 +0100 (Mon, 20 Aug 2012) $
-  Version   : $Revision: 660 $
-  Changes   : $Author: dr $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
-
-
 
 #ifndef _IRTKIMAGETSFFDREGISTRATION_H
 
@@ -40,6 +36,9 @@ protected:
 
   /// variable for periodic transformation
   int _periodic;
+
+  /// Pointer to lattice coordinates for every voxel
+  double **_latticeCoordLUT;
 
   /// current gradient
   double *_currentgradient;
@@ -119,6 +118,9 @@ protected:
 
   /** Evaluates the gradient of the sparse term. */
   virtual void SparsePenaltyGradient();
+
+  /** Initialize the coordinate local cache */
+  virtual void InitializeCoordLut();
 
   /** Initialize sparsity parameter with zero convergence */
   virtual void InitilizeSparsityParmeter();

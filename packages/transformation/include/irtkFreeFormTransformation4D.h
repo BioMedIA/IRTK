@@ -276,7 +276,7 @@ inline double irtkFreeFormTransformation4D::Get(int index) const
     k = index%(_z*_y*_x)/(_y*_x);
     j = index%(_z*_y*_x)%(_y*_x)/_x;
     i = index%(_z*_y*_x)%(_y*_x)%_x;
-    cout << "x = " << i << " " << j << " " << k << " " << l << endl;
+    //cout << "x = " << i << " " << j << " " << k << " " << l << endl;
 
     return _xdata[l][k][j][i];
   } else if (index < 2*_x*_y*_z*_t) {
@@ -286,7 +286,7 @@ inline double irtkFreeFormTransformation4D::Get(int index) const
     k = index%(_z*_y*_x)/(_y*_x);
     j = index%(_z*_y*_x)%(_y*_x)/_x;
     i = index%(_z*_y*_x)%(_y*_x)%_x;
-    cout << "y  = " << i << " " << j << " " << k << " " << l << endl;
+    //cout << "y  = " << i << " " << j << " " << k << " " << l << endl;
 
     return _ydata[l][k][j][i];
   } else {
@@ -296,7 +296,7 @@ inline double irtkFreeFormTransformation4D::Get(int index) const
     k = index%(_z*_y*_x)/(_y*_x);
     j = index%(_z*_y*_x)%(_y*_x)/_x;
     i = index%(_z*_y*_x)%(_y*_x)%_x;
-    cout << "z = " << i << " " << j << " " << k << " " << l << endl;
+    //cout << "z = " << i << " " << j << " " << k << " " << l << endl;
 
     return _zdata[l][k][j][i];
   }

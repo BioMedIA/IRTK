@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: ptransformation.cc 339 2011-06-06 21:54:45Z ws207 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 2011-06-06 22:54:45 +0100 (Mon, 06 Jun 2011) $
-  Version   : $Revision: 339 $
-  Changes   : $Author: ws207 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

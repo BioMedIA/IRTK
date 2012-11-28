@@ -1535,7 +1535,7 @@ void irtkSparseFreeFormRegistration::Run()
                     int count = 0;
                     for (j = 0; j < _NumberOfModels; j++){
                         _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
-                        // Move along __currentgradient direction
+                        // average of dof
                         for (k = 0; k < _affd->NumberOfDOFs(); k++) {
                             if(_affd->GetStatus(k) == Active){
                                 norm += fabs(_affd->Get(k));
@@ -1557,13 +1557,13 @@ void irtkSparseFreeFormRegistration::Run()
                     index = 0;
                     for (j = 0; j < _NumberOfModels; j++){
                         _affd = (irtkBSplineFreeFormTransformation*)_mffd->GetLocalTransformation(j);
-                        // Move along __currentgradient direction
+                        // Move along gradient direction
                         for (k = 0; k < _affd->NumberOfDOFs(); k++) {
                             _tmp[index] = _affd->Get(k);
                             if(_currentgradient[index] != 0){
                                 _affd->Put(k, _affd->Get(k) + current *  _currentgradient[index]);
                                 //sign changed
-                                if(_mask[index] == true && _tmp[index] * _affd->Get(k) < 0)
+                                if(_mask[index] == true && _tmp[index] * _affd->Get(k) <= 0)
                                     _affd->Put(k,0);
                             }
                             index++;

@@ -38,7 +38,8 @@ irtkFileToImage::~irtkFileToImage()
   _reflectZ = false;
   _debug = true;
   _start = 0;
-  if (_imagename != NULL) free(_imagename);
+  if (_imagename != NULL) 
+      _imagename = NULL;
 }
 
 irtkFileToImage *irtkFileToImage::New(const char *imagename)
@@ -120,11 +121,8 @@ void irtkFileToImage::SetInput(const char *imagename)
   // Close old file
   this->Close();
 
-  // Delete old file name
-  if (_imagename != NULL) free(_imagename);
-
   // Copy new file name
-  _imagename = strdup(imagename);
+  _imagename = imagename;
 
   // Open new file for reading
   this->Open(_imagename);

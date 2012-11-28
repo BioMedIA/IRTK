@@ -28,7 +28,7 @@ class irtkFileToImage : protected irtkCifstream
 {
 
   /// File name of image file
-  char *_imagename;
+  const char *_imagename;
 
 protected:
 
