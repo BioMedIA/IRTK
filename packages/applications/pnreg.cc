@@ -20,7 +20,7 @@ char *dofin_name  = NULL, *dofout_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: pareg [target] [source] <options>\n" << endl;
+  cerr << "Usage: pnreg [target] [source] <options>\n" << endl;
   cerr << "<-dofout file>       Final transformation estimate" << endl;
   cerr << "<-dofin  file>       Start transformation estimate" << endl;
   cerr << "<-ds spacing>        Control point spacing" << endl;

@@ -188,7 +188,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
     int i,j,k,t;
     double dx,dy,dz,dt,tdx,tdy,tdz,tdt,odx,ody,odz,odt,interval;
 
-    interval = 0.25/(this->_N_target);
+    interval = 0.5/(this->_N_target);
 
     dx = _source->GetXSize()*_LargestSpacing;
     dy = _source->GetYSize()*_LargestSpacing;
@@ -549,7 +549,7 @@ void irtkImageTSFFDRegistration::UpdateSource()
                         y = j;
                         z = 0;
                         _target[n]->ImageToWorld(x, y, z);
-                        _transformation->Transform(x, y, z);
+                        _mffd->Transform(x, y, z, _t_real[n]);
                         _source->WorldToImage(x, y, z);
 
                         // Check whether transformed point is inside volume
@@ -591,7 +591,7 @@ void irtkImageTSFFDRegistration::UpdateSource()
                             y = j;
                             z = k;
                             _target[n]->ImageToWorld(x, y, z);
-                            _transformation->Transform(x, y, z);
+                            _mffd->Transform(x, y, z, _t_real[n]);
                             _source->WorldToImage(x, y, z);
 
                             // Check whether transformed point is inside volume
@@ -683,7 +683,7 @@ void irtkImageTSFFDRegistration::UpdateSourceAndGradient()
                         y = j;
                         z = 0;
                         _target[n]->ImageToWorld(x, y, z);
-                        _transformation->Transform(x, y, z);
+                        _mffd->Transform(x, y, z, _t_real[n]);
                         _source->WorldToImage(x, y, z);
 
                         // Check whether transformed point is inside volume
@@ -740,7 +740,7 @@ void irtkImageTSFFDRegistration::UpdateSourceAndGradient()
                             y = j;
                             z = k;
                             _target[n]->ImageToWorld(x, y, z);
-                            _transformation->Transform(x, y, z);
+                            _mffd->Transform(x, y, z, _t_real[n]);
                             _source->WorldToImage(x, y, z);
 
                             // Check whether transformed point is inside volume
@@ -888,7 +888,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
     int i,j,k,t;
     double dx,dy,dz,dt,tdx,tdy,tdz,tdt,odx,ody,odz,odt,interval;
 
-    interval = 0.25/(this->_N_target);
+    interval = 0.5/(this->_N_target);
 
     dx = tmp_source->GetXSize()*_LargestSpacing;
     dy = tmp_source->GetYSize()*_LargestSpacing;
