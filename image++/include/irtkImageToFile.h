@@ -33,7 +33,7 @@ protected:
   irtkImage *_input;
 
   // Pointer to filename for output
-  char *_output;
+  const char *_output;
 
   /** Start address of the data in the image file. Should be
    *  initialized by calling Initialize().

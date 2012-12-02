@@ -27,8 +27,8 @@ irtkImageToFile::irtkImageToFile()
 irtkImageToFile::~irtkImageToFile()
 {
   _input  = NULL;
-  if (_output != NULL) free(_output);
-  _output = NULL;
+  if (_output != NULL)
+    _output = NULL;
   _start = 0;
 }
 
@@ -105,7 +105,7 @@ void irtkImageToFile::SetInput(irtkImage *image)
 void irtkImageToFile::SetOutput(const char *name)
 {
   if (name != NULL) {
-    _output = strdup(name);
+    _output = name;
   } else {
     cerr << this->NameOfClass() << "::SetInput: Output is not a filename\n";
     exit(1);

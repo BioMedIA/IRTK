@@ -132,8 +132,7 @@ void irtkImageTSFFDRegistration::GuessParameter()
     }
 
     _TargetPadding = MIN_GREY;
-    //TODO sourcepadding not set yet
-    //_SourcePadding = MIN_GREY;
+    _SourcePadding = MIN_GREY;
 }
 
 void irtkImageTSFFDRegistration::Initialize()
@@ -249,7 +248,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
 
                 _mffd->PushLocalTransformation(_affd);
                 // TODO Padding of FFD
-                // irtkPadding(*_source, this->_TargetPadding, _affd);
+                irtkPadding(_target, this->_TargetPadding, _affd, _N_target, _t_real);
                 // Register in the x-direction only
                 if (_Mode == RegisterX) {
                     for (t = 0; t < _affd->GetT(); t++){
@@ -360,13 +359,15 @@ void irtkImageTSFFDRegistration::InitilizeSparsityParmeter()
         norm = 0;
         count = 0;
 
+        i = 0;
         for (j = 0; j < _NumberOfModels; j++){
             _affd = (irtkBSplineFreeFormTransformationPeriodic*)_mffd->GetLocalTransformation(j);
             // Move along _gradient direction
             for (int k = 0; k < _affd->NumberOfDOFs(); k++) {
-                if(_affd->GetStatus(k) == Active){
+                if(_affd->GetStatus(k) == Active && fabs(_currentgradient[i]) > 0){
                     count ++;
                 }
+                i++;
             }
         }
 
@@ -375,7 +376,7 @@ void irtkImageTSFFDRegistration::InitilizeSparsityParmeter()
         }
 
         if(norm > 0){
-            cout << norm << " " << count ;
+            cout << norm << " " << count  << endl;
             norm = norm/count;
             _Lambda3 = norm*_Lambda2;
             cout << "normalized sparsity penalty with respect to finite convergence property is:" << _Lambda3 << endl;
@@ -832,53 +833,53 @@ void irtkImageTSFFDRegistration::Update(bool updateGradient)
 
 double irtkImageTSFFDRegistration::SmoothnessPenalty()
 {
-    //cerr << "irtkImageTSFFDRegistration::SmoothnessPenalty: Not implemented yet" << endl;
-    return 0;
-    //exit(1);
-
-    // TODO
-    //  if (_affd->GetZ() == 1) {
-    //    return -_affd->Bending() / double(2.0*_affd->GetX()*_affd->GetY());
-    //  } else {
-    //    return -_affd->Bending() / double(3.0*_affd->GetX()*_affd->GetY()*_affd->GetZ());
-    //  }
+    int i;
+    double penalty;
+    penalty = 0;
+    for(i = 0; i < _NumberOfModels; i++){
+        _affd = (irtkBSplineFreeFormTransformationPeriodic*)_mffd->GetLocalTransformation(i);
+        if (_affd->GetZ() == 1) {
+            penalty += _affd->Bending() / double(_affd->GetX()*_affd->GetY()*_affd->GetT());
+        } else {
+            penalty += _affd->Bending() / double(_affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT());
+        }
+    }
+    return penalty;
 }
 
 void irtkImageTSFFDRegistration::SmoothnessPenaltyGradient()
 {
-    //cerr << "irtkImageTSFFDRegistration::SmoothnessPenaltyGradient: Not implemented yet" << endl;
-    return;
-    //exit(1);
 
     // TODO
-    //  int i;
-    //  double norm;
-    //
-    //  // Compute normalization factor
-    //  if (_affd->GetZ() == 1) {
-    //    norm = (double(_source->GetNumberOfVoxels()) / double(2.0*_affd->GetX()*_affd->GetY()));
-    //  } else {
-    //    norm = (double(_source->GetNumberOfVoxels()) / double(3.0*_affd->GetX()*_affd->GetY()*_affd->GetZ()));
-    //  }
-    //
-    //  // Allocate memory
-    //  double *tmp__currentgradient = new double[_affd->NumberOfDOFs()];
-    //
-    //  // and initialize memory (thanks to Stefan for his bug fix)
-    //  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-    //    tmp__currentgradient[i] = 0.0;
-    //  }
-    //
-    //  // Compute _currentgradient of smoothness term
-    //  _affd->BendingGradient(tmp__currentgradient);
-    //
-    //  // Add _currentgradient to existing _currentgradient
-    //  for (i = 0; i < _affd->NumberOfDOFs(); i++) {
-    //    _currentgradient[i] += this->_Lambda1 * tmp__currentgradient[i] * norm;
-    //  }
-    //
-    //  // Free memory
-    //  delete []tmp__currentgradient;
+    int i,t,index;
+    double norm;
+
+    index = 0;
+    for(t = 0; t < _NumberOfModels; t++){
+        _affd = (irtkBSplineFreeFormTransformationPeriodic*)_mffd->GetLocalTransformation(t);
+
+        norm = _target[0]->GetNumberOfVoxels()*_N_target / double(_affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT());
+
+        // Allocate memory
+        double *tmp_currentgradient = new double[_affd->NumberOfDOFs()];
+
+        // and initialize memory
+        for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+            tmp_currentgradient[i] = 0.0;
+        }
+
+        // Compute _currentgradient of smoothness term
+        _affd->BendingGradient(tmp_currentgradient);
+
+        // Add _currentgradient to existing _currentgradient
+        for (i = 0; i < _affd->NumberOfDOFs(); i++) {
+            _currentgradient[index] += this->_Lambda1 * tmp_currentgradient[i] * norm;
+            index++;
+        }
+
+        // Free memory
+        delete []tmp_currentgradient;
+    }
 }
 
 void irtkImageTSFFDRegistration::InitializeTransformation(int level){

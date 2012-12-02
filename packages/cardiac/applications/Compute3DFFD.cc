@@ -26,7 +26,10 @@ int main(int argc, char **argv)
     double t, dt;
     int N, n, Nx, Ny, Nz, i, ok, invert;
     double x1, y1, z1, x2, y2, z2, dx, dy, dz, xaxis[3], yaxis[3], zaxis[3];
-    double *cpX = NULL, *cpY = NULL, *cpZ = NULL, *dispX = NULL, *dispY = NULL, *dispZ = NULL, error, errorOld;
+    double *cpX = NULL, *cpY = NULL, *cpZ = NULL, 
+        *dispX = NULL, *dispY = NULL, *dispZ = NULL,
+        *tmpdispX = NULL, *tmpdispY = NULL, *tmpdispZ = NULL,
+        error, errorOld;
 
     int maxIter = 100;
 
@@ -103,9 +106,6 @@ int main(int argc, char **argv)
     cpX = new double[Nx*Ny*Nz];
     cpY = new double[Nx*Ny*Nz];
     cpZ = new double[Nx*Ny*Nz];
-    for (i = 0; i < Nx*Ny*Nz; i++) {
-        tffd->ControlPointLocation(i, cpX[i], cpY[i], cpZ[i]);
-    }
 
     cout << "computing 3D transformations ... " << endl; cout.flush();
     for (n = 0; n < N; n++) {
@@ -121,31 +121,49 @@ int main(int argc, char **argv)
         dispY = new double[Nx*Ny*Nz];
         dispZ = new double[Nx*Ny*Nz];
 
+        tmpdispX = new double[Nx*Ny*Nz];
+        tmpdispY = new double[Nx*Ny*Nz];
+        tmpdispZ = new double[Nx*Ny*Nz];
+
+        //create control point locations;
+        for (i = 0; i < Nx*Ny*Nz; i++) {
+            tffd->ControlPointLocation(i, cpX[i], cpY[i], cpZ[i]);
+            dispX[i] = cpX[i];
+            dispY[i] = cpY[i];
+            dispZ[i] = cpZ[i];
+            mffd->LocalDisplacement(dispX[i], dispY[i], dispZ[i], t);
+        }
+        if (invert == true) {
+            for (i = 0; i < Nx*Ny*Nz; i++) {      
+                cpX[i] += dispX[i];
+                cpY[i] += dispY[i];
+                cpZ[i] += dispZ[i];
+
+                dispX[i] = -dispX[i];
+                dispY[i] = -dispY[i];
+                dispZ[i] = -dispZ[i];
+            }
+        }
+
         //////////////////////////////////////////
         // run Approximate function multiple times
         int iter = 0;
         do {
-            //cout<<", "<<iter++;
+
             for (i = 0; i < Nx*Ny*Nz; i++) {
-                dispX[i] = cpX[i];
-                dispY[i] = cpY[i];
-                dispZ[i] = cpZ[i];
-                mffd->Displacement(dispX[i], dispY[i], dispZ[i], t);
-                if (invert == true) {
-                    dispX[i] = -dispX[i];
-                    dispY[i] = -dispY[i];
-                    dispZ[i] = -dispZ[i];
-                }
+                tmpdispX[i] = dispX[i];
+                tmpdispY[i] = dispY[i];
+                tmpdispZ[i] = dispZ[i];
             }
 
-            ffd->Approximate(cpX, cpY, cpZ, dispX, dispY, dispZ, Nx*Ny*Nz);
+            ffd->Approximate(cpX, cpY, cpZ, tmpdispX, tmpdispY, tmpdispZ, Nx*Ny*Nz);
 
             errorOld = error;
 
             // calculate error
             error = 0;
             for (i = 0; i < Nx*Ny*Nz; i++) {
-                error += sqrt( dispX[i]*dispX[i] + dispY[i]*dispY[i] + dispZ[i]*dispZ[i]);
+                error += sqrt( tmpdispX[i]*tmpdispX[i] + tmpdispY[i]*tmpdispY[i] + tmpdispZ[i]*tmpdispZ[i]);
             }
             error /= 3*Nx*Ny*Nz;
 
@@ -153,6 +171,9 @@ int main(int argc, char **argv)
         } while(errorOld - error > 0.000001 && iter < maxIter); // check for convergence
         //////////////////////////////////////////
         //////////////////////////////////////////
+        delete []tmpdispX;
+        delete []tmpdispY;
+        delete []tmpdispZ;
         delete []dispX;
         delete []dispY;
         delete []dispZ;

@@ -981,9 +981,6 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
   }
   if (strstr(buffer1, "Padding value") != NULL) {
     this->_TargetPadding = atoi(buffer2);
-    if(this->_SourcePadding == MIN_GREY){
-        this->_SourcePadding = this->_TargetPadding;
-    }
     ok = true;
   }
   if (strstr(buffer1, "Source padding value") != NULL) {

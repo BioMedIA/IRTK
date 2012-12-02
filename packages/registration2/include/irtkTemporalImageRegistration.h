@@ -1,8 +1,14 @@
+/*=========================================================================
 
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2009 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
-
-
-
+=========================================================================*/
 
 #ifndef _IRTKTEMPROALIMAGEREGISTRATION_H
 
@@ -93,6 +99,9 @@ protected:
 
   /// Padding value of target image
   short  _TargetPadding;
+
+  /// Padding value of source image
+  short _SourcePadding;
 
   /// Number of levels of multiresolution pyramid
   int    _NumberOfLevels;

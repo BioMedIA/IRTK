@@ -33,14 +33,16 @@ void usage()
     cerr << "-dofin [inputDof.dof.gz]           transformation between reference and groundtruth" << endl;
     cerr << "-radialstrain [axis landmark name] evaluate the radial strain"    << endl;
     cerr << "-outputname   [output file name]   output the result to a txt file"    << endl;
+    cerr << "-time         [frame time]         transformation is 4D use time"    << endl;
+    cerr << "-invert                            invert the transformation" << endl;
     exit(1);
 }
 
 int main( int argc, char * argv[] )
 {
 
-    int ok;
-    double error,x,y,z;
+    int ok,invert;
+    double error,x,y,z,time;
     double p1[3],p2[3],radial[3];
     double myDisplacement[3];
     double trueDisplacement[3];
@@ -52,6 +54,8 @@ int main( int argc, char * argv[] )
         exit(EXIT_FAILURE);
     }
     const unsigned int MAX_PATH_LENGTH = 1024;
+    time = -1;
+    invert = false;
 
     refrencename  = argv[1];
     argc--;
@@ -88,6 +92,21 @@ int main( int argc, char * argv[] )
             outputname = argv[1];
             argc--;
             argv++;
+            ok = true;
+        }
+        if ((ok == false) && (strcmp(argv[1], "-time") == 0)) {
+            argc--;
+            argv++;
+            time = atof(argv[1]);
+            argc--;
+            argv++;
+            cout << "evaluation for time: " << time << endl;
+            ok = true;
+        }
+        if ((ok == false) && (strcmp(argv[1], "-invert") == 0)) {
+            argc--;
+            argv++;
+            invert = true;
             ok = true;
         }
         if (ok == false) {
@@ -179,12 +198,18 @@ int main( int argc, char * argv[] )
 
         error = 0;
 
-        // Replace the line below by a call to your displacement routines 
-        x = pointsFirst->GetPoint(p)[0];
-        y = pointsFirst->GetPoint(p)[1];
-        z = pointsFirst->GetPoint(p)[2];
-
         if(longaxisname){
+
+            // Replace the line below by a call to your displacement routines 
+            if(invert == true){
+                x = points->GetPoint(p)[0];
+                y = points->GetPoint(p)[1];
+                z = points->GetPoint(p)[2];
+            }else{
+                x = pointsFirst->GetPoint(p)[0];
+                y = pointsFirst->GetPoint(p)[1];
+                z = pointsFirst->GetPoint(p)[2];
+            }
 
             //calculate radial intersection by x = l1 + ((p-l1).v)v
             //p - l1
@@ -219,7 +244,16 @@ int main( int argc, char * argv[] )
             irtkMatrix jac,strainm;
             jac.Initialize(3, 3);
             strainm.Initialize(3,3);
-            transformation->LocalJacobian(jac,x,y,z);
+            if(time >= 0){
+                //TFFD with time
+                transformation->LocalJacobian(jac,x,y,z,time);
+            }else{
+                //FFD without time  
+                transformation->LocalJacobian(jac,x,y,z);
+            }
+            if(invert == true){
+                jac.Invert();
+            }
             strainm = jac;
             strainm.Transpose();
             strainm = strainm*jac;
@@ -242,7 +276,22 @@ int main( int argc, char * argv[] )
             error = strainm.Det();
 
         }else{
-            transformation->LocalDisplacement(x,y,z);
+            if(invert == true){
+                x = points->GetPoint(p)[0];
+                y = points->GetPoint(p)[1];
+                z = points->GetPoint(p)[2];
+            }else{
+                x = pointsFirst->GetPoint(p)[0];
+                y = pointsFirst->GetPoint(p)[1];
+                z = pointsFirst->GetPoint(p)[2];
+            }
+            if(time >= 0){
+                //TFFD with time
+                transformation->LocalDisplacement(x,y,z,time);
+            }else{
+                //FFD without time  
+                transformation->LocalDisplacement(x,y,z);
+            }
             myDisplacement[0] = x;
             myDisplacement[1] = y;
             myDisplacement[2] = z;
@@ -250,7 +299,11 @@ int main( int argc, char * argv[] )
             for (int d=0; d<3; d++)
             {
                 // Groundtruth displacement
-                trueDisplacement[d] = points->GetPoint(p)[d] - pointsFirst->GetPoint(p)[d];
+                if(invert == true){
+                    trueDisplacement[d] = pointsFirst->GetPoint(p)[d] - points->GetPoint(p)[d];
+                }else{
+                    trueDisplacement[d] = points->GetPoint(p)[d] - pointsFirst->GetPoint(p)[d];
+                }
 
                 // Error made on displacement
                 errorDisplacement[d] = myDisplacement[d] - trueDisplacement[d];

@@ -143,6 +143,7 @@ double ****irtkFreeFormTransformation4D::Allocate(double ****data, int x, int y,
 double ****irtkFreeFormTransformation4D::Deallocate(double ****data, int, int, int, int)
 {
   if (data != NULL) {
+    delete [](data[-4][-4][-4]-4);
     delete [](data[-4][-4]-4);
     delete [](data[-4]-4);
     delete [](data-4);
@@ -201,7 +202,7 @@ irtkPoint irtkFreeFormTransformation4D::ControlPointLocation(int index) const
   if (index >= _x*_y*_z*_t) {
     index -= _x*_y*_z*_t;
     if (index >= _x*_y*_z*_t) {
-      index -= _x*_y*_z;
+      index -= _x*_y*_z*_t;
     }
   }
   l = index/(_z*_y*_x);
@@ -220,7 +221,7 @@ void irtkFreeFormTransformation4D::ControlPointLocation(int index, double &i, do
   if (index >= _x*_y*_z*_t) {
     index -= _x*_y*_z*_t;
     if (index >= _x*_y*_z*_t) {
-      index -= _x*_y*_z;
+      index -= _x*_y*_z*_t;
     }
   }
   l = index/(_z*_y*_x);

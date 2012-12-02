@@ -62,6 +62,18 @@ protected:
   /// Returns the 2nd derivative value of the fourth B-spline basis function
   static double B3_II(double);
 
+  /// Calculate the bending energy of the transformation at control points (2D)
+  virtual double Bending2D(int i, int j, int t);
+
+  /// Calculate the bending energy of the transformation at control points (3D)
+  virtual double Bending3D(int i, int j, int k, int t);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient2D(double *gradient);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient3D(double *gradient);
+
   /// Memory for lookup table for B-spline basis function values
   static    double LookupTable[FFDLOOKUPTABLESIZE][4];
 
@@ -171,8 +183,14 @@ public:
   /// Calculate the Jacobian of the global transformation
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 
+  /// Calculate total bending energy
+  virtual double Bending();
+
   /// Calculate the bending energy of the transformation
   virtual double Bending(double, double, double, double);
+
+  /// Calculate the gradient of the bending energy with respect to the parameters
+  virtual void BendingGradient(double *gradient);
 
   /** Returns the bounding box for a control point (in mm). The last
    *  parameter specifies what fraction of the bounding box to return. The
