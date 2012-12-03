@@ -143,8 +143,8 @@ void irtkImageTSFFDRegistration::GuessParameter()
     }
 
     // Default parameters for non-rigid registration
-    _Lambda1            = 0.0001;
-    _Lambda3            = 0.01;
+    _Lambda1            = 0.00001;
+    _Lambda3            = 0.04;
     _LargestSpacing     = 512;
     _FinestSpacing      = 1;
 
@@ -1160,6 +1160,9 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
                             // If so, calculate bounding box of control point in image coordinates
                             // Note: temporal bounding box [t1,t2] is in world time and doesn't correspond to the indices of the target images
                             index = _affd->LatticeToIndex(x, y, z, t);
+                            index1 = index + globaloffset;
+                            index2 = index1 + offset;
+                            index3 = index2 + offset;
                             // t1, t2 not in lattice coordinates at the moment!!!!!!!
                             // spatial coordinates in world system
                             //		    _affd->BoundingBoxCP(index, x1, y1, z1, t1, x2, y2, z2, t2, 1.0);
@@ -1208,9 +1211,6 @@ void irtkImageTSFFDRegistration::EvaluateGradient3D()
                                                         dist = (abs(dist1)<abs(dist2)) ? dist1 : dist2;
                                                         basis *= _affd->B(dist);
 
-                                                        index1 = index + globaloffset;
-                                                        index2 = index1 + offset;
-                                                        index3 = index2 + offset;
                                                         // Convert voxel-based _currentgradient into _currentgradient with respect to parameters (chain rule)
                                                         // NOTE: This currently assumes that the control points displacements are aligned with the world coordinate displacements
                                                         _currentgradient[index1] += basis * _similarityGradient[n](i, j, k, 0);
@@ -1246,7 +1246,7 @@ void irtkImageTSFFDRegistration::NormalizeGradient()
         _affd = (irtkBSplineFreeFormTransformationPeriodic *)_mffd->GetLocalTransformation(m);
         offset = _affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
 
-        spacingnorm = (double(_source->GetNumberOfVoxels()*_N_target*8) / double(offset));
+        spacingnorm = (double(_source->GetNumberOfVoxels()*_N_target) / double(offset));
 
         // approximate using a b spline model.
         for (t = 0; t < _affd->GetT(); t++){

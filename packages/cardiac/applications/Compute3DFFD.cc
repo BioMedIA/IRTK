@@ -97,10 +97,14 @@ int main(int argc, char **argv)
     y2 = Ny-1;
     z2 = Nz-1;
     tffd->LatticeToWorld(x2, y2, z2);
-    dx = tffd->GetXSpacing();
-    dy = tffd->GetYSpacing();
-    dz = tffd->GetZSpacing();
+    dx = tffd->GetXSpacing()/2;
+    dy = tffd->GetYSpacing()/2;
+    dz = tffd->GetZSpacing()/2;
     tffd->GetOrientation(xaxis, yaxis, zaxis);
+
+    Nx = Nx*2;
+    Ny = Ny*2;
+    Nz = Nz*2;
 
     // control points
     cpX = new double[Nx*Ny*Nz];
@@ -127,7 +131,7 @@ int main(int argc, char **argv)
 
         //create control point locations;
         for (i = 0; i < Nx*Ny*Nz; i++) {
-            tffd->ControlPointLocation(i, cpX[i], cpY[i], cpZ[i]);
+            ffd->ControlPointLocation(i, cpX[i], cpY[i], cpZ[i]);
             dispX[i] = cpX[i];
             dispY[i] = cpY[i];
             dispZ[i] = cpZ[i];

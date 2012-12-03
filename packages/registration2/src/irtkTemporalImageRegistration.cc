@@ -326,8 +326,10 @@ void irtkTemporalImageRegistration::Initialize(int level)
     }
 
     // Pad target image if necessary
-    //  for (n = 0; n < _N_target; n++)
-    //    irtkPadding(*_target[n], _TargetPadding);
+    for (n = 0; n < _N_target; n++)
+        irtkPadding(*_target[n], _TargetPadding);
+
+    irtkPadding(*_source, _SourcePadding);
 
     // Allocate memory for histogram if necessary
     switch (_SimilarityMeasure) {
