@@ -449,16 +449,16 @@ inline double irtkFreeFormTransformation4D::LatticeToTime(double t) const
 
 inline void irtkFreeFormTransformation4D::IndexToLattice(int index, int& i, int& j, int& k, int& l) const
 {
-  if (index > _x*_y*_z*_t) {
-    index -= _x*_y*_z*_t;
-    if (index > _x*_y*_z*_t)
-      index -= _x*_y*_z*_t;
-  }
+    if (index > _x*_y*_z*_t) {
+        index -= _x*_y*_z*_t;
+        if (index > _x*_y*_z*_t)
+            index -= _x*_y*_z*_t;
+    }
 
-  l = index/(_z*_y*_x);
-  k = index%(_z*_y*_x)/(_y*_x);
-  j = index%(_z*_y*_x)%(_y*_x)/_x;
-  i = index%(_z*_y*_x)%(_y*_x)%_x;
+    l = index/(_z*_y*_x);
+    k = index%(_z*_y*_x)/(_y*_x);
+    j = index%(_z*_y*_x)%(_y*_x)/_x;
+    i = index%(_z*_y*_x)%(_y*_x)%_x;
 }
 
 inline int irtkFreeFormTransformation4D::LatticeToIndex(int i, int j, int k, int l) const

@@ -61,7 +61,7 @@ irtkSparseFreeFormRegistration::~irtkSparseFreeFormRegistration()
 
 void irtkSparseFreeFormRegistration::GuessParameter()
 {
-    int i;
+    int i,slices;
     double xsize, ysize, zsize;
     irtkGreyPixel min,max;
 
@@ -70,8 +70,14 @@ void irtkSparseFreeFormRegistration::GuessParameter()
         exit(1);
     }
 
+    slices = false;
+
+    if (_target->GetZ()==1) {
+        slices = true;
+    }
+
     // Default parameters for registration
-    _NumberOfLevels     = 7;
+    _NumberOfLevels     = 4;
     // Initial guess of bins with range
     _target->GetMinMax(&min,&max);
     _NumberOfBins       = round((max - min)/5.0);
@@ -87,7 +93,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     }
 
     // Default parameters for optimization
-    _SimilarityMeasure  = NMI;
+    _SimilarityMeasure  = SSD;
     _Epsilon            = 0.00001;
     _InterpolationMode  = Interpolation_BSpline;
 
@@ -129,7 +135,10 @@ void irtkSparseFreeFormRegistration::GuessParameter()
         _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
         _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
         _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
-        _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+        if (slices)
+            _TargetResolution[i][2] = zsize;
+        else 
+            _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
     }
 
     // Read source pixel size
@@ -148,7 +157,10 @@ void irtkSparseFreeFormRegistration::GuessParameter()
         _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
         _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
         _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
-        _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+        if (slices)
+            _SourceResolution[i][2] = zsize;
+        else 
+            _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
     }
 
     // Default parameters for non-rigid registration
@@ -167,27 +179,9 @@ void irtkSparseFreeFormRegistration::GuessParameter()
 
     // Try to guess padding by looking at voxel values in all eight corners of the volume:
     // If all values are the same we assume that they correspond to the padding value
-    _TargetPadding = MIN_GREY;
-    if ((_target->Get(_target->GetX()-1, 0, 0)                                 == _target->Get(0, 0, 0)) &&
-        (_target->Get(0, _target->GetY()-1, 0)                                 == _target->Get(0, 0, 0)) &&
-        (_target->Get(0, 0, _target->GetZ()-1)                                 == _target->Get(0, 0, 0)) &&
-        (_target->Get(_target->GetX()-1, _target->GetY()-1, 0)                 == _target->Get(0, 0, 0)) &&
-        (_target->Get(0, _target->GetY()-1, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
-        (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
-        (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
-            _TargetPadding = _target->Get(0, 0, 0);
-    }
+    _TargetPadding = 0;
 
-    _SourcePadding = MIN_GREY;
-    if ((_source->Get(_source->GetX()-1, 0, 0)                                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(0, _source->GetY()-1, 0)                                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(0, 0, _source->GetZ()-1)                                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(_source->GetX()-1, _source->GetY()-1, 0)                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(0, _source->GetY()-1, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(_source->GetX()-1, 0, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(_source->GetX()-1, _source->GetY()-1, _source->GetZ()-1) == _source->Get(0, 0, 0))) {
-            _SourcePadding = _source->Get(0, 0, 0);
-    }
+    _SourcePadding = 0;
 }
 
 void irtkSparseFreeFormRegistration::Initialize()

@@ -61,7 +61,7 @@ void irtkImageTSFFDRegistration::GuessParameter()
     }
 
     // Default parameters for registration
-    _NumberOfLevels     = 3;
+    _NumberOfLevels     = 4;
     _NumberOfBins       = 64;
 
     // Default parameters for optimization
@@ -72,6 +72,28 @@ void irtkImageTSFFDRegistration::GuessParameter()
 
     // Read target pixel size
     _target[0]->GetPixelSize(&xsize, &ysize, &zsize);
+    // Default target parameters
+    _TargetBlurring[0]      = 0.5;
+    if(xsize < _TargetBlurring[0]*2){
+        _TargetBlurring[0] = xsize / 2;
+    }
+    if(ysize < _TargetBlurring[0]*2){
+        _TargetBlurring[0] = ysize / 2;
+    }
+    if(zsize < _TargetBlurring[0]*2){
+        _TargetBlurring[0] = zsize / 2;
+    }
+
+    _SourceBlurring[0]      = 0.5;
+    if(xsize < _SourceBlurring[0]*2){
+        _SourceBlurring[0] = xsize / 2;
+    }
+    if(ysize < _SourceBlurring[0]*2){
+        _SourceBlurring[0] = ysize / 2;
+    }
+    if(zsize < _SourceBlurring[0]*2){
+        _SourceBlurring[0] = zsize / 2;
+    }
     minsize = (xsize <= ysize)   ? xsize : ysize;
     minsize = (zsize <= minsize) ? zsize : minsize;
 
@@ -91,6 +113,7 @@ void irtkImageTSFFDRegistration::GuessParameter()
     _TargetResolution[0][2] = zsize;
 
     for (i = 1; i < _NumberOfLevels; i++) {
+        _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
         _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
         _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
         if (slices)
@@ -110,6 +133,7 @@ void irtkImageTSFFDRegistration::GuessParameter()
     _SourceResolution[0][2] = zsize;
 
     for (i = 1; i < _NumberOfLevels; i++) {
+        _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
         _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
         _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
         if (slices)
@@ -131,8 +155,8 @@ void irtkImageTSFFDRegistration::GuessParameter()
         _MaxStep[i]            = pow(2.0,i);
     }
 
-    _TargetPadding = MIN_GREY;
-    _SourcePadding = MIN_GREY;
+    _TargetPadding = 0;
+    _SourcePadding = 0;
 }
 
 void irtkImageTSFFDRegistration::Initialize()
@@ -1222,7 +1246,7 @@ void irtkImageTSFFDRegistration::NormalizeGradient()
         _affd = (irtkBSplineFreeFormTransformationPeriodic *)_mffd->GetLocalTransformation(m);
         offset = _affd->GetX()*_affd->GetY()*_affd->GetZ()*_affd->GetT();
 
-        spacingnorm = (double(_source->GetNumberOfVoxels()*_N_target) / double(offset));
+        spacingnorm = (double(_source->GetNumberOfVoxels()*_N_target*8) / double(offset));
 
         // approximate using a b spline model.
         for (t = 0; t < _affd->GetT(); t++){
