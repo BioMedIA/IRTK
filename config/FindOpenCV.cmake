@@ -60,6 +60,8 @@ if (NOT OpenCV_DIR)
     set (OpenCV_DIR "$ENV{OpenCV_DIR}" CACHE PATH "Installation prefix of OpenCV Library." FORCE)
   elseif (DEFINED ENV{OPENCV_DIR})
     set (OpenCV_DIR "$ENV{OPENCV_DIR}" CACHE PATH "Installation prefix of OpenCV Library." FORCE)
+  else ()
+    set (OpenCV_DIR "OpenCV_DIR-NOTFOUND" CACHE PATH "Installation prefix of OpenCV Library." FORCE)
   endif ()
 endif ()
 # 2. otherwise, try to derive it from include path
