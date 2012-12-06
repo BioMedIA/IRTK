@@ -1004,7 +1004,7 @@ double irtkImageTSFFDRegistration::Evaluate()
     cout << "image: " << similarity;
 
     // Add penalty for volume preservation
-    if (this->_Lambda1 > 0) {
+    if (this->_Lambda1 > 0 && _Lambda3off == false) {
         tmp = this->_Lambda1*this->SmoothnessPenalty();
         cout << " + Bending: " << tmp;
         similarity += tmp;
@@ -1304,7 +1304,7 @@ double irtkImageTSFFDRegistration::EvaluateGradient()
         this->EvaluateGradient3D();
     }
 
-    if (this->_Lambda1 > 0) {
+    if (this->_Lambda1 > 0  && _Lambda3off == false) {
         this->SmoothnessPenaltyGradient();
     }
 

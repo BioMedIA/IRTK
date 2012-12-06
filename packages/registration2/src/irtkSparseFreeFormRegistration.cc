@@ -583,7 +583,7 @@ void irtkSparseFreeFormRegistration::Initialize(int level)
         }
 
         if(norm > 0){
-            cout << norm << " " << count ;
+            cout << norm << " " << count << endl;
             norm = norm/count;
             _Lambda3 = norm*_Lambda3tmp;
             cout << "normalized sparsity penalty with respect to finite convergence property is:" << _Lambda3 << endl;
