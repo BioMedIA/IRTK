@@ -138,39 +138,6 @@ void irtkImageRegistration2::Initialize(int level)
   swap(tmp_target, _target);
   swap(tmp_source, _source);
 
-  _target->GetPixelSize(&dx, &dy, &dz);
-  temp = fabs(_TargetResolution[0][0]-dx) + fabs(_TargetResolution[0][1]-dy) + fabs(_TargetResolution[0][2]-dz);
-
-  if (level > 0 || temp > 0.000001) {
-    cout << "Resampling target ... "; cout.flush();
-    // Create resampling filter
-    irtkResamplingWithPadding<irtkGreyPixel> resample(_TargetResolution[level][0],
-        _TargetResolution[level][1],
-        _TargetResolution[level][2],
-        _TargetPadding);
-    resample.SetInput (_target);
-    resample.SetOutput(_target);
-    resample.Run();
-    cout << "done" << endl;
-  }
-
-  _source->GetPixelSize(&dx, &dy, &dz);
-  temp = fabs(_SourceResolution[0][0]-dx) + fabs(_SourceResolution[0][1]-dy) + fabs(_SourceResolution[0][2]-dz);
-
-  if (level > 0 || temp > 0.000001) {
-    cout << "Resampling source ... "; cout.flush();
-    // Create resampling filter
-    irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
-        _SourceResolution[level][1],
-        _SourceResolution[level][2], 
-        _SourcePadding);
-
-    resample.SetInput (_source);
-    resample.SetOutput(_source);
-    resample.Run();
-    cout << "done" << endl;
-  }
-
   // Blur images if necessary
   if (_TargetBlurring[level] > 0) {
       cout << "Blurring target ... "; cout.flush();
@@ -188,6 +155,43 @@ void irtkImageRegistration2::Initialize(int level)
       blurring.SetOutput(_source);
       blurring.Run();
       cout << "done" << endl;
+  }
+
+  _target->GetPixelSize(&dx, &dy, &dz);
+  temp = fabs(_TargetResolution[level][0]-dx) 
+      + fabs(_TargetResolution[level][1]-dy) 
+      + fabs(_TargetResolution[level][2]-dz);
+
+  if (level > 0 || temp > 0.000001) {
+    cout << "Resampling target ... "; cout.flush();
+    // Create resampling filter
+    irtkResamplingWithPadding<irtkGreyPixel> resample(_TargetResolution[level][0],
+        _TargetResolution[level][1],
+        _TargetResolution[level][2],
+        _TargetPadding);
+    resample.SetInput (_target);
+    resample.SetOutput(_target);
+    resample.Run();
+    cout << "done" << endl;
+  }
+
+  _source->GetPixelSize(&dx, &dy, &dz);
+  temp = fabs(_SourceResolution[level][0]-dx) 
+      + fabs(_SourceResolution[level][1]-dy) 
+      + fabs(_SourceResolution[level][2]-dz);
+
+  if (level > 0 || temp > 0.000001) {
+    cout << "Resampling source ... "; cout.flush();
+    // Create resampling filter
+    irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
+        _SourceResolution[level][1],
+        _SourceResolution[level][2], 
+        _SourcePadding);
+
+    resample.SetInput (_source);
+    resample.SetOutput(_source);
+    resample.Run();
+    cout << "done" << endl;
   }
 
   // Find out the min and max values in target image, ignoring padding
