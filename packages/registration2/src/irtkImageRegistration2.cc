@@ -138,25 +138,6 @@ void irtkImageRegistration2::Initialize(int level)
   swap(tmp_target, _target);
   swap(tmp_source, _source);
 
-  // Blur images if necessary
-  if (_TargetBlurring[level] > 0) {
-      cout << "Blurring target ... "; cout.flush();
-      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
-      blurring.SetInput (_target);
-      blurring.SetOutput(_target);
-      blurring.Run();
-      cout << "done" << endl;
-  }
-
-  if (_SourceBlurring[level] > 0) {
-      cout << "Blurring source ... "; cout.flush();
-      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _SourcePadding);
-      blurring.SetInput (_source);
-      blurring.SetOutput(_source);
-      blurring.Run();
-      cout << "done" << endl;
-  }
-
   _target->GetPixelSize(&dx, &dy, &dz);
   temp = fabs(_TargetResolution[level][0]-dx) 
       + fabs(_TargetResolution[level][1]-dy) 
@@ -192,6 +173,25 @@ void irtkImageRegistration2::Initialize(int level)
     resample.SetOutput(_source);
     resample.Run();
     cout << "done" << endl;
+  }
+
+  // Blur images if necessary
+  if (_TargetBlurring[level] > 0) {
+      cout << "Blurring target ... "; cout.flush();
+      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
+      blurring.SetInput (_target);
+      blurring.SetOutput(_target);
+      blurring.Run();
+      cout << "done" << endl;
+  }
+
+  if (_SourceBlurring[level] > 0) {
+      cout << "Blurring source ... "; cout.flush();
+      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _SourcePadding);
+      blurring.SetInput (_source);
+      blurring.SetOutput(_source);
+      blurring.Run();
+      cout << "done" << endl;
   }
 
   // Find out the min and max values in target image, ignoring padding

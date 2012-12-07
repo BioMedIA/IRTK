@@ -179,9 +179,9 @@ void irtkSparseFreeFormRegistration::GuessParameter()
 
     // Try to guess padding by looking at voxel values in all eight corners of the volume:
     // If all values are the same we assume that they correspond to the padding value
-    _TargetPadding = 0;
+    _TargetPadding = -1;
 
-    _SourcePadding = 0;
+    _SourcePadding = -1;
 }
 
 void irtkSparseFreeFormRegistration::Initialize()

@@ -140,16 +140,6 @@ void irtkTemporalImageRegistration::Initialize(int level)
     // Swap source with temp space copies
     swap(tmp_source, _source);
 
-    // Blur images if necessary
-    if (_SourceBlurring[level] > 0) {
-        cout << "Blurring source ... "; cout.flush();
-        irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _SourcePadding);
-        blurring.SetInput (_source);
-        blurring.SetOutput(_source);
-        blurring.Run();
-        cout << "done" << endl;
-    }
-
     _source->GetPixelSize(&dxS, &dyS, &dzS);
     tempS = fabs(_SourceResolution[level][0]-dxS) 
         + fabs(_SourceResolution[level][1]-dyS) 
@@ -165,6 +155,16 @@ void irtkTemporalImageRegistration::Initialize(int level)
         resample.SetInput (_source);
         resample.SetOutput(_source);
         resample.Run();
+        cout << "done" << endl;
+    }
+
+    // Blur images if necessary
+    if (_SourceBlurring[level] > 0) {
+        cout << "Blurring source ... "; cout.flush();
+        irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _SourcePadding);
+        blurring.SetInput (_source);
+        blurring.SetOutput(_source);
+        blurring.Run();
         cout << "done" << endl;
     }
 
@@ -187,21 +187,6 @@ void irtkTemporalImageRegistration::Initialize(int level)
     // loop over all target images
     cout << "Blurring (and resampling) target ... "; cout.flush();
     for (n=0; n<_N_target; n++) {
-
-        // Blur images if necessary
-        if (_TargetBlurring[level] > 0) {
-            if (blurrZ) {
-                irtkGaussianBlurringWithPadding2D<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
-                blurring.SetInput (_target[n]);
-                blurring.SetOutput(_target[n]);
-                blurring.Run();
-            } else {
-                irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
-                blurring.SetInput (_target[n]);
-                blurring.SetOutput(_target[n]);
-                blurring.Run();
-            }
-        }
 
         _target[n]->GetPixelSize(&dxT, &dyT, &dzT);
         tempT = fabs(_TargetResolution[level][0]-dxT) 
@@ -233,6 +218,20 @@ void irtkTemporalImageRegistration::Initialize(int level)
             }
         }
 
+        // Blur images if necessary
+        if (_TargetBlurring[level] > 0) {
+            if (blurrZ) {
+                irtkGaussianBlurringWithPadding2D<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
+                blurring.SetInput (_target[n]);
+                blurring.SetOutput(_target[n]);
+                blurring.Run();
+            } else {
+                irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
+                blurring.SetInput (_target[n]);
+                blurring.SetOutput(_target[n]);
+                blurring.Run();
+            }
+        }
     }
     cout << "done" << endl;
 

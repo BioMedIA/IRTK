@@ -272,7 +272,9 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
                 odt = tdt;
 
                 _affd = new irtkBSplineFreeFormTransformationPeriodic(*_source, tdx, tdy, tdz, tdt);
-                _affd->PeriodicOn();
+                if(this->_periodic == true){
+                    _affd->PeriodicOn();
+                }
 
                 _mffd->PushLocalTransformation(_affd);
                 // TODO Padding of FFD

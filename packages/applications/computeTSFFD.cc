@@ -50,6 +50,8 @@ void usage()
   cerr << "                     padded in the target." << endl;
   cerr << "<-mask_dilation n>   Dilate mask n times before using it" << endl;
 
+  PrintVersion(cerr, "$Revision$");
+
   exit(1);
 }
 
