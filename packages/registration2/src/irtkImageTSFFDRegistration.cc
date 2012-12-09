@@ -223,7 +223,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
         dz = dz*_LargestSpacing;
     else
         dz = 1;
-    dt = interval*_LargestSpacing;
+    dt = interval*_LargestSpacing/_FinestSpacing;
 
     _NumberOfModels = 0;
     _NumberOfDofs = 0;
@@ -233,7 +233,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
     odt = 0;
     while(dx > _SourceResolution[0][0]*_FinestSpacing && dy > _SourceResolution[0][1]*_FinestSpacing
         &&(dz > _SourceResolution[0][2]*_FinestSpacing || _source->GetZ() == 1)
-        &&(dt > interval*_FinestSpacing)){
+        &&(dt > interval)){
 
             if(dx > _source->GetXSize()*_source->GetX()/3.0){
                 tdx = _source->GetXSize()*_source->GetX()/3.0;
@@ -931,7 +931,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
         dz = dz*_LargestSpacing;
     else
         dz = 1;
-    dt = interval*_LargestSpacing;
+    dt = interval*_LargestSpacing/_FinestSpacing;
 
     _NumberOfModels = 0;
     _NumberOfDofs = 0;
@@ -941,7 +941,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
     odt = 0;
     while(dx > _source->GetXSize()*_FinestSpacing && dy > _source->GetYSize()*_FinestSpacing
         &&(dz > _source->GetZSize()*_FinestSpacing || _source->GetZ() == 1)
-        &&(dt > interval*_FinestSpacing)){
+        &&(dt > interval)){
 
             if(dx > _source->GetXSize()*_source->GetX()/3.0){
                 tdx = _source->GetXSize()*_source->GetX()/3.0;
