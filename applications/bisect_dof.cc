@@ -19,6 +19,7 @@ char *dof_name_out = NULL;
 void usage()
 {
   cerr << "Usage: bisect_dof [dof_in] [dof_out] [-rigid/-affine]" << endl;
+  cerr << "Calculates a square root of the transformation matrix." << endl;
   exit(1);
 }
 
