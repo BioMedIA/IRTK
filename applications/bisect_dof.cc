@@ -20,6 +20,7 @@ void usage()
 {
   cerr << "Usage: bisect_dof [dof_in] [dof_out] [-rigid/-affine]" << endl;
   cerr << "Calculates a square root of the transformation matrix." << endl;
+  cerr << "Careful: this square root might not be unique." << endl;
   exit(1);
 }
 
