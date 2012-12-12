@@ -1,8 +1,14 @@
+/*=========================================================================
 
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id: irtkNonLocalMedianFilter.h 552 2012-02-15 15:18:09Z ws207 $
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2008 onwards
+  Date      : $Date: 2012-02-15 15:18:09 +0000 (Wed, 15 Feb 2012) $
+  Version   : $Revision: 552 $
+  Changes   : $Author: ws207 $
 
-
-
-
+=========================================================================*/
 
 #include <irtkTransformation.h>
 

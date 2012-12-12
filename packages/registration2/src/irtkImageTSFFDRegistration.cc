@@ -939,9 +939,10 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
     ody = 0;
     odz = 0;
     odt = 0;
-    while(dx > _source->GetXSize()*_FinestSpacing && dy > _source->GetYSize()*_FinestSpacing
-        &&(dz > _source->GetZSize()*_FinestSpacing || _source->GetZ() == 1)
-        &&(dt > interval)){
+    while(dx > _source->GetXSize() && dy > _source->GetYSize()
+        &&(dz > _source->GetZSize() || _source->GetZ() == 1)
+        &&(dt > interval) 
+        && _NumberOfModels < _mffd->NumberOfLevels()){
 
             if(dx > _source->GetXSize()*_source->GetX()/3.0){
                 tdx = _source->GetXSize()*_source->GetX()/3.0;

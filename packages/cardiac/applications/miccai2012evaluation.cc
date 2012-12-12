@@ -31,6 +31,7 @@ void usage()
 {
     cerr << "Usage : miccai2012evaluation referencemesh.vtk groundTruth.vtk outputMesh.vtk" << std::endl;
     cerr << "-dofin [inputDof.dof.gz]           transformation between reference and groundtruth" << endl;
+    cerr << "-strain                            evaluate the strain"    << endl;
     cerr << "-radialstrain [axis landmark name] evaluate the radial strain"    << endl;
     cerr << "-outputname   [output file name]   output the result to a txt file"    << endl;
     cerr << "-time         [frame time]         transformation is 4D use time"    << endl;
@@ -41,7 +42,7 @@ void usage()
 int main( int argc, char * argv[] )
 {
 
-    int ok,invert;
+    int ok,invert,strain;
     double error,x,y,z,time;
     double p1[3],p2[3],radial[3];
     double myDisplacement[3];
@@ -56,6 +57,7 @@ int main( int argc, char * argv[] )
     const unsigned int MAX_PATH_LENGTH = 1024;
     time = -1;
     invert = false;
+    strain = false;
 
     refrencename  = argv[1];
     argc--;
@@ -77,7 +79,12 @@ int main( int argc, char * argv[] )
             argv++;
             ok = true;
         }
-
+        if ((ok == false) && (strcmp(argv[1], "-strain") == 0)) {
+            argc--;
+            argv++;
+            strain = true;
+            ok = true;
+        }
         if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {
             argc--;
             argv++;
@@ -198,18 +205,44 @@ int main( int argc, char * argv[] )
 
         error = 0;
 
-        if(longaxisname){
+        if(invert == true){
+            x = points->GetPoint(p)[0];
+            y = points->GetPoint(p)[1];
+            z = points->GetPoint(p)[2];
+        }else{
+            x = pointsFirst->GetPoint(p)[0];
+            y = pointsFirst->GetPoint(p)[1];
+            z = pointsFirst->GetPoint(p)[2];
+        }
 
-            // Replace the line below by a call to your displacement routines 
-            if(invert == true){
-                x = points->GetPoint(p)[0];
-                y = points->GetPoint(p)[1];
-                z = points->GetPoint(p)[2];
+        if(strain == true){
+            double tensor_of_strain[9];
+            irtkMatrix jac,strainm;
+            jac.Initialize(3, 3);
+            strainm.Initialize(3,3);
+            if(time >= 0){
+                //TFFD with time
+                transformation->LocalJacobian(jac,x,y,z,time);
             }else{
-                x = pointsFirst->GetPoint(p)[0];
-                y = pointsFirst->GetPoint(p)[1];
-                z = pointsFirst->GetPoint(p)[2];
+                //FFD without time  
+                transformation->LocalJacobian(jac,x,y,z);
             }
+            strainm = jac;
+            strainm.Transpose();
+            strainm = strainm*jac;
+
+            strainm(0,0) = strainm(0,0) - 1;
+            strainm(1,1) = strainm(1,1) - 1;
+            strainm(2,2) = strainm(2,2) - 1;
+
+            //error = strainm.Det();
+            error = (strainm(0, 0)*strainm(1, 1)*strainm(2, 2) 
+                + strainm(0, 1)*strainm(1, 2)*strainm(2, 0) 
+                + strainm(0, 2)*strainm(1, 0)*strainm(2, 1) 
+                - strainm(0, 2)*strainm(1, 1)*strainm(2, 0) 
+                - strainm(0, 0)*strainm(1, 2)*strainm(2, 1) 
+                - strainm(0, 1)*strainm(1, 0)*strainm(2, 2));
+        }else if(longaxisname){
 
             //calculate radial intersection by x = l1 + ((p-l1).v)v
             //p - l1
@@ -251,9 +284,6 @@ int main( int argc, char * argv[] )
                 //FFD without time  
                 transformation->LocalJacobian(jac,x,y,z);
             }
-            if(invert == true){
-                jac.Invert();
-            }
             strainm = jac;
             strainm.Transpose();
             strainm = strainm*jac;
@@ -276,15 +306,6 @@ int main( int argc, char * argv[] )
             error = strainm.Det();
 
         }else{
-            if(invert == true){
-                x = points->GetPoint(p)[0];
-                y = points->GetPoint(p)[1];
-                z = points->GetPoint(p)[2];
-            }else{
-                x = pointsFirst->GetPoint(p)[0];
-                y = pointsFirst->GetPoint(p)[1];
-                z = pointsFirst->GetPoint(p)[2];
-            }
             if(time >= 0){
                 //TFFD with time
                 transformation->LocalDisplacement(x,y,z,time);
