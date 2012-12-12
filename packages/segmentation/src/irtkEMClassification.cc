@@ -339,7 +339,7 @@ void irtkEMClassification::MStep()
     if (denom[k] != 0) {
       _mi[k] = mi_num[k] / denom[k];
     } else {
-      cerr << "Division by zero while computing tissue mean!" << endl;
+      cerr << "Division by zero while computing tissue mean for tissue " << k << "!" << endl;
       exit(1);
     }
   }
