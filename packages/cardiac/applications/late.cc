@@ -68,7 +68,7 @@ int main( int argc, char** argv )
 		for ( k = 0; k < late[0]->GetZ(); k++){
 			for ( j = 0; j< late[0]->GetY(); j++){
 				for ( i = 0; i<late[0]->GetX(); i++){
-					if(segmentation.GetAsDouble(i,j,k) == 3){
+					if(segmentation.GetAsDouble(i,j,k) > 0){
 					}else
 						late[0]->PutAsDouble(i,j,k,-1);
 				}
@@ -79,7 +79,7 @@ int main( int argc, char** argv )
 	for ( k = 0; k < output.GetZ(); k++){
 		for ( j = 0; j< output.GetY(); j++){
 			for ( i = 0; i< output.GetX(); i++){
-				if(segmentation.GetAsDouble(i,j,k) == 3 || late[0]->GetAsDouble(i,j,k) > 0){
+				if(segmentation.GetAsDouble(i,j,k) > 0 || late[0]->GetAsDouble(i,j,k) > 0){
 				}else
 					output.PutAsDouble(i,j,k,0);
 			}
