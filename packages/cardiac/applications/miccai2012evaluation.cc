@@ -24,12 +24,12 @@
 #include <irtkImage.h>
 #include <irtkTransformation.h>
 
-char* refrencename = NULL,*groundtruthname = NULL,*dofname = NULL,*outputmeshname = NULL;
-char* longaxisname = NULL, *outputname = NULL;
+char* refrencename = NULL, *groundtruthname = NULL, *dofname = NULL, *outputmeshname = NULL;
+char* longaxisname = NULL, *outputname = NULL, *ahameshname = NULL, *referenceimagename = NULL;
 
 void usage()
 {
-    cerr << "Usage : miccai2012evaluation referencemesh.vtk groundTruth.vtk outputMesh.vtk" << std::endl;
+    cerr << "Usage : miccai2012evaluation referencemesh.vtk groundTruth.vtk outputMesh.vtk ahamesh.vtk referenceimage.vtk" << std::endl;
     cerr << "-dofin [inputDof.dof.gz]           transformation between reference and groundtruth" << endl;
     cerr << "-strain                            evaluate the strain"    << endl;
     cerr << "-radialstrain [axis landmark name] evaluate the radial strain"    << endl;
@@ -43,11 +43,12 @@ int main( int argc, char * argv[] )
 {
 
     int ok,invert,strain;
-    double error,x,y,z,time;
+    double error,x,y,z,time,aha;
     double p1[3],p2[3],radial[3];
     double myDisplacement[3];
     double trueDisplacement[3];
     double errorDisplacement[3];
+    irtkGreyImage image;
 
     if (argc < 5)
     {
@@ -66,6 +67,12 @@ int main( int argc, char * argv[] )
     argc--;
     argv++;
     outputmeshname = argv[1];
+    argc--;
+    argv++;
+    ahameshname = argv[1];
+    argc--;
+    argv++;
+    referenceimagename = argv[1];
     argc--;
     argv++;
 
@@ -122,26 +129,28 @@ int main( int argc, char * argv[] )
         }
     }
 
+    image.Read(referenceimagename);
+
     // reading mesh with regions
-    //vtkSmartPointer<vtkUnstructuredGridReader> readerAHA = vtkSmartPointer<vtkUnstructuredGridReader>::New();
-    //readerAHA->SetFileName(inputUGWithRegionsFileName);
-    //readerAHA->Update();
+    vtkSmartPointer<vtkUnstructuredGridReader> readerAHA = vtkSmartPointer<vtkUnstructuredGridReader>::New();
+    readerAHA->SetFileName(ahameshname);
+    readerAHA->Update();
 
     //// Compute aha region for every point
-    //vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
-    //vtkSmartPointer<vtkFloatArray> ahaArray = vtkSmartPointer<vtkFloatArray>::New();
-    //ahaArray->SetName("aha");
-    //ahaArray->SetNumberOfComponents(1);
+    vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+    vtkSmartPointer<vtkFloatArray> ahaArray = vtkSmartPointer<vtkFloatArray>::New();
+    ahaArray->SetName("aha");
+    ahaArray->SetNumberOfComponents(1);
 
-    //for (int p=0; p<readerAHA->GetOutput()->GetPoints()->GetNumberOfPoints(); p++)
-    //{
-    //    // Get aha region associated to this point.
-    //    // Since aha regions are specified per cell, we first query for the cells and thake the first one
-    //    idList->Reset();
-    //    readerAHA->GetOutput()->GetPointCells(p, idList);
-    //    float ahaRegion = (float)readerAHA->GetOutput()->GetCellData()->GetArray("Zones")->GetTuple1(idList->GetId(0));
-    //    ahaArray->InsertNextTuple1(ahaRegion);
-    //}
+    for (int p=0; p<readerAHA->GetOutput()->GetPoints()->GetNumberOfPoints(); p++)
+    {
+        // Get aha region associated to this point.
+        // Since aha regions are specified per cell, we first query for the cells and thake the first one
+        idList->Reset();
+        readerAHA->GetOutput()->GetPointCells(p, idList);
+        float ahaRegion = (float)readerAHA->GetOutput()->GetCellData()->GetArray("Zones")->GetTuple1(idList->GetId(0));
+        ahaArray->InsertNextTuple1(ahaRegion);
+    }
 
     // Loading the first mesh of the list (this assumes you have computed displacements to the first frame)
     vtkSmartPointer<vtkUnstructuredGridReader> readerFirst = vtkSmartPointer<vtkUnstructuredGridReader>::New();
@@ -164,7 +173,6 @@ int main( int argc, char * argv[] )
     // Set up strain value
     vtkSmartPointer<vtkFloatArray> scalarvectors = vtkSmartPointer<vtkFloatArray>::New();
     scalarvectors->SetNumberOfComponents(1);
-    //ug->GetPointData()->AddArray(errorArray);
     //ug->GetPointData()->AddArray(ahaArray);
 
     // Read dof
@@ -213,108 +221,118 @@ int main( int argc, char * argv[] )
     {
 
         error = 0;
+        myDisplacement[0] = 0;
+        myDisplacement[1] = 0;
+        myDisplacement[2] = 0;
 
-        if(invert == true){
-            x = points->GetPoint(p)[0];
-            y = points->GetPoint(p)[1];
-            z = points->GetPoint(p)[2];
-        }else{
-            x = pointsFirst->GetPoint(p)[0];
-            y = pointsFirst->GetPoint(p)[1];
-            z = pointsFirst->GetPoint(p)[2];
-        }
+        x = pointsFirst->GetPoint(p)[0];
+        y = pointsFirst->GetPoint(p)[1];
+        z = pointsFirst->GetPoint(p)[2];
 
-        if(strain == true){
-            double tensor_of_strain[9];
-            irtkMatrix jac,strainm;
-            jac.Initialize(3, 3);
-            strainm.Initialize(3,3);
-            if(time >= 0){
-                //TFFD with time
-                transformation->LocalJacobian(jac,x,y,z,time);
+        image.WorldToImage(x,y,z);
+
+        if(image.GetAsDouble(x,y,z) > 1000){
+
+            if(invert == true){
+                x = points->GetPoint(p)[0];
+                y = points->GetPoint(p)[1];
+                z = points->GetPoint(p)[2];
             }else{
-                //FFD without time  
-                transformation->LocalJacobian(jac,x,y,z);
+                x = pointsFirst->GetPoint(p)[0];
+                y = pointsFirst->GetPoint(p)[1];
+                z = pointsFirst->GetPoint(p)[2];
             }
-            strainm = jac;
-            strainm.Transpose();
-            strainm = strainm*jac;
+            if(strain == true){
+                //double tensor_of_strain[9];
+                //irtkMatrix jac,strainm;
+                //jac.Initialize(3, 3);
+                //strainm.Initialize(3,3);
+                //if(time >= 0){
+                //    //TFFD with time
+                //    transformation->LocalJacobian(jac,x,y,z,time);
+                //}else{
+                //    //FFD without time  
+                //    transformation->LocalJacobian(jac,x,y,z);
+                //}
+                //strainm = jac;
+                //strainm.Transpose();
+                //strainm = strainm*jac;
 
-            strainm(0,0) = strainm(0,0) - 1;
-            strainm(1,1) = strainm(1,1) - 1;
-            strainm(2,2) = strainm(2,2) - 1;
+                //strainm(0,0) = strainm(0,0) - 1;
+                //strainm(1,1) = strainm(1,1) - 1;
+                //strainm(2,2) = strainm(2,2) - 1;
 
-            //error = strainm.Det();
-            error = (strainm(0, 0)*strainm(1, 1)*strainm(2, 2) 
-                + strainm(0, 1)*strainm(1, 2)*strainm(2, 0) 
-                + strainm(0, 2)*strainm(1, 0)*strainm(2, 1) 
-                - strainm(0, 2)*strainm(1, 1)*strainm(2, 0) 
-                - strainm(0, 0)*strainm(1, 2)*strainm(2, 1) 
-                - strainm(0, 1)*strainm(1, 0)*strainm(2, 2));
-        }else if(longaxisname){
+                ////error = strainm.Det();
+                //error = (strainm(0, 0)*strainm(1, 1)*strainm(2, 2) 
+                //    + strainm(0, 1)*strainm(1, 2)*strainm(2, 0) 
+                //    + strainm(0, 2)*strainm(1, 0)*strainm(2, 1) 
+                //    - strainm(0, 2)*strainm(1, 1)*strainm(2, 0) 
+                //    - strainm(0, 0)*strainm(1, 2)*strainm(2, 1) 
+                //    - strainm(0, 1)*strainm(1, 0)*strainm(2, 2));
+            }else if(longaxisname){
 
-            //calculate radial intersection by x = l1 + ((p-l1).v)v
-            //p - l1
-            radial[0] = x - p1[0];
-            radial[1] = y - p1[1];
-            radial[2] = z - p1[2];
-            //(p-l1).v
-            error = radial[0]*p2[0] 
-            + radial[1]*p2[1]
-            + radial[2]*p2[2];
-            //((p-l1).v)v
-            radial[0] = error*p2[0];
-            radial[1] = error*p2[1];
-            radial[2] = error*p2[2];
-            //l1 + ((p-l1).v)v
-            radial[0] += p1[0];
-            radial[1] += p1[1];
-            radial[2] += p1[2];
-            //calculate radial point by x - p
-            radial[0] -= x;
-            radial[1] -= y;
-            radial[2] -= z;
-            //nromalize
-            double distance = sqrt(pow(radial[0],2)+pow(radial[1],2)+pow(radial[2],2));
-            if(distance > 0){
-                for(int j = 0; j < 3; j++){
-                    radial[j] = radial[j] / distance;
-                }
-            }
+                //calculate radial intersection by x = l1 + ((p-l1).v)v
+                //p - l1
+                //radial[0] = x - p1[0];
+                //radial[1] = y - p1[1];
+                //radial[2] = z - p1[2];
+                ////(p-l1).v
+                //error = radial[0]*p2[0] 
+                //+ radial[1]*p2[1]
+                //+ radial[2]*p2[2];
+                ////((p-l1).v)v
+                //radial[0] = error*p2[0];
+                //radial[1] = error*p2[1];
+                //radial[2] = error*p2[2];
+                ////l1 + ((p-l1).v)v
+                //radial[0] += p1[0];
+                //radial[1] += p1[1];
+                //radial[2] += p1[2];
+                ////calculate radial point by x - p
+                //radial[0] -= x;
+                //radial[1] -= y;
+                //radial[2] -= z;
+                ////nromalize
+                //double distance = sqrt(pow(radial[0],2)+pow(radial[1],2)+pow(radial[2],2));
+                //if(distance > 0){
+                //    for(int j = 0; j < 3; j++){
+                //        radial[j] = radial[j] / distance;
+                //    }
+                //}
 
-            double tensor_of_strain[9];
-            irtkMatrix jac,strainm;
-            jac.Initialize(3, 3);
-            strainm.Initialize(3,3);
-            if(time >= 0){
-                //TFFD with time
-                transformation->LocalJacobian(jac,x,y,z,time);
+                //double tensor_of_strain[9];
+                //irtkMatrix jac,strainm;
+                //jac.Initialize(3, 3);
+                //strainm.Initialize(3,3);
+                //if(time >= 0){
+                //    //TFFD with time
+                //    transformation->LocalJacobian(jac,x,y,z,time);
+                //}else{
+                //    //FFD without time  
+                //    transformation->LocalJacobian(jac,x,y,z);
+                //}
+                //strainm = jac;
+                //strainm.Transpose();
+                //strainm = strainm*jac;
+
+                //for(int x=0;x<9;x++){
+                //    tensor_of_strain[x] = strainm(x/3,x%3);
+                //}
+                //strainm(0,0) = strainm(0,0) - 1;
+                //strainm(1,1) = strainm(1,1) - 1;
+                //strainm(2,2) = strainm(2,2) - 1;
+
+                //irtkMatrix spt,sp;
+                //spt.Initialize(1,3);
+                //sp.Initialize(3,1);
+
+                //sp(0,0) = radial[0]; spt(0,0) = radial[0];
+                //sp(1,0) = radial[1]; spt(0,1) = radial[1];
+                //sp(2,0) = radial[2]; spt(0,2) = radial[2];
+                //strainm = spt*strainm*sp;
+                //error = strainm.Det();
+
             }else{
-                //FFD without time  
-                transformation->LocalJacobian(jac,x,y,z);
-            }
-            strainm = jac;
-            strainm.Transpose();
-            strainm = strainm*jac;
-
-            for(int x=0;x<9;x++){
-                tensor_of_strain[x] = strainm(x/3,x%3);
-            }
-            strainm(0,0) = strainm(0,0) - 1;
-            strainm(1,1) = strainm(1,1) - 1;
-            strainm(2,2) = strainm(2,2) - 1;
-
-            irtkMatrix spt,sp;
-            spt.Initialize(1,3);
-            sp.Initialize(3,1);
-
-            sp(0,0) = radial[0]; spt(0,0) = radial[0];
-            sp(1,0) = radial[1]; spt(0,1) = radial[1];
-            sp(2,0) = radial[2]; spt(0,2) = radial[2];
-            strainm = spt*strainm*sp;
-            error = strainm.Det();
-
-        }else{
             if(time >= 0){
                 //TFFD with time
                 transformation->LocalDisplacement(x,y,z,time);
@@ -343,10 +361,20 @@ int main( int argc, char * argv[] )
             }
 
             error = sqrt(error);
+            }
+
+            if(outputname){
+                fout << error << " ";
+            }
         }
 
-        if(outputname){
-            fout << error << " ";
+        aha = *(ahaArray->GetTuple(p));
+
+        if(aha < 1 || aha > 17){
+            error = 1000;
+            myDisplacement[0] = 1000;
+            myDisplacement[1] = 1000;
+            myDisplacement[2] = 1000;
         }
 
         // Insert error in the array
