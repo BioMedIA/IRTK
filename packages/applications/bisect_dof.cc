@@ -4,8 +4,8 @@
   Library   : Image Registration Toolkit (IRTK)
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 23 Feb 2012 $
-  Changes   : $Author: cl6311 $
+  Date      : $Date$
+  Changes   : $Author$
 
 =========================================================================*/
 

@@ -202,6 +202,12 @@ int main( int argc, char * argv[] )
         }
     }
 
+    ofstream fout;
+
+    if(outputname){
+        fout.open(outputname,ios::app);
+    }
+
     // Compute error for each point of the mesh
     for (int p=0; p<points->GetNumberOfPoints(); p++)
     {
@@ -340,14 +346,16 @@ int main( int argc, char * argv[] )
         }
 
         if(outputname){
-            ofstream fout(outputname,ios::app);
             fout << error << " ";
-            fout.close();
         }
 
         // Insert error in the array
         errorArray->InsertNextTuple(errorDisplacement);
         scalarvectors->InsertNextTuple(&error);
+    }
+
+    if(outputname){;
+        fout.close();
     }
 
     ug->GetPointData()->SetVectors(errorArray);
