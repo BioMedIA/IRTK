@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     for (i = 0; i < model->GetNumberOfPoints(); i++) {
         model->GetPoints()->GetPoint (i, point);
 
-        fout << point[0] << " " << point[1] << " " << point[3] << endl;
+        fout << point[0] << " " << point[1] << " " << point[2] << endl;
     }
 
     fout.close();
