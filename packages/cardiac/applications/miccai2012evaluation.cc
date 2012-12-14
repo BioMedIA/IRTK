@@ -161,7 +161,10 @@ int main( int argc, char * argv[] )
     vtkSmartPointer<vtkFloatArray> errorArray = vtkSmartPointer<vtkFloatArray>::New();
     errorArray->SetName("error");
     errorArray->SetNumberOfComponents(3);
-    ug->GetPointData()->AddArray(errorArray);
+    // Set up strain value
+    vtkSmartPointer<vtkFloatArray> scalarvectors = vtkSmartPointer<vtkFloatArray>::New();
+    scalarvectors->SetNumberOfComponents(1);
+    //ug->GetPointData()->AddArray(errorArray);
     //ug->GetPointData()->AddArray(ahaArray);
 
     // Read dof
@@ -344,8 +347,11 @@ int main( int argc, char * argv[] )
 
         // Insert error in the array
         errorArray->InsertNextTuple(errorDisplacement);
+        scalarvectors->InsertNextTuple(&error);
     }
 
+    ug->GetPointData()->SetVectors(errorArray);
+    ug->GetPointData()->SetScalars(scalarvectors);
 
     // Write output mesh
     vtkSmartPointer<vtkUnstructuredGridWriter> writer =vtkSmartPointer<vtkUnstructuredGridWriter>::New();
