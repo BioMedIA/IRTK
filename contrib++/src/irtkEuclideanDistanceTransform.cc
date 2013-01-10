@@ -571,7 +571,7 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
       p = edt + i;
       q = f;
       for (k = 0; k < nZ; k++, p += nXY, q++) {
-        *p = *q *this-> _input->GetZSize() / this->_input->GetXSize();
+	*p = *q;
       }
     }
   }
