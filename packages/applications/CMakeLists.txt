@@ -13,15 +13,8 @@ MACRO(ADD_CONDOR_EXECUTABLE name)
   INSTALL_TARGETS(/bin ${name})
 ENDMACRO(ADD_CONDOR_EXECUTABLE name)
 
-# NOTE The fluid executable (fluid.cc) is intentionally excluded as it
-#      is deprecated and should not be used. In fact, the executable
-#      already only outputs that it should not be used and exits with
-#      an error doing nothing. Moreover, the target name "fluid" conflicts
-#      with the fluid executable target imported from the FLTK
-#      (see also <fltk-prefix>/lib/FLTK-1.3/FLTKLibraries.cmake).
-#      --andreas (as12312)
-
 IF (BUILD_CONDOR_EXE)
+
   #  SET (CMAKE_CXX_COMPILER "condor_compile ${CMAKE_CXX_COMPILER}")
   # This is a hack since the line above doesn't work: this local 
   # scripts executes condor_compile with the option "c++". That means,
@@ -94,6 +87,14 @@ ELSE(BUILD_CONDOR_EXE)
   ADD_IRTK_EXECUTABLE(ffdsubtract)
   ADD_IRTK_EXECUTABLE(ffdtransform)
   ADD_IRTK_EXECUTABLE(flirt2dof)
+  # NOTE The fluid executable (fluid.cc) is intentionally excluded as it
+  #      is deprecated and should not be used. In fact, the executable
+  #      already only outputs that it should not be used and exits with
+  #      an error doing nothing. Moreover, the target name "fluid" conflicts
+  #      with the fluid executable target imported from the FLTK
+  #      (see also <fltk-prefix>/lib/FLTK-1.3/FLTKLibraries.cmake).
+  #      --andreas (as12312)
+  ##ADD_IRTK_EXECUTABLE(fluid)
   ADD_IRTK_EXECUTABLE(gridevaluation)
   ADD_IRTK_EXECUTABLE(gridtransformation)
   ADD_IRTK_EXECUTABLE(headertool)
