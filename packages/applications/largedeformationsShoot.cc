@@ -6,7 +6,7 @@
 #include <irtkLargeDeformationShooting.h>
 
 void usage(){
-  cerr << "Usage: largedeformationShoot [Template] [Target] <options>\n";
+  cerr << "Usage: largedeformationsShoot [Template] [Target] <options>\n";
   cerr << "Where <options> are one or more of the following:\n";
   cerr << "  Primary options:\n";
   cerr << "    <-iterations n>             Number of iterations (default=10)\n";
