@@ -25,7 +25,7 @@
 
 #define NR_TOL 1.0e-5
 
-#define JACOBI
+//#define JACOBI
 
 irtkMatrix::irtkMatrix()
 {
@@ -686,56 +686,171 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
 
 
 #else
-  int i;
+  int i, j, sym = true, diag = true;
   float *eigen_value, **eigen_vector, **m;
 
-  // Allocate menory
-  m            = ::matrix(1, _rows, 1, _rows);
-  eigen_vector = ::matrix(1, _rows, 1, _rows);
-  eigen_value  = ::vector(1, _rows);
+  // check for symmetric matrix
+  for (i = 0; i < _rows; i++) {
+	for (j = i+1; j < _cols; j++) {
+	  if (abs(_matrix[i][j] - _matrix[j][i]) > 0.001) {
+		sym = false;
+	  }
+	}
+  }
 
-  // Convert matrix to NR format
-  Matrix2NR(m);
-
-#ifdef JACOBI
-  int dummy;
-
-  jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
-#else
-  int j;
-  float *dummy = vector(1, _rows);
-
-  tred2(m, _rows, eigen_value, dummy);
-  tqli(eigen_value, dummy, _rows, m);
-
-  for (i = 1; i <= _rows; i++) {
-    for (j = 1; j <= _rows; j++) {
-      eigen_vector[i][j] = m[i][j];
+  // check for diagonizable matrix (if it commutes with its conjugate transpose: A*A = AA*)
+  // only needed when matrix not symmetric (every symmetric matrix is diagonizable)
+  if (!sym) {
+    irtkMatrix AT = *this; AT.Transpose();
+    irtkMatrix ATA = AT * *this;
+    irtkMatrix AAT = *this * AT;
+    for (i = 0; i < _rows; i++) {
+	  for (j = 0; j < _cols; j++) {
+	    if (abs(AAT(i, j) - ATA(i, j)) > 0.001) {
+		  diag = false;
+	    }
+	  }
     }
   }
-  free_vector(dummy, 1, _rows);
-#endif
+
+  // compute eigenvalues with algorithm, depending on matrix properties (symmetry, diagonizability)
+  if (!sym && !diag) { // SVD
+	cout << "matrix not diagonizable -> eigenvalues computed for MM* / M*M using SVD!!!" << endl;
+	cout << "eigenvector matrix is now U (wrong)" << endl;
+
+    irtkMatrix U(_rows, _cols), V(_rows, _cols);
+    SVD(U, e, V);
+
+    // eigenvalues are still in square root
+    for (i = 0; i < _rows; i++) {
+      e(i) = e(i)*e(i);
+    }
+    E = U;
+
+  } else {
+	// Allocate menory
+	m            = ::matrix(1, _rows, 1, _rows);
+	eigen_vector = ::matrix(1, _rows, 1, _rows);
+	eigen_value  = ::vector(1, _rows);
+
+	// Convert matrix to NR format
+	Matrix2NR(m);
+
+	if (sym) { // Jacobi
+	  int dummy;
+
+	  jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
+	} else { // Eigenvalue Decomposition
+	  float *dummy = vector(1, _rows);
+
+	  tred2(m, _rows, eigen_value, dummy);
+	  tqli(eigen_value, dummy, _rows, m);
+
+	  for (i = 1; i <= _rows; i++) {
+		for (j = 1; j <= _rows; j++) {
+		  eigen_vector[i][j] = m[i][j];
+		}
+	  }
+	  free_vector(dummy, 1, _rows);
+	}
+	// Convert NR format back
+	E = irtkMatrix(_rows, _rows);
+	E.NR2Matrix(eigen_vector);
+	e = irtkVector(_rows);
+	e.NR2Vector(eigen_value);
+
+	// Free memory
+	free_matrix(m, 1, _rows, 1, _rows);
+	free_matrix(eigen_vector, 1, _rows, 1, _rows);
+	free_vector(eigen_value, 1, _rows);
+  }
 
   // Sort eigenvectors only by absolute values
-  for (i = 1; i <= _rows; i++) {
+//  for (i = 1; i <= _rows; i++) {
 //    eigen_value[i] = fabs(eigen_value[i]);
-  }
+//  }
 
   // Sort eigenvectors
 //  eigsrt(eigen_value, eigen_vector, _rows);
 
-  // Convert NR format back
-  E = irtkMatrix(_rows, _rows);
-  E.NR2Matrix(eigen_vector);
-  e = irtkVector(_rows);
-  e.NR2Vector(eigen_value);
-
-  // Free memory
-  free_matrix(m, 1, _rows, 1, _rows);
-  free_matrix(eigen_vector, 1, _rows, 1, _rows);
-  free_vector(eigen_value, 1, _rows);
 #endif
 }
+
+//void irtkMatrix::EigenvaluesOld(irtkMatrix &E, irtkVector &e)
+//{
+//  if (_rows != _cols) {
+//    cerr << "irtkMatrix::Eigenvalues: Must be square" << endl;
+//    exit(1);
+//  }
+//
+//#ifdef USE_VXL
+//
+//  vnl_matrix<double> input(_rows,_cols);
+//  Matrix2Vnl(&input);
+//
+//  // Unfortunately, I can't use the function vnl_real_eigensystem
+//  // since it results a matrix eigen.D with complex values which I don't
+//  // know how to handle with irtkMatrix.
+//
+//  //  vnl_real_eigensystem eigen(input);
+//  //  E = irtkMatrix(_rows, _rows);
+//  // E.Vnl2Matrix(&eigen.Vreal);
+//  // e = irtkVector(_rows);
+//  // e.Vnl2Vector(&eigen.D);
+//
+//
+//
+//#else
+//  int i;
+//  float *eigen_value, **eigen_vector, **m;
+//
+//  // Allocate menory
+//  m            = ::matrix(1, _rows, 1, _rows);
+//  eigen_vector = ::matrix(1, _rows, 1, _rows);
+//  eigen_value  = ::vector(1, _rows);
+//
+//  // Convert matrix to NR format
+//  Matrix2NR(m);
+//
+//#ifdef JACOBI
+//  int dummy;
+//
+//  jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
+//#else
+//  int j;
+//  float *dummy = vector(1, _rows);
+//
+//  tred2(m, _rows, eigen_value, dummy);
+//  tqli(eigen_value, dummy, _rows, m);
+//
+//  for (i = 1; i <= _rows; i++) {
+//    for (j = 1; j <= _rows; j++) {
+//      eigen_vector[i][j] = m[i][j];
+//    }
+//  }
+//  free_vector(dummy, 1, _rows);
+//#endif
+//
+//  // Sort eigenvectors only by absolute values
+//  for (i = 1; i <= _rows; i++) {
+////    eigen_value[i] = fabs(eigen_value[i]);
+//  }
+//
+//  // Sort eigenvectors
+////  eigsrt(eigen_value, eigen_vector, _rows);
+//
+//  // Convert NR format back
+//  E = irtkMatrix(_rows, _rows);
+//  E.NR2Matrix(eigen_vector);
+//  e = irtkVector(_rows);
+//  e.NR2Vector(eigen_value);
+//
+//  // Free memory
+//  free_matrix(m, 1, _rows, 1, _rows);
+//  free_matrix(eigen_vector, 1, _rows, 1, _rows);
+//  free_vector(eigen_value, 1, _rows);
+//#endif
+//}
 
 void irtkMatrix::SVD(irtkMatrix &u, irtkVector &w, irtkMatrix &v) const
 {
