@@ -297,8 +297,8 @@ irtkMatrix logm(irtkMatrix A)
   }
 
   irtkVector eValues(A._rows);
-  irtkMatrix eVectors(A);
-  A.Eigenvalues(eVectors, eValues);
+  irtkMatrix eVectors(A), tmp(A);
+  A.Eigenvalues(eVectors, eValues, tmp);
   for (i = 0; i < A._rows; ++i) {
     if (eValues(i) <= 0) {
       cerr << "irtkMatrix logm(irtkMatrix A): eigenvalue <= 0." << endl;
@@ -661,46 +661,51 @@ void irtkMatrix::Transpose(void)
   }
 }
 
-void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
+void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
 {
-  if (_rows != _cols) {
-    cerr << "irtkMatrix::Eigenvalues: Must be square" << endl;
-    exit(1);
-  }
+  int i, j, sym = true, diag = true, square = true;
 
 #ifdef USE_VXL
 
-  vnl_matrix<double> input(_rows,_cols);
-  Matrix2Vnl(&input);
+  vnl_matrix<float> M(_rows,_cols);
+  Matrix2Vnl(&M);
 
-  // Unfortunately, I can't use the function vnl_real_eigensystem
-  // since it results a matrix eigen.D with complex values which I don't
-  // know how to handle with irtkMatrix.
+  vnl_svd<float> svd(M);
 
-  //  vnl_real_eigensystem eigen(input);
-  //  E = irtkMatrix(_rows, _rows);
-  // E.Vnl2Matrix(&eigen.Vreal);
-  // e = irtkVector(_rows);
-  // e.Vnl2Vector(&eigen.D);
+  E1 = irtkMatrix(_rows, _cols);
+  E1.Vnl2Matrix(&svd.U());
+  E2 = irtkMatrix(_cols, _cols);
+  E2.Vnl2Matrix(&svd.V());
+  e = irtkVector(_cols);
+  e.Vnl2Vector(&svd.W());
 
-
-
+  // eigenvalues are still in square root
+  for (i = 0; i < _rows; i++) {
+    e(i) = e(i)*e(i);
+  }
 #else
-  int i, j, sym = true, diag = true;
-  float *eigen_value, **eigen_vector, **m;
+  // check for square matrix
+  if (_rows != _cols) {
+    square = false;
+  }
 
   // check for symmetric matrix
-  for (i = 0; i < _rows; i++) {
-	for (j = i+1; j < _cols; j++) {
-	  if (abs(_matrix[i][j] - _matrix[j][i]) > 0.001) {
-		sym = false;
+  if (square) {
+    for (i = 0; i < _rows; i++) {
+	  for (j = i+1; j < _cols; j++) {
+	    if (abs(_matrix[i][j] - _matrix[j][i]) > 0.001) {
+		  sym = false;
+	    }
 	  }
-	}
+    }
+  } else {
+	sym = false;
+	diag = false;
   }
 
   // check for diagonizable matrix (if it commutes with its conjugate transpose: A*A = AA*)
   // only needed when matrix not symmetric (every symmetric matrix is diagonizable)
-  if (!sym) {
+  if (!sym && square) {
     irtkMatrix AT = *this; AT.Transpose();
     irtkMatrix ATA = AT * *this;
     irtkMatrix AAT = *this * AT;
@@ -715,19 +720,39 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
 
   // compute eigenvalues with algorithm, depending on matrix properties (symmetry, diagonizability)
   if (!sym && !diag) { // SVD
-	cout << "matrix not diagonizable -> eigenvalues computed for MM* / M*M using SVD!!!" << endl;
-	cout << "eigenvector matrix is now U (wrong)" << endl;
+    double **NR_u, **NR_v, *NR_w;
 
-    irtkMatrix U(_rows, _cols), V(_rows, _cols);
-    SVD(U, e, V);
+    NR_w = dvector(1, _cols);
+    NR_u = dmatrix(1, _rows, 1, _cols);
+    NR_v = dmatrix(1, _cols, 1, _cols);
+
+    // Convert matrix to NR
+    this->Matrix2NR(NR_u);
+
+    // SVD
+    svdcmp(NR_u, _rows, _cols, NR_w, NR_v);
+
+    // Convert matrix to NR
+    E1 = irtkMatrix(_rows, _cols);
+    E1.NR2Matrix(NR_u);
+    E2 = irtkMatrix(_cols, _cols);
+    E2.NR2Matrix(NR_v);
+    e = irtkVector(_cols);
+    e.NR2Vector(NR_w);
+
+    // Free memory
+    free_dvector(NR_w, 1, _cols);
+    free_dmatrix(NR_u, 1, _rows, 1, _cols);
+    free_dmatrix(NR_v, 1, _cols, 1, _cols);
 
     // eigenvalues are still in square root
     for (i = 0; i < _rows; i++) {
       e(i) = e(i)*e(i);
     }
-    E = U;
 
   } else {
+	float *eigen_value, **eigen_vector, **m;
+
 	// Allocate menory
 	m            = ::matrix(1, _rows, 1, _rows);
 	eigen_vector = ::matrix(1, _rows, 1, _rows);
@@ -754,8 +779,8 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
 	  free_vector(dummy, 1, _rows);
 	}
 	// Convert NR format back
-	E = irtkMatrix(_rows, _rows);
-	E.NR2Matrix(eigen_vector);
+	E1 = irtkMatrix(_rows, _rows);
+	E1.NR2Matrix(eigen_vector);
 	e = irtkVector(_rows);
 	e.NR2Vector(eigen_value);
 
@@ -776,125 +801,16 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E, irtkVector &e)
 #endif
 }
 
-//void irtkMatrix::EigenvaluesOld(irtkMatrix &E, irtkVector &e)
-//{
-//  if (_rows != _cols) {
-//    cerr << "irtkMatrix::Eigenvalues: Must be square" << endl;
-//    exit(1);
-//  }
-//
-//#ifdef USE_VXL
-//
-//  vnl_matrix<double> input(_rows,_cols);
-//  Matrix2Vnl(&input);
-//
-//  // Unfortunately, I can't use the function vnl_real_eigensystem
-//  // since it results a matrix eigen.D with complex values which I don't
-//  // know how to handle with irtkMatrix.
-//
-//  //  vnl_real_eigensystem eigen(input);
-//  //  E = irtkMatrix(_rows, _rows);
-//  // E.Vnl2Matrix(&eigen.Vreal);
-//  // e = irtkVector(_rows);
-//  // e.Vnl2Vector(&eigen.D);
-//
-//
-//
-//#else
-//  int i;
-//  float *eigen_value, **eigen_vector, **m;
-//
-//  // Allocate menory
-//  m            = ::matrix(1, _rows, 1, _rows);
-//  eigen_vector = ::matrix(1, _rows, 1, _rows);
-//  eigen_value  = ::vector(1, _rows);
-//
-//  // Convert matrix to NR format
-//  Matrix2NR(m);
-//
-//#ifdef JACOBI
-//  int dummy;
-//
-//  jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
-//#else
-//  int j;
-//  float *dummy = vector(1, _rows);
-//
-//  tred2(m, _rows, eigen_value, dummy);
-//  tqli(eigen_value, dummy, _rows, m);
-//
-//  for (i = 1; i <= _rows; i++) {
-//    for (j = 1; j <= _rows; j++) {
-//      eigen_vector[i][j] = m[i][j];
-//    }
-//  }
-//  free_vector(dummy, 1, _rows);
-//#endif
-//
-//  // Sort eigenvectors only by absolute values
-//  for (i = 1; i <= _rows; i++) {
-////    eigen_value[i] = fabs(eigen_value[i]);
-//  }
-//
-//  // Sort eigenvectors
-////  eigsrt(eigen_value, eigen_vector, _rows);
-//
-//  // Convert NR format back
-//  E = irtkMatrix(_rows, _rows);
-//  E.NR2Matrix(eigen_vector);
-//  e = irtkVector(_rows);
-//  e.NR2Vector(eigen_value);
-//
-//  // Free memory
-//  free_matrix(m, 1, _rows, 1, _rows);
-//  free_matrix(eigen_vector, 1, _rows, 1, _rows);
-//  free_vector(eigen_value, 1, _rows);
-//#endif
-//}
-
-void irtkMatrix::SVD(irtkMatrix &u, irtkVector &w, irtkMatrix &v) const
+void irtkMatrix::SVD(irtkMatrix &u, irtkVector &w, irtkMatrix &v)
 {
-#ifdef USE_VXL
+  int i;
 
-  vnl_matrix<float> M(_rows,_cols);
-  Matrix2Vnl(&M);
+  this->Eigenvalues(u, w, v);
 
-  vnl_svd<float> svd(M);
-
-  u = irtkMatrix(_rows, _cols);
-  u.Vnl2Matrix(&svd.U());
-  v = irtkMatrix(_cols, _cols);
-  v.Vnl2Matrix(&svd.V());
-  w = irtkVector(_cols);
-  w.Vnl2Vector(&svd.W());
-
-#else
-  double **NR_u, **NR_v, *NR_w;
-
-  NR_w = dvector(1, _cols);
-  NR_u = dmatrix(1, _rows, 1, _cols);
-  NR_v = dmatrix(1, _cols, 1, _cols);
-
-  // Convert matrix to NR
-  this->Matrix2NR(NR_u);
-
-  // SVD
-  svdcmp(NR_u, _rows, _cols, NR_w, NR_v);
-
-  // Convert matrix to NR
-  u = irtkMatrix(_rows, _cols);
-  u.NR2Matrix(NR_u);
-  v = irtkMatrix(_cols, _cols);
-  v.NR2Matrix(NR_v);
-  w = irtkVector(_cols);
-  w.NR2Vector(NR_w);
-
-  // Free memory
-  free_dvector(NR_w, 1, _cols);
-  free_dmatrix(NR_u, 1, _rows, 1, _cols);
-  free_dmatrix(NR_v, 1, _cols, 1, _cols);
-
-#endif
+  // eigenvalues are not in square root
+  for (i = 0; i < _rows; i++) {
+    w(i) = sqrt(w(i));
+  }
 }
 
 void irtkMatrix::LeastSquaresFit(const irtkVector &y, irtkVector &x)

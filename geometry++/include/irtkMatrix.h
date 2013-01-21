@@ -184,8 +184,11 @@ public:
   /// Calculate determinant of matrix
   double Det() const;
 
-  /// Calculate SVD of matrix
-  void   SVD(irtkMatrix &, irtkVector &, irtkMatrix &) const;
+  /* Calculate SVD of matrix
+   * now does the same as Eigenvalues (but eigenvalues are in square root)
+   * algorithm chosen according to matrix properties (symmetry, diagonizability)
+   */
+  void   SVD(irtkMatrix &, irtkVector &, irtkMatrix &);
 
   /// Identity matrix
   void   Ident();
@@ -202,8 +205,11 @@ public:
   /// Transpose matrix
   void   Transpose();
 
-  /// Calculate eigenvalues and eigenvectors of matrix
-  void   Eigenvalues(irtkMatrix &, irtkVector &);
+  /* Calculate eigenvalues and eigenvectors of matrix
+   * now does the same as SVD (but eigenvalues are NOT in square root)
+   * algorithm chosen according to matrix properties (symmetry, diagonizability)
+   */
+  void   Eigenvalues(irtkMatrix &, irtkVector &, irtkMatrix &);
 
   /// Calculate least square fit via SVD
   void   LeastSquaresFit(const irtkVector &, irtkVector &);
