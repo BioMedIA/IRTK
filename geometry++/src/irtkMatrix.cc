@@ -781,6 +781,8 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
 	// Convert NR format back
 	E1 = irtkMatrix(_rows, _rows);
 	E1.NR2Matrix(eigen_vector);
+	E2 = E1;
+	E2.Invert();
 	e = irtkVector(_rows);
 	e.NR2Vector(eigen_value);
 
