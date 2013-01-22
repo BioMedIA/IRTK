@@ -144,7 +144,7 @@ irtkMatrix& irtkMatrix::operator =(const irtkMatrix& m)
 }
 
 irtkMatrix& irtkMatrix::operator-=(const irtkMatrix& m)
-{
+        {
   int i, j;
 
   if ((_rows != m._rows) || (_cols != m._cols)) {
@@ -157,10 +157,10 @@ irtkMatrix& irtkMatrix::operator-=(const irtkMatrix& m)
     }
   }
   return *this;
-}
+        }
 
 irtkMatrix& irtkMatrix::operator+=(const irtkMatrix& m)
-{
+        {
   int i, j;
 
   if ((_rows != m._rows) || (_cols != m._cols)) {
@@ -173,13 +173,13 @@ irtkMatrix& irtkMatrix::operator+=(const irtkMatrix& m)
     }
   }
   return *this;
-}
+        }
 
 irtkMatrix& irtkMatrix::operator*=(const irtkMatrix& m)
-{
+        {
   *this = *this * m;
   return *this;
-}
+        }
 
 irtkMatrix  irtkMatrix::operator- (const irtkMatrix& m)
 {
@@ -216,7 +216,7 @@ irtkMatrix  irtkMatrix::operator+ (const irtkMatrix& m)
 }
 
 irtkMatrix  irtkMatrix::operator* (const irtkMatrix& m)
-{
+        {
   int i, j, k;
 
   if (_cols != m._rows) {
@@ -235,7 +235,7 @@ irtkMatrix  irtkMatrix::operator* (const irtkMatrix& m)
   }
 
   return tmp;
-}
+        }
 
 irtkMatrix expm (irtkMatrix A)
 {
@@ -409,6 +409,10 @@ irtkMatrix FrechetMean (irtkMatrix *matrices, int number, int iterations)
 
   } while (normLogDeltaMu > tolerance && n < iterations);
 
+  if (n == iterations){
+    cerr << "irtkMatrix::FrecheMean : Warning, reached maximum iterations." << endl;
+  }
+
   return mu;
 }
 
@@ -466,22 +470,22 @@ irtkMatrix FrechetMean (irtkMatrix *matrices, double *weights, int number, int i
 }
 
 irtkMatrix irtkMatrix::operator~ (void)
-{
+        {
   irtkMatrix m;
 
   m = *this;
   m.Transpose();
   return m;
-}
+        }
 
 irtkMatrix irtkMatrix::operator! (void)
-{
+        {
   irtkMatrix m;
 
   m = *this;
   m.Invert();
   return m;
-}
+        }
 
 double irtkMatrix::Det() const
 {
@@ -572,60 +576,60 @@ void irtkMatrix::Invert(void)
 
 void irtkMatrix::Adjugate(double &d)
 {
-    if (_rows != _cols) {
-        cerr << "irtkMatrix::Adjugate: Must be square" << endl;
-        exit(1);
-    }
+  if (_rows != _cols) {
+    cerr << "irtkMatrix::Adjugate: Must be square" << endl;
+    exit(1);
+  }
 
 #ifdef USE_VXL
-    vnl_matrix<float> input(_rows,_cols);
-    Matrix2Vnl(&input);
-    vnl_matrix<float> output = vnl_matrix_inverse<float>(input);
-    Vnl2Matrix(&output);
+  vnl_matrix<float> input(_rows,_cols);
+  Matrix2Vnl(&input);
+  vnl_matrix<float> output = vnl_matrix_inverse<float>(input);
+  Vnl2Matrix(&output);
 #else
-    double **a, **b, *v;
-    int i, j, *index;
+  double **a, **b, *v;
+  int i, j, *index;
 
-    // Allocate memory
-    a = dmatrix(1, _rows, 1, _rows);
-    b = dmatrix(1, _rows, 1, _rows);
-    v = dvector(1, _rows);
+  // Allocate memory
+  a = dmatrix(1, _rows, 1, _rows);
+  b = dmatrix(1, _rows, 1, _rows);
+  v = dvector(1, _rows);
 
-    // Convert matrix to NR format
-    Matrix2NR(a);
+  // Convert matrix to NR format
+  Matrix2NR(a);
 
-    index = ivector(1, _rows);
+  index = ivector(1, _rows);
 
-    ludcmp(a, _rows, index, &d);
+  ludcmp(a, _rows, index, &d);
 
-    for (j = 1; j <= _rows; j++) {
-        d *= a[j][j];
+  for (j = 1; j <= _rows; j++) {
+    d *= a[j][j];
+  }
+  if (d == 0) {
+    cerr << "irtkMatrix::Invert: Zero determinant\n";
+    //exit(1);
+  }
+  for (j = 1; j <= _rows; j++) {
+    for (i = 1; i <= _rows; i++) {
+      v[i] = 0.0;
     }
-    if (d == 0) {
-        cerr << "irtkMatrix::Invert: Zero determinant\n";
-        //exit(1);
+    v[j] = 1.0;
+
+    lubksb(a, _rows, index, v);
+
+    for (i = 1; i <= _rows; i++) {
+      b[i][j] = v[i]*d;
     }
-    for (j = 1; j <= _rows; j++) {
-        for (i = 1; i <= _rows; i++) {
-            v[i] = 0.0;
-        }
-        v[j] = 1.0;
+  }
 
-        lubksb(a, _rows, index, v);
+  // Convert NR format back
+  NR2Matrix(b);
 
-        for (i = 1; i <= _rows; i++) {
-            b[i][j] = v[i]*d;
-        }
-    }
-
-    // Convert NR format back
-    NR2Matrix(b);
-
-    // Deallocate memory
-    free_dmatrix(a, 1, _rows, 1, _rows);
-    free_dmatrix(b, 1, _rows, 1, _rows);
-    free_dvector(v, 1, _rows);
-    free_ivector( index, 1, _rows);
+  // Deallocate memory
+  free_dmatrix(a, 1, _rows, 1, _rows);
+  free_dmatrix(b, 1, _rows, 1, _rows);
+  free_dvector(v, 1, _rows);
+  free_ivector( index, 1, _rows);
 #endif
 }
 
@@ -692,15 +696,15 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
   // check for symmetric matrix
   if (square) {
     for (i = 0; i < _rows; i++) {
-	  for (j = i+1; j < _cols; j++) {
-	    if (abs(_matrix[i][j] - _matrix[j][i]) > 0.001) {
-		  sym = false;
-	    }
-	  }
+      for (j = i+1; j < _cols; j++) {
+        if (abs(_matrix[i][j] - _matrix[j][i]) > 0.001) {
+          sym = false;
+        }
+      }
     }
   } else {
-	sym = false;
-	diag = false;
+    sym = false;
+    diag = false;
   }
 
   // check for diagonizable matrix (if it commutes with its conjugate transpose: A*A = AA*)
@@ -710,11 +714,11 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
     irtkMatrix ATA = AT * *this;
     irtkMatrix AAT = *this * AT;
     for (i = 0; i < _rows; i++) {
-	  for (j = 0; j < _cols; j++) {
-	    if (abs(AAT(i, j) - ATA(i, j)) > 0.001) {
-		  diag = false;
-	    }
-	  }
+      for (j = 0; j < _cols; j++) {
+        if (abs(AAT(i, j) - ATA(i, j)) > 0.001) {
+          diag = false;
+        }
+      }
     }
   }
 
@@ -751,54 +755,54 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
     }
 
   } else {
-	float *eigen_value, **eigen_vector, **m;
+    float *eigen_value, **eigen_vector, **m;
 
-	// Allocate menory
-	m            = ::matrix(1, _rows, 1, _rows);
-	eigen_vector = ::matrix(1, _rows, 1, _rows);
-	eigen_value  = ::vector(1, _rows);
+    // Allocate menory
+    m            = ::matrix(1, _rows, 1, _rows);
+    eigen_vector = ::matrix(1, _rows, 1, _rows);
+    eigen_value  = ::vector(1, _rows);
 
-	// Convert matrix to NR format
-	Matrix2NR(m);
+    // Convert matrix to NR format
+    Matrix2NR(m);
 
-	if (sym) { // Jacobi
-	  int dummy;
+    if (sym) { // Jacobi
+      int dummy;
 
-	  jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
-	} else { // Eigenvalue Decomposition
-	  float *dummy = ::vector(1, _rows);
+      jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
+    } else { // Eigenvalue Decomposition
+      float *dummy = ::vector(1, _rows);
 
-	  tred2(m, _rows, eigen_value, dummy);
-	  tqli(eigen_value, dummy, _rows, m);
+      tred2(m, _rows, eigen_value, dummy);
+      tqli(eigen_value, dummy, _rows, m);
 
-	  for (i = 1; i <= _rows; i++) {
-		for (j = 1; j <= _rows; j++) {
-		  eigen_vector[i][j] = m[i][j];
-		}
-	  }
-	  free_vector(dummy, 1, _rows);
-	}
-	// Convert NR format back
-	E1 = irtkMatrix(_rows, _rows);
-	E1.NR2Matrix(eigen_vector);
-	E2 = E1;
-	E2.Invert();
-	e = irtkVector(_rows);
-	e.NR2Vector(eigen_value);
+      for (i = 1; i <= _rows; i++) {
+        for (j = 1; j <= _rows; j++) {
+          eigen_vector[i][j] = m[i][j];
+        }
+      }
+      free_vector(dummy, 1, _rows);
+    }
+    // Convert NR format back
+    E1 = irtkMatrix(_rows, _rows);
+    E1.NR2Matrix(eigen_vector);
+    E2 = E1;
+    E2.Invert();
+    e = irtkVector(_rows);
+    e.NR2Vector(eigen_value);
 
-	// Free memory
-	free_matrix(m, 1, _rows, 1, _rows);
-	free_matrix(eigen_vector, 1, _rows, 1, _rows);
-	free_vector(eigen_value, 1, _rows);
+    // Free memory
+    free_matrix(m, 1, _rows, 1, _rows);
+    free_matrix(eigen_vector, 1, _rows, 1, _rows);
+    free_vector(eigen_value, 1, _rows);
   }
 
   // Sort eigenvectors only by absolute values
-//  for (i = 1; i <= _rows; i++) {
-//    eigen_value[i] = fabs(eigen_value[i]);
-//  }
+  //  for (i = 1; i <= _rows; i++) {
+  //    eigen_value[i] = fabs(eigen_value[i]);
+  //  }
 
   // Sort eigenvectors
-//  eigsrt(eigen_value, eigen_vector, _rows);
+  //  eigsrt(eigen_value, eigen_vector, _rows);
 
 #endif
 }
@@ -1133,7 +1137,7 @@ void irtkMatrix::NR2Matrix(double **m)
 
 
 irtkVector  irtkMatrix::operator* (const irtkVector& v)
-{
+        {
   int i, j;
 
   if (_cols != v.Rows()) {
@@ -1152,6 +1156,6 @@ irtkVector  irtkMatrix::operator* (const irtkVector& v)
   }
 
   return result;
-}
+        }
 
 #endif
