@@ -47,17 +47,13 @@ void usage()
 	cerr << "<-Sy2 value>         Region of interest in source image" << endl;
 	cerr << "<-Sz2 value>         Region of interest in source image" << endl;
 	cerr << "<-Tp  value>         Padding value in target" << endl;
-	cerr
-	    << "<-init_rigid>        Perform rigid registration before affine registration"
-	    << endl;
+	cerr << "<-init_rigid>        Perform rigid registration before affine registration" << endl;
 	cerr << "<-debug>             Enable debugging information" << endl;
 	cerr << "<-center>            Center voxel grids onto image origins " << endl;
 	cerr << "                     before running registration filter." << endl;
 	cerr << "<-mask file>         Use a mask to define the ROI. The mask" << endl;
-	cerr << "                     must have the same dimensions as the target."
-	    << endl;
-	cerr << "                     Voxels in the mask with zero or less are "
-	    << endl;
+	cerr << "                     must have the same dimensions as the target." << endl;
+	cerr << "                     Voxels in the mask with zero or less are " << endl;
 	cerr << "                     padded in the target." << endl;
 	cerr << "<-mask_dilation n>   Dilate mask n times before using it" << endl;
 
