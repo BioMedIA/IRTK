@@ -766,7 +766,7 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
 
 	  jacobi(m, _rows, eigen_value, eigen_vector, &dummy);
 	} else { // Eigenvalue Decomposition
-	  float *dummy = vector(1, _rows);
+	  float *dummy = ::vector(1, _rows);
 
 	  tred2(m, _rows, eigen_value, dummy);
 	  tqli(eigen_value, dummy, _rows, m);
