@@ -120,12 +120,9 @@ short decideOnTie(countMap cMap){
     }
   }
 
-  val =  ran2(&ran2Seed);
-
-  index = (int) round(val * (count - 1));
+  index = (int) floor( ran2(&ran2Seed) * count );
 
   temp = tiedLabels[index];
-
   delete tiedLabels;
 
   return temp;
@@ -214,7 +211,6 @@ int main(int argc, char **argv)
     *pMask = 1;
     ++pMask;
   }
-
 
   input_0 = new irtkGreyImage(input_names[0]);
 
