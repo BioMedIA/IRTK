@@ -896,7 +896,28 @@ void irtkReconstruction::CoeffInit()
 		double sigmax = 1.2 * dx / 2.3548;
 		double sigmay = 1.2 * dy / 2.3548;
 		double sigmaz = dz / 2.3548;
+		/*
+		cout<<"Original sigma"<<sigmax<<" "<<sigmay<<" "<<sigmaz<<endl;
+		
+		//readjust for resolution of the volume
+		//double sigmax,sigmay,sigmaz;
+		double sigmamin = res/(3*2.3548);
+		
+		if((dx-res)>sigmamin)
+		  sigmax = 1.2 * sqrt(dx*dx-res*res) / 2.3548;
+		else sigmax = sigmamin;
 
+		if ((dy-res)>sigmamin)
+		  sigmay = 1.2 * sqrt(dy*dy-res*res) / 2.3548;
+		else
+		  sigmay=sigmamin;
+		if ((dz-1.2*res)>sigmamin)
+		  sigmaz = sqrt(dz*dz-1.2*1.2*res*res) / 2.3548;
+		else sigmaz=sigmamin;
+		
+		cout<<"Adjusted sigma:"<<sigmax<<" "<<sigmay<<" "<<sigmaz<<endl;
+                */
+		
 		//calculate discretized PSF
 
 		//isotropic voxel size of PSF - derived from resolution of reconstructed volume
@@ -1121,6 +1142,7 @@ void irtkReconstruction::CoeffInit()
 									p.value = tPSF(ii, jj, kk);
 									slicecoeffs[i][j].push_back(p);
 								}
+								
 
 				} //end of loop for slice voxels
 
@@ -1142,18 +1164,22 @@ void irtkReconstruction::GaussianReconstruction()
 	irtkRealImage slice, addon, b;
 	double scale;
 	POINT p;
+	vector<int> voxel_num;	
+	int slice_vox_num;
 
 	//clear _reconstructed image
 	ClearImage(_reconstructed, 0);
 
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
-			{
+	{
 		// read the current slice
 		slice = _slices[inputIndex];
 		//read the current bias image
 		b = _bias[inputIndex];
 		//read current scale factor
 		scale = _scale[inputIndex];
+		
+		slice_vox_num=0;
 
 		//Distribute slice intensities to the volume
 		for (i = 0; i < slice.GetX(); i++)
@@ -1167,8 +1193,12 @@ void irtkReconstruction::GaussianReconstruction()
 					n = _volcoeffs[inputIndex][i][j].size();
 
 					//if given voxel is not present in reconstructed volume at all pad it
-					if (n == 0)
-						_slices[inputIndex].PutAsDouble(i, j, 0, -1);
+					//if (n == 0)
+						//_slices[inputIndex].PutAsDouble(i, j, 0, -1);
+										//calculate num of vox in a slice that have overlap with roi
+					if (n>0)
+					  slice_vox_num++;
+
 
 					//add contribution of current slice voxel to all voxel volumes
 					//to which it contributes
@@ -1178,6 +1208,7 @@ void irtkReconstruction::GaussianReconstruction()
 						_reconstructed(p.x, p.y, p.z) += p.value * slice(i, j, 0);
 					}
 				}
+		voxel_num.push_back(slice_vox_num);
 		//end of loop for a slice inputIndex
 	}
 
@@ -1191,6 +1222,29 @@ void irtkReconstruction::GaussianReconstruction()
 
 	if (_debug)
 		_reconstructed.Write("init.nii.gz");
+
+	//now find slices with small overlap with ROI and exclude them.
+	
+	vector<int> voxel_num_tmp;
+	for (i=0;i<voxel_num.size();i++)
+	  voxel_num_tmp.push_back(voxel_num[i]);
+	//find median
+	sort(voxel_num_tmp.begin(),voxel_num_tmp.end());
+	int median = voxel_num_tmp[round(voxel_num_tmp.size()*0.5)];
+        //remeber slices with small overlap with ROI
+	_small_slices.clear();
+	for (i=0;i<voxel_num.size();i++)
+	  if (voxel_num[i]<0.1*median)
+	    _small_slices.push_back(i);
+	
+	if (_debug)
+	{
+	  cout<<"Small slices:";
+	  for (i=0;i<_small_slices.size();i++)
+	    cout<<" "<<_small_slices[i];
+	  cout<<endl;
+	}
+
 
 }
 
@@ -1437,6 +1491,22 @@ void irtkReconstruction::EStep()
 	//To force-exclude slices predefined by a user, set their potentials to -1
 	for (unsigned int i = 0; i < _force_excluded.size(); i++)
 		slice_potential[_force_excluded[i]] = -1;
+	
+	//exclude slices identified as having small overlap with ROI, set their potentials to -1
+	for (unsigned int i = 0; i < _small_slices.size(); i++)
+		slice_potential[_small_slices[i]] = -1;
+
+	//these are unrealistic scales pointing at misregistration - exclude the corresponding slices
+	for (inputIndex = 0; inputIndex < slice_potential.size(); inputIndex++)
+	  if ((_scale[inputIndex]<0.2)||(_scale[inputIndex]>5))
+	  {
+	    slice_potential[inputIndex] = -1;
+	  }
+        cout<<endl<<"Slice potentials: ";
+        for (inputIndex = 0; inputIndex < slice_potential.size(); inputIndex++)
+	  cout<<slice_potential[inputIndex]<<" ";
+	cout<<endl;
+
 
 	//Calulation of slice-wise robust statistics parameters.
 	//This is theoretically M-step, but we want to use latest estimate of slice potentials
@@ -1670,15 +1740,16 @@ void irtkReconstruction::Scale()
 	}
 
 	//Normalise scales by setting geometric mean to 1
-	if (!_global_bias_correction)
-	{
-		double product = 1;
-		for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			product *= _scale[inputIndex];
-		product = pow(product, 1.0 / _slices.size());
-		for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			_scale[inputIndex] /= product;
-	}
+	// now abandoned
+	//if (!_global_bias_correction)
+	//{
+	//	double product = 1;
+	//	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+	//		product *= _scale[inputIndex];
+	//	product = pow(product, 1.0 / _slices.size());
+	//	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+	//		_scale[inputIndex] /= product;
+	//}
 
 	if (_debug)
 	{
@@ -1835,9 +1906,9 @@ void irtkReconstruction::Superresolution(int iter)
 		//Update reconstructed volume using current slice
 
 		//Clear addon
-		addon = _reconstructed;
-		addon(0, 0, 0) = 1;
-		addon.PutMinMax(0, 0);
+		//addon = _reconstructed;
+		//addon(0, 0, 0) = 1;
+		//addon.PutMinMax(0, 0);
 
 		//Distribute error to the volume
 		for (i = 0; i < slice.GetX(); i++)
@@ -1865,11 +1936,25 @@ void irtkReconstruction::Superresolution(int iter)
 				}
 
 		//update volume using errors of the current slice
-		_reconstructed += addon * _alpha;
+		//_reconstructed += addon * _alpha;
+	        //voladdon +=addon;
 
 		//end of loop for a slice inputIndex
 	}
+	
 
+	for (i = 0; i < addon.GetX(); i++)
+		for (j = 0; j < addon.GetY(); j++)
+			for (k = 0; k < addon.GetZ(); k++)
+				if (_confidence_map(i, j, k) > 0)
+				{
+				  addon(i, j, k) /= _confidence_map(i, j, k);
+				  //this is to revert to normal (non-adaptive) regularisation
+				  _confidence_map(i,j,k)=1;
+				}
+
+	_reconstructed += addon * _alpha;
+	
 	//bound the intensities
 	for (i = 0; i < _reconstructed.GetX(); i++)
 		for (j = 0; j < _reconstructed.GetY(); j++)
@@ -1879,7 +1964,7 @@ void irtkReconstruction::Superresolution(int iter)
 					_reconstructed(i, j, k) = _min_intensity * 0.9;
 				if (_reconstructed(i, j, k) > _max_intensity * 1.1)
 					_reconstructed(i, j, k) = _max_intensity * 1.1;
-			}
+ 			}
 
 	//Smooth the reconstructed image
 	AdaptiveRegularization(iter, original);
@@ -1925,18 +2010,22 @@ void irtkReconstruction::MStep(int iter)
 						slice(i, j, 0) -= p.value * _reconstructed(p.x, p.y, p.z);
 					}
 
-					//sigma and mix
-					double e = slice(i, j, 0);
-					sigma += e * e * w(i, j, 0);
-					mix += w(i, j, 0);
+					//otherwise the error has no meaning - it is equal to slice intensity
+					if (n>0)
+					{
+					  //sigma and mix
+					  double e = slice(i, j, 0);
+					  sigma += e * e * w(i, j, 0);
+					  mix += w(i, j, 0);
 
-					//_m
-					if (e < min)
-						min = e;
-					if (e > max)
-						max = e;
+					  //_m
+					  if (e < min)
+						  min = e;
+					  if (e > max)
+						  max = e;
 
-					num++;
+					  num++;
+					}
 				}
 		//end of loop for a slice inputIndex
 	}
