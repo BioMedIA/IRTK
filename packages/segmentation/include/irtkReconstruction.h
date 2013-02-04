@@ -131,7 +131,10 @@ protected:
   
   //forced excluded slices
   vector<int> _force_excluded;
-  
+
+  //slices identify as too small to be used
+  vector<int> _small_slices;
+ 
   //utility
   ///Debug mode
   bool _debug;
