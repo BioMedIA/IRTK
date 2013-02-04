@@ -620,6 +620,7 @@ int main(int argc, char **argv)
       reconstructed=reconstruction.GetReconstructed();
       sprintf(buffer,"image%i.nii.gz",iter);
       reconstructed.Write(buffer);
+      reconstruction.SaveConfidenceMap();
     }
 
    //Evaluate - write number of included/excluded/outside/zero slices in each iteration in the file
@@ -642,7 +643,7 @@ int main(int argc, char **argv)
   {
     reconstruction.SaveWeights();
     reconstruction.SaveBiasFields();
-    reconstruction.SaveConfidenceMap();
+    //reconstruction.SaveConfidenceMap();
     reconstruction.SimulateStacks(stacks);
     for (i=0;i<stacks.size();i++)
     {
