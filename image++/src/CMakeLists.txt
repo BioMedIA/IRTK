@@ -60,6 +60,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkLargestConnectedComponentIterative.h
 ../include/irtkLinearInterpolateImageFunction2D.h
 ../include/irtkLinearInterpolateImageFunction.h
+../include/irtkMedianFilter.h
 ../include/irtkNearestNeighborInterpolateImageFunction2D.h
 ../include/irtkNearestNeighborInterpolateImageFunction.h
 ../include/irtkNIFTI.h
@@ -162,6 +163,7 @@ irtkAnisoDiffusion.cc
 irtkVoxel.cc
 irtkGaussianBlurring2D.cc
 irtkGaussianBlurringWithPadding2D.cc
+irtkMedianFilter.cc
 )
 
 ADD_LIBRARY(image++ ${IMAGE_SRCS} ${IMAGE_INCLUDES})
