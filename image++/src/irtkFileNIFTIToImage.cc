@@ -301,10 +301,14 @@ void irtkFileNIFTIToImage::ReadHeader()
 
   // Set data type and number of bytes per voxels
   switch (hdr.nim->datatype) {
+  case NIFTI_TYPE_INT8:
+     this->_type  = IRTK_VOXEL_CHAR;
+     this->_bytes = 1;
+     break;
   case NIFTI_TYPE_UINT8:
-    this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
-    this->_bytes = 1;
-    break;
+     this->_type  = IRTK_VOXEL_UNSIGNED_CHAR;
+     this->_bytes = 1;
+     break;
   case NIFTI_TYPE_INT16:
     this->_type  = IRTK_VOXEL_SHORT;
     this->_bytes = 2;
