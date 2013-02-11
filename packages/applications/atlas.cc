@@ -102,7 +102,7 @@ template<typename VoxelType> void finalize_atlas(irtkGenericImage<VoxelType> *in
 	ptr1 = input->GetPointerToVoxels();
 	ptr2 = output->GetPointerToVoxels();
 	for (i = 0; i < input->GetNumberOfVoxels(); i++) {
-		*ptr1 = round(scale * *ptr2 / weight);
+		*ptr1 = scale * *ptr2 / weight;
 		ptr1++;
 		ptr2++;
 	}
@@ -430,6 +430,9 @@ int main(int argc, char **argv)
 
 				break;
 			}
+			default:
+				cerr << "Voxel type not supported" << endl;
+				exit(1);
 		}
 	}
 
