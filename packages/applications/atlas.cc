@@ -120,6 +120,13 @@ template<typename VoxelType> void add_atlas(irtkGenericImage<VoxelType> *input, 
 	if (norm == true) normalise(input, &tmp);
 	tmp *= weight;
 
+	if (!(input->GetImageAttributes() == output->GetImageAttributes())){
+		cerr << "Mismatch of image attributes:" << endl;
+		input->GetImageAttributes().Print();
+		output->GetImageAttributes().Print();
+		exit(1);
+	}
+
 	ptr1 = tmp.GetPointerToVoxels();
 	ptr2 = output->GetPointerToVoxels();
 	for (i = 0; i < input->GetNumberOfVoxels(); i++) {
