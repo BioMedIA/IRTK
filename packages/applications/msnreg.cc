@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   // Default parameters
   iterations = 100;
   locatorType = 1;
-  epsilon = 0.01;
+  epsilon = 0.001;
   ok = 0;
   symmetricDistance = false;
 

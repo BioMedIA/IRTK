@@ -64,6 +64,52 @@ int main(int argc, char **argv)
   argv++;
   argc--;
 
+   vtkPolyDataReader *target_reader = vtkPolyDataReader::New();
+  vtkCleanPolyData *target_cleaner = vtkCleanPolyData::New();
+  vtkPolyData **target = new vtkPolyData*[no_surfaces];
+  for (i = 0; i < no_surfaces; i++) {
+    // Parse target filename
+    _target_name = argv[1];
+    argv++;
+    argc--;
+    // Target pipeline
+    cout << "Reading target ... " << _target_name << endl;
+    target_reader->SetFileName(_target_name);
+    target_reader->Modified();
+    if (clean == true) {
+      target_cleaner->SetInput(target_reader->GetOutput());
+      target_cleaner->Modified();
+      target_cleaner->Update();
+      target[i] = target_cleaner->GetOutput();
+    } else {
+      target[i] = target_reader->GetOutput();
+    }
+    target[i]->Update();
+  }
+
+  vtkPolyDataReader *source_reader = vtkPolyDataReader::New();
+  vtkCleanPolyData *source_cleaner = vtkCleanPolyData::New();
+  vtkPolyData **source = new vtkPolyData*[no_surfaces];
+  for (i = 0; i < no_surfaces; i++) {
+    // Parse source filename
+    _source_name = argv[1];
+    argv++;
+    argc--;
+    // Source pipeline
+    cout << "Reading source ... " << _source_name << endl;
+    source_reader->SetFileName(_source_name);
+    source_reader->Modified();
+    if (clean == true) {
+      source_cleaner->SetInput(source_reader->GetOutput());
+      source_cleaner->Modified();
+      source_cleaner->Update();
+      source[i] = source_cleaner->GetOutput();
+    } else {
+      source[i] = source_reader->GetOutput();
+    }
+    source[i]->Update();
+  }
+
   // Parse remaining parameters
   while (argc > 1) {
     ok = false;
@@ -129,52 +175,6 @@ int main(int argc, char **argv)
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
-  }
-
-  vtkPolyDataReader *target_reader = vtkPolyDataReader::New();
-  vtkCleanPolyData *target_cleaner = vtkCleanPolyData::New();
-  vtkPolyData **target = new vtkPolyData*[no_surfaces];
-  for (i = 0; i < no_surfaces; i++) {
-    // Parse target filename
-    _target_name = argv[1];
-    argv++;
-    argc--;
-    // Target pipeline
-    cout << "Reading target ... " << _target_name << endl;
-    target_reader->SetFileName(_target_name);
-    target_reader->Modified();
-    if (clean == true) {
-      target_cleaner->SetInput(target_reader->GetOutput());
-      target_cleaner->Modified();
-      target_cleaner->Update();
-      target[i] = target_cleaner->GetOutput();
-    } else {
-      target[i] = target_reader->GetOutput();
-    }
-    target[i]->Update();
-  }
-
-  vtkPolyDataReader *source_reader = vtkPolyDataReader::New();
-  vtkCleanPolyData *source_cleaner = vtkCleanPolyData::New();
-  vtkPolyData **source = new vtkPolyData*[no_surfaces];
-  for (i = 0; i < no_surfaces; i++) {
-    // Parse source filename
-    _source_name = argv[1];
-    argv++;
-    argc--;
-    // Source pipeline
-    cout << "Reading source ... " << _source_name << endl;
-    source_reader->SetFileName(_source_name);
-    source_reader->Modified();
-    if (clean == true) {
-      source_cleaner->SetInput(source_reader->GetOutput());
-      source_cleaner->Modified();
-      source_cleaner->Update();
-      source[i] = source_cleaner->GetOutput();
-    } else {
-      source[i] = source_reader->GetOutput();
-    }
-    source[i]->Update();
   }
 
   // Create registration

@@ -336,6 +336,8 @@ int main(int argc, char **argv)
   target_max = -1.0 * FLT_MAX;
   source_max = -1.0 * FLT_MAX;
 
+  double sum = 0;
+
   // Fill histogram
   for (z = 0; z < target.GetZ(); z++) {
     for (y = 0; y < target.GetY(); y++) {
@@ -382,6 +384,9 @@ int main(int argc, char **argv)
         	val = interpolator->EvaluateInside(p._x, p._y, p._z);
 
         	histogram.AddSample(target(x, y, z), val);
+
+			sum += (target(x, y, z) - val)*(target(x, y, z) - val);
+
         	if (val >  source_max)
         		source_max = val;
         	if (val < source_min)
@@ -394,6 +399,10 @@ int main(int argc, char **argv)
       histogram.WriteAsImage(histo_name);
     }
   }
+
+  sum = sum/target.GetNumberOfVoxels();
+
+  sum = 20*log10(target_max) - 10*log10(sum);
 
   if (verbose == true) {
     cout << "ROI Min and max of X is " << target_min << " and " << target_max << endl;
@@ -418,6 +427,7 @@ int main(int argc, char **argv)
       cout << "Label consistency: " << histogram.LabelConsistency() << endl;
       cout << "Kappa statistic: " << histogram.Kappa() << endl;
     }
+	cout << "PSNR: "   << sum << endl;
   } else {
     cout << "CC: "     << histogram.CrossCorrelation() << endl;
     cout << "SSD: "    << histogram.SumsOfSquaredDifferences() / (double)histogram.NumberOfSamples() << endl;
@@ -430,5 +440,6 @@ int main(int argc, char **argv)
       cout << "LC: "   << histogram.LabelConsistency() << endl;
       cout << "KS: "   << histogram.Kappa() << endl;
     }
+	cout << "PSNR: "   << sum << endl;
   }
 }
