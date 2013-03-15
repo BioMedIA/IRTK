@@ -26,8 +26,8 @@ void usage(){
 
 int main(int argc, char **argv)
 {
-    int i;
-    double point[3];
+	int i;
+	double point[3];
 
 	if (argc < 3) {
 		usage();
@@ -50,16 +50,28 @@ int main(int argc, char **argv)
 	model = reader->GetOutput();
 	model->Update();
 
-    ofstream fout(output_name,ios::app);
+	// Read scalar if there's scalar
+	vtkDoubleArray *array = NULL;
+	if(model->GetPointData()->HasArray("DistanceProfile")){
+		array = (vtkDoubleArray *)model->GetPointData()->GetArray("DistanceProfile");
+	}else if(model->GetPointData()->HasArray("WallThickness")){
+		array = (vtkDoubleArray *)model->GetPointData()->GetArray("WallThickness");
+	}
+	ofstream fout(output_name,ios::app);
 
-    for (i = 0; i < model->GetNumberOfPoints(); i++) {
-        model->GetPoints()->GetPoint (i, point);
+	for (i = 0; i < model->GetNumberOfPoints(); i++) {
+		model->GetPoints()->GetPoint (i, point);
 
-        fout << point[0] << " " << point[1] << " " << point[2] << endl;
-    }
+		fout << point[0] << " " << point[1] << " " << point[2];
+		// if there is scalar output scalar
+		if(array != NULL){
+			fout  << " " << *array->GetTuple(i);
+		}
+		fout << endl;
+	}
 
-    fout.close();
-		
+	fout.close();
+
 }
 
 #else
