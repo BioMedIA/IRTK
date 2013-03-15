@@ -25,6 +25,7 @@ void usage()
   cerr << "where <options> are one or more of the following:\n";
   cerr << "\t<-3D>              3D blurring (default)\n";
   cerr << "\t<-4D>              4D blurring\n";
+  cerr << "\t<-Z>               Z axis blurring\n";
   cerr << "\t<-short>           Set data type of output to short integers." << endl;
   cerr << "\t<-float>           Set data type of output to floating point." << endl;
   exit(1);
@@ -32,7 +33,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int ok, blur4D;
+  int ok, blur4D, blurZ;
   double sigma;
 
   if (argc < 4) {
@@ -57,6 +58,7 @@ int main(int argc, char **argv)
 
   // Default
   blur4D = false;
+  blurZ = false;
 
   while (argc > 1) {
     ok = false;
@@ -70,6 +72,12 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       blur4D = true;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-Z") == 0)) {
+      argc--;
+      argv++;
+      blurZ = true;
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-short") == 0)) {
@@ -99,7 +107,12 @@ int main(int argc, char **argv)
   	irtkGreyImage input;
   	input.Read(input_name);
 
-  	if (blur4D == true) {
+  	if (blurZ == true){
+  		irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(sigma);
+  		gaussianBlurring.SetInput (&input);
+  		gaussianBlurring.SetOutput(&input);
+  		gaussianBlurring.RunZ();
+	}else if (blur4D == true) {
   		irtkGaussianBlurring4D<irtkGreyPixel> gaussianBlurring4D(sigma);
   		gaussianBlurring4D.SetInput (&input);
   		gaussianBlurring4D.SetOutput(&input);
@@ -119,7 +132,12 @@ int main(int argc, char **argv)
   	irtkRealImage input;
   	input.Read(input_name);
 
-  	if (blur4D == true) {
+  	if (blurZ == true){
+  		irtkGaussianBlurring<irtkRealPixel> gaussianBlurring(sigma);
+  		gaussianBlurring.SetInput (&input);
+  		gaussianBlurring.SetOutput(&input);
+  		gaussianBlurring.RunZ();
+	}else if (blur4D == true) {
   		irtkGaussianBlurring4D<irtkRealPixel> gaussianBlurring4D(sigma);
   		gaussianBlurring4D.SetInput (&input);
   		gaussianBlurring4D.SetOutput(&input);

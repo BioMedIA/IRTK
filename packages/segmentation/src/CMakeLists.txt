@@ -12,6 +12,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkMultiImageGraphCut.h
 ../include/irtkMeanShift.h
 ../include/irtkProbabilisticAtlas.h
+../include/irtkPatchMatch.h
 ../include/irtkReconstruction.h
 ../include/irtkRician.h
 ../include/irtkSubcorticalSegmentation_4D.h
@@ -39,6 +40,7 @@ irtkIntensityMatching.cc
 irtkMultiChannelImage.cc
 irtkMeanShift.cc
 irtkProbabilisticAtlas.cc
+irtkPatchMatch.cc
 irtkRician.cc
 irtkReconstruction.cc
 irtkSubcorticalSegmentation_4D.cc

@@ -1,3 +1,10 @@
+/*
+ * irtkBatchBasedSegmentation.cc
+ *
+ *  Created on: Jun 21, 2011
+ *      Author: rw1008
+ */
+
 #ifndef IRTKPATCHBASEDSEGMENTAION_H_
 #define IRTKPATCHBASEDSEGMENTAION_H_
 
@@ -10,7 +17,7 @@ class irtkPatchBasedSegmentation{
 
 private:
 
-	irtkRealImage _image, **_atlases;
+	irtkRealImage _image, _hdimage, **_atlases;
 	irtkGreyImage **_labels;
 	irtkGreyImage **_segmentations;
 	irtkGreyImage ** _patchMean, ** _patchStd;
@@ -19,6 +26,7 @@ private:
 	double * priorMean, * priorStd;
 	double _maskMean, _maskStd;
 	double *_atlasMean, *_atlasStd;
+
 	int _patchSize, _neighbourhoodSize;
 	int _simMeasure;
 	int _maxVal, _padding;
@@ -28,12 +36,9 @@ private:
 	double EvaluatePatch(int x_image, int y_image, int z_image, int x_atlas, int y_atlas, int z_atlas, int atlasNo);
 	double *** _allSimilarities;
 
-
 	int * _availableLabels;
 
 	int _verbose;
-
-
 
 	int _nAtlases;
 
@@ -41,7 +46,7 @@ private:
 	bool _useMask, _patchMeasuresAvailable;
 	bool _winnerTakesAll;
 	irtkGreyImage _mask;
-
+	void FindImage(int, int, int, double ****);
 
 
 public:
@@ -65,14 +70,13 @@ public:
 	irtkGreyImage GetSegmentation();
 
 	void GetConsensusSegmentation();
+	irtkRealImage GetConsensusImage();
 	void GetProbabilisticSegmentation();
+	void GetCardiacSegmentation(double ed, double es);
 	void SetPatchMeasures(irtkGreyImage ** patchMean, irtkGreyImage ** patchStd);
 	void SetPatchSizes(int patchSize, int neighborhoodSize);
 	void SetPadding(int padding);
 	void WinnerTakesAll();
-
-
-
 
 };
 

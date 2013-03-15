@@ -119,6 +119,52 @@ template <class VoxelType> void irtkGaussianBlurringWithPadding<VoxelType>::Run(
   this->Finalize();
 }
 
+template <class VoxelType> void irtkGaussianBlurringWithPadding<VoxelType>::RunZ()
+{
+  double xsize, ysize, zsize;
+
+  // Do the initial set up
+  this->Initialize();
+
+  // Get voxel dimensions
+  this->_input->GetPixelSize(&xsize, &ysize, &zsize);
+
+  // Flip x and y axis of image
+  this->_output->FlipXY(1);
+
+  // Flip x and z axis of image
+  this->_output->FlipXZ(1);
+
+  if (this->_output->GetX() != 1) {
+    // Create scalar function which corresponds to a 1D Gaussian function in Z
+    irtkScalarGaussian gaussianZ(this->_Sigma/zsize, 1, 1, 0, 0, 0);
+
+    // Create filter kernel for 1D Gaussian function in Z
+    irtkGenericImage<irtkRealPixel> kernelZ(2*round(4*this->_Sigma/zsize)+1, 1, 1);
+
+    // Do conversion from  scalar function to filter kernel
+    irtkScalarFunctionToImage<irtkRealPixel> gaussianSourceZ;
+    gaussianSourceZ.SetInput (&gaussianZ);
+    gaussianSourceZ.SetOutput(&kernelZ);
+    gaussianSourceZ.Run();
+
+    // Do convolution
+    irtkConvolutionWithPadding_1D<VoxelType> convolutionZ(this->_PaddingValue);
+    convolutionZ.SetInput (this->_output);
+    convolutionZ.SetInput2(&kernelZ);
+    convolutionZ.SetOutput(this->_output);
+    convolutionZ.SetNormalization(true);
+    convolutionZ.irtkImageToImage<VoxelType>::Run();
+  }
+
+  // Flip image back, first x and z axis, then x and y axis
+  this->_output->FlipXZ(1);
+  this->_output->FlipXY(1);
+
+  // Do the final cleaning up
+  this->Finalize();
+}
+
 template class irtkGaussianBlurringWithPadding<unsigned char>;
 template class irtkGaussianBlurringWithPadding<short>;
 template class irtkGaussianBlurringWithPadding<unsigned short>;

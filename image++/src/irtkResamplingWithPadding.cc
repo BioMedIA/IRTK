@@ -214,9 +214,9 @@ void irtkResamplingWithPadding<VoxelType>::Initialize()
   this->_input->GetPixelSize(&old_xsize, &old_ysize, &old_zsize);
 
   // Determine the new dimensions of the image
-  new_x = int(this->_input->GetX() * old_xsize / this->_XSize);
-  new_y = int(this->_input->GetY() * old_ysize / this->_YSize);
-  new_z = int(this->_input->GetZ() * old_zsize / this->_ZSize);
+  new_x = round(this->_input->GetX() * old_xsize / this->_XSize);
+  new_y = round(this->_input->GetY() * old_ysize / this->_YSize);
+  new_z = round(this->_input->GetZ() * old_zsize / this->_ZSize);
 
   // Determine the new voxel dimensions
   if (new_x < 1) {

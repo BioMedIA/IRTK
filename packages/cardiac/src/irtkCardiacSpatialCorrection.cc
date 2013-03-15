@@ -1164,7 +1164,7 @@ void irtkCardiacSpatialCorrection::GuessParameter()
 	// Remaining parameters
 	
 	_NumberOfIterations[0] = 20;
-	_NumberOfSteps[0]      = 4;
+	_NumberOfSteps[0]      = 10;
 	_LengthOfSteps[0]      = 4;
 
 	// Try to guess padding by looking at voxel values in all eight corners of the volume:

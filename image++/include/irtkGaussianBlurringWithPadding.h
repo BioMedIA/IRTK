@@ -46,6 +46,9 @@ public:
   /// Run Gaussian blurring
   virtual void Run();
 
+  /// Run Gaussian blurring
+  virtual void RunZ();
+
   /// Set padding value
   SetMacro(PaddingValue, VoxelType);
 

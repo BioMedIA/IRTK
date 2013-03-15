@@ -19,13 +19,13 @@
 #include <irtkEMClassificationBiasCorrection.h>
 
 char *corrected_name=NULL, *weights_name=NULL, *bias_name=NULL, *parameters_name=NULL;
-double cutoff=0.5, voxelsize=5, sigma = 0;
+double voxelsize=5;
 int cP=3, padding=0, iterations=5;
 bool logtransformed=false;
 
 void usage()
 {
-  cerr << "Usage: bc [image] [corrected] <-bias> <-iterations> <-padding> <-cutoff> <-voxelsize> <-weights> <-cP> <-sigma> <-logtransformed>" << endl;
+  cerr << "Usage: bc [image] [corrected] <-bias> <-iterations> <-padding> <-voxelsize> <-weights> <-cP> <-logtransformed>" << endl;
   exit(1);
 }
 
@@ -70,27 +70,10 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-cutoff") == 0)) {
-      argc--;
-      argv++;
-      cutoff = atof(argv[1]);
-      argc--;
-      argv++;
-      ok = true;
-    }
-
     if ((ok == false) && (strcmp(argv[1], "-voxelsize") == 0)) {
       argc--;
       argv++;
       voxelsize = atof(argv[1]);
-      argc--;
-      argv++;
-      ok = true;
-    }
-    if ((ok == false) && (strcmp(argv[1], "-sigma") == 0)) {
-      argc--;
-      argv++;
-      sigma = atof(argv[1]);
       argc--;
       argv++;
       ok = true;

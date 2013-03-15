@@ -49,6 +49,9 @@ public:
   /// Run Gaussian blurring
   virtual void Run();
 
+  /// Run Gaussian blurring
+  virtual void RunZ();
+
   /// Set sigma
   SetMacro(Sigma, double);
 

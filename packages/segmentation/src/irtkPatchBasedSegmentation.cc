@@ -1,17 +1,12 @@
 /*
- * irtkBatchBasedSegmentation.cc
- *
- *  Created on: Jun 21, 2011
- *      Author: rw1008
- */
+* irtkBatchBasedSegmentation.cc
+*
+*  Created on: Jun 21, 2011
+*      Author: rw1008
+*/
 
 #include<irtkPatchBasedSegmentation.h>
 #include<math.h>
-
-
-
-
-
 
 irtkPatchBasedSegmentation::irtkPatchBasedSegmentation(irtkRealImage image, irtkRealImage ** atlases, irtkGreyImage ** labels, int nAtlases, int patchSize, int neighbourhoodsize){
 	_image = image;
@@ -62,21 +57,21 @@ double irtkPatchBasedSegmentation::EvaluatePatch(int x_image, int y_image, int z
 	for(int x = -_patchSize; x <= _patchSize; x++){
 		for(int y = -_patchSize; y <= _patchSize; y++){
 			for(int z = -_patchSize; z <= _patchSize; z++){
-					if(!((x_atlas + x ) < 0 || ( x_atlas + x ) >= _image.GetX() ||
-						(y_atlas + y )< 0 || ( y_atlas + y ) >= _image.GetY() ||
-						(z_atlas + z )< 0 || (z_atlas + z )>= _image.GetZ() ||
-						(x_image + x )< 0 || (x_image + x )>= _image.GetX() ||
-						(y_image + y )< 0 || (y_image + y ) >= _image.GetY() ||
-						(z_image + z )< 0 || (z_image + z )>= _image.GetZ() )){
-							int val_atlas = _atlases[atlasNo]->Get(x_atlas+x, y_atlas+y, z_atlas+z);
-							int val_image = _image.Get(x_image+x, y_image+y, z_image+z);
-							if(val_image > 0 && val_atlas > 0 ){
-								w += (val_atlas - val_image) * (val_atlas - val_image);
-								N++ ;
-							}
-					}
+				if(!((x_atlas + x ) < 0 || ( x_atlas + x ) >= _image.GetX() ||
+					(y_atlas + y )< 0 || ( y_atlas + y ) >= _image.GetY() ||
+					(z_atlas + z )< 0 || (z_atlas + z )>= _image.GetZ() ||
+					(x_image + x )< 0 || (x_image + x )>= _image.GetX() ||
+					(y_image + y )< 0 || (y_image + y ) >= _image.GetY() ||
+					(z_image + z )< 0 || (z_image + z )>= _image.GetZ() )){
+						int val_atlas = _atlases[atlasNo]->Get(x_atlas+x, y_atlas+y, z_atlas+z);
+						int val_image = _image.Get(x_image+x, y_image+y, z_image+z);
+						if(val_image > 0 && val_atlas > 0 ){
+							w += (val_atlas - val_image) * (val_atlas - val_image);
+							N++ ;
+						}
 				}
 			}
+		}
 	}
 	double ret_val = w / N;
 	return ret_val;
@@ -95,9 +90,9 @@ void irtkPatchBasedSegmentation::EvaluateNeighbourhood(int x_image, int y_image,
 		for(int y = y_image-_neighbourhoodSize; y <= y_image+_neighbourhoodSize; y++){
 			int zCtr = 0;
 			for(int z = z_image-_neighbourhoodSize; z <= z_image+_neighbourhoodSize; z++){
-					if(!( x < 0 ||   x  >= _image.GetX() ||
-							y < 0 || y >= _image.GetY() ||
-							z < 0 || z >= _image.GetZ() )){
+				if(!( x < 0 ||   x  >= _image.GetX() ||
+					y < 0 || y >= _image.GetY() ||
+					z < 0 || z >= _image.GetZ() )){
 						double my_a = _patchMean[atlasNo]->Get(x, y, z);
 						double sigma_a = _patchStd[atlasNo]->Get(x, y, z);
 						double ss = (2*my_i*my_a / (my_i*my_i + my_a*my_a)) * (2*sigma_i*sigma_a / (sigma_i*sigma_i + sigma_a*sigma_a));
@@ -107,15 +102,15 @@ void irtkPatchBasedSegmentation::EvaluateNeighbourhood(int x_image, int y_image,
 								val = EvaluatePatch(x_image, y_image, z_image, x, y, z, atlasNo);
 								tmpVals[xCtr][yCtr][zCtr] = val;
 							}
-						if(val > 0 && val < _wMin[atlasNo]){
-							_wMin[atlasNo] = val;
-						}
-					}
-
-					zCtr++;
+							if(val > 0 && val < _wMin[atlasNo]){
+								_wMin[atlasNo] = val;
+							}
 				}
-			yCtr++;
+
+				zCtr++;
 			}
+			yCtr++;
+		}
 		xCtr++;
 	}
 }
@@ -125,10 +120,14 @@ void irtkPatchBasedSegmentation::Run(){
 	if(! _patchMeasuresAvailable){
 		EstablishPatchMeasures();
 	}
+
+	_hdimage.Initialize(_image.GetImageAttributes());
+
 	int nSize = _neighbourhoodSize*2+1;
-	for(int x = 0; x < _image.GetX(); x++){
+	for(int z = 0; z < _image.GetZ(); z++){
 		for(int y = 0; y < _image.GetY(); y++){
-			for(int z = 0; z < _image.GetZ(); z++){
+			for(int x = 0; x < _image.GetX(); x++){
+
 				if(IsForeground(x, y, z)){
 					for(int a = 0; a < _nAtlases; a++){
 						_wMin[a] = _maxVal;
@@ -167,9 +166,15 @@ void irtkPatchBasedSegmentation::Run(){
 							}
 						}
 					}
+
+					_hdimage.Put(x,y,z,0);
+
+					FindImage(x,y,z,tmpVals);
+
 					for(int i = 0; i < _nAtlases; i++){
 						FindLabel(i, x, y, z, tmpVals[i]);
 					}
+
 					for(int i = 0; i < _nAtlases; i++){
 						for(int j = 0; j < nSize; j++){
 							for(int k = 0; k < nSize; k++){
@@ -207,6 +212,7 @@ void irtkPatchBasedSegmentation::FindLabel(int atlasNo, int x_image, int y_image
 	}
 	double overallVal = 0;
 	int nSize = _neighbourhoodSize*2 + 1;
+
 	for(int i = 0; i < nSize; i++){
 		for(int j = 0; j < nSize; j++){
 			for(int k = 0; k < nSize; k++){
@@ -215,9 +221,9 @@ void irtkPatchBasedSegmentation::FindLabel(int atlasNo, int x_image, int y_image
 				int z_atlas = z_image - _neighbourhoodSize + k;
 				int label = _padding;
 				if(!( x_atlas < 0 ||   x_atlas  >= _labels[atlasNo]->GetX() ||
-					  y_atlas < 0 || y_atlas >= _labels[atlasNo]->GetY() ||
-					  z_atlas < 0 || z_atlas >= _labels[atlasNo]->GetZ() )){
-					  label = _labels[atlasNo]->Get(x_atlas, y_atlas, z_atlas);
+					y_atlas < 0 || y_atlas >= _labels[atlasNo]->GetY() ||
+					z_atlas < 0 || z_atlas >= _labels[atlasNo]->GetZ() )){
+						label = _labels[atlasNo]->Get(x_atlas, y_atlas, z_atlas);
 				}
 				if(label > _padding){
 					probLabels[label] += tmpVals[i][j][k];
@@ -247,10 +253,39 @@ void irtkPatchBasedSegmentation::FindLabel(int atlasNo, int x_image, int y_image
 
 	_segmentations[atlasNo]->Put(x_image, y_image, z_image, maxLabel);
 
-    delete []probLabels;
+	delete []probLabels;
 }
 
+void irtkPatchBasedSegmentation::FindImage(int x_image, int y_image, int z_image, double **** tmpVals){
 
+	double overallVal = 0;
+	int nSize = _neighbourhoodSize*2 + 1;
+
+	double totalweight = 0;
+	for(int a = 0; a < _nAtlases; a++){
+		for(int i = 0; i < nSize; i++){
+			for(int j = 0; j < nSize; j++){
+				for(int k = 0; k < nSize; k++){
+					int x_atlas = x_image - _neighbourhoodSize + i;
+					int y_atlas = y_image - _neighbourhoodSize + j;
+					int z_atlas = z_image - _neighbourhoodSize + k;
+					if(!( x_atlas < 0 ||   x_atlas  >= _atlases[a]->GetX() ||
+						y_atlas < 0 || y_atlas >= _atlases[a]->GetY() ||
+						z_atlas < 0 || z_atlas >= _atlases[a]->GetZ() )){
+							_hdimage.Put(x_image,y_image,z_image,
+							_hdimage.Get(x_image,y_image,z_image)
+							+_atlases[a]->Get(x_atlas,y_atlas,z_atlas)
+							*tmpVals[a][i][j][k]);
+
+						totalweight += tmpVals[a][i][j][k];
+					}
+				}
+			}
+		}
+	}
+	if(totalweight > 0)
+		_hdimage.Put(x_image,y_image,z_image,_hdimage.Get(x_image,y_image,z_image)/totalweight);
+}
 
 void irtkPatchBasedSegmentation::EstablishPatchMeasures(){
 	cout << "Establish patch measures..." << endl;
@@ -329,17 +364,54 @@ void irtkPatchBasedSegmentation::EstablishPatchMeasures(){
 	}
 	cout << "done" << endl;
 	_patchMeasuresAvailable = true;
+
+}
+
+void irtkPatchBasedSegmentation::GetCardiacSegmentation(double ed, double es){
+
+	// new and delete cost resource so moved out side
+	int *labels = new int[_nrLabels];
+
+	_segmentationOutput.Initialize(_image.GetImageAttributes());
+	for(int z = 0; z < _image.GetZ(); z++){
+		for(int y = 0; y < _image.GetY(); y++){
+			for(int x = 0; x < _image.GetX(); x++){
+				if(_image.Get(x, y, z)>0){
+					for(int i = 0; i < _nrLabels; i++){
+						labels[i] = 0;
+					}
+
+					for(int i = 0; i < _nAtlases; i++){
+
+						if(i == 0)
+							labels[_segmentations[i]->Get(x, y, z)] += ed;
+						else
+							labels[_segmentations[i]->Get(x, y, z)] += es;
+					}
+					int maxLabel = -1;
+					int max = 0;
+					for(int i = 0; i < _nrLabels; i++){
+						if(labels[i]>max){
+							maxLabel = i;
+							max = labels[i];
+						}
+					}
+					_segmentationOutput.Put(x, y, z, 0, maxLabel);
+				}
+			}
+		}
+	}
 }
 
 void irtkPatchBasedSegmentation::GetConsensusSegmentation(){
-    
-    // new and delete cost resource so moved out side
-    int *labels = new int[_nrLabels];
+
+	// new and delete cost resource so moved out side
+	int *labels = new int[_nrLabels];
 
 	_segmentationOutput.Initialize(_image.GetImageAttributes());
-	for(int x = 0; x < _image.GetX(); x++){
+	for(int z = 0; z < _image.GetZ(); z++){
 		for(int y = 0; y < _image.GetY(); y++){
-			for(int z = 0; z < _image.GetZ(); z++){
+			for(int x = 0; x < _image.GetX(); x++){
 				if(_image.Get(x, y, z)>0){
 					for(int i = 0; i < _nrLabels; i++){
 						labels[i] = 0;
@@ -363,7 +435,13 @@ void irtkPatchBasedSegmentation::GetConsensusSegmentation(){
 		}
 	}
 
-    delete []labels;
+	//TODO why this cause heap problem on my laptop??
+	//delete []labels;
+}
+
+irtkRealImage irtkPatchBasedSegmentation::GetConsensusImage(){
+
+	return _hdimage;
 }
 
 void irtkPatchBasedSegmentation::GetProbabilisticSegmentation(){
@@ -389,7 +467,7 @@ void irtkPatchBasedSegmentation::GetProbabilisticSegmentation(){
 }
 
 void irtkPatchBasedSegmentation::WriteSegmentation(char * fileName){
-		_segmentationOutput.Write(fileName);
+	_segmentationOutput.Write(fileName);
 }
 
 void irtkPatchBasedSegmentation::SetPatchMeasures(irtkGreyImage ** patchMean, irtkGreyImage ** patchStd){

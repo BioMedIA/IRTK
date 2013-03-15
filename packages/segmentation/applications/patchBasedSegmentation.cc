@@ -92,6 +92,7 @@ int main(int argc, char **argv){
 			useProb = true;
 			ok = true;
 		}
+
 		if ((ok == false) && (strcmp(argv[1], "-padding") == 0)){
 			argc--;
 			argv++;
@@ -119,8 +120,6 @@ int main(int argc, char **argv){
 		patchBased.GetConsensusSegmentation();
 	cout << "Writing output" << endl;
 	patchBased.WriteSegmentation(outName);
-
-
 
 }
 

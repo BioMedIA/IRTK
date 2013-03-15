@@ -149,12 +149,16 @@ void irtkNormalizeNyul::Run(){
 	  for(bin=0;bin<src_levels_s.size();bin++)
 		if(input <= src_levels_s[bin]) break;
 
-	  if(bin==0) // first bin ?
-		output=trg_levels_s[0];
+	  if(input <= this->_source_padding)
+		  output = this->_source_padding;
+	  else if(bin==0) // first bin ?
+		  output=trg_levels_s[0];
 	  else if(bin>=(src_levels_s.size()-1))
-		output=trg_levels_s[trg_levels_s.size()-1];
+		  output=trg_levels_s[trg_levels_s.size()-1];
 	  else
-		output=(input-src_levels_s[bin-1])/(src_levels_s[bin]-src_levels_s[bin-1])*(trg_levels_s[bin]-trg_levels_s[bin-1])+trg_levels_s[bin-1];
+		  output=(input-src_levels_s[bin-1])
+		  /(src_levels_s[bin]-src_levels_s[bin-1])
+		  *(trg_levels_s[bin]-trg_levels_s[bin-1])+trg_levels_s[bin-1];
 
 //	  src.c_buf()[i]=output;
 	  *ptr = output;
