@@ -380,6 +380,10 @@ int main(int argc, char **argv)
   cout << "SSD: "    << histogram.SumsOfSquaredDifferences() / (double)histogram.NumberOfSamples() << endl;
   cout << "CC: "     << histogram.CrossCorrelation() << endl;
   cout << "NMI: "    << histogram.NormalizedMutualInformation() << endl;
+  if (nbins_x == nbins_y) {
+      cout << "Label consistency: " << histogram.LabelConsistency() << endl;
+      cout << "Kappa statistic: " << histogram.Kappa() << endl;
+    }
 
   if(output_name){
       cerr << "Writing Results of SSD CC and NMI to " << output_name << endl;
@@ -387,6 +391,9 @@ int main(int argc, char **argv)
       fout << histogram.SumsOfSquaredDifferences() / (double)histogram.NumberOfSamples() <<endl;
       fout << histogram.CrossCorrelation() <<endl;
       fout << histogram.NormalizedMutualInformation() <<endl;
+	  if (nbins_x == nbins_y) {
+		  fout << histogram.LabelConsistency() << endl;
+	  }
       fout.close();
   }
 }
