@@ -40,7 +40,7 @@ void irtkMultipleImageRigidRegistration2::GuessParameter()
   // Default parameters for optimization
   _SimilarityMeasure  = NMI;
   _Epsilon            = 0.0001;
-  _Lregu              = 0.001;
+  _Lregu              = 0.0001;
 
   // Default target parameters
   _TargetBlurring[0]      = 0.5;

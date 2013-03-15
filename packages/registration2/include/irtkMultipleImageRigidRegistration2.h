@@ -59,7 +59,8 @@ public:
 
 inline void irtkMultipleImageRigidRegistration2::SetOutput(irtkTransformation *transformation)
 {
-  if (strcmp(transformation->NameOfClass(), "irtkRigidTransformation") != 0) {
+  if (strcmp(transformation->NameOfClass(), "irtkRigidTransformation") != 0 
+	  && strcmp(transformation->NameOfClass(), "irtkAffineTransformation") != 0) {
     cerr << "irtkMultipleImageRigidRegistration2::SetOutput: Transformation must be rigid"
          << endl;
     exit(0);
