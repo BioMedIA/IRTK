@@ -42,3 +42,5 @@ CONFIGURE_FILE(${IRTK_SOURCE_DIR}/InstallerScripts/irtkInstaller.sh
                ${IRTK_BINARY_DIR}/bin/irtkInstaller.sh)
                
 EXEC_PROGRAM(chmod ${IRTK_BINARY_DIR}/bin ARGS +x;irtkInstaller.sh)
+
+INCLUDE(${IRTK_SOURCE_DIR}/config/IRTKGenerateConfigFile.cmake)
