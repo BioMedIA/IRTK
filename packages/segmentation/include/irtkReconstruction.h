@@ -263,6 +263,9 @@ public:
   //To compare how simulation from the reconstructed volume matches the original stacks
   void SimulateStacks(vector<irtkRealImage>& stacks);
 
+  void ResetOrigin(irtkGreyImage &image, irtkRigidTransformation& transformation);
+
+
   
 };
 
