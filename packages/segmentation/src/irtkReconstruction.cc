@@ -365,6 +365,21 @@ void irtkReconstruction::CropImage(irtkRealImage& image, irtkRealImage& mask)
 	image = image.GetRegion(x1, y1, z1, x2, y2, z2);
 }
 
+void irtkReconstruction::ResetOrigin(irtkGreyImage &image, irtkRigidTransformation& transformation)
+{
+  
+  double ox,oy,oz;
+  image.GetOrigin(ox,oy,oz);
+  image.PutOrigin(0,0,0);
+  transformation.PutTranslationX(ox);
+  transformation.PutTranslationY(oy);
+  transformation.PutTranslationZ(oz);
+  transformation.PutRotationX(0);
+  transformation.PutRotationY(0);
+  transformation.PutRotationZ(0);
+}
+
+
 void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 		vector<irtkRigidTransformation>& stack_transformations, int templateNumber)
 {
@@ -406,6 +421,9 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 				}
 	}
 
+        irtkRigidTransformation offset;
+	ResetOrigin(target,offset);
+
 	//register all stacks to the target
 	for (int i = 0; i < (int)stacks.size(); i++)
 			{
@@ -416,12 +434,24 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 		//set target and source (need to be converted to irtkGreyImage)
 		irtkGreyImage source = stacks[i];
 
+               //include offset in trasformation	
+		irtkMatrix mo = offset.GetMatrix();
+		irtkMatrix m = stack_transformations[i].GetMatrix();
+		m=m*mo;
+		stack_transformations[i].PutMatrix(m);
+
 		//perform rigid registration
 		registration.SetInput(&target, &source);
 		registration.SetOutput(&stack_transformations[i]);
 		registration.GuessParameterThickSlices();
 		registration.SetTargetPadding(0);
 		registration.Run();
+		
+		mo.Invert();
+		m = stack_transformations[i].GetMatrix();
+		m=m*mo;
+		stack_transformations[i].PutMatrix(m);
+
 
 		//save volumetric registrations
 		if (_debug)
@@ -787,15 +817,26 @@ void irtkReconstruction::SliceToVolumeRegistration()
 
 		target.GetMinMax(&smin, &smax);
 		if (smax > -1)
-				{
+		{
+			//put origin to zero
+			irtkRigidTransformation offset;
+                        ResetOrigin(target,offset);
+                        irtkMatrix mo = offset.GetMatrix();
+                        irtkMatrix m = _transformations[inputIndex].GetMatrix();
+                        m=m*mo;
+                        _transformations[inputIndex].PutMatrix(m);
+
 			irtkGreyImage source = _reconstructed;
 			registration.SetInput(&target, &source);
 			registration.SetOutput(&_transformations[inputIndex]);
 			registration.GuessParameterSliceToVolume();
 			registration.SetTargetPadding(-1);
-			//if (_debug)
-				//registration.irtkImageRegistration::Write((char *) "parout-slice.rreg");
 			registration.Run();
+		        //undo the offset
+                       mo.Invert();
+                       m = _transformations[inputIndex].GetMatrix();
+                       m=m*mo;
+                       _transformations[inputIndex].PutMatrix(m);
 		}
 	}
 }
