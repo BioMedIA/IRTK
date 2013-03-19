@@ -13,7 +13,7 @@
 #include <irtkReconstruction.h>
 #include <irtkResampling.h>
 #include <irtkRegistration.h>
-#include <irtkImageRigidRegistrationWithPadding.h>
+#include <irtkImageRigidRegistration.h>
 #include <irtkTransformation.h>
 #include <irtkMeanShift.h>
 
@@ -385,7 +385,7 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 		vector<irtkRigidTransformation>& stack_transformations, int templateNumber)
 {
 	//rigid registration object
-	irtkImageRigidRegistrationWithPadding registration;
+	irtkImageRigidRegistration registration;
 	//buffer to create the name
 	char buffer[256];
 
@@ -805,7 +805,7 @@ void irtkReconstruction::MaskSlices()
 
 void irtkReconstruction::SliceToVolumeRegistration()
 {
-	irtkImageRigidRegistrationWithPadding registration;
+	irtkImageRigidRegistration registration;
 	irtkGreyPixel smin, smax;
 	irtkGreyImage target;
 	irtkRealImage slice, w, b;
