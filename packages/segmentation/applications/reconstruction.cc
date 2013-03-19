@@ -98,6 +98,9 @@ int main(int argc, char **argv)
   //flag to remove black background, e.g. when neonatal motion correction is performed
   bool remove_black_background = false;
   
+  irtkRealImage average;
+  
+  
   //forced exclusion of slices
   int number_of_force_excluded_slices = 0;
   vector<int> force_excluded;
@@ -442,7 +445,10 @@ int main(int argc, char **argv)
   //registrations are actually performed as volume-to-slice (reasons: technicalities of implementation)
   //Need to invert stack transformations now.  
   reconstruction.InvertStackTransformations(stack_transformations);
-  
+  average = reconstruction.CreateAverage(stacks,stack_transformations);
+  if (debug)
+    average.Write("average1.nii.gz");
+
   //Mask is transformed to the all other stacks and they are cropped
   for (i=0; i<nStacks; i++)
   {
@@ -478,6 +484,10 @@ int main(int argc, char **argv)
   
   //Rescale intensities of the stacks to have the same average
   reconstruction.MatchStackIntensities(stacks,stack_transformations,averageValue);
+  average = reconstruction.CreateAverage(stacks,stack_transformations);
+  if (debug)
+    average.Write("average2.nii.gz");
+  //exit(1);
 
   //Create slices and slice-dependent transformations
   reconstruction.CreateSlicesAndTransformations(stacks,stack_transformations,thickness);
