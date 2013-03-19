@@ -19,8 +19,10 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkImageFreeFormRegistration2D.h
 ../include/irtkImageFreeFormRegistration.h
 ../include/irtkImageRegistration.h
+../include/irtkImageRegistrationWithPadding.h
 ../include/irtkImageRigidRegistration2D.h
 ../include/irtkImageRigidRegistration.h
+../include/irtkImageRigidRegistrationWithPadding.h
 ../include/irtkJointEntropySimilarityMetric.h
 ../include/irtkKappaSimilarityMetric.h
 ../include/irtkLabelConsistencySimilarityMetric.h
@@ -76,7 +78,9 @@ irtkImageFreeFormRegistration2D.cc
 irtkImageFluidRegistration.cc
 irtkImageFluidRegistration2D.cc
 irtkImageRegistration.cc
+irtkImageRegistrationWithPadding.cc
 irtkImageRigidRegistration.cc
+irtkImageRigidRegistrationWithPadding.cc
 irtkImageRigidRegistration2D.cc
 irtkGenericHistogramSimilarityMetric.cc
 irtkGradientDescentConstrainedOptimizer.cc
