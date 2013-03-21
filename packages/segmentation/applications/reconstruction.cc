@@ -37,6 +37,11 @@ void usage()
   cerr << "Options:" << endl;
   cerr << "\t-thickness [th_1] .. [th_N] Give slice thickness.[Default: twice voxel size in z direction]"<<endl;
   cerr << "\t-mask [mask]              Binary mask to define the region od interest. [Default: whole image]"<<endl;
+  cerr << "\t-packages [num_1] .. [num_N] Give number of packages used during acquisition for each stack."<<endl;
+  cerr << "\t                          The stacks will be split into packages during registration iteration 1"<<endl;
+  cerr << "\t                          and then into odd and even slices within each package during "<<endl;
+  cerr << "\t                          registration iteration 2. The method will then continue with slice to"<<endl;
+  cerr << "\t                          volume approach. [Default: slice to volume registration only]"<<endl;
   cerr << "\t-iterations [iter]        Number of registration-reconstruction iterations. [Default: 9]"<<endl;
   cerr << "\t-sigma [sigma]            Stdev for bias field. [Default: 12mm]"<<endl;
   cerr << "\t-resolution [res]         Isotropic resolution of the volume. [Default: 0.75mm]"<<endl;
@@ -76,6 +81,9 @@ int main(int argc, char **argv)
   vector<double > thickness;
   ///number of stacks
   int nStacks;
+  /// number of packages for each stack
+  vector<int> packages;
+
     
   // Default values.
   int templateNumber=-1;
@@ -171,6 +179,23 @@ int main(int argc, char **argv)
       {
         thickness.push_back(atof(argv[1]));
 	cout<<thickness[i]<<" ";
+        argc--;
+        argv++;
+       }
+       cout<<"."<<endl;
+       cout.flush();
+      ok = true;
+    }
+    
+    //Read number of packages for each stack
+    if ((ok == false) && (strcmp(argv[1], "-packages") == 0)){
+      argc--;
+      argv++;
+      cout<< "Package number is ";
+      for (i=0;i<nStacks;i++)
+      {
+        packages.push_back(atoi(argv[1]));
+	cout<<packages[i]<<" ";
         argc--;
         argv++;
        }
@@ -533,7 +558,22 @@ int main(int argc, char **argv)
       cerr.rdbuf(file_e.rdbuf());
       cout.rdbuf (file.rdbuf());
       cout<<"Iteration "<<iter<<": "<<endl;
-      reconstruction.SliceToVolumeRegistration();
+      
+      if(packages.size()>0)
+      {
+	if(iter==1)
+          reconstruction.PackageToVolume(stacks,packages);
+	else
+	{
+	  if(iter==2)
+            reconstruction.PackageToVolume(stacks,packages,true);
+	  else
+            reconstruction.SliceToVolumeRegistration();
+	}
+      }
+      else
+        reconstruction.SliceToVolumeRegistration();
+      
       cout<<endl;
       cout.flush();
       cerr.rdbuf (strm_buffer_e);
@@ -605,6 +645,7 @@ int main(int argc, char **argv)
       //MStep and update reconstructed volume
       //reconstruction.SuperresolutionAndMStep(i+1);
       reconstruction.Superresolution(i+1);
+      reconstruction.ScaleVolume();
       reconstruction.MStep(i+1);
       
       //E-step
