@@ -26,7 +26,7 @@ protected:
   /// Padding value of source image
   short  _SourcePadding;
   
-  irtkGreyImage *tmp_target, *tmp_source;
+  //irtkGreyImage *tmp_target, *tmp_source;
 
   /// Overload initial set up for the registration at a multiresolution level
   virtual void Initialize(int);
