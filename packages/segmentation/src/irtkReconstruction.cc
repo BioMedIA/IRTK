@@ -14,6 +14,7 @@
 #include <irtkResampling.h>
 #include <irtkRegistration.h>
 #include <irtkImageRigidRegistration.h>
+#include <irtkImageRigidRegistrationWithPadding.h>
 #include <irtkTransformation.h>
 #include <irtkMeanShift.h>
 
@@ -385,7 +386,7 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 		vector<irtkRigidTransformation>& stack_transformations, int templateNumber)
 {
 	//rigid registration object
-	irtkImageRigidRegistration registration;
+	irtkImageRigidRegistrationWithPadding registration;
 	//buffer to create the name
 	char buffer[256];
 
@@ -805,7 +806,7 @@ void irtkReconstruction::MaskSlices()
 
 void irtkReconstruction::SliceToVolumeRegistration()
 {
-	irtkImageRigidRegistration registration;
+	irtkImageRigidRegistrationWithPadding registration;
 	irtkGreyPixel smin, smax;
 	irtkGreyImage target;
 	irtkRealImage slice, w, b;
@@ -2519,4 +2520,196 @@ void irtkReconstruction::ReadTransformation(char* folder)
 
 	}
 }
+
+void irtkReconstruction::SplitImage(irtkRealImage image, int packages, vector<irtkRealImage>& stacks)
+{
+  
+  
+  irtkImageAttributes attr = image.GetImageAttributes();
+  
+  //slices in package
+  int pkg_z = attr._z/packages;
+  double pkg_dz = attr._dz*packages;
+  //cout<<"packages: "<<packages<<"; slices: "<<attr._z<<"; slices in package: "<<pkg_z<<endl;
+  //cout<<"slice thickness "<<attr._dz<<"; slickess thickness in package: "<<pkg_dz<<endl;
+  
+  char buffer[256];
+  int i,j,k,l;
+  double x,y,z,sx,sy,sz,ox,oy,oz;
+  for(l=0;l<packages;l++)
+  {
+    attr = image.GetImageAttributes();
+    if((pkg_z*packages+l)<attr._z)
+      attr._z = pkg_z+1;
+    else
+      attr._z = pkg_z;
+    attr._dz = pkg_dz;
+    
+    cout<<"split image "<<l<<" has "<<attr._z<<" slices."<<endl;
+    cout.flush();
+  
+    //fill values in each stack
+    irtkRealImage stack(attr);
+    stack.GetOrigin(ox,oy,oz);
+
+    cout<<"Stack "<<l<<":"<<endl;
+    for(k=0; k<stack.GetZ();k++)
+      for(j=0; j<stack.GetY();j++)
+	for(i=0; i<stack.GetX();i++)
+	  stack.Put(i,j,k,image(i,j,k*packages+l));
+	
+     //adjust origin
+     
+     //original image coordinates
+     x=0;y=0;z=l;
+     image.ImageToWorld(x,y,z);
+     cout<<"image: "<<x<<" "<<y<<" "<<z<<endl;
+     //stack coordinates
+     sx=0;sy=0;sz=0;
+     stack.PutOrigin(ox,oy,oz); //adjust to original value
+     stack.ImageToWorld(sx,sy,sz);
+     cout<<"stack: "<<sx<<" "<<sy<<" "<<sz<<endl;
+     //adjust origin
+     cout<<"adjustment needed: "<<x-sx<<" "<<y-sy<<" "<<z-sz<<endl;
+     stack.PutOrigin(ox + (x-sx), oy + (y-sy), oz + (z-sz));
+     sx=0;sy=0;sz=0;
+     stack.ImageToWorld(sx,sy,sz);
+     cout<<"adjusted: "<<sx<<" "<<sy<<" "<<sz<<endl;
+	
+     //sprintf(buffer,"stack%i.nii.gz",l);
+     //stack.Write(buffer);
+     stacks.push_back(stack);
+  }
+  cout<<"done.";
+  cout.flush();
+
+}
+
+void irtkReconstruction::SplitImageEvenOdd(irtkRealImage image, int packages, vector<irtkRealImage>& stacks)
+{
+   vector<irtkRealImage> packs;
+   vector<irtkRealImage> packs2;
+   
+   stacks.clear();
+   SplitImage(image,packages,packs);
+   for (uint i=0;i<packs.size();i++)
+   {
+     packs2.clear();
+     SplitImage(packs[i],2,packs2);
+     stacks.push_back(packs2[0]);
+     stacks.push_back(packs2[1]);
+   }
+     
+}
+
+
+void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd)
+{
+  irtkImageRigidRegistration rigidregistration;
+  irtkGreyImage t,s;
+  //irtkRigidTransformation transformation;
+  vector<irtkRealImage> packages;
+  char buffer[256];
+  
+  int firstSlice = 0;
+    
+  for (unsigned int i = 0; i < stacks.size(); i++)
+  {
+    cout<<"Stack "<<i<<": First slice index is "<<firstSlice<<endl;
+
+    packages.clear();
+    if (evenodd)
+      SplitImageEvenOdd(stacks[i],pack_num[i],packages);
+    else
+      SplitImage(stacks[i],pack_num[i],packages);
+    
+    for (unsigned int j = 0; j < packages.size(); j++)
+    {
+      cout<<"Package "<<j<<" of stack "<<i<<endl;
+      cout.flush();
+      if (_debug)
+      {
+        sprintf(buffer,"package%i-%i.nii.gz",i,j);
+        packages[j].Write(buffer);
+      }
+      
+      t=packages[j];
+      s=_reconstructed;
+      
+      //find existing transformation
+      double x,y,z;
+      x=0;y=0;z=0;
+      packages[j].ImageToWorld(x,y,z);
+      stacks[i].WorldToImage(x,y,z);
+      
+      int firstSliceIndex = round(z)+firstSlice;
+      cout<<"First slice index for package "<<j<<" of stack "<<i<<" is "<<firstSliceIndex<<endl;
+      //transformation = _transformations[sliceIndex];
+      
+      //put origin in target to zero
+      irtkRigidTransformation offset;
+      ResetOrigin(t,offset);
+      irtkMatrix mo = offset.GetMatrix();
+      irtkMatrix m = _transformations[firstSliceIndex].GetMatrix();
+      m=m*mo;
+      _transformations[firstSliceIndex].PutMatrix(m);
+
+      rigidregistration.SetInput(&t, &s);
+      rigidregistration.SetOutput(&_transformations[firstSliceIndex]);
+      rigidregistration.GuessParameterSliceToVolume();
+      rigidregistration.Write("par-packages.rreg");
+      rigidregistration.Run();
+      
+      //undo the offset
+      mo.Invert();
+      m = _transformations[firstSliceIndex].GetMatrix();
+      m=m*mo;
+      _transformations[firstSliceIndex].PutMatrix(m);
+      
+      if (_debug)
+      {
+        sprintf(buffer,"transformation%i-%i.dof",i,j);
+        _transformations[firstSliceIndex].irtkTransformation::Write(buffer);
+      }
+
+      
+      //set the transformation to all slices of the package
+      cout<<"Slices of the package "<<j<<" of the stack "<<i<<" are: ";
+      for (int k = 0; k < packages[j].GetZ(); k++)
+      {
+	x=0;y=0;z=k;
+        packages[j].ImageToWorld(x,y,z);
+        stacks[i].WorldToImage(x,y,z);
+        int sliceIndex = round(z)+firstSlice;
+	cout<<sliceIndex<<" "<<endl;
+	
+	if(sliceIndex>=_transformations.size())
+	{
+	  cerr<<"irtkRecnstruction::PackageToVolume: sliceIndex out of range."<<endl;
+	  cerr<<sliceIndex<<" "<<_transformations.size()<<endl;
+	  cerr.flush();
+	  exit(1);
+	}
+	
+	if(sliceIndex!=firstSliceIndex)
+	{
+	  _transformations[sliceIndex].PutTranslationX(_transformations[firstSliceIndex].GetTranslationX());
+	  _transformations[sliceIndex].PutTranslationY(_transformations[firstSliceIndex].GetTranslationY());
+	  _transformations[sliceIndex].PutTranslationZ(_transformations[firstSliceIndex].GetTranslationZ());
+	  _transformations[sliceIndex].PutRotationX(_transformations[firstSliceIndex].GetRotationX());
+	  _transformations[sliceIndex].PutRotationY(_transformations[firstSliceIndex].GetRotationY());
+	  _transformations[sliceIndex].PutRotationZ(_transformations[firstSliceIndex].GetRotationZ());
+	  _transformations[sliceIndex].UpdateMatrix();
+	}
+      }
+      
+      
+    }
+    cout<<"End of stack "<<i<<endl<<endl;
+    cout.flush();
+    
+    firstSlice += stacks[i].GetZ();
+  }
+}
+
 
