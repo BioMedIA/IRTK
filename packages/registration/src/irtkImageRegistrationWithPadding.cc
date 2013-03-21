@@ -16,7 +16,7 @@
 #include <irtkGradientDescentConstrainedOptimizer.h>
 
 
-//irtkGreyImage *tmp_target, *tmp_source;
+extern irtkGreyImage *tmp_target, *tmp_source;
 
 irtkImageRegistrationWithPadding::irtkImageRegistrationWithPadding() : irtkImageRegistration()
 {
@@ -281,8 +281,8 @@ void irtkImageRegistrationWithPadding::Initialize(int level)
   }
 
   // Setup the interpolator - currently only linear supported
-  _interpolator = irtkInterpolateImageFunction::New(Interpolation_Linear, _source);
-  //_interpolator = irtkInterpolateImageFunction::New(_InterpolationMode, _source);
+  //_interpolator = irtkInterpolateImageFunction::New(Interpolation_Linear, _source);
+  _interpolator = irtkInterpolateImageFunction::New(_InterpolationMode, _source);
 
   // Setup interpolation for the source image
   _interpolator->SetInput(_source);
