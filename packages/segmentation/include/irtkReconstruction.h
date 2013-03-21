@@ -260,12 +260,17 @@ public:
   void RestoreSliceIntensities();
   ///Scale volume to match the slice intensities
   void ScaleVolume();
-  //To compare how simulation from the reconstructed volume matches the original stacks
+  
+  ///To compare how simulation from the reconstructed volume matches the original stacks
   void SimulateStacks(vector<irtkRealImage>& stacks);
-
+  ///Puts origin of the image into origin of world coordinates
   void ResetOrigin(irtkGreyImage &image, irtkRigidTransformation& transformation);
-
-
+  ///Packages to volume registrations
+  void PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd = false);
+  ///Splits stacks into packages
+  void SplitImage(irtkRealImage image, int packages, vector<irtkRealImage>& stacks);
+  ///Splits stacks into packages and each package into even and odd slices
+  void SplitImageEvenOdd(irtkRealImage image, int packages, vector<irtkRealImage>& stacks);
   
 };
 
