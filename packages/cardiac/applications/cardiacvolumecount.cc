@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
 		if(output_name){
 			ofstream fout(output_name,ios::app);
-			fout << volume * image->GetXSize() * image->GetYSize() * image->GetZSize() *scale << endl;
+			fout << volume * image->GetXSize() * image->GetYSize() * image->GetZSize() *scale << " ";
 			fout.close();
 		}
 	}

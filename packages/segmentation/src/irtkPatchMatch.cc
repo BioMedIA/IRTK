@@ -23,6 +23,7 @@ irtkPatchMatch::irtkPatchMatch(irtkGreyImage *target, irtkGreyImage **source, in
 	this->decimated = NULL;
 	this->isdecimated = false;
 	this->slevels = slevels;
+	this->debug = false;
 	target->GetMinMax(&minlabel, &maxlabel);
 	maxdistance = maxlabel - minlabel;
 

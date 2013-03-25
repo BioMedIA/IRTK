@@ -20,7 +20,7 @@ char *mask_name = NULL;
 
 void usage()
 {
-  cerr << "Usage: adaptive_nreg [target] [source] <options> \n" << endl;
+  cerr << "Usage: sparse_nreg [target] [source] <options> \n" << endl;
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-parin file>        Read parameter from file" << endl;
   cerr << "<-parout file>       Write parameter to file" << endl;

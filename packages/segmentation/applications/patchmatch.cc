@@ -228,9 +228,7 @@ int main(int argc, char **argv){
 			em_iterations++;
 		}
 
-		if(debug == true){
-			patchmatches[i]->setDebug(debug);
-		}
+		patchmatches[i]->setDebug(debug);
 
 		xsize *= 2;
 		ysize *= 2;
