@@ -74,6 +74,7 @@ inline irtkSimilarityMetric::~irtkSimilarityMetric()
 #include <irtkCrossCorrelationSimilarityMetric.h>
 #include <irtkMLSimilarityMetric.h>
 #include <irtkHistogramSimilarityMetric.h>
+#include <irtkNormalisedGradientCorrelationSimilarityMetric.h>
 
 inline irtkSimilarityMetric *irtkSimilarityMetric::New(irtkSimilarityMetric *metric)
 {
@@ -135,6 +136,12 @@ inline irtkSimilarityMetric *irtkSimilarityMetric::New(irtkSimilarityMetric *met
     irtkMLSimilarityMetric *m = dynamic_cast<irtkMLSimilarityMetric *>(metric);
     if (m != NULL) {
       return new irtkMLSimilarityMetric(m->_classification);
+    }
+  }
+  {
+    irtkNormalisedGradientCorrelationSimilarityMetric *m = dynamic_cast<irtkNormalisedGradientCorrelationSimilarityMetric *>(metric);
+    if (m != NULL) {
+      return new irtkNormalisedGradientCorrelationSimilarityMetric(m->GetDim());
     }
   }
 
