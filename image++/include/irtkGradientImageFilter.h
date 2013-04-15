@@ -54,6 +54,7 @@ public:
   const static int GRADIENT_Z          = 2;
   const static int GRADIENT_MAGNITUDE  = 3;
   const static int GRADIENT_VECTOR     = 4;
+  const static int NORMALISED_GRADIENT_VECTOR = 5;
 
   /// Constructor
   irtkGradientImageFilter(int type = irtkGradientImageFilter::GRADIENT_MAGNITUDE);

@@ -75,7 +75,7 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Initialize()
   }
 
   // Make sure that output has the correct dimensions
-  if (_type == GRADIENT_VECTOR) {
+  if ((_type == GRADIENT_VECTOR) || (_type == NORMALISED_GRADIENT_VECTOR)) {
     irtkImageAttributes attr = this->_input->GetImageAttributes();
     attr._t = 3;
     this->_output->Initialize(attr);
@@ -86,7 +86,7 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Initialize()
 
 template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
 {
-  double dx, dy, dz;
+  double dx, dy, dz, norm;
   int x, y, z, x1, y1, z1, x2, y2, z2;
 
   // Do the initial set up
@@ -147,6 +147,15 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
             this->_output->PutAsDouble(x, y, z, 0, sqrt(dx*dx + dy*dy + dz*dz));
             break;
           case GRADIENT_VECTOR:
+            this->_output->PutAsDouble(x, y, z, 0, dx);
+            this->_output->PutAsDouble(x, y, z, 1, dy);
+            this->_output->PutAsDouble(x, y, z, 2, dz);
+            break;
+          case NORMALISED_GRADIENT_VECTOR:
+	    norm = sqrt(dx*dx + dy*dy + dz*dz);
+	    dx /= (norm + 1E-10);
+	    dy /= (norm + 1E-10);
+	    dz /= (norm + 1E-10);
             this->_output->PutAsDouble(x, y, z, 0, dx);
             this->_output->PutAsDouble(x, y, z, 1, dy);
             this->_output->PutAsDouble(x, y, z, 2, dz);
