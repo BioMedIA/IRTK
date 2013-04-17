@@ -41,6 +41,7 @@ class irtkImageRegistration : public irtkRegistration
 #ifdef HAS_TBB
 
   friend class irtkMultiThreadedImageRigidRegistrationEvaluate;
+  friend class irtkMultiThreadedImageRigidRegistrationWithPaddingEvaluate;
   friend class irtkMultiThreadedImageRigidRegistrationEvaluate2D;
 
 #endif

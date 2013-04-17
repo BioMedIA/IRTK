@@ -14,6 +14,7 @@
 #include <irtkTransformation.h>
 #include <irtkReconstruction.h>
 #include <vector>
+#include <string>
 using namespace std;
 
 //Application to perform reconstruction of volumetric MRI from thick slices.
@@ -107,6 +108,8 @@ int main(int argc, char **argv)
   bool remove_black_background = false;
   
   irtkRealImage average;
+
+  string log_id;
   
   
   //forced exclusion of slices
@@ -133,6 +136,8 @@ int main(int argc, char **argv)
   // Read stacks 
   for (i=0;i<nStacks;i++)
   {
+      if ( i == 0 )
+          log_id = argv[1];
     stack.Read(argv[1]);
     cout<<"Reading stack ... "<<argv[1]<<endl;
     cout.flush();
@@ -439,11 +444,16 @@ int main(int argc, char **argv)
   streambuf* strm_buffer = cout.rdbuf();
   streambuf* strm_buffer_e = cerr.rdbuf();
   //files for registration output
-  ofstream file("log-registration.txt");
-  ofstream file_e("log-registration-error.txt");
+  string name;
+  name = log_id+"log-registration.txt";
+  ofstream file(name.c_str());
+  name = log_id+"log-registration-error.txt";
+  ofstream file_e(name.c_str());
   //files for reconstruction output
-  ofstream file2("log-reconstruction.txt");
-  ofstream fileEv("log-evaluation.txt");
+  name = log_id+"log-reconstruction.txt";
+  ofstream file2(name.c_str());
+  name = log_id+"log-evaluation.txt";
+  ofstream fileEv(name.c_str());
   
   //set precision
   cout<<setprecision(3);

@@ -126,7 +126,9 @@ irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,
 		exit(1);
 	}
 	irtkRealImage average = _reconstructed;
+        irtkRealImage weights = _reconstructed;
 	ClearImage(average, 0);
+        ClearImage(weights, 0);
 	//transform stack to the template space
 	irtkImageTransformation *imagetransformation = new irtkImageTransformation;
 	irtkImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
@@ -146,7 +148,9 @@ irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,
 		imagetransformation->PutInterpolator(interpolator);
 		imagetransformation->Run();
 		average += image;
+                weights += image != 0;
 	}
+        average /= weights;
 	InvertStackTransformations(stack_transformations);
 	delete imagetransformation;
 	delete interpolator;

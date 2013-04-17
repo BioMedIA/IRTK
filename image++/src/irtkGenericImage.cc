@@ -892,6 +892,27 @@ template <class VoxelType> irtkGenericImage<VoxelType> &irtkGenericImage<VoxelTy
   return *this;
 }
 
+template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelType>::operator!=(VoxelType pixel)
+{
+  int i, n;
+  VoxelType *ptr1, *ptr2;
+
+  irtkGenericImage<VoxelType> image(*this);
+
+  n   = this->GetNumberOfVoxels();
+  ptr1 = this->GetPointerToVoxels();
+  ptr2 = image.GetPointerToVoxels();
+  for (i = 0; i < n; i++) {
+    if (ptr1[i] != pixel) {
+      ptr2[i] = 1;
+    }
+    else {
+        ptr2[i] = 0;
+    }
+  }
+  return image;
+}
+
 template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelType>::operator<(VoxelType pixel)
 {
   int i, n;

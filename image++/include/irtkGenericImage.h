@@ -196,6 +196,8 @@ public:
   /// Comparison operator != (if _HAS_STL is defined, negate == operator)
   ///  bool operator!=(const irtkGenericImage &);
 
+  irtkGenericImage operator!=(VoxelType);
+
   //
   // Reflections and axis flipping
   //

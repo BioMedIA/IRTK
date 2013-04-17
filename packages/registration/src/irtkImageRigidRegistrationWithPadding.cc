@@ -14,9 +14,9 @@
 
 #include <irtkHomogeneousTransformationIterator.h>
 
-#include <irtkMultiThreadedImageRigidRegistration.h>
-
 #include <irtkImageRigidRegistrationWithPadding.h>
+
+#include <irtkMultiThreadedImageRigidRegistrationWithPadding.h>
 
 void irtkImageRigidRegistrationWithPadding::GuessParameter()
 {
@@ -345,7 +345,7 @@ double irtkImageRigidRegistrationWithPadding::Evaluate()
   ptr2target = _target->GetPointerToVoxels();
 
 #ifdef HAS_TBB
-  irtkMultiThreadedImageRigidRegistrationEvaluate evaluate(this);
+  irtkMultiThreadedImageRigidRegistrationWithPaddingEvaluate evaluate(this);
   parallel_reduce(blocked_range<int>(0, _target->GetZ(), 20), evaluate);
 #else
 
