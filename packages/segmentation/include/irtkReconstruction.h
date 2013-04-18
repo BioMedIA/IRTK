@@ -125,7 +125,7 @@ protected:
   double _low_intensity_cutoff;
   
   //to restore original signal intensity of the MRI slices
-  vector<double> _stack_average;
+  vector<double> _stack_factor;
   double _average_value;
   vector<int> _stack_index;
   
@@ -175,7 +175,7 @@ public:
   ///Invert all stack transformation
   void InvertStackTransformations(vector<irtkRigidTransformation>& stack_transformations);
   ///Match stack intensities
-  void MatchStackIntensities(vector<irtkRealImage>& stacks,vector<irtkRigidTransformation>& stack_transformations, double averageValue);
+  void MatchStackIntensities(vector<irtkRealImage>& stacks,vector<irtkRigidTransformation>& stack_transformations, double averageValue, bool together = false);
   ///Fill image with given value
   void ClearImage(irtkRealImage& image,double value);
   ///Mask all slices
