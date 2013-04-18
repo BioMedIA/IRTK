@@ -57,6 +57,8 @@ void usage()
   cerr << "\t-remove_black_background  Create mask from black background."<<endl;
   cerr << "\t-transformations [folder] Use existing slice-to-volume transformations to initialize the reconstruction."<<endl;
   cerr << "\t-force_exclude [number of slices] [ind1] ... [indN]  Force exclusion of slices with these indices."<<endl;
+  cerr << "\t-no_intensity_matching    Switch off intensity matching."<<endl;
+  cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
   cerr << "\t" << endl;
   cerr << "\t" << endl;
@@ -106,6 +108,8 @@ int main(int argc, char **argv)
   char * folder=NULL;
   //flag to remove black background, e.g. when neonatal motion correction is performed
   bool remove_black_background = false;
+  //flag to swich the intensity matching on and off
+  bool intensity_matching = true;
   
   irtkRealImage average;
 
@@ -136,8 +140,8 @@ int main(int argc, char **argv)
   // Read stacks 
   for (i=0;i<nStacks;i++)
   {
-      if ( i == 0 )
-          log_id = argv[1];
+      //if ( i == 0 )
+          //log_id = argv[1];
     stack.Read(argv[1]);
     cout<<"Reading stack ... "<<argv[1]<<endl;
     cout.flush();
@@ -299,6 +303,14 @@ int main(int argc, char **argv)
       ok = true;
     }
 
+    //Switch off intensity matching
+    if ((ok == false) && (strcmp(argv[1], "-no_intensity_matching") == 0)){
+      argc--;
+      argv++;
+      intensity_matching=false;
+      ok = true;
+    }
+
     //Perform bias correction of the reconstructed image agains the GW image in the same motion correction iteration
     if ((ok == false) && (strcmp(argv[1], "-global_bias_correction") == 0)){
       argc--;
@@ -324,6 +336,16 @@ int main(int argc, char **argv)
       ok = true;
     }
     
+    //Read transformations from this folder
+    if ((ok == false) && (strcmp(argv[1], "-log_prefix") == 0)){
+      argc--;
+      argv++;
+      log_id=argv[1];
+      ok = true;
+      argc--;
+      argv++;
+    }
+
     //Read transformations from this folder
     if ((ok == false) && (strcmp(argv[1], "-transformations") == 0)){
       argc--;
@@ -518,7 +540,10 @@ int main(int argc, char **argv)
   reconstruction.InvertStackTransformations(stack_transformations);
   
   //Rescale intensities of the stacks to have the same average
-  reconstruction.MatchStackIntensities(stacks,stack_transformations,averageValue);
+  if (intensity_matching)
+    reconstruction.MatchStackIntensities(stacks,stack_transformations,averageValue);
+  else
+    reconstruction.MatchStackIntensities(stacks,stack_transformations,averageValue,true);
   average = reconstruction.CreateAverage(stacks,stack_transformations);
   if (debug)
     average.Write("average2.nii.gz");
@@ -645,12 +670,14 @@ int main(int argc, char **argv)
     {
       cout<<endl<<"  Reconstruction iteration "<<i<<". "<<endl;
       
-      //calculate bias fields
-      if (sigma>0)
-        reconstruction.Bias();
-      
-      //calculate scales
-      reconstruction.Scale();
+      if (intensity_matching)
+      {
+        //calculate bias fields
+        if (sigma>0)
+          reconstruction.Bias();
+        //calculate scales
+        reconstruction.Scale();
+      }
       
       //MStep and update reconstructed volume
       //reconstruction.SuperresolutionAndMStep(i+1);
