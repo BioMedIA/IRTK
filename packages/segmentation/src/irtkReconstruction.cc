@@ -484,18 +484,19 @@ void irtkReconstruction::RestoreSliceIntensities()
   for (inputIndex=0;inputIndex<_slices.size();inputIndex++)
   {
     //calculate scling factor
-    factor = _stack_average[_stack_index[inputIndex]]/_average_value;
+    factor = _stack_factor[_stack_index[inputIndex]];//_average_value;
     
     // read the poiner to current slice
     p=_slices[inputIndex].GetPointerToVoxels();
     for(i=0;i<_slices[inputIndex].GetNumberOfVoxels();i++)
     {
-      if(*p>0) *p = *p * factor;
+      if(*p>0) *p = *p / factor;
       p++;
     } 
   }
 
 }
+
 
 
 void irtkReconstruction::ScaleVolume()
@@ -609,7 +610,7 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
 }
 
 void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
-		vector<irtkRigidTransformation>& stack_transformations, double averageValue)
+		vector<irtkRigidTransformation>& stack_transformations, double averageValue, bool together)
 {
 
 	if (_debug)
@@ -621,6 +622,7 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 	unsigned int ind;
 	int i, j, k;
 	double x, y, z;
+	vector<double> stack_average;
         
 	//rememeber the set average value
 	_average_value = averageValue;
@@ -660,19 +662,28 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 				}
 		//calculate average for the stack
 		if (num > 0)
-			_stack_average.push_back(sum / num);
+			stack_average.push_back(sum / num);
 		else
 		{
 			cerr << "Stack " << ind << " has no overlap with ROI" << endl;
 			exit(1);
 		}
 	}
+	
+	double global_average;
+	if (together)
+	{
+	  global_average = 0;
+	  for(i=0;i<stack_average.size();i++)
+	    global_average += stack_average[i];
+	  global_average/=stack_average.size();
+	}
 
 	if (_debug)
 	{
 		cout << "Stack average intensities are ";
-		for (ind = 0; ind < _stack_average.size(); ind++)
-			cout << _stack_average[ind] << " ";
+		for (ind = 0; ind < stack_average.size(); ind++)
+			cout << stack_average[ind] << " ";
 		cout << endl;
 		cout << "The new average value is " << averageValue << endl;
 		cout.flush();
@@ -682,9 +693,20 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 	irtkRealPixel *ptr;
 	double factor;
 	for (ind = 0; ind < stacks.size(); ind++)
-			{
-		factor = averageValue / _stack_average[ind];
-		ptr = stacks[ind].GetPointerToVoxels();
+	{
+	        if (together)
+		{
+		  factor = averageValue / global_average;
+		  _stack_factor.push_back(factor);
+		}
+		else
+		{
+		  factor = averageValue / stack_average[ind];
+  		  _stack_factor.push_back(factor);
+
+		}
+
+	        ptr = stacks[ind].GetPointerToVoxels();
 		for (i = 0; i < stacks[ind].GetNumberOfVoxels(); i++)
 				{
 			if (*ptr > 0)
@@ -702,7 +724,18 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 		}
 	}
 
+	if (_debug)
+	{
+		cout << "Slice intensity factors are ";
+		for (ind = 0; ind < stack_average.size(); ind++)
+			cout << _stack_factor[ind] << " ";
+		cout << endl;
+		cout << "The new average value is " << averageValue << endl;
+		cout.flush();
+	}
+
 }
+
 
 void irtkReconstruction::InvertStackTransformations(
 		vector<irtkRigidTransformation>& stack_transformations)
