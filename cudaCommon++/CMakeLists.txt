@@ -3,13 +3,10 @@ Project(irtkCUcommonLib)
 cmake_minimum_required(VERSION 2.6)
 
 #if IRTK_SOURCE_DIR is set, we are building within the IRTK source tree
-#but we leave it as option in case somewone wants to do something strange
 if(IRTK_SOURCE_DIR)
 SET(BUILD_OUT_OF_IRTK_TREE FALSE)
-#OPTION(BUILD_OUT_OF_IRTK_TREE "build outside of the IRTK main source tree." ON)
 else(IRTK_SOURCE_DIR)
 SET(BUILD_OUT_OF_IRTK_TREE TRUE)
-#OPTION(BUILD_OUT_OF_IRTK_TREE "build outside of the IRTK main source tree." OFF)
 endif(IRTK_SOURCE_DIR)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ./cmake)
@@ -25,10 +22,20 @@ if (WIN32)
   #set(CMAKE_DEBUG_POSTFIX "D")
 
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib;libcmtd.lib")
-else(WIN32)
-  # todo use a better workaround, resp., remove this line once nvcc supports nullptr with GCC >=4.6
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dnullptr=0")
 endif(WIN32)
+
+# check if we have c++11
+set(CMAKE_CXX_COMPILER_TMP ${CMAKE_CXX_COMPILER})
+set(CMAKE_CXX_COMPILER ${CUDA_NVCC_EXECUTABLE})
+include (cmake/CheckCxxFeatures.cmake)
+cxx_check_feature ("c++11" "nullptr" "N2431" HAVE_CXX11_NULLPTR "${ADDITIONAL_DEFINITIONS}")
+set(CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER_TMP})
+
+if(HAVE_CXX11_NULLPTR)
+add_definitions(-DHAVE_CXX11_NULLPTR)
+else(HAVE_CXX11_NULLPTR)
+message("WARNING: your nvcc does not support c++11 yet. Using own nullptr implementation!")
+endif(HAVE_CXX11_NULLPTR)
 
 if (WIN32)
   add_definitions(-DGL_GLEXT_PROTOTYPES -bigobj)

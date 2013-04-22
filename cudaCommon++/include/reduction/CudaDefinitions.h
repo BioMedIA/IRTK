@@ -20,6 +20,9 @@
 #include <float.h>
 #include <math.h>
 
+#ifndef HAVE_CXX11_NULLPTR
+#include "nullptr.h"
+#endif
 //! Use fermi architecture.
 //! Uncomment this line in order to build exclusively for fermi architecture.
 //#define FERMI

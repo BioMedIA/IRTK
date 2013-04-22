@@ -14,6 +14,10 @@
 #ifndef GPUMLib_BaseMatrix_h
 #define GPUMLib_BaseMatrix_h
 
+#ifndef HAVE_CXX11_NULLPTR
+#include "nullptr.h"
+#endif
+
 //! \addtogroup memframework Host (CPU) and device (GPU) memory access framework
 //! @{
 
