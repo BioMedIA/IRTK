@@ -125,14 +125,14 @@ template <class VoxelType> inline VoxelType *irtkCUGenericImage<VoxelType>::GetP
 	return &d_matrix[t*z*y*x];
 #else
 #ifdef NO_BOUNDS
-  return &(_matrix[t][z][y][x]);
+  return &(this->_matrix[t][z][y][x]);
 #else
-  if ((x >= _attr._x) || (x < 0) || (y >= _attr._y) || (y < 0) || (z >= _attr._z) || (z < 0) || (t >= _attr._t) || (t < 0)) {
+  if ((x >= this->_attr._x) || (x < 0) || (y >= this->_attr._y) || (y < 0) || (z >= this->_attr._z) || (z < 0) || (t >= this->_attr._t) || (t < 0)) {
     cout << "irtkGenericImage<Type>::GetPointerToVoxels: parameter out of range\n";
     cout << x << " " << y << " " << z << " " << t << endl;
     return NULL;
   } else {
-    return &(_matrix[t][z][y][x]);
+    return &(this->_matrix[t][z][y][x]);
   }
 #endif
 #endif
@@ -145,13 +145,13 @@ template <class VoxelType> inline int irtkCUGenericImage<VoxelType>::VoxelToInde
 	return (&(d_matrix[t*z*y*x]) - &(d_matrix[0]));
 #else
 #ifdef NO_BOUNDS
-	return (&(_matrix[t][z][y][x]) - &(_matrix[0][0][0][0]));
+	return (&(this->_matrix[t][z][y][x]) - &(this->_matrix[0][0][0][0]));
 #else
-	if ((x >= _attr._x) || (x < 0) || (y >= _attr._y) || (y < 0) || (z >= _attr._z) || (z < 0) || (t >= _attr._t) || (t < 0)) {
+	if ((x >= this->_attr._x) || (x < 0) || (y >= this->_attr._y) || (y < 0) || (z >= this->_attr._z) || (z < 0) || (t >= this->_attr._t) || (t < 0)) {
 		cout << "irtkGenericImage<Type>::VoxelToIndex: parameter out of range\n";
 		return 0;
 	} else {
-		return (&(_matrix[t][z][y][x]) - &(_matrix[0][0][0][0]));
+		return (&(this->_matrix[t][z][y][x]) - &(this->_matrix[0][0][0][0]));
 	}
 #endif
 #endif
@@ -164,13 +164,13 @@ template <class VoxelType> inline VoxelType irtkCUGenericImage<VoxelType>::Get(i
 	return d_matrix[t*z*y*x];
 #else
 #ifdef NO_BOUNDS
-	return (_matrix[t][z][y][x]);
+	return (this->_matrix[t][z][y][x]);
 #else
-	if ((x >= _attr._x) || (x < 0) || (y >= _attr._y) || (y < 0) || (z >= _attr._z) || (z < 0) || (t >= _attr._t) || (t < 0)) {
+	if ((x >= this->_attr._x) || (x < 0) || (y >= this->_attr._y) || (y < 0) || (z >= this->_attr._z) || (z < 0) || (t >= this->_attr._t) || (t < 0)) {
 		cout << "irtkGenericImage<Type>::Get: parameter out of range\n";
 		return 0;
 	} else {
-		return(_matrix[t][z][y][x]);
+		return(this->_matrix[t][z][y][x]);
 	}
 #endif
 #endif
@@ -182,13 +182,13 @@ template <class VoxelType> inline VoxelType& irtkCUGenericImage<VoxelType>::oper
 	return d_matrix[t*z*y*x];
 #else
 #ifdef NO_BOUNDS
-	return (_matrix[t][z][y][x]);
+	return (this->_matrix[t][z][y][x]);
 #else
-	if ((x >= _attr._x) || (x < 0) || (y >= _attr._y) || (y < 0) || (z >= _attr._z) || (z < 0) || (t >= _attr._t) || (t < 0)) {
+	if ((x >= this->_attr._x) || (x < 0) || (y >= this->_attr._y) || (y < 0) || (z >= this->_attr._z) || (z < 0) || (t >= this->_attr._t) || (t < 0)) {
 		cout << "irtkGenericImage<Type>::(): parameter out of range\n";
-		return _matrix[0][0][0][0];
+		return this->_matrix[0][0][0][0];
 	} else {
-		return (_matrix[t][z][y][x]);
+		return (this->_matrix[t][z][y][x]);
 	}
 #endif
 #endif

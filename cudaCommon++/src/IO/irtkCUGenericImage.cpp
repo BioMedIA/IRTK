@@ -38,21 +38,21 @@
 
 static bool cudaInitDone = false;
 
-template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage() : irtkGenericImage()
+template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage() : irtkGenericImage<VoxelType>()
 {
 	cudaCheckSets();
-	_attr._x = 0;
-	_attr._y = 0;
-	_attr._z = 0;
-	_attr._t = 0;
+	this->_attr._x = 0;
+	this->_attr._y = 0;
+	this->_attr._z = 0;
+	this->_attr._t = 0;
 
 	// Initialize data
-	_matrix  = NULL;
+	this->_matrix  = NULL;
 	d_matrix = NULL;
 }
 
 
-template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(int x, int y, int z, int t) : irtkGenericImage()
+template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(int x, int y, int z, int t) : irtkGenericImage<VoxelType>()
 {
 	cudaCheckSets();
 	irtkImageAttributes attr;
@@ -63,7 +63,7 @@ template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(int
 	attr._t = t;
 
 	// Initialize data
-	_matrix = NULL;
+	this->_matrix = NULL;
 	d_matrix = NULL;
 	// Initialize rest of class
 	this->Initialize(attr);
@@ -79,7 +79,7 @@ template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(cha
 {
 	cudaCheckSets();
 	// Initialize data
-	_matrix = NULL;
+	this->_matrix = NULL;
 	d_matrix = NULL;
 
 	// Read image
@@ -93,11 +93,11 @@ template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(cha
 }
 
 
-template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(const irtkImageAttributes &attr) : irtkGenericImage()
+template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(const irtkImageAttributes &attr) : irtkGenericImage<VoxelType>()
 {
 	cudaCheckSets();
 	// Initialize data
-	_matrix  = NULL;
+	this->_matrix  = NULL;
 	d_matrix = NULL;
 
 	// Initialize rest of class
@@ -110,14 +110,14 @@ template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(con
 	cudaDeviceSynchronize();
 }
 
-template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(const irtkCUGenericImage &image) : irtkGenericImage()
+template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(const irtkCUGenericImage &image) : irtkGenericImage<VoxelType>()
 {
 	cudaCheckSets();
 	int i, n;
 	VoxelType *ptr1, *ptr2;
 
 	// Initialize data
-	_matrix = NULL;
+	this->_matrix = NULL;
 	d_matrix = NULL;
 	// Initialize rest of class
 	this->Initialize(image._attr);
@@ -145,7 +145,7 @@ template <class VoxelType> template <class VoxelType2> irtkCUGenericImage<VoxelT
 	VoxelType2 *ptr2;
 
 	// Initialize data
-	_matrix = NULL;
+	this->_matrix = NULL;
 	d_matrix = NULL;
 	// Initialize rest of class
 	this->Initialize(image.GetImageAttributes());
@@ -173,7 +173,7 @@ template <class VoxelType> template <class VoxelType2> irtkCUGenericImage<VoxelT
 	VoxelType2 *ptr2;
 
 	// Initialize data
-	_matrix = NULL;
+	this->_matrix = NULL;
 	d_matrix = NULL;
 	// Initialize rest of class
 	this->Initialize(image.GetImageAttributes());
@@ -201,14 +201,14 @@ template <class VoxelType> irtkCUGenericImage<VoxelType>::~irtkCUGenericImage(vo
 		cudaDeviceSynchronize();
 	}
 
-	if (_matrix != NULL) {
-		Deallocate<VoxelType>(_matrix);
-		_matrix = NULL;
+	if (this->_matrix != NULL) {
+		Deallocate<VoxelType>(this->_matrix);
+		this->_matrix = NULL;
 	}
-	_attr._x = 0;
-	_attr._y = 0;
-	_attr._z = 0;
-	_attr._t = 0;
+	this->_attr._x = 0;
+	this->_attr._y = 0;
+	this->_attr._z = 0;
+	this->_attr._t = 0;
 }
 
 template <class VoxelType> VoxelType*  irtkCUGenericImage<VoxelType>::getDevicePoiner() const
