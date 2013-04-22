@@ -32,9 +32,9 @@ cxx_check_feature ("c++11" "nullptr" "N2431" HAVE_CXX11_NULLPTR "${ADDITIONAL_DE
 set(CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER_TMP})
 
 if(HAVE_CXX11_NULLPTR)
-add_definitions(-DHAVE_CXX11_NULLPTR)
+  add_definitions(-DHAVE_CXX11_NULLPTR)
 else(HAVE_CXX11_NULLPTR)
-message("WARNING: your nvcc does not support c++11 yet. Using own nullptr implementation!")
+  message(WARNING "Your nvcc does not support c++11 yet. Using own nullptr implementation!")
 endif(HAVE_CXX11_NULLPTR)
 
 if (WIN32)
