@@ -26,7 +26,7 @@ if (WIN32)
 
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib;libcmtd.lib")
 else(WIN32)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11")
 endif(WIN32)
 
 if (WIN32)
@@ -48,7 +48,7 @@ MESSAGE(INFO "Building with CUDA < 5.0")
 else()
 MESSAGE(STATUS "Building with CUDA >= 5.0")
 # we build for all useful compute capabilities (C.P > 2.0)
-set(CUDA_NVCC_FLAGS "-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
 #untested for CP < 2.0
 #set(CUDA_NVCC_FLAGS "-gencode;arch=compute_12,code=sm_12;-use_fast_math;")
 endif()
