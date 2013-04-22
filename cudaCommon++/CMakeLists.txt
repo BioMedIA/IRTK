@@ -5,10 +5,10 @@ cmake_minimum_required(VERSION 2.6)
 #if IRTK_SOURCE_DIR is set, we are building within the IRTK source tree
 #but we leave it as option in case somewone wants to do something strange
 if(IRTK_SOURCE_DIR)
-SET(BUILD_OUT_OF_IRTK_TREE TRUE)
+SET(BUILD_OUT_OF_IRTK_TREE FALSE)
 #OPTION(BUILD_OUT_OF_IRTK_TREE "build outside of the IRTK main source tree." ON)
 else(IRTK_SOURCE_DIR)
-SET(BUILD_OUT_OF_IRTK_TREE FALSE)
+SET(BUILD_OUT_OF_IRTK_TREE TRUE)
 #OPTION(BUILD_OUT_OF_IRTK_TREE "build outside of the IRTK main source tree." OFF)
 endif(IRTK_SOURCE_DIR)
 
@@ -40,7 +40,6 @@ include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
 
 if( ${CUDA_VERSION} VERSION_LESS "5")
 MESSAGE(INFO "Building with CUDA < 5.0")
-message( SEND_ERROR "Softshell requires CUDA 5.0 or higher" )
 else()
 MESSAGE(INFO "Building with CUDA >= 5.0")
 # we build for all useful compute capabilities (C.P > 2.0)
