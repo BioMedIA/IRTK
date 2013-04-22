@@ -62,7 +62,7 @@ include_directories(${IRTK_INCLUDE_DIRS})
 
 else(BUILD_OUT_OF_IRTK_TREE)
 
-include_directories(../common++/include ../image++/include)
+include_directories(../common++/include ../image++/include ../geometry++/include ../contrib++/include)
 
 SET(IRTK_LIBRARIES contrib++ image++ geometry++ common++) 
 IF (USE_VXL)
