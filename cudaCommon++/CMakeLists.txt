@@ -36,6 +36,9 @@ set(CUDA_BUILD_EMULATION OFF CACHE BOOL "enable emulation mode")
 find_package(CUDA REQUIRED)
 include_directories(${CUDA_INCLUDE_DIRS})
 #todo make smarter
+if (NOT CUDA_SDK_ROOT_DIR AND EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc/helper_cude.h")
+  set (CUDA_SDK_ROOT_DIR "${CUDA_TOOLKIT_ROOT_DIR}/samples" CACHE "Path to CUDA SDK (toolkit samples)." PATH FORCE)
+endif ()
 include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
 
 if( ${CUDA_VERSION} VERSION_LESS "5")
