@@ -18,6 +18,11 @@ ELSE (USE_VXL)
   SUBDIRS(recipes/src)
 ENDIF (USE_VXL)
 
+OPTION(BUILD_GPU_SUPPORT_WITH_CUDA "Use a preliminary GPU accelerated version of IRTK" OFF)
+IF (BUILD_GPU_SUPPORT_WITH_CUDA)
+  add_subdirectory(cudaCommon++)
+ENDIF(BUILD_GPU_SUPPORT_WITH_CUDA)
+
 SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation)
 
 INCLUDE(${IRTK_SOURCE_DIR}/config/IRTKInclude.cmake)
