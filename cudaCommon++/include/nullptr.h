@@ -11,6 +11,9 @@
 
 =========================================================================*/
 
+#ifndef NULLPTR_H_
+#define NULLPTR_H_
+
 
 const                        // this is a const object...
 class {
@@ -24,3 +27,6 @@ public:
 private:
   void operator&() const;    // whose address can't be taken
 } nullptr = {};
+
+
+#endif // NULLPTR_H_
