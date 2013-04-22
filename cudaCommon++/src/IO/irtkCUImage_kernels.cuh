@@ -47,24 +47,3 @@ void mask_image_gpu(int size, T *d_idata, T *d_odata, T *d_mdata, T nullVal, T m
 //declarations
 template <class T> 
 void normalize_image_gpu(int size, T *d_idata, T *d_odata, T minVal, T maxVal);
-
-
-#define INSTANCE_MACRO(TYPE) template void normalize_image_gpu<TYPE>(int size, TYPE *d_idata, TYPE *d_odata, TYPE minVal, TYPE maxVal);
-INSTANCE_MACRO(char)
-INSTANCE_MACRO(unsigned char)
-INSTANCE_MACRO(short)
-INSTANCE_MACRO(unsigned short)
-INSTANCE_MACRO(int)
-INSTANCE_MACRO(unsigned int)
-INSTANCE_MACRO(float)
-INSTANCE_MACRO(double)
-
-#define INSTANCE_MACRO1(TYPE) template void mask_image_gpu<TYPE>(int size, TYPE *d_idata, TYPE *d_odata, TYPE *d_mdata, TYPE nullVal, TYPE maskValue);
-INSTANCE_MACRO1(char)
-INSTANCE_MACRO1(unsigned char)
-INSTANCE_MACRO1(short)
-INSTANCE_MACRO1(unsigned short)
-INSTANCE_MACRO1(int)
-INSTANCE_MACRO1(unsigned int)
-INSTANCE_MACRO1(float)
-INSTANCE_MACRO1(double)

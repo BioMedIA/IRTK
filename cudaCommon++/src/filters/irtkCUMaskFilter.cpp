@@ -42,13 +42,13 @@ void irtkCUMaskFilter<VoxelType>::setMask(irtkCUGenericImage<VoxelType>* _mask, 
 template <class VoxelType> 
 void irtkCUMaskFilter<VoxelType>::setInput(irtkCUGenericImage<VoxelType>* _input)
 {
-	d_input = _input;
+	this->d_input = _input;
 }
 
 template <class VoxelType> 
 void irtkCUMaskFilter<VoxelType>::setOutput(irtkCUGenericImage<VoxelType>* _output)
 {
-	d_output = _output;
+	this->d_output = _output;
 }
 
 
@@ -56,17 +56,17 @@ template <class VoxelType>
 irtkCUGenericImage<VoxelType>* irtkCUMaskFilter<VoxelType>::getOuput()
 {
 	run();
-	return d_output;
+	return this->d_output;
 }
 
 template <class VoxelType> 
 void irtkCUMaskFilter<VoxelType>::run()
 {
-	if(d_output == NULL)
-		d_output = new irtkCUGenericImage<VoxelType>(*d_input);
+	if(this->d_output == NULL)
+		this->d_output = new irtkCUGenericImage<VoxelType>(*this->d_input);
 
-	mask_image_gpu(d_input->GetX()*d_input->GetY()*d_input->GetZ(), 
-		d_input->getDevicePoiner(), d_output->getDevicePoiner(), d_mask->getDevicePoiner(), nullValue, maskValue);
+	mask_image_gpu(this->d_input->GetX()*this->d_input->GetY()*this->d_input->GetZ(), 
+		this->d_input->getDevicePoiner(), this->d_output->getDevicePoiner(), d_mask->getDevicePoiner(), nullValue, maskValue);
 }
 
 

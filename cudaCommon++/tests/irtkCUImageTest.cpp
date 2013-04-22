@@ -5,7 +5,8 @@
 #include <limits>
 #include <irtkCUMaskFilter.h>
 
-#define FILENAME "brain1.nii"
+static const char* g_filename = "brain1.nii";
+#define FILENAME const_cast<char*>(g_filename)
 
 int main(int argc, char **argv)
 {
@@ -49,6 +50,7 @@ int main(int argc, char **argv)
 
 	//Histogram test
 	//TODO investigate this after histogram:
+#ifdef USE_CUDA_NPP
 	test2->GetMinMax(&min, &max);
 
 	const int numBins = 256;
@@ -92,6 +94,7 @@ int main(int argc, char **argv)
 	}
 	printf("\nSUM: %d\n ", gsum);
 	printf("calculation test 9 Histogram: diff %d --> %s \n", diff, (gsum-csum == 0) ? "Pass" : "Fail");
+ #endif
 
 
 	// very simple array based mask filter

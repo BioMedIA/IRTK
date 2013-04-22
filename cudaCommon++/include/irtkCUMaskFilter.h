@@ -53,11 +53,6 @@ public:
 
 };
 
-
-template class irtkCULib_DLLAPI irtkCUMaskFilter<irtkBytePixel>;
-template class irtkCULib_DLLAPI irtkCUMaskFilter<irtkGreyPixel>;
-template class irtkCULib_DLLAPI irtkCUMaskFilter<irtkRealPixel>;
-
 /// Unsigned char image
 typedef class irtkCUMaskFilter<irtkBytePixel> irtkByteFilter;
 /// Short image

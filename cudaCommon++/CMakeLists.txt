@@ -26,7 +26,8 @@ if (WIN32)
 
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib;libcmtd.lib")
 else(WIN32)
-	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11")
+  # todo use a better workaround, resp., remove this line once nvcc supports nullptr with GCC >=4.6
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dnullptr=0")
 endif(WIN32)
 
 if (WIN32)
