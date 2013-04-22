@@ -28,7 +28,6 @@ int main(int argc, char **argv)
 	irtkCUGenericImage<irtkGreyPixel>* test6 = new irtkCUGenericImage<irtkGreyPixel>(*test6a);
 	if(test6 != NULL) std::cout << "constructor test 6 --> Pass" << std::endl;
 
-	if(test2->GetGPU3DVolume() != NULL) std::cout << "GPU Volume interface test --> Pass" << std::endl;
 	irtkGenericImage<irtkGreyPixel>* im = (irtkGenericImage<irtkGreyPixel>*)test2;
 	//...
 
