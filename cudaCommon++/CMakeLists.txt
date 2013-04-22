@@ -36,15 +36,15 @@ set(CUDA_BUILD_EMULATION OFF CACHE BOOL "enable emulation mode")
 find_package(CUDA REQUIRED)
 include_directories(${CUDA_INCLUDE_DIRS})
 #todo make smarter
-if (NOT CUDA_SDK_ROOT_DIR AND EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc/helper_cude.h")
-  set (CUDA_SDK_ROOT_DIR "${CUDA_TOOLKIT_ROOT_DIR}/samples" CACHE "Path to CUDA SDK (toolkit samples)." PATH FORCE)
+if (NOT CUDA_SDK_ROOT_DIR AND EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc/helper_cuda.h")
+  set (CUDA_SDK_ROOT_DIR "${CUDA_TOOLKIT_ROOT_DIR}/samples" CACHE PATH "Path to CUDA SDK (toolkit samples)." FORCE)
 endif ()
 include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
 
 if( ${CUDA_VERSION} VERSION_LESS "5")
 MESSAGE(INFO "Building with CUDA < 5.0")
 else()
-MESSAGE(INFO "Building with CUDA >= 5.0")
+MESSAGE(STATUS "Building with CUDA >= 5.0")
 # we build for all useful compute capabilities (C.P > 2.0)
 set(CUDA_NVCC_FLAGS "-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
 #untested for CP < 2.0
