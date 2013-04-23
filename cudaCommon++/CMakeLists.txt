@@ -45,7 +45,7 @@ include_directories(${CUDA_INCLUDE_DIRS})
 mark_as_advanced(FORCE CUDA_SDK_ROOT_DIR)
 # additional directories where to look for SDK which are
 # not yet added in FindCUDA.cmake of CMake
-list(CUDA_SDK_SEARCH_PATH APPEND "${CUDA_TOOLKIT_ROOT_DIR}/samples") 
+list(APPEND CUDA_SDK_SEARCH_PATH "${CUDA_TOOLKIT_ROOT_DIR}/samples") 
 # look for required SDK header files as suggested in FindCUDA.cmake
 find_path(CUDA_HELPER_INCLUDE_DIR
   helper_cuda.h helper_functions.h
