@@ -29,7 +29,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int ok, i, p9;
+  int ok, i, p9, s1;
   double error;
   irtkPointSet target, source;
 
@@ -39,6 +39,7 @@ int main(int argc, char **argv)
   }
 
   p9 = 0;
+  s1 = 0;
 
   // Parse source and target point lists
   target_name = argv[1];
@@ -82,6 +83,12 @@ int main(int argc, char **argv)
 	  p9 = 1;
       ok = true;
     }
+	if ((ok == false) && (strcmp(argv[1], "-s1") == 0)) {
+      argc--;
+      argv++;
+	  s1 = 1;
+      ok = true;
+    }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -109,7 +116,7 @@ int main(int argc, char **argv)
     transformation = new irtkAffineTransformation;
   }
 
-  if(p9 == 1){
+  if(p9 == 1 || s1 == 1){
 	  transformation->PutStatus(SXY, _Passive);
 	  transformation->PutStatus(SYZ, _Passive);
 	  transformation->PutStatus(SXZ, _Passive);
@@ -123,6 +130,16 @@ int main(int argc, char **argv)
 
   // Run registration filter
   registration->Run();
+
+  if(s1 == 1){
+	  double scale = transformation->Get(SX) 
+		  + transformation->Get(SY)
+		  + transformation->Get(SZ);
+	  scale = scale / 3;
+	  transformation->Put(SX, scale);
+	  transformation->Put(SY, scale);
+	  transformation->Put(SZ, scale);
+  }
 
   // Calculate residual error
   transformation->irtkTransformation::Transform(target);

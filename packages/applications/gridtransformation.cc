@@ -29,18 +29,20 @@ void usage()
 {
   cerr << "Usage: gridtransformation [input] [output] <options>\n"
        << endl;
-  cerr << "<-dofin file>      Transformation" << endl;
-  cerr << "<-invert>          Invert transformation" << endl;
-  cerr << "<-source image>    reference source image" << endl;
-  cerr << "<-target image>    reference target image" << endl;
-  cerr << "<-partial number>  Transform 0-number points copy rest"<<endl;
-  cerr << "<-irtk filename>   output the result in irtk format"<<endl;
+  cerr << "<-dofin file>                Transformation" << endl;
+  cerr << "<-invert>                    Invert transformation" << endl;
+  cerr << "<-source image>              reference source image" << endl;
+  cerr << "<-target image>              reference target image" << endl;
+  cerr << "<-partial number>            Transform 0-number points copy rest"<<endl;
+  cerr << "<-time> [frame time]         Transformation is 4D use time"    << endl;
+  cerr << "<-irtk filename>             output the result in irtk format"<<endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
   int ok, invert,sourceon,targeton, pnumber;
+  float time;
   irtkPointSet output, input;
   irtkTransformation *transformation;
   irtkGreyImage target,source;
@@ -51,6 +53,7 @@ int main(int argc, char **argv)
     usage();
   }
   pnumber = 0;
+  time = -1;
 
 
   // Parse input and output point lists
@@ -117,6 +120,15 @@ int main(int argc, char **argv)
         argc--;
         argv++;
     }
+	if ((ok == false) && (strcmp(argv[1], "-time") == 0)) {
+            argc--;
+            argv++;
+            time = atof(argv[1]);
+            argc--;
+            argv++;
+            cout << "evaluation for time: " << time << endl;
+            ok = true;
+        }
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
@@ -149,7 +161,12 @@ int main(int argc, char **argv)
 	}
 	if(i<pnumber || pnumber == 0){
 		if (invert == false) {
-			transformation->Transform(p[0],p[1],p[2]);
+			if(time >= 0){
+				//TFFD with time
+				transformation->Transform(p[0],p[1],p[2],time);
+			}else{
+				transformation->Transform(p[0],p[1],p[2]);
+			}
 		} else {
 			transformation->Inverse(p[0],p[1],p[2]);
 		}

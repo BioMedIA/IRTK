@@ -120,6 +120,7 @@ int main(int argc, char **argv)
       usage();
     }
   }
+
   if(piecewise == false){
 	  n = 0;
 	  x_avg = 0;
