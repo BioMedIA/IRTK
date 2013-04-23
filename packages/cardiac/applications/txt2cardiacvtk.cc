@@ -20,13 +20,15 @@ Changes   : $Author: ws207 $
 char *input_name = NULL, *reference_name = NULL, *output_name = NULL;
 
 void usage(){
-	cerr << "Usage: txt2cardiacvtk [input txt] [reference vtk] [output txt] " << endl;
+	cerr << "Usage: txt2cardiacvtk [input txt] [reference vtk] [output vtk] " << endl;
+	cerr << "Options: -scalar if set presume the txt is 4D (3D + scalar)." << endl;
+	cerr << "Options: -spatial if set use reference vtk's position." << endl;
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int i;
+	int i,ok,scalar = false,spatial = false;
 	double point[3];
 
 	if (argc < 3) {
@@ -44,6 +46,27 @@ int main(int argc, char **argv)
 	argv++;
 	argc--;
 
+	// Parse remaining parameters
+	while (argc > 1) {
+		ok = false;
+		if ((ok == false) && (strcmp(argv[1], "-scalar") == 0)){
+			argc--;
+			argv++;
+			scalar = true;
+			ok = true;
+		}
+		if ((ok == false) && (strcmp(argv[1], "-spatial") == 0)){
+			argc--;
+			argv++;
+			spatial = true;
+			ok = true;
+		}
+		if (ok == false) {
+			cerr << "Can not parse argument " << argv[1] << endl;
+			usage();
+		}
+	}
+
 	// Read model
 	vtkPolyDataReader *reader = vtkPolyDataReader::New();
 	reader->SetFileName(reference_name);
@@ -55,28 +78,38 @@ int main(int argc, char **argv)
 
 	// Read scalar if there's scalar
 	vtkDoubleArray *array = NULL;
-	if(model->GetPointData()->HasArray("DistanceProfile")){
-		array = (vtkDoubleArray *)model->GetPointData()->GetArray("DistanceProfile");
-	}else if(model->GetPointData()->HasArray("WallThickness")){
-		array = (vtkDoubleArray *)model->GetPointData()->GetArray("WallThickness");
+	if(scalar == true){
+		if(model->GetPointData()->HasArray("DistanceProfile")){
+			array = (vtkDoubleArray *)model->GetPointData()->GetArray("DistanceProfile");
+		}else if(model->GetPointData()->HasArray("WallThickness")){
+			array = (vtkDoubleArray *)model->GetPointData()->GetArray("WallThickness");
+		}else {
+			array = vtkDoubleArray::New();
+			array->SetNumberOfTuples(model->GetNumberOfPoints());
+			array->SetNumberOfComponents(1);
+			array->SetName("WallThickness");
+		}
 	}
 
 	ifstream input;
 	input.open(input_name);
-	
-	double scalar;
+
+	double scalarv;
 
 	for (i = 0; i < model->GetNumberOfPoints(); i++) {
+
 		input >> point[0];
 		input >> point[1];
 		input >> point[2];
 
-		model->GetPoints()->SetPoint (i, point);
+		if(spatial == false){
+			model->GetPoints()->SetPoint (i, point);
+		}
 		// if there is scalar output scalar
 		if(array != NULL){
-			input  >> scalar;
+			input  >> scalarv;
 
-			array->SetTuple(i,&scalar);
+			array->SetTuple(i,&scalarv);
 		}
 
 	}

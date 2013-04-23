@@ -233,140 +233,49 @@ int main( int argc, char * argv[] )
 
         if(image.GetAsDouble(x,y,z) > 1000){
 
-            if(invert == true){
-                x = points->GetPoint(p)[0];
-                y = points->GetPoint(p)[1];
-                z = points->GetPoint(p)[2];
-            }else{
-                x = pointsFirst->GetPoint(p)[0];
-                y = pointsFirst->GetPoint(p)[1];
-                z = pointsFirst->GetPoint(p)[2];
-            }
-            if(strain == true){
-                //double tensor_of_strain[9];
-                //irtkMatrix jac,strainm;
-                //jac.Initialize(3, 3);
-                //strainm.Initialize(3,3);
-                //if(time >= 0){
-                //    //TFFD with time
-                //    transformation->LocalJacobian(jac,x,y,z,time);
-                //}else{
-                //    //FFD without time  
-                //    transformation->LocalJacobian(jac,x,y,z);
-                //}
-                //strainm = jac;
-                //strainm.Transpose();
-                //strainm = strainm*jac;
+			if(invert == true){
+				x = points->GetPoint(p)[0];
+				y = points->GetPoint(p)[1];
+				z = points->GetPoint(p)[2];
+			}else{
+				x = pointsFirst->GetPoint(p)[0];
+				y = pointsFirst->GetPoint(p)[1];
+				z = pointsFirst->GetPoint(p)[2];
+			}
 
-                //strainm(0,0) = strainm(0,0) - 1;
-                //strainm(1,1) = strainm(1,1) - 1;
-                //strainm(2,2) = strainm(2,2) - 1;
+			if(time >= 0){
+				//TFFD with time
+				transformation->LocalDisplacement(x,y,z,time);
+			}else{
+				//FFD without time  
+				transformation->LocalDisplacement(x,y,z);
+			}
+			myDisplacement[0] = x;
+			myDisplacement[1] = y;
+			myDisplacement[2] = z;
 
-                ////error = strainm.Det();
-                //error = (strainm(0, 0)*strainm(1, 1)*strainm(2, 2) 
-                //    + strainm(0, 1)*strainm(1, 2)*strainm(2, 0) 
-                //    + strainm(0, 2)*strainm(1, 0)*strainm(2, 1) 
-                //    - strainm(0, 2)*strainm(1, 1)*strainm(2, 0) 
-                //    - strainm(0, 0)*strainm(1, 2)*strainm(2, 1) 
-                //    - strainm(0, 1)*strainm(1, 0)*strainm(2, 2));
-            }else if(longaxisname){
+			for (int d=0; d<3; d++)
+			{
+				// Groundtruth displacement
+				if(invert == true){
+					trueDisplacement[d] = pointsFirst->GetPoint(p)[d] - points->GetPoint(p)[d];
+				}else{
+					trueDisplacement[d] = points->GetPoint(p)[d] - pointsFirst->GetPoint(p)[d];
+				}
 
-                //calculate radial intersection by x = l1 + ((p-l1).v)v
-                //p - l1
-                //radial[0] = x - p1[0];
-                //radial[1] = y - p1[1];
-                //radial[2] = z - p1[2];
-                ////(p-l1).v
-                //error = radial[0]*p2[0] 
-                //+ radial[1]*p2[1]
-                //+ radial[2]*p2[2];
-                ////((p-l1).v)v
-                //radial[0] = error*p2[0];
-                //radial[1] = error*p2[1];
-                //radial[2] = error*p2[2];
-                ////l1 + ((p-l1).v)v
-                //radial[0] += p1[0];
-                //radial[1] += p1[1];
-                //radial[2] += p1[2];
-                ////calculate radial point by x - p
-                //radial[0] -= x;
-                //radial[1] -= y;
-                //radial[2] -= z;
-                ////nromalize
-                //double distance = sqrt(pow(radial[0],2)+pow(radial[1],2)+pow(radial[2],2));
-                //if(distance > 0){
-                //    for(int j = 0; j < 3; j++){
-                //        radial[j] = radial[j] / distance;
-                //    }
-                //}
+				// Error made on displacement
+				errorDisplacement[d] = myDisplacement[d] - trueDisplacement[d];
 
-                //double tensor_of_strain[9];
-                //irtkMatrix jac,strainm;
-                //jac.Initialize(3, 3);
-                //strainm.Initialize(3,3);
-                //if(time >= 0){
-                //    //TFFD with time
-                //    transformation->LocalJacobian(jac,x,y,z,time);
-                //}else{
-                //    //FFD without time  
-                //    transformation->LocalJacobian(jac,x,y,z);
-                //}
-                //strainm = jac;
-                //strainm.Transpose();
-                //strainm = strainm*jac;
+				//calculate error
+				error += errorDisplacement[d]*errorDisplacement[d];
+			}
 
-                //for(int x=0;x<9;x++){
-                //    tensor_of_strain[x] = strainm(x/3,x%3);
-                //}
-                //strainm(0,0) = strainm(0,0) - 1;
-                //strainm(1,1) = strainm(1,1) - 1;
-                //strainm(2,2) = strainm(2,2) - 1;
+			error = sqrt(error);
+		}
 
-                //irtkMatrix spt,sp;
-                //spt.Initialize(1,3);
-                //sp.Initialize(3,1);
-
-                //sp(0,0) = radial[0]; spt(0,0) = radial[0];
-                //sp(1,0) = radial[1]; spt(0,1) = radial[1];
-                //sp(2,0) = radial[2]; spt(0,2) = radial[2];
-                //strainm = spt*strainm*sp;
-                //error = strainm.Det();
-
-            }else{
-            if(time >= 0){
-                //TFFD with time
-                transformation->LocalDisplacement(x,y,z,time);
-            }else{
-                //FFD without time  
-                transformation->LocalDisplacement(x,y,z);
-            }
-            myDisplacement[0] = x;
-            myDisplacement[1] = y;
-            myDisplacement[2] = z;
-
-            for (int d=0; d<3; d++)
-            {
-                // Groundtruth displacement
-                if(invert == true){
-                    trueDisplacement[d] = pointsFirst->GetPoint(p)[d] - points->GetPoint(p)[d];
-                }else{
-                    trueDisplacement[d] = points->GetPoint(p)[d] - pointsFirst->GetPoint(p)[d];
-                }
-
-                // Error made on displacement
-                errorDisplacement[d] = myDisplacement[d] - trueDisplacement[d];
-
-                //calculate error
-                error += errorDisplacement[d]*errorDisplacement[d];
-            }
-
-            error = sqrt(error);
-            }
-
-            if(outputname){
-                fout << error << " ";
-            }
-        }
+		if(outputname){
+			fout << error << " ";
+		}
 
         aha = *(ahaArray->GetTuple(p));
 
