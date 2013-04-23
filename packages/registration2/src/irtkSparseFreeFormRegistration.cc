@@ -167,7 +167,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
     // recommended values
     _Lambda1            = 0.0001;
     _Lambda3            = 0.04;
-    _LargestSpacing     = 512;
+    _LargestSpacing     = 1024;
     _FinestSpacing      = 1;
 
     // Remaining parameters

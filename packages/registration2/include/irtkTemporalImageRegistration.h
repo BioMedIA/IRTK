@@ -37,17 +37,17 @@ class irtkTemporalImageRegistration : public irtkRegistration2
 
 protected:
 
-  /** Input image sequence. This image sequence is denoted as target images and its
+  /** Input image. This image is denoted as target image and its
    *  coordinate systems define the frames of reference for the registration.
    */
-  irtkGenericImage<short> **_target;
-  int _N_target;
+  irtkGenericImage<short> *_target;
 
-  /** Second input image. This image is denoted as source image. The goal of
+  /** Input image sequence. This image is denoted as source images. The goal of
    *  the registration is to find the transformation which maps the source
-   *  image into the coordinate system of the target image sequence.
+   *  image sequence into the coordinate system of the target image.
    */
-  irtkGenericImage<short> *_source;
+  irtkGenericImage<short> **_source;
+  int _N_source;
 
   /** Current estimate of the source image transformed back into the target
    *  coordinate system. This is updated every time the Update function is
@@ -56,7 +56,7 @@ protected:
   irtkGenericImage<double> *_transformedSource;
 
   /// Gradient of the original source
-  irtkGenericImage<double> _sourceGradient;
+  irtkGenericImage<double> *_sourceGradient;
 
   /// Gradient of the transformed source
   irtkGenericImage<double> *_transformedSourceGradient;
@@ -71,10 +71,10 @@ protected:
   irtkHistogram_2D<double> *_histogram;
 
   /// Interpolator for source image
-  irtkInterpolateImageFunction *_interpolator;
+  irtkInterpolateImageFunction **_interpolator;
 
   /// Interpolator for source image gradient
-  irtkInterpolateImageFunction *_interpolatorGradient;
+  irtkInterpolateImageFunction **_interpolatorGradient;
 
   /// Blurring of target image (in mm)
   double _TargetBlurring[MAX_NO_RESOLUTIONS];
@@ -187,10 +187,7 @@ public:
   virtual ~irtkTemporalImageRegistration();
 
   /// Sets input for the registration filter
-  virtual void SetInput (irtkGreyImage **, irtkGreyImage *, int);
-
-  /// Sets source for the registration filter
-  virtual void SetInput (irtkGreyImage *);
+  virtual void SetInput (irtkGreyImage *, irtkGreyImage **, int);
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
@@ -253,18 +250,13 @@ public:
 
 };
 
-inline void irtkTemporalImageRegistration::SetInput(irtkGreyImage **target, irtkGreyImage *source, int N_target)
+inline void irtkTemporalImageRegistration::SetInput(irtkGreyImage *target, irtkGreyImage **source, int N_source)
 {
-  _N_target = N_target;
-  _target = new irtkGreyImage *[_N_target];
-  for (int i=0; i<_N_target; i++)
-    _target[i] = target[i];
-  _source = source;
-}
-
-inline void irtkTemporalImageRegistration::SetInput(irtkGreyImage *source)
-{
-  _source = source;
+  _N_source = N_source;
+  _source = new irtkGreyImage *[_N_source];
+  for (int i=0; i<_N_source; i++)
+    _source[i] = source[i];
+  _target = target;
 }
 
 inline void irtkTemporalImageRegistration::SetTime(double * t)
