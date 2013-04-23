@@ -238,6 +238,70 @@ void irtkPadding(irtkGreyImage **image, irtkGreyPixel padding, irtkBSplineFreeFo
     cout << "Number of CP padded: " << number << " out of " << ffd->NumberOfDOFs() << endl;
 }
 
+void irtkPadding(irtkGreyImage *image, irtkGreyPixel padding, irtkBSplineFreeFormTransformationPeriodic *ffd, int numberOfImages, double *time)
+{
+    int i, j, k, x, y, z, i1, j1, k1, i2, j2, k2, ok, index;
+    int t, n, number;
+    double t1, t2, tt;
+
+    number = 0;
+
+    // Loop over control points
+    for (t = 0; t < ffd->GetT(); t++) {
+        for (z = 0; z < ffd->GetZ(); z++) {
+            for (y = 0; y < ffd->GetY(); y++) {
+                for (x = 0; x < ffd->GetX(); x++) {
+                    ok = false;
+                    index = ffd->LatticeToIndex(x, y, z, t);
+                    // t1, t2 not in lattice coordinates at the moment!!!!!!!
+                    ffd->BoundingBoxImage(image, index, i1, j1, k1, i2, j2, k2, t1, t2, 1.0);
+
+                    // loop over all target images
+                    for (n = 0; n < numberOfImages; n++) {
+                        // transform time point of current target image to lattice coordinates and check for periodicity
+                        tt = time[n];
+                        // map time to relative time intervall [0,1]
+                        while (tt < 0)
+                            tt += 1.;
+                        while (tt >= 1)
+                            tt -= 1.;
+                        tt = ffd->TimeToLattice(tt);
+
+                        // check whether time point of current target image is in temporal bounding box (check in lattice coord.)
+                        if (( (t1 >= 0) 
+                            && (t2 < ffd->GetT()-1) 
+                            &&  (tt >= t1) 
+                            && (tt<=t2) )
+                            || ( (t1 <  0) 
+                            && ( (tt <= t2) 
+                            || (tt >= t1+ffd->GetT()-1) ) )
+                            || ( (t2 >= ffd->GetT()-1) 
+                            && ( (tt >= t1) 
+                            || (tt <= t2-ffd->GetT()+1) ) ) ) {
+
+                                // Loop over all voxels in the target (reference) volume
+                                for (k = k1; k <= k2; k++) {
+                                    for (j = j1; j <= j2; j++) {
+                                        for (i = i1; i <= i2; i++) {
+                                            if (image->GetAsDouble(i, j, k) > padding) {
+                                                ok = true;
+                                            }
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                    if (ok == false) {
+                        ffd->PutStatusCP(x, y, z, t, _Passive, _Passive, _Passive);
+                        number++;
+                    }
+                }
+            }
+        }
+    }
+    cout << "Number of CP padded: " << number << " out of " << ffd->NumberOfDOFs() << endl;
+}
+
 double GuessResolution(double xsize, double ysize, double zsize)
 {
     if ((xsize >= ysize) && (xsize >= zsize)) return xsize;
