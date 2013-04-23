@@ -7,7 +7,6 @@
   Date      : 
   Version   : 
   Changes   : $Author: bkainz $
-  Original reduction implementation by: Noel Lopes, GPUMLib
 
 =========================================================================*/
 
@@ -31,7 +30,9 @@
 #include "nppExceptions.h"
 #endif
 
+#ifdef DUSE_GPL_CODE_ON
 #include "reduction/reduction.h"
+#endif
 
 #include "irtkCUGenericImage.h"
 #include "irtkCUImage_kernels.cuh"
@@ -229,6 +230,7 @@ template <class VoxelType> void irtkCUGenericImage<VoxelType>::normalize(VoxelTy
 
 template <class VoxelType> VoxelType irtkCUGenericImage<VoxelType>::getAverage(int toggle) const
 {
+#ifdef DUSE_GPL_CODE_ON
 	//TODO NPP
 	//#ifdef USE_CUDA_NPP
 	//could be done with box filter
@@ -238,6 +240,10 @@ template <class VoxelType> VoxelType irtkCUGenericImage<VoxelType>::getAverage(i
 	reduction.Average(&average);
 	return average;
 	//#endif
+#else
+	std::cerr << "GPL option not available. Average not computed. NPP version in progress." << std::endl;
+	return 0;
+#endif
 }
 
 #ifdef USE_CUDA_NPP
@@ -423,9 +429,15 @@ template <class VoxelType> void irtkCUGenericImage<VoxelType>::GetMinMax(VoxelTy
 		d_min, d_max, pDeviceBuffer));
 	cudaDeviceSynchronize();
 #else
+#ifdef DUSE_GPL_CODE_ON
 	Reduction<VoxelType> reduction(this->GetPointerToVoxels(), this->GetNumberOfVoxels());
 	reduction.Min(min);
 	reduction.Max(max);
+
+#else
+	std::cerr << "GPL option not available. NPP not available. No GPU MinMax available! CPU fallback" << std::endl;
+	return irtkCUGenericImage<VoxelType>::GetMinMax(min,max);
+#endif
 #endif
 	nppsFree(pDeviceBuffer);
 }

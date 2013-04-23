@@ -7,7 +7,6 @@
   Date      : 
   Version   : 
   Changes   : $Author: bkainz $
-  Original reduction implementation by: Noel Lopes, GPUMLib
 
 =========================================================================*/
 

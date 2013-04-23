@@ -7,8 +7,7 @@
   Date      : 
   Version   : 
   Changes   : $Author: bkainz $
-  Original reduction implementation by: Noel Lopes, GPUMLib
-
+  GPL licensed file: Original reduction implementation by: Noel Lopes, GPUMLib
 =========================================================================*/
 
 
