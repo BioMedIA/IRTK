@@ -13,23 +13,30 @@
 #ifndef NULLPTR_H_
 #define NULLPTR_H_
 
-#include <cuda.h>
 
+// keywords required if nullptr used in CUDA code (compiled by nvcc)
 #ifdef __CUDACC__
-const                        // this is a const object...
-class {
+#  include <cuda.h>
+#  define _NULLPTR_DECL __host__ __device__
+#else
+#  define _NULLPTR_DECL
+#endif
+
+
+const                                      // this is a const object...
+const class {
 public:
-   template<class T>          // convertible to any type
-   __host__ __device__ operator T*() const      // of null non-member
-    { return 0; }            // pointer...
-   template<class C, class T> // or any type of null
-    __host__ __device__ operator T C::*() const  // member pointer...
+   template<class T>                       // convertible to any type
+   _NULLPTR_DECL operator T*() const       // of null non-member
+    { return 0; }                          // pointer...
+   template<class C, class T>              // or any type of null
+   _NULLPTR_DECL operator T C::*() const   // member pointer...
     { return 0; }
 private:
-  __host__ __device__ void operator&() const;    // whose address can't be taken
+  _NULLPTR_DECL void operator&() const;    // whose address can't be taken
 } nullptr = {};
 
-#endif 
 
+#undef _NULLPTR_DECL
 
 #endif // NULLPTR_H_
