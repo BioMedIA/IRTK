@@ -33,28 +33,48 @@ if (WIN32)
   add_definitions(-DGL_GLEXT_PROTOTYPES -bigobj)
 endif()
 
-# Cuda:
-set(CUDA_BUILD_EMULATION OFF CACHE BOOL "enable emulation mode")
+# CUDA
+option(CUDA_BUILD_EMULATION "enable emulation mode" OFF)
 find_package(CUDA REQUIRED)
-include_directories(${CUDA_INCLUDE_DIRS})
-#todo make smarter
-if (NOT CUDA_SDK_ROOT_DIR AND EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc/helper_cuda.h")
-  set (CUDA_SDK_ROOT_DIR "${CUDA_TOOLKIT_ROOT_DIR}/samples" CACHE PATH "Path to CUDA SDK (toolkit samples)." FORCE)
+# FindCUDA.cmake of CMake 2.8.7 does not look for NPP
+if (NOT DEFINED CUDA_npp_LIBRARY AND COMMAND find_cuda_helper_libs AND NOT CUDA_VERSION VERSION_LESS "4.0")
+  find_cuda_helper_libs(npp)
 endif ()
-include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
+include_directories(${CUDA_INCLUDE_DIRS})
+# hide variable as SDK now (usually) part of CUDA Toolkit
+mark_as_advanced(FORCE CUDA_SDK_ROOT_DIR)
+# additional directories where to look for SDK which are
+# not yet added in FindCUDA.cmake of CMake
+list(CUDA_SDK_SEARCH_PATH APPEND "${CUDA_TOOLKIT_ROOT_DIR}/samples") 
+# look for required SDK header files as suggested in FindCUDA.cmake
+find_path(CUDA_HELPER_INCLUDE_DIR
+  helper_cuda.h helper_functions.h
+  PATHS         ${CUDA_SDK_SEARCH_PATH}
+  PATH_SUFFIXES "common/inc"
+  DOC           "Location of helper_cuda.h and helper_functions.h of the CUDA SDK."
+  NO_DEFAULT_PATH
+)
+find_path(CUDA_HELPER_INCLUDE_DIR helper_cuda.h DOC "Location of helper_cuda.h and helper_functions.h of the CUDA SDK.")
+mark_as_advanced(FORCE CUDA_HELPER_INCLUDE_DIR)
+# either add found path to include search path or show user the
+# appropriate CMake variables to tell us where to find the headers
+if (CUDA_HELPER_INCLUDE_DIR)
+  include_directories(${CUDA_HELPER_INCLUDE_DIR})
+elseif (NOT CUDA_SDK_ROOT_DIR)
+  mark_as_advanced(CLEAR CUDA_SDK_ROOT_DIR)
+else ()
+  mark_as_advanced(CLEAR CUDA_HELPER_INCLUDE_DIR)
+endif ()
 
 if( ${CUDA_VERSION} VERSION_LESS "5")
-MESSAGE(INFO "Building with CUDA < 5.0")
+  message(INFO "Building with CUDA < 5.0")
 else()
-MESSAGE(STATUS "Building with CUDA >= 5.0")
-# we build for all useful compute capabilities (C.P > 2.0)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
-#untested for CP < 2.0
-#set(CUDA_NVCC_FLAGS "-gencode;arch=compute_12,code=sm_12;-use_fast_math;")
+  message(STATUS "Building with CUDA >= 5.0")
+  # we build for all useful compute capabilities (C.P > 2.0)
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
+  #untested for CP < 2.0
+  #set(CUDA_NVCC_FLAGS "-gencode;arch=compute_12,code=sm_12;-use_fast_math;")
 endif()
-
-include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_ROOT_DIR}/common/inc)
-
 
 # check if we have c++11
 set(CMAKE_CXX_COMPILER_TMP ${CMAKE_CXX_COMPILER})
