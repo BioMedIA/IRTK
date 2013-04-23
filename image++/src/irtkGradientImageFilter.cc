@@ -152,13 +152,13 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
             this->_output->PutAsDouble(x, y, z, 2, dz);
             break;
           case NORMALISED_GRADIENT_VECTOR:
-	    norm = sqrt(dx*dx + dy*dy + dz*dz);
-	    dx /= (norm + 1E-10);
-	    dy /= (norm + 1E-10);
-	    dz /= (norm + 1E-10);
-            this->_output->PutAsDouble(x, y, z, 0, dx);
-            this->_output->PutAsDouble(x, y, z, 1, dy);
-            this->_output->PutAsDouble(x, y, z, 2, dz);
+			  norm = sqrt(dx*dx + dy*dy + dz*dz);
+			  dx /= (norm + 1E-10);
+			  dy /= (norm + 1E-10);
+			  dz /= (norm + 1E-10);
+			  this->_output->PutAsDouble(x, y, z, 0, dx);
+			  this->_output->PutAsDouble(x, y, z, 1, dy);
+			  this->_output->PutAsDouble(x, y, z, 2, dz);
             break;
           default:
             cerr << this->NameOfClass() << "::Run: Unknown gradient computation" << endl;
