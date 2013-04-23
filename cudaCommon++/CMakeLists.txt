@@ -48,13 +48,13 @@ mark_as_advanced(FORCE CUDA_SDK_ROOT_DIR)
 list(APPEND CUDA_SDK_SEARCH_PATH "${CUDA_TOOLKIT_ROOT_DIR}/samples") 
 # look for required SDK header files as suggested in FindCUDA.cmake
 find_path(CUDA_HELPER_INCLUDE_DIR
-  helper_cuda.h helper_functions.h
+  helper_cuda.h
   PATHS         ${CUDA_SDK_SEARCH_PATH}
   PATH_SUFFIXES "common/inc"
-  DOC           "Location of helper_cuda.h and helper_functions.h of the CUDA SDK."
+  DOC           "Location of helper_cuda.h of the CUDA SDK."
   NO_DEFAULT_PATH
 )
-find_path(CUDA_HELPER_INCLUDE_DIR helper_cuda.h DOC "Location of helper_cuda.h and helper_functions.h of the CUDA SDK.")
+find_path(CUDA_HELPER_INCLUDE_DIR helper_cuda.h DOC "Location of helper_cuda.h of the CUDA SDK.")
 mark_as_advanced(FORCE CUDA_HELPER_INCLUDE_DIR)
 # either add found path to include search path or show user the
 # appropriate CMake variables to tell us where to find the headers
