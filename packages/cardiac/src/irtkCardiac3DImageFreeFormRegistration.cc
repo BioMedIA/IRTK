@@ -10,6 +10,8 @@
 
 =========================================================================*/
 
+#ifdef HAS_VTK
+
 #include <irtkCardiac.h>
 
 #include <irtkGradientImage.h>
@@ -2073,3 +2075,5 @@ double irtkCardiac3DImageFreeFormRegistration::SmoothnessPenalty(int index)
     }
     return -penalty;
 }
+
+#endif

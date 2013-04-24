@@ -10,6 +10,8 @@
 
 =========================================================================*/
 
+#ifdef HAS_VTK
+
 #ifndef _IRTKCARDIAC3DIMAGEFREEFORMREGISTRATION_H
 
 #define _IRTKCARDIAC3DIMAGEFREEFORMREGISTRATION_H
@@ -238,3 +240,4 @@ inline void irtkCardiac3DImageFreeFormRegistration::SetThreshold(irtkGreyImage *
 
 #endif
 
+#endif
