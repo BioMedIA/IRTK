@@ -536,7 +536,7 @@ template <class VoxelType> void irtkCUGenericImage<VoxelType>::cudaCheckSets()
 	cudaDeviceProp deviceProp;
 	deviceProp.major = 1;
 	deviceProp.minor = 0;
-	int minimumComputeVersion = 20;
+	int minimumComputeVersion = 12;
 	int dev = 0; //TODO select device 
 
 	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, dev));

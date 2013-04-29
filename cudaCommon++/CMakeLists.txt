@@ -71,7 +71,7 @@ if( ${CUDA_VERSION} VERSION_LESS "5")
 else()
   message(STATUS "Building with CUDA >= 5.0")
   # we build for all useful compute capabilities (C.P > 2.0)
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode;arch=compute_12,code=sm_12;-gencode;arch=compute_20,code=sm_21;-gencode;arch=compute_20,code=sm_20;-gencode;arch=compute_30,code=sm_30;-use_fast_math;")
   #untested for CP < 2.0
   #set(CUDA_NVCC_FLAGS "-gencode;arch=compute_12,code=sm_12;-use_fast_math;")
 endif()
