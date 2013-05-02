@@ -368,7 +368,7 @@ void irtkReconstruction::CropImage(irtkRealImage& image, irtkRealImage& mask)
 				<< " " << z2 << endl;
 
 	//Cut region of interest
-	image = image.GetRegion(x1, y1, z1, x2, y2, z2);
+	image = image.GetRegion(x1, y1, z1, x2+1, y2+1, z2+1);
 }
 
 void irtkReconstruction::ResetOrigin(irtkGreyImage &image, irtkRigidTransformation& transformation)
@@ -505,6 +505,7 @@ void irtkReconstruction::ScaleVolume()
   int i, j, k, n;
   irtkRealImage slice, w, sim;
   POINT p;
+  double weight;
 
   if (_debug)
     cout << "Scaling volume: ";
@@ -527,16 +528,24 @@ void irtkReconstruction::ScaleVolume()
       for (j = 0; j < slice.GetY(); j++)
         if (slice(i, j, 0) != -1)
         {
+	  weight=0;
           n = _volcoeffs[inputIndex][i][j].size();
           for (k = 0; k < n; k++)
           {
 	    p = _volcoeffs[inputIndex][i][j][k];
 	    sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+	    weight += p.value;
 	  }
-
+	  
+	  if (weight>0)
+	    sim(i,j,0)/=weight;
+          
 	  //scale - intensity matching
-	  scalenum += w(i, j, 0) * _slice_weight[inputIndex] * slice(i, j, 0) * sim(i, j, 0);
-	  scaleden += w(i, j, 0) * _slice_weight[inputIndex] * sim(i, j, 0) * sim(i, j, 0);
+	  if (weight>0.99)
+	  {
+	    scalenum += w(i, j, 0) * _slice_weight[inputIndex] * slice(i, j, 0) * sim(i, j, 0);
+	    scaleden += w(i, j, 0) * _slice_weight[inputIndex] * sim(i, j, 0) * sim(i, j, 0);
+	  }
 	}
 
   //end of loop for a slice inputIndex
@@ -565,6 +574,7 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
   int i, j, k, n;
   irtkRealImage slice, sim;
   POINT p;
+  double weight;
   
   int z, current_stack;
   z=-1;//this is the z coordinate of the stack
@@ -584,12 +594,16 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
       for (j = 0; j < slice.GetY(); j++)
         if (slice(i, j, 0) != -1)
         {
+	  weight=0;
           n = _volcoeffs[inputIndex][i][j].size();
           for (k = 0; k < n; k++)
           {
 	    p = _volcoeffs[inputIndex][i][j][k];
 	    sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+	    weight += p.value;
 	  }
+	  if(weight>0)
+	    sim(i,j,0)/=weight;
 	}
 
     if (_stack_index[inputIndex]==current_stack)
@@ -846,13 +860,25 @@ void irtkReconstruction::SliceToVolumeRegistration()
 	irtkImageRigidRegistrationWithPadding registration;
 	irtkGreyPixel smin, smax;
 	irtkGreyImage target;
-	irtkRealImage slice, w, b;
+	irtkRealImage slice, w, b, t;
 	unsigned int inputIndex;
+
+	irtkImageAttributes attr = _reconstructed.GetImageAttributes();
+	
+	irtkResamplingWithPadding<irtkRealPixel> resampling(attr._dx,attr._dx,attr._dx,-1);
+
 
 	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
 	{
 
-		target = _slices[inputIndex];
+		//target = _slices[inputIndex];
+		t = _slices[inputIndex];
+		resampling.SetInput(&_slices[inputIndex]);
+		resampling.SetOutput(&t);
+		resampling.Run();
+		target=t;
+		
+
 
 		target.GetMinMax(&smin, &smax);
 		if (smax > -1)
@@ -1418,16 +1444,19 @@ void irtkReconstruction::InitializeRobustStatistics()
 	//Initialise parameter of EM robust statistics
 	int i, j, k, n;
 	bool slice_inside, inside;
-	irtkRealImage slice;
+	irtkRealImage slice,sim;
 	POINT p;
+	double weight;
 
 	double sigma = 0;
 	int num = 0;
 
 	//for each slice
 	for (unsigned int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			{
+	{
 		slice = _slices[inputIndex];
+		sim=slice;
+		ClearImage(sim,0);
 
 		//flag to see whether the current slice has overlap with masked ROI in volume
 		slice_inside = false;
@@ -1440,23 +1469,29 @@ void irtkReconstruction::InitializeRobustStatistics()
 						{
 					//flag to see whether the current voxel is inside ROI
 					inside = false;
-
+					weight = 0;
 					n = _volcoeffs[inputIndex][i][j].size();
 					//for each volume voxel that contributes to current slice voxels
 					for (k = 0; k < n; k++)
-							{
+					{
 						p = _volcoeffs[inputIndex][i][j][k];
 						//contribution is subtracted to obtain the intensity difference between
 						//acquired and simulated slice
-						slice(i, j, 0) -= p.value * _reconstructed(p.x, p.y, p.z);
+						sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+						weight += p.value;
 						if (_mask(p.x, p.y, p.z) == 1)
-								{
+						{
 							slice_inside = true;
 							inside = true;
 						}
 					}
+					
+					if(weight>0)
+					  slice(i,j,0)-=sim(i,j,0)/weight;
+					else
+					  slice(i,j,0)=0;
 					//calculate stev of the errors
-					if (inside)
+					if ((inside)&&(weight>0.99))
 					{
 						sigma += slice(i, j, 0) * slice(i, j, 0);
 						num++;
@@ -1498,18 +1533,21 @@ void irtkReconstruction::EStep()
 
 	unsigned int inputIndex;
 	int i, j, k, n;
-	irtkRealImage slice, w, b;
+	irtkRealImage slice, w, b, sim;
 	double scale;
 	POINT p;
 	int num = 0;
 	vector<double> slice_potential;
 	double g, m;
+	double wght;
 
 	//Calculate slice potentials
 	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			{
+	{
 		// read the current slice
 		slice = _slices[inputIndex];
+		sim=slice;
+		ClearImage(sim,0);
 		//read current weight image
 		w = _weights[inputIndex];
 		//read the current bias image
@@ -1524,7 +1562,7 @@ void irtkReconstruction::EStep()
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
 				if (slice(i, j, 0) != -1)
-						{
+				{
 					//bias correct and scale the slice
 					slice(i, j, 0) *= exp(-b(i, j, 0)) * scale;
 
@@ -1533,32 +1571,45 @@ void irtkReconstruction::EStep()
 
 					//slice voxel has no overlap with volumetric ROI, do not process it
 					if (n == 0)
-							{
+					{
 						_weights[inputIndex].PutAsDouble(i, j, 0, 0);
 						continue;
 					}
-
+					wght=0;
 					//calculate error
 					for (k = 0; k < n; k++)
-							{
+					{
 						p = _volcoeffs[inputIndex][i][j][k];
-						slice(i, j, 0) -= p.value * _reconstructed(p.x, p.y, p.z);
+						sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+						wght += p.value;
 					}
+					
+					if(wght>0)
+					  slice(i,j,0)-=sim(i,j,0)/wght;
+					else 
+					  slice(i,j,0)=0;
 
 					//calculate norm and voxel-wise weights
+					if(wght>0)
+					{
+					  //Gaussian distribution for inliers (likelihood)
+					  g = G(slice(i, j, 0), _sigma);
+					  //Uniform distribution for outliers (likelihood)
+					  m = M(_m);
 
-					//Gaussian distribution for inliers (likelihood)
-					g = G(slice(i, j, 0), _sigma);
-					//Uniform distribution for outliers (likelihood)
-					m = M(_m);
+					  //voxel_wise posterior
+					  double weight = g * _mix / (g * _mix + m * (1 - _mix));
+					  _weights[inputIndex].PutAsDouble(i, j, 0, weight);
 
-					//voxel_wise posterior
-					double weight = g * _mix / (g * _mix + m * (1 - _mix));
-					_weights[inputIndex].PutAsDouble(i, j, 0, weight);
-
-					//calculate slice potentials
-					slice_potential[inputIndex] += (1 - weight) * (1 - weight);
-					num++;
+					  //calculate slice potentials
+					  if(wght>0.99)
+					  {
+					    slice_potential[inputIndex] += (1 - weight) * (1 - weight);
+					    num++;
+					  }
+					}
+					else
+					  _weights[inputIndex].PutAsDouble(i, j, 0, 0);
 				}
 
 		//evaluate slice potential
@@ -1736,7 +1787,7 @@ void irtkReconstruction::EStep()
 	num = 0;
 	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
 		if (slice_potential[inputIndex] >= 0)
-				{
+		{
 			sum += _slice_weight[inputIndex];
 			num++;
 		}
@@ -1771,12 +1822,13 @@ void irtkReconstruction::Scale()
 	int i, j, k, n;
 	irtkRealImage slice, w, b, sim;
 	POINT p;
+	double weight;
 
 	double eb;
 	double scalenum = 0, scaleden = 0;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			{
+	{
 		// read the current slice
 		slice = _slices[inputIndex];
 
@@ -1796,18 +1848,26 @@ void irtkReconstruction::Scale()
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
 				if (slice(i, j, 0) != -1)
-						{
+				{
+				        weight = 0;
 					n = _volcoeffs[inputIndex][i][j].size();
 					for (k = 0; k < n; k++)
 							{
 						p = _volcoeffs[inputIndex][i][j][k];
 						sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+						weight += p.value;
 					}
+					
+					if(weight>0)
+					  sim(i,j,0) /= weight;
 
-					//scale - intensity matching
-					eb = exp(-b(i, j, 0));
-					scalenum += w(i, j, 0) * slice(i, j, 0) * eb * sim(i, j, 0);
-					scaleden += w(i, j, 0) * slice(i, j, 0) * eb * slice(i, j, 0) * eb;
+					if(weight>0.99)
+					{
+					  //scale - intensity matching
+					  eb = exp(-b(i, j, 0));
+					  scalenum += w(i, j, 0) * slice(i, j, 0) * eb * sim(i, j, 0);
+					  scaleden += w(i, j, 0) * slice(i, j, 0) * eb * slice(i, j, 0) * eb;
+					}
 				}
 
 		//calculate scale for this slice
@@ -1852,9 +1912,10 @@ void irtkReconstruction::Bias()
 	POINT p;
 	double eb, sum, num;
 	double scale;
+	double weight;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			{
+	{
 		// read the current slice
 		slice = _slices[inputIndex];
 		//read the current weight image
@@ -1875,28 +1936,36 @@ void irtkReconstruction::Bias()
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
 				if (slice(i, j, 0) != -1)
-						{
+				{
 					//calculate simulated slice
+					weight=0;
 					n = _volcoeffs[inputIndex][i][j].size();
 					for (k = 0; k < n; k++)
-							{
+					{
 						p = _volcoeffs[inputIndex][i][j][k];
 						sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+						weight += p.value;
 					}
 
-					//bias-correct and scale current slice
-					eb = exp(-b(i, j, 0));
-					slice(i, j, 0) *= (eb * scale);
+					if(weight>0)
+					  sim(i,j,0) /= weight;
 
-					//calculate weight image
-					wb(i, j, 0) = w(i, j, 0) * slice(i, j, 0);
+					if(weight>0.99)
+					{
+					  //bias-correct and scale current slice
+					  eb = exp(-b(i, j, 0));
+					  slice(i, j, 0) *= (eb * scale);
 
-					//calculate weighted residual image
-					//make sure it is far from zero to avoid numerical instability
-					//if ((sim(i,j,0)>_low_intensity_cutoff*_max_intensity)&&(slice(i,j,0)>_low_intensity_cutoff*_max_intensity))
-					if ((sim(i, j, 0) > 1) && (slice(i, j, 0) > 1))
-							{
+					  //calculate weight image
+					  wb(i, j, 0) = w(i, j, 0) * slice(i, j, 0);
+
+					  //calculate weighted residual image
+					  //make sure it is far from zero to avoid numerical instability
+					  //if ((sim(i,j,0)>_low_intensity_cutoff*_max_intensity)&&(slice(i,j,0)>_low_intensity_cutoff*_max_intensity))
+					  if ((sim(i, j, 0) > 1) && (slice(i, j, 0) > 1))
+					  {
 						wresidual(i, j, 0) = log(slice(i, j, 0) / sim(i, j, 0)) * wb(i, j, 0);
+					  }
 					}
 					else
 					{
@@ -1924,7 +1993,7 @@ void irtkReconstruction::Bias()
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
 				if (slice(i, j, 0) != -1)
-						{
+				{
 					if (wb(i, j, 0) > 0)
 						b(i, j, 0) += wresidual(i, j, 0) / wb(i, j, 0);
 					sum += b(i, j, 0);
@@ -1940,7 +2009,7 @@ void irtkReconstruction::Bias()
 			for (i = 0; i < slice.GetX(); i++)
 				for (j = 0; j < slice.GetY(); j++)
 					if ((slice(i, j, 0) != -1) && (num > 0))
-							{
+					{
 						b(i, j, 0) -= mean;
 					}
 		}
@@ -1957,9 +2026,11 @@ void irtkReconstruction::Superresolution(int iter)
 {
 	unsigned int inputIndex;
 	int i, j, k, n;
-	irtkRealImage slice, addon, w, b, original;
+	irtkRealImage slice, addon, w, b, original,sim;
 	POINT p;
 	double scale;
+	double weight;
+	char buffer[256];
 
 	//Remember current reconstruction for edge-preserving smoothing
 	original = _reconstructed;
@@ -1976,6 +2047,8 @@ void irtkReconstruction::Superresolution(int iter)
 	{
 		// read the current slice
 		slice = _slices[inputIndex];
+		sim=slice;
+		ClearImage(sim,0);
 		//read the current weight image
 		w = _weights[inputIndex];
 		//read the current bias image
@@ -1994,20 +2067,26 @@ void irtkReconstruction::Superresolution(int iter)
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
 				if (slice(i, j, 0) != -1)
-						{
+				{
 					//bias correct and scale the slice
 					slice(i, j, 0) *= exp(-b(i, j, 0)) * scale;
 					n = _volcoeffs[inputIndex][i][j].size();
-
+					weight=0;
 					//calculate error
 					for (k = 0; k < n; k++)
-							{
+					{
 						p = _volcoeffs[inputIndex][i][j][k];
-						slice(i, j, 0) -= p.value * _reconstructed(p.x, p.y, p.z);
+						sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+						weight += p.value;
 					}
+					
+					if(weight>0)
+					  slice(i,j,0) -= sim(i,j,0)/weight;
+					else
+					  slice(i,j,0)=0;
 
 					for (k = 0; k < n; k++)
-							{
+					{
 						p = _volcoeffs[inputIndex][i][j][k];
 						addon(p.x, p.y, p.z) += p.value * slice(i, j, 0) * w(i, j, 0)
 								* _slice_weight[inputIndex];
@@ -2020,6 +2099,14 @@ void irtkReconstruction::Superresolution(int iter)
 	        //voladdon +=addon;
 
 		//end of loop for a slice inputIndex
+	}
+	
+	if(_debug)
+	{
+	  sprintf(buffer,"confidence-map%i.nii.gz",iter);
+	  _confidence_map.Write(buffer);
+	  sprintf(buffer,"addon%i.nii.gz",iter);
+	  addon.Write(buffer);
 	}
 	
 
@@ -2058,15 +2145,18 @@ void irtkReconstruction::MStep(int iter)
 {
 	unsigned int inputIndex;
 	int i, j, k, n;
-	irtkRealImage slice, w, b;
+	irtkRealImage slice, w, b,sim;
 	POINT p;
 	double sigma = 0, mix = 0, num = 0, scale;
 	double min = 0, max = 0;
+	double weight;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
-			{
+	{
 		// read the current slice
 		slice = _slices[inputIndex];
+		sim=slice;
+		ClearImage(sim,0);
 		//read the current weight image
 		w = _weights[inputIndex];
 		//read the current bias image
@@ -2078,20 +2168,25 @@ void irtkReconstruction::MStep(int iter)
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
 				if (slice(i, j, 0) != -1)
-						{
+				{
 					//bias correct and scale the slice
 					slice(i, j, 0) *= exp(-b(i, j, 0)) * scale;
 
 					//calculate error
+					weight=0;
 					n = _volcoeffs[inputIndex][i][j].size();
 					for (k = 0; k < n; k++)
-							{
+					{
 						p = _volcoeffs[inputIndex][i][j][k];
-						slice(i, j, 0) -= p.value * _reconstructed(p.x, p.y, p.z);
+						sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
+						weight += p.value;
 					}
+					
+					if(weight>0)
+					  slice(i,j,0) -= sim(i,j,0)/weight;
 
 					//otherwise the error has no meaning - it is equal to slice intensity
-					if (n>0)
+					if ((n>0)&&(weight>0.99))
 					{
 					  //sigma and mix
 					  double e = slice(i, j, 0);
@@ -2112,7 +2207,7 @@ void irtkReconstruction::MStep(int iter)
 
 	//Calculate sigma and mix
 	if (mix > 0)
-			{
+	{
 		_sigma = sigma / mix;
 	}
 	else
