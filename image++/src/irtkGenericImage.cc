@@ -205,45 +205,49 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
   image = reader->GetOutput();
 
   // Convert image
-  if (dynamic_cast<irtkGenericImage<char> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<char> *>(image));
-    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
-      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-      cerr << "irtkGenericImage<double> instead" << endl;
-    }
-  } else if (dynamic_cast<irtkGenericImage<unsigned char> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<unsigned char> *>(image));
-    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
-      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-      cerr << "irtkGenericImage<double> instead" << endl;
-    }
-  } else  if (dynamic_cast<irtkGenericImage<short> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<short> *>(image));
-    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
-      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-      cerr << "irtkGenericImage<double> instead" << endl;
-    }
-  } else if (dynamic_cast<irtkGenericImage<unsigned short> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<unsigned short> *>(image));
-    if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
-      cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-      cerr << "irtkGenericImage<double> instead" << endl;
-    }
-  } else if (dynamic_cast<irtkGenericImage<float> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<float> *>(image)) * reader->GetSlope() + reader->GetIntercept();
-  } else if (dynamic_cast<irtkGenericImage<double> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<double> *>(image)) * reader->GetSlope() + reader->GetIntercept();
-  } else if (dynamic_cast<irtkGenericImage<int> *>(image) != NULL) {
-    *this = *(dynamic_cast<irtkGenericImage<int> *>(image));
-  	if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)){
-  		cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
-  		cerr << "irtkGenericImage<double> instead" << endl;
-  	}
-  } else {
-    cerr << "irtkGenericImage<VoxelType>::Read: Cannot convert image to desired type" << endl;
-    exit(1);
+  switch (reader->GetDataType()) {
+          
+  case IRTK_VOXEL_CHAR: { *this = *(dynamic_cast<irtkGenericImage<char> *>(image)); } break;
+
+  case IRTK_VOXEL_UNSIGNED_CHAR: { *this = *(dynamic_cast<irtkGenericImage<unsigned char> *>(image)); } break;
+
+  case IRTK_VOXEL_SHORT: { *this = *(dynamic_cast<irtkGenericImage<short> *>(image)); } break;
+
+  case IRTK_VOXEL_UNSIGNED_SHORT: { *this = *(dynamic_cast<irtkGenericImage<unsigned short> *>(image)); } break;
+    
+  case IRTK_VOXEL_INT: { *this = *(dynamic_cast<irtkGenericImage<int> *>(image)); } break;
+
+  case IRTK_VOXEL_FLOAT: { *this = *(dynamic_cast<irtkGenericImage<float> *>(image)); } break;
+
+  case IRTK_VOXEL_DOUBLE: { *this = *(dynamic_cast<irtkGenericImage<double> *>(image)); } break;
+
+  default:
+      cout << "irtkFileToImage::GetOutput: Unknown voxel type" << endl;
   }
 
+  if (reader->GetSlope() != 0) {
+      switch (this->GetScalarType()) {
+
+      case IRTK_VOXEL_FLOAT: {
+          *this *= static_cast<float>(reader->GetSlope());
+          *this += static_cast<float>(reader->GetIntercept());
+      }
+          break;
+
+      case IRTK_VOXEL_DOUBLE: {
+          *this *= static_cast<double>(reader->GetSlope());
+          *this += static_cast<double>(reader->GetIntercept());
+      }
+          break;
+
+      default:
+          if ((reader->GetSlope() != 1) || (reader->GetIntercept() != 0)) {
+              cerr << this->NameOfClass() << "::Read: Ignore slope and intercept, use irtkGenericImage<float> or " << endl;
+              cerr << "irtkGenericImage<double> instead" << endl;
+          }
+      }
+  }
+  
   // Delete reader
   delete reader;
 
