@@ -680,9 +680,9 @@ int main(int argc, char **argv)
       }
       
       //MStep and update reconstructed volume
-      //reconstruction.SuperresolutionAndMStep(i+1);
       reconstruction.Superresolution(i+1);
-      reconstruction.ScaleVolume();
+      if((sigma>0)&&(!global_bias_correction))
+        reconstruction.NormaliseBias(i);
       reconstruction.MStep(i+1);
       
       //E-step
@@ -708,7 +708,7 @@ int main(int argc, char **argv)
       reconstructed=reconstruction.GetReconstructed();
       sprintf(buffer,"image%i.nii.gz",iter);
       reconstructed.Write(buffer);
-      reconstruction.SaveConfidenceMap();
+      //reconstruction.SaveConfidenceMap();
     }
 
    //Evaluate - write number of included/excluded/outside/zero slices in each iteration in the file
