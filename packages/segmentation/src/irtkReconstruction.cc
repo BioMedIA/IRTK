@@ -553,7 +553,8 @@ void irtkReconstruction::ScaleVolume()
   //calculate scale for the volume
   double scale = scalenum / scaleden;
   
-  cout<<" scale = "<<scale;
+  if(_debug)
+    cout<<" scale = "<<scale;
   
   irtkRealPixel *ptr = _reconstructed.GetPointerToVoxels();
   for(i=0;i<_reconstructed.GetNumberOfVoxels();i++)
@@ -1260,6 +1261,30 @@ void irtkReconstruction::CoeffInit()
 	if (_debug)
 		_volume_weights.Write("volume_weights.nii.gz");
 	cout << " ... done." << endl;
+	
+	//find average volume weight to modify alpha parameters accordingly
+	irtkRealPixel *ptr = _volume_weights.GetPointerToVoxels();
+	irtkRealPixel *pm = _mask.GetPointerToVoxels();
+	double sum = 0;
+	int num=0;
+	for (int i=0;i<_volume_weights.GetNumberOfVoxels();i++)
+	{
+	  if (*pm==1)
+	  {
+	    sum+=*ptr;
+	    num++;
+	  }
+	  ptr++;
+	  pm++;
+	}
+	_average_volume_weight = sum/num;
+	
+	if(_debug)
+	{
+	  cout<<"Average volume weight is "<<_average_volume_weight<<endl;
+	  cout.flush();
+	}
+	
 }  //end of CoeffInit()
 
 void irtkReconstruction::GaussianReconstruction()
@@ -1633,10 +1658,14 @@ void irtkReconstruction::EStep()
 	  {
 	    slice_potential[inputIndex] = -1;
 	  }
-        cout<<endl<<"Slice potentials: ";
-        for (inputIndex = 0; inputIndex < slice_potential.size(); inputIndex++)
-	  cout<<slice_potential[inputIndex]<<" ";
-	cout<<endl;
+	  
+	  if(_debug)
+	  {
+            cout<<endl<<"Slice potentials: ";
+            for (inputIndex = 0; inputIndex < slice_potential.size(); inputIndex++)
+	      cout<<slice_potential[inputIndex]<<" ";
+	    cout<<endl;
+	  }
 
 
 	//Calulation of slice-wise robust statistics parameters.
@@ -2120,7 +2149,7 @@ void irtkReconstruction::Superresolution(int iter)
 				  _confidence_map(i,j,k)=1;
 				}
 
-	_reconstructed += addon * _alpha;
+	_reconstructed += addon * _alpha /_average_volume_weight;
 	
 	//bound the intensities
 	for (i = 0; i < _reconstructed.GetX(); i++)
@@ -2232,137 +2261,6 @@ void irtkReconstruction::MStep(int iter)
 
 }
 
-void irtkReconstruction::SuperresolutionAndMStep(int iter)
-{
-	unsigned int inputIndex;
-	int i, j, k, n;
-	irtkRealImage slice, addon, w, b, original;
-	POINT p;
-	double sigma = 0, mix = 0, num = 0, scale;
-	double min = 0, max = 0;
-
-	//Remember current reconstruction for edge-preserving smoothing
-	original = _reconstructed;
-
-	//Clear addon
-	addon = _reconstructed;
-	ClearImage(addon, 0);
-
-	//Clear confidence map
-	_confidence_map = _reconstructed;
-	ClearImage(_confidence_map, 0);
-
-	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
-			{
-		// read the current slice
-		slice = _slices[inputIndex];
-		//read the current weight image
-		w = _weights[inputIndex];
-		//read the current bias image
-		b = _bias[inputIndex];
-		//identify scale factor
-		scale = _scale[inputIndex];
-
-		//calculate error
-		for (i = 0; i < slice.GetX(); i++)
-			for (j = 0; j < slice.GetY(); j++)
-				if (slice(i, j, 0) != -1)
-						{
-					//bias correct and scale the slice
-					slice(i, j, 0) *= exp(-b(i, j, 0)) * scale;
-
-					//calculate error
-					n = _volcoeffs[inputIndex][i][j].size();
-					for (k = 0; k < n; k++)
-							{
-						p = _volcoeffs[inputIndex][i][j][k];
-						slice(i, j, 0) -= p.value * _reconstructed(p.x, p.y, p.z);
-					}
-
-					//sigma and mix
-					double e = slice(i, j, 0);
-					sigma += e * e * w(i, j, 0);
-					mix += w(i, j, 0);
-
-					//_m
-					if (e < min)
-						min = e;
-					if (e > max)
-						max = e;
-
-					num++;
-				}
-
-		//Update reconstructed volume using current slice
-
-		//Clear addon
-		addon = _reconstructed;
-		addon(0, 0, 0) = 1;
-		addon.PutMinMax(0, 0);
-
-		//Distribute error to the volume
-		for (i = 0; i < slice.GetX(); i++)
-			for (j = 0; j < slice.GetY(); j++)
-				if (slice(i, j, 0) != -1)
-						{
-					n = _volcoeffs[inputIndex][i][j].size();
-					for (k = 0; k < n; k++)
-							{
-						p = _volcoeffs[inputIndex][i][j][k];
-						addon(p.x, p.y, p.z) += p.value * slice(i, j, 0) * w(i, j, 0)
-								* _slice_weight[inputIndex];
-						_confidence_map(p.x, p.y, p.z) += p.value * w(i, j, 0) * _slice_weight[inputIndex];
-					}
-				}
-
-		//update volume using errors of the current slice
-		_reconstructed += addon * _alpha;
-
-		//end of loop for a slice inputIndex
-	}
-
-	//bound the intensities
-	for (i = 0; i < _reconstructed.GetX(); i++)
-		for (j = 0; j < _reconstructed.GetY(); j++)
-			for (k = 0; k < _reconstructed.GetZ(); k++)
-					{
-				if (_reconstructed(i, j, k) < _min_intensity * 0.9)
-					_reconstructed(i, j, k) = _min_intensity * 0.9;
-				if (_reconstructed(i, j, k) > _max_intensity * 1.1)
-					_reconstructed(i, j, k) = _max_intensity * 1.1;
-			}
-
-	//Calculate sigma and mix
-	if (mix > 0)
-			{
-		_sigma = sigma / mix;
-	}
-	else
-	{
-		cerr << "Something went wrong: sigma=" << sigma << " mix=" << mix << endl;
-		exit(1);
-	}
-	if (_sigma < _step * _step / 6.28)
-		_sigma = _step * _step / 6.28;
-	if (iter > 1)
-		_mix = mix / num;
-
-	//Calculate m
-	_m = 1 / (max - min);
-
-	if (_debug)
-	{
-		cout << "Voxel-wise robust statistics parameters: ";
-		cout << "sigma = " << sqrt(_sigma) << " mix = " << _mix << " ";
-		cout << " m = " << _m << endl;
-	}
-
-	//Smooth the reconstructed image
-	AdaptiveRegularization(iter, original);
-	//Remove the bias in the reconstructed volume compared to previous iteration
-	if (_global_bias_correction)
-		BiasCorrectVolume(original);
-}
 
 void irtkReconstruction::AdaptiveRegularization(int iter, irtkRealImage& original)
 {
@@ -2570,6 +2468,26 @@ void irtkReconstruction::MaskVolume()
 		pr++;
 	}
 }
+
+void irtkReconstruction::MaskImage(irtkRealImage& image, double padding)
+{
+        if(image.GetNumberOfVoxels()!=_mask.GetNumberOfVoxels())
+	{
+	  cerr<<"Cannot mask the image - different dimensions"<<endl;
+	  exit(1);
+	}
+	irtkRealPixel *pr = image.GetPointerToVoxels();
+	irtkRealPixel *pm = _mask.GetPointerToVoxels();
+	for (int i = 0; i < image.GetNumberOfVoxels(); i++)
+			{
+		if (*pm == 0)
+			*pr = padding;
+		pm++;
+		pr++;
+	}
+}
+
+
 
 void irtkReconstruction::Evaluate(int iter)
 {
@@ -2843,5 +2761,97 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
     firstSlice += stacks[i].GetZ();
   }
 }
+
+void irtkReconstruction::NormaliseBias(int iter)
+{
+	cout << "Normalise Bias ... ";
+	unsigned int inputIndex;
+	int i, j, k, n;
+	irtkRealImage slice, addon, b, bias;
+	double scale;
+	POINT p;
+	irtkRealPixel *pi, *pb;
+	char buffer[256];
+
+	//clear _reconstructed image
+	bias = _reconstructed;
+	ClearImage(bias, 0);
+	
+
+	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
+	{
+
+	  cout<<inputIndex<<" ";
+	  cout.flush();
+          // read the current slice
+	  slice = _slices[inputIndex];
+	  //read the current bias image
+	  b = _bias[inputIndex];
+	  //read current scale factor
+	  scale = _scale[inputIndex];
+
+          pi = slice.GetPointerToVoxels();
+          pb = b.GetPointerToVoxels();
+          for(i = 0; i<slice.GetNumberOfVoxels(); i++)
+          {
+	     if(*pi>-1)
+	      *pb -= log(scale);
+	     pb++;
+	     pi++;
+          }
+	  //Distribute slice intensities to the volume
+	  for (i = 0; i < slice.GetX(); i++)
+	    for (j = 0; j < slice.GetY(); j++)
+	      if (slice(i, j, 0) != -1)
+		{
+		  //number of volume voxels with non-zero coefficients for current slice voxel
+		  n = _volcoeffs[inputIndex][i][j].size();
+		  //add contribution of current slice voxel to all voxel volumes
+		  //to which it contributes
+		  for (k = 0; k < n; k++)
+		  {
+		    p = _volcoeffs[inputIndex][i][j][k];
+		    bias(p.x, p.y, p.z) += p.value * b(i, j, 0);
+		  }
+		}
+		//end of loop for a slice inputIndex
+	}
+
+	//normalize the volume by proportion of contributing slice voxels for each volume voxel
+	for (i = 0; i < _reconstructed.GetX(); i++)
+		for (j = 0; j < _reconstructed.GetY(); j++)
+			for (k = 0; k < _reconstructed.GetZ(); k++)
+				if (_volume_weights(i, j, k) > 0)
+					bias(i, j, k) /= _volume_weights(i, j, k);
+	cout << "done." << endl;
+
+	MaskImage(bias,0);
+	irtkRealImage m = _mask;
+	_gb->SetInput(&bias);
+	_gb->SetOutput(&bias);
+	_gb->Run();
+	_gb->SetInput(&m);
+	_gb->SetOutput(&m);
+	_gb->Run();
+	bias/=m;
+
+	if (_debug)
+	{
+	  sprintf(buffer,"averagebias%i.nii.gz",iter);
+	  bias.Write(buffer);
+	}
+
+        pi = _reconstructed.GetPointerToVoxels();
+        pb = bias.GetPointerToVoxels();
+        for (int i = 0; i<_reconstructed.GetNumberOfVoxels();i++)
+        {
+          if(*pi!=-1)
+            *pi /=exp(-(*pb));
+          pi++;
+          pb++;
+        }
+
+}
+
 
 
