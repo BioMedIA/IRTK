@@ -117,6 +117,9 @@ protected:
   double _delta;
   ///Amount of smoothing
   double _lambda;
+  ///Average voxel wights to modulate parameter alpha
+  double _average_volume_weight;
+
     
   //global bias field correction
   ///global bias correction flag
@@ -196,9 +199,10 @@ public:
   void Scale();
   ///Calculate slice-dependent bias fields
   void Bias();
-  ///Superresolution and calculation of sigma and mix
-  void SuperresolutionAndMStep(int iter);
+  void NormaliseBias(int iter);
+  ///Superresolution
   void Superresolution(int iter);
+  ///Calculation of voxel-vise robust statistics
   void MStep(int iter);
   ///Edge-preserving regularization
   void Regularization(int iter);
@@ -210,6 +214,7 @@ public:
   void BiasCorrectVolume(irtkRealImage& original);
   ///Mask the volume
   void MaskVolume();
+  void MaskImage(irtkRealImage& image, double padding = -1);
   ///Save slices
   void SaveSlices();
   ///Save weights
