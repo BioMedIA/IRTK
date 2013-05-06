@@ -2708,9 +2708,9 @@ void irtkRView::Initialize()
         - _sourceMin), -_sourceMin * 10000.0 / (_sourceMax - _sourceMin));
     attr._torigin = _targetFrame;
     _targetImageOutput[i]->Initialize(attr);
+    _segmentationImageOutput[i]->Initialize(attr);
     attr._torigin = _sourceFrame;
     _sourceImageOutput[i]->Initialize(attr);
-    _segmentationImageOutput[i]->Initialize(attr);
     attr._torigin = 0;
     _selectionImageOutput[i]->Initialize(attr);
   }
