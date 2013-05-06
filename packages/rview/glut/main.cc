@@ -84,6 +84,7 @@ void usage ()
   cerr << "\t<-scontour>                      Switch on source contours (see -smin)\n";
   cerr << "\t<-seg              file.nii.gz>  Labelled segmentation image\n";
   cerr << "\t<-lut              file.seg>     Colour lookup table for labelled segmentation\n\n";
+  cerr << "\t<-labels>                        Display segmentation labels instead of contours\n";
   cerr << "\tDisplay specific options:\n";
   cerr << "\t<-x value>                       Width\n";
   cerr << "\t<-y value>                       Height\n";

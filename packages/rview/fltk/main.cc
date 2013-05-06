@@ -66,6 +66,7 @@ void usage()
   cerr << "\t<-scontour>                      Switch on source contours (see -smin)\n";
   cerr << "\t<-seg              file.nii.gz>  Labelled segmentation image\n";
   cerr << "\t<-lut              file.seg>     Colour lookup table for labelled segmentation\n\n";
+  cerr << "\t<-labels>                        Display segmentation labels instead of contours\n";
   cerr << "\tMouse events:\n";
   cerr << "\tLeft mouse click :               Reslice\n\n";
   rview->cb_keyboard_info();
@@ -517,6 +518,14 @@ int main(int argc, char **argv)
         }
       }
     }
+    if ((ok == false) && (strcmp(argv[1], "-labels") == 0)){
+      argv++;
+      argc--;
+      rview->SegmentationContoursOff();
+      rview->SegmentationLabelsOn();
+      rview->SegmentationUpdateOn();
+      ok = true;
+    }    
     // Ignore the following display specific options
     if ((ok == false) && (strcmp(argv[1], "-x") == 0)) {
       argc--;
