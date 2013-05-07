@@ -271,11 +271,15 @@ public:
   ///Puts origin of the image into origin of world coordinates
   void ResetOrigin(irtkGreyImage &image, irtkRigidTransformation& transformation);
   ///Packages to volume registrations
-  void PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd = false);
+  void PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd = false, bool half = false, int half_iter=1);
   ///Splits stacks into packages
   void SplitImage(irtkRealImage image, int packages, vector<irtkRealImage>& stacks);
   ///Splits stacks into packages and each package into even and odd slices
   void SplitImageEvenOdd(irtkRealImage image, int packages, vector<irtkRealImage>& stacks);
+  ///Splits image into top and bottom half roi according to z coordinate
+  void HalfImage(irtkRealImage image, vector<irtkRealImage>& stacks);
+  ///Splits stacks into packages and each package into even and odd slices and top and bottom roi
+  void SplitImageEvenOddHalf(irtkRealImage image, int packages, vector<irtkRealImage>& stacks, int iter = 1);
   
 };
 
