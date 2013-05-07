@@ -39,7 +39,11 @@ import os
 tmp_dir_location = "/tmp/irtk.Image/"
 if not os.path.exists( tmp_dir_location ):
     os.makedirs( tmp_dir_location )
-tmp_dir = tempfile.mkdtemp(dir=tmp_dir_location)
+
+try:
+    tmp_dir = tempfile.mkdtemp(dir=tmp_dir_location)
+except Exception:
+    tmp_dir = tempfile.mkdtemp(dir="./")
 
 import atexit
 def _cleanup():

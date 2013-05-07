@@ -18,8 +18,8 @@ IRTK_build = build_lib + "/../../"
 
 TMP_DIR = build_tmp
 
-VTK_libdir = "/usr/lib/"
-VTK_include_dir = "/usr/include/vtk-5.8/"
+VTK_libdir = "/vol/vtk/vtk-5.4.2/lib/vtk-5.4/"
+VTK_include_dir = "/vol/vtk/vtk-5.4.2/include/vtk-5.4/"
 
 # http://docs.python.org/2/distutils/apiref.html
 
@@ -80,7 +80,7 @@ setup(
                    include_dirs = get_numpy_include_dirs()
                                 + get_IRTK_include_dirs()
                                 + [ "include", TMP_DIR, VTK_include_dir ],
-                   library_dirs = [ IRTK_build + "/lib"],
+                   library_dirs = [ IRTK_build + "/lib", VTK_libdir ],
                    # the order of the libraries matters
                    libraries = [ "z","m","SM","dl","nsl","png","jpeg",
                                  "niftiio",
