@@ -107,7 +107,7 @@ class RigidTransformation:
             target_header = img.get_header()
         if isinstance( target_header, irtk.Image ):
             target_header = target_header.get_header()
-        data = img.get_data('cython', dtype='float32')
+        data = img.get_data('float32','cython')
         new_data = _irtk.transform_rigid( self.tx, self.ty, self.tz,
                                           self.rx, self.ry, self.rz,
                                           data,
@@ -133,11 +133,11 @@ def registration_rigid( source, target, transformation=None ):
     if transformation is None:
         transformation = RigidTransformation()
     tx, ty, tz, rx, ry, rz = transformation.get_parameters()
-    tx, ty, tz, rx, ry, rz = _irtk.registration_rigid( source.get_data('cython',
-                                                                       dtype='int16'),
+    tx, ty, tz, rx, ry, rz = _irtk.registration_rigid( source.get_data('int16',
+                                                                       'cython'),
                                                        source.get_header(),
-                                                       target.get_data('cython',
-                                                                       dtype='int16'),
+                                                       target.get_data('int16',
+                                                                       'cython'),
                                                        target.get_header(),
                                                        tx, ty, tz,
                                                        rx, ry, rz )

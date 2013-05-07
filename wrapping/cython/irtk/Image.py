@@ -62,11 +62,12 @@ class Image(np.ndarray):
 
     def __new__(cls,
                 img=None,
-                header=None):
+                header=None,
+                copy=True):
         if img is None:
             img = np.zeros(1)
-        else:
-            img = np.array( img, copy=True, order='C' )
+        # else:
+        #     img = np.array( img, copy=copy, order='C' )
             
         if header is None:
             dim = img.shape
@@ -173,7 +174,7 @@ class Image(np.ndarray):
             if mapping[i] == 'z':
                 o1[2] = float(start)
         
-        data = np.ndarray.__getitem__(self.view(np.ndarray), index).copy('C')
+        data = np.ndarray.__getitem__(self.view(np.ndarray), index)#.copy('C')
 
         # Calculate position of first voxel in roi in original image
         o1 = self.ImageToWorld( o1 )
@@ -185,7 +186,7 @@ class Image(np.ndarray):
         # Shift origin of new image accordingly
         header['origin'][:3] += o1 - o2
   
-        return Image(data,header)
+        return Image(data,header, copy=False)
 
     # def __getslice__(self, i,j):
     #     print 'In __getslice__:'
@@ -241,7 +242,6 @@ class Image(np.ndarray):
                               (img.shape[1]-1)/2,
                               (img.shape[0]-1)/2] )
         """
-        #print pt.shape
         pt = np.array(pt)
         if len(pt.shape) == 1:
             tmp_pt = np.hstack((pt,[1])).astype('float64')
@@ -252,9 +252,16 @@ class Image(np.ndarray):
             # return np.dot( self.I2W, tmp_pt )[:,:3]
     
     def WorldToImage( self, pt ):
-        tmp_pt = np.hstack((pt,[1])).astype('float64')
-        return np.dot( self.W2I, tmp_pt )[:3]
-    
+        """
+        Returns integers
+        """
+        pt = np.array(pt)
+        if len(pt.shape) == 1:
+            tmp_pt = np.hstack((pt,[1])).astype('float64')
+            return np.rint( np.dot( self.W2I, tmp_pt )[:3] )
+        else:
+            return np.array( map( self.WorldToImage, pt) )
+        
     def get_header(self):
         return copy.deepcopy(self.header)
     
@@ -326,26 +333,82 @@ class Image(np.ndarray):
     def reset_header( self, header=None ):
         return Image( self.view(np.ndarray), header )
 
-    def thumbnail( self, step=2 ):
-        if len(self.shape) == 3:
-            data = self.rescale().get_data()
-            shape = np.array(data.shape).max()
-            output = np.ones((shape,shape*3+step*(3-1)))*255
+    def thumbnail( self, seg=None, overlay=None, colors=None, opacity=0.5, step=2 ):
+        img = self.copy('int')
+        if overlay is not None and seg is not None:
+            print "You cannot specify both seg and overlay"
+            return
+        if seg is not None:
+            seg = seg.astype('int')
+        if overlay is not None and colors is None:
+            colors = 'jet' # default colormap
+        if colors is not None and seg is None and overlay is None:
+            overlay = img.copy() # we want to see img in colors
+            img = zeros(img.get_header(), dtype='uint8')
+            opacity = 1.0
+        if isinstance( colors, str ):
+            colors = Utils.get_colormap( colors )
+        if seg is not None and colors is None:
+            colors = Utils.random_colormap(seg.max())
 
-            offset1 = (shape - data.shape[1])/2
-            offset2 = (shape - data.shape[2])/2
-            output[offset1:offset1+data.shape[1],
-                   offset2:offset2+data.shape[2]] = data[data.shape[0]/2,:,:]
+        # now, seg == overlay
+        if overlay is not None:
+            seg = overlay
+
+        if len(img.shape) == 2:
+            if seg is not None:
+                data = img.get_data('uint8')
+                data = data.reshape(data.shape[0],
+                                    data.shape[1],
+                                    1)
+                data = np.concatenate( [ data,
+                                         data,
+                                         data ], axis=2 )
+                rgb_overlay = Utils.remap( seg, colors )
+                op = (1-opacity) * (seg != 0).astype('float') + (seg == 0).astype('float')
+                op = op.reshape(op.shape[0],
+                                op.shape[1],
+                                1)
+                op = np.concatenate( [ op,
+                                       op,
+                                       op ], axis=2 )
+                img = op * data  + opacity*rgb_overlay
+
+            return img
+        
+        elif len(img.shape) == 3:
+            shape = np.array(img.shape).max()
+            if seg is None:
+                output = np.ones((shape,shape*3+step*(3-1)))*255
+            else:
+                output = np.ones((shape,shape*3+step*(3-1),3))*255
+
+            offset1 = (shape - img.shape[1])/2
+            offset2 = (shape - img.shape[2])/2
+            if seg is None:
+                tmp_img = img[img.shape[0]/2,:,:]
+            else:
+                tmp_img = Image(img[img.shape[0]/2,:,:]).thumbnail( seg[img.shape[0]/2,:,:], colors=colors, opacity=opacity )
+            output[offset1:offset1+img.shape[1],
+                   offset2:offset2+img.shape[2]] = tmp_img
     
-            offset1 = (shape - data.shape[0])/2
-            offset2 = shape + step + (shape - data.shape[2])/2
-            output[offset1:offset1+data.shape[0],
-                   offset2:offset2+data.shape[2]] = data[:,data.shape[1]/2,:]
+            offset1 = (shape - img.shape[0])/2
+            offset2 = shape + step + (shape - img.shape[2])/2
+            if seg is None:
+                tmp_img = img[:,img.shape[1]/2,:]
+            else:
+                tmp_img = Image(img[:,img.shape[1]/2,:]).thumbnail( seg[:,img.shape[1]/2,:], colors=colors, opacity=opacity)
+            output[offset1:offset1+img.shape[0],
+                   offset2:offset2+img.shape[2]] = tmp_img
     
-            offset1 = (shape - data.shape[0])/2
-            offset2 = 2*shape + 2*step + (shape - data.shape[1])/2
-            output[offset1:offset1+data.shape[0],
-                   offset2:offset2+data.shape[1]] = data[:,:,data.shape[2]/2]
+            offset1 = (shape - img.shape[0])/2
+            offset2 = 2*shape + 2*step + (shape - img.shape[1])/2
+            if seg is None:
+                tmp_img = img[:,:,img.shape[2]/2]
+            else:
+                tmp_img = Image(img[:,:,img.shape[2]/2]).thumbnail( seg[:,:,img.shape[2]/2], colors=colors, opacity=opacity )
+            output[offset1:offset1+img.shape[0],
+                   offset2:offset2+img.shape[1]] = tmp_img
 
             return output
         else:
@@ -419,6 +482,9 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
         # now, seg == overlay
         if overlay is not None:
             seg = overlay
+
+        if seg is not None and not isinstance(seg, Image):
+            seg = Image( seg, img.get_header() )
     
         filename = tmp_dir + "/rview.nii"
         imwrite( filename, img.astype('int16') ) # rview reads in "short" anyway
@@ -439,15 +505,22 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
 def display( img, seg=None, overlay=None, colors=None ):
     rview(img, seg, overlay, colors, binary="display")
 
-def imshow( img ):
+def imshow( img, seg=None, overlay=None, colors=None, opacity=0.5, filename=None ):
     """
     Display a 2D image
     """
-    filename = tmp_dir + "/show.png"
-    if len(img.shape) == 2:
-        cv2.imwrite(filename, img)
-    elif len(img.shape) == 3:
-        cv2.imwrite(filename, img.thumbnail())
+    img = img.rescale()
+    if filename is None:
+        filename = tmp_dir + "/show.png"
+    if len(img.shape) in [2,3]:
+        img = img.thumbnail( seg,
+                             overlay,
+                             colors,
+                             opacity )
+        if len(img.shape) == 3:
+            # OpenCV uses BGR and not RGB
+            img = img[:,:,::-1]
+        cv2.imwrite(filename, img ) 
     else:
         print "Invalid image shape: ", img.shape
         return

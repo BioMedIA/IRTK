@@ -186,7 +186,7 @@ def slic3D(np.ndarray[np.uint8_t, ndim=3] img, supervoxel_size=300,
         #data[i] = &(<unsigned int *>img_.data)[i * cols]
         #data[i] = &(<unsigned int *>img_.data)[i*h*w*4]
         #data[i] = <unsigned int *>&img_[i,0,0,0]
-    print "OK"
+
     cdef double spacingx = spacing[0]
     cdef double spacingy = spacing[1]
     cdef double spacingz = spacing[2]
@@ -196,8 +196,6 @@ def slic3D(np.ndarray[np.uint8_t, ndim=3] img, supervoxel_size=300,
 
     #free(data)
 
-    print "done"
-    
     cdef int * plabels
     plabels = <int *>malloc(d*h*w*sizeof(int))
     

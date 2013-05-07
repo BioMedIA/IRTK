@@ -44,14 +44,19 @@ def random_colormap(N):
                                [61,89,171],   # cobalt
                                ], dtype='uint8' )
     color_dict = {}
-    for i in xrange(1,N+1):
+    for i in xrange(1,N+2):
         if i <= default_colors.shape[0]:
             color_dict[i] = default_colors[i-1]
         else:
             color_dict[i] = np.random.random_integers( 0, 255, 3 )
     return color_dict
 
-
+def remap( a, color_dict=None, colors=None ):
+    if colors is None:
+        colors = np.zeros( (np.max(color_dict.keys())+1,3) )
+        for i, c in color_dict.iteritems():
+            colors[i] = c
+    return colors[a.flatten()].reshape(a.shape[0], a.shape[1],3).astype('uint8')
 
     
 
