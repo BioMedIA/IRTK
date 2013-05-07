@@ -2149,7 +2149,7 @@ void irtkReconstruction::Superresolution(int iter)
 				  _confidence_map(i,j,k)=1;
 				}
 
-	_reconstructed += addon * _alpha /_average_volume_weight;
+	_reconstructed += addon * _alpha; //_average_volume_weight;
 	
 	//bound the intensities
 	for (i = 0; i < _reconstructed.GetX(); i++)
