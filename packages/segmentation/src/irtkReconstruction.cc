@@ -2630,7 +2630,7 @@ void irtkReconstruction::SplitImage(irtkRealImage image, int packages, vector<ir
      //stack.Write(buffer);
      stacks.push_back(stack);
   }
-  cout<<"done.";
+  cout<<"done."<<endl;
   cout.flush();
 
 }
@@ -2639,21 +2639,65 @@ void irtkReconstruction::SplitImageEvenOdd(irtkRealImage image, int packages, ve
 {
    vector<irtkRealImage> packs;
    vector<irtkRealImage> packs2;
-   
+   cout<<"Split Image Even Odd: "<<packages<<" packages."<<endl;
+
    stacks.clear();
    SplitImage(image,packages,packs);
    for (uint i=0;i<packs.size();i++)
    {
+     cout<<"Package "<<i<<": "<<endl;
      packs2.clear();
      SplitImage(packs[i],2,packs2);
      stacks.push_back(packs2[0]);
      stacks.push_back(packs2[1]);
    }
+   
+   cout<<"done."<<endl;
+   cout.flush();
      
 }
 
+void irtkReconstruction::SplitImageEvenOddHalf(irtkRealImage image, int packages, vector<irtkRealImage>& stacks, int iter)
+{
+   vector<irtkRealImage> packs;
+   vector<irtkRealImage> packs2;
+   
+   cout<<"Split Image Even Odd Half "<<iter<<endl;
+   stacks.clear();
+   if (iter>1)
+     SplitImageEvenOddHalf(image,packages,packs,iter-1);
+   else
+     SplitImageEvenOdd(image,packages,packs);
+   for (uint i=0;i<packs.size();i++)
+   {
+     packs2.clear();
+     HalfImage(packs[i],packs2);
+     for (uint j=0; j<packs2.size(); j++)
+       stacks.push_back(packs2[j]);
+   }     
+}
 
-void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd)
+
+void irtkReconstruction::HalfImage(irtkRealImage image, vector<irtkRealImage>& stacks)
+{
+  irtkRealImage tmp;
+  irtkImageAttributes attr = image.GetImageAttributes();
+  stacks.clear();
+  
+  //We would not like single slices - that is reserved for slice-to-volume
+  if(attr._z>=4)
+  {
+    tmp = image.GetRegion(0,0,0,attr._x,attr._y,attr._z/2);
+    stacks.push_back(tmp);
+    tmp = image.GetRegion(0,0,attr._z/2,attr._x,attr._y,attr._z);
+    stacks.push_back(tmp);
+  }
+  else
+    stacks.push_back(image);
+}
+
+
+void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd, bool half, int half_iter)
 {
   irtkImageRigidRegistration rigidregistration;
   irtkGreyImage t,s;
@@ -2662,14 +2706,19 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
   char buffer[256];
   
   int firstSlice = 0;
-    
+  cout<<"Package to volume: "<<endl;
   for (unsigned int i = 0; i < stacks.size(); i++)
   {
     cout<<"Stack "<<i<<": First slice index is "<<firstSlice<<endl;
 
     packages.clear();
     if (evenodd)
-      SplitImageEvenOdd(stacks[i],pack_num[i],packages);
+    {
+      if(half)
+        SplitImageEvenOddHalf(stacks[i],pack_num[i],packages,half_iter);
+      else
+        SplitImageEvenOdd(stacks[i],pack_num[i],packages);
+    }
     else
       SplitImage(stacks[i],pack_num[i],packages);
     
@@ -2707,7 +2756,8 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
       rigidregistration.SetInput(&t, &s);
       rigidregistration.SetOutput(&_transformations[firstSliceIndex]);
       rigidregistration.GuessParameterSliceToVolume();
-      rigidregistration.Write("par-packages.rreg");
+      if(_debug)
+        rigidregistration.Write("par-packages.rreg");
       rigidregistration.Run();
       
       //undo the offset
@@ -2764,7 +2814,8 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
 
 void irtkReconstruction::NormaliseBias(int iter)
 {
-	cout << "Normalise Bias ... ";
+        if(_debug)
+	  cout << "Normalise Bias ... ";
 	unsigned int inputIndex;
 	int i, j, k, n;
 	irtkRealImage slice, addon, b, bias;
@@ -2781,8 +2832,11 @@ void irtkReconstruction::NormaliseBias(int iter)
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
 	{
 
-	  cout<<inputIndex<<" ";
-	  cout.flush();
+          if(_debug)
+	  {
+	    cout<<inputIndex<<" ";
+	    cout.flush();
+	  }
           // read the current slice
 	  slice = _slices[inputIndex];
 	  //read the current bias image
@@ -2823,7 +2877,8 @@ void irtkReconstruction::NormaliseBias(int iter)
 			for (k = 0; k < _reconstructed.GetZ(); k++)
 				if (_volume_weights(i, j, k) > 0)
 					bias(i, j, k) /= _volume_weights(i, j, k);
-	cout << "done." << endl;
+	if(_debug)
+	  cout << "done." << endl;
 
 	MaskImage(bias,0);
 	irtkRealImage m = _mask;
