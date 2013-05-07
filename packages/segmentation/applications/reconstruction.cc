@@ -594,7 +594,7 @@ int main(int argc, char **argv)
       cout.rdbuf (file.rdbuf());
       cout<<"Iteration "<<iter<<": "<<endl;
       
-      if(packages.size()>0)
+      if((packages.size()>0)&&(iter<=iterations*(levels-1)/levels)&&(iter<(iterations-1)))
       {
 	if(iter==1)
           reconstruction.PackageToVolume(stacks,packages);
@@ -603,7 +603,17 @@ int main(int argc, char **argv)
 	  if(iter==2)
             reconstruction.PackageToVolume(stacks,packages,true);
 	  else
-            reconstruction.SliceToVolumeRegistration();
+	  {
+            if(iter==3)
+	      reconstruction.PackageToVolume(stacks,packages,true,true);
+	    else
+	    {
+	      if(iter>=4)
+                reconstruction.PackageToVolume(stacks,packages,true,true,iter-2);
+	      else
+	        reconstruction.SliceToVolumeRegistration();
+	    }
+	  }
 	}
       }
       else
