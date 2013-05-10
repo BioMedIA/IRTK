@@ -32,12 +32,6 @@ protected:
   /// B-spline basis functions
   irtkBSplineFunction _bspline;
 
-  /// Subdivide FFD in 2D
-  virtual void Subdivide2D();
-
-  /// Subdivide FFD in 3D
-  virtual void Subdivide3D();
-
 public:
 
   /// Constructor
@@ -80,7 +74,16 @@ public:
   virtual void Interpolate(double* dxs, double* dys, double* dzs);
 
   /// Subdivide FFD
-  virtual void Subdivide();
+  void Subdivide();
+
+  /// Subdivide FFD in 2D
+  virtual void Subdivide2D();
+
+  /// Subdivide FFD in 3D
+  virtual void Subdivide3D();
+
+  /// Subdivide FFD in 4D
+  virtual void Subdivide4D();
 
   /// Calculates the FFD (for a point in FFD coordinates) with checks
   void FFD1(double &, double &, double &, double) const;
@@ -157,6 +160,10 @@ public:
   /// Writes a transformation to a file
   virtual irtkCofstream& Write(irtkCofstream&);
 };
+
+inline void irtkBSplineFreeFormTransformation4D::Subdivide() {
+  this->Subdivide4D();
+}
 
 inline void irtkBSplineFreeFormTransformation4D::FFD1(double &x, double &y, double &z, double t) const
 {

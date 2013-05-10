@@ -746,7 +746,159 @@ void irtkBSplineFreeFormTransformation4D::Interpolate(double *, double *, double
   exit(1);
 }
 
-void irtkBSplineFreeFormTransformation4D::Subdivide()
+void irtkBSplineFreeFormTransformation4D::Subdivide2D()
+{
+  int i, j, k, l, i1, j1, i2, j2;
+
+  // Weights for subdivision
+  double w[2][3];
+  w[1][0] = 0;
+  w[1][1] = 1.0/2.0;
+  w[1][2] = 1.0/2.0;
+  w[0][0] = 1.0/8.0;
+  w[0][1] = 6.0/8.0;
+  w[0][2] = 1.0/8.0;
+
+  // Allocate memory for new control points
+  double ****x = NULL;
+  double ****y = NULL;
+  double ****z = NULL;
+  x = this->Allocate(x, 2*_x-1, 2*_y-1, _z, _t);
+  y = this->Allocate(y, 2*_x-1, 2*_y-1, _z, _t);
+  z = this->Allocate(z, 2*_x-1, 2*_y-1, _z, _t);
+
+  for (i = 0; i < _x; i++) {
+    for (j = 0; j < _y; j++) {
+      for (k = 0; k < _z; k++) {
+        for (l = 0; l < _t; l++) {
+          for (i1 = 0; i1 < 2; i1++) {
+            for (j1 = 0; j1 < 2; j1++) {
+              x[l][k][2*j+j1][2*i+i1] = 0;
+              y[l][k][2*j+j1][2*i+i1] = 0;
+              z[l][k][2*j+j1][2*i+i1] = 0;
+              for (i2 = 0; i2 < 3; i2++) {
+                for (j2 = 0; j2 < 3; j2++) {
+                  x[l][k][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * _xdata[l][k][j+j2-1][i+i2-1];
+                  y[l][k][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * _ydata[l][k][j+j2-1][i+i2-1];
+                  z[l][k][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * _zdata[l][k][j+j2-1][i+i2-1];
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Deallocate points
+  this->Deallocate(_xdata, _x, _y, _z, _t);
+  this->Deallocate(_ydata, _x, _y, _z, _t);
+  this->Deallocate(_zdata, _x, _y, _z, _t);
+  delete []_status;
+
+  // Update pointers to control points
+  _xdata = x;
+  _ydata = y;
+  _zdata = z;
+
+  // Increase number of control points
+  _x = 2*_x - 1;
+  _y = 2*_y - 1;
+
+  // Recalculate control point spacing
+  _dx /= 2.0;
+  _dy /= 2.0;
+
+  // Update transformation matrix
+  this->UpdateMatrix();
+
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z*_t];
+  for (i = 0; i < 3*_x*_y*_z*_t; i++) {
+    _status[i] = _Active;
+  }
+}
+
+void irtkBSplineFreeFormTransformation4D::Subdivide3D()
+{
+  int i, j, k, l, i1, j1, k1, i2, j2, k2;
+
+  // Weights for subdivision
+  double w[2][3];
+  w[1][0] = 0;
+  w[1][1] = 1.0/2.0;
+  w[1][2] = 1.0/2.0;
+  w[0][0] = 1.0/8.0;
+  w[0][1] = 6.0/8.0;
+  w[0][2] = 1.0/8.0;
+
+  // Allocate memory for new control points
+  double ****x = NULL;
+  double ****y = NULL;
+  double ****z = NULL;
+  x = this->Allocate(x, 2*_x-1, 2*_y-1, 2*_z-1, _t);
+  y = this->Allocate(y, 2*_x-1, 2*_y-1, 2*_z-1, _t);
+  z = this->Allocate(z, 2*_x-1, 2*_y-1, 2*_z-1, _t);
+
+  for (i = 0; i < _x; i++) {
+    for (j = 0; j < _y; j++) {
+      for (k = 0; k < _z; k++) {
+        for (l = 0; l < _t; l++) {
+          for (i1 = 0; i1 < 2; i1++) {
+            for (j1 = 0; j1 < 2; j1++) {
+              for (k1 = 0; k1 < 2; k1++) {
+                x[l][2*k+k1][2*j+j1][2*i+i1] = 0;
+                y[l][2*k+k1][2*j+j1][2*i+i1] = 0;
+                z[l][2*k+k1][2*j+j1][2*i+i1] = 0;
+                for (i2 = 0; i2 < 3; i2++) {
+                  for (j2 = 0; j2 < 3; j2++) {
+                    for (k2 = 0; k2 < 3; k2++) {
+                      x[l][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * _xdata[l][k+k2-1][j+j2-1][i+i2-1];
+                      y[l][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * _ydata[l][k+k2-1][j+j2-1][i+i2-1];
+                      z[l][2*k+k1][2*j+j1][2*i+i1] += w[i1][i2] * w[j1][j2] * w[k1][k2] * _zdata[l][k+k2-1][j+j2-1][i+i2-1];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Deallocate points
+  this->Deallocate(_xdata, _x, _y, _z, _t);
+  this->Deallocate(_ydata, _x, _y, _z, _t);
+  this->Deallocate(_zdata, _x, _y, _z, _t);
+  delete []_status;
+
+  // Update pointers to control points
+  _xdata = x;
+  _ydata = y;
+  _zdata = z;
+
+  // Increase number of control points
+  _x = 2*_x - 1;
+  _y = 2*_y - 1;
+  _z = 2*_z - 1;
+
+  // Recalculate control point spacing
+  _dx /= 2.0;
+  _dy /= 2.0;
+  _dz /= 2.0;
+
+  // Update transformation matrix
+  this->UpdateMatrix();
+
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z*_t];
+  for (i = 0; i < 3*_x*_y*_z*_t; i++) {
+    _status[i] = _Active;
+  }
+}
+
+void irtkBSplineFreeFormTransformation4D::Subdivide4D()
 {
   int i, j, k, l, i1, j1, k1, l1, i2, j2, k2, l2;
 
@@ -829,18 +981,6 @@ void irtkBSplineFreeFormTransformation4D::Subdivide()
   for (i = 0; i < 3*_x*_y*_z*_t; i++) {
     _status[i] = _Active;
   }
-}
-
-void irtkBSplineFreeFormTransformation4D::Subdivide2D()
-{
-  cerr << "irtkBSplineFreeFormTransformation4D::Subdivide2D: Not implemented yet" << endl;
-  exit(1);
-}
-
-void irtkBSplineFreeFormTransformation4D::Subdivide3D()
-{
-  cerr << "irtkBSplineFreeFormTransformation4D::Subdivide3D: Not implemented yet" << endl;
-  exit(1);
 }
 
 void irtkBSplineFreeFormTransformation4D::BoundingBoxCP(int index, irtkPoint &p1, irtkPoint &p2, double fraction) const
