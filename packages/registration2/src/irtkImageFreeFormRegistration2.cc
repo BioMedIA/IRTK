@@ -1000,9 +1000,7 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     this->irtkImageRegistration2::EvaluateGradient(gradient);
 
     // Start timing
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
+    //clock_t start = clock();
 
     if (_affd->GetZ() == 1) {
         this->EvaluateGradient2D(gradient);
@@ -1072,8 +1070,8 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     }
 
     // Stop timing
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    //clock_t end = clock();
+    //double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     //cout << "CPU time for irtkImageFreeFormRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
 
     return max_length;
