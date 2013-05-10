@@ -14,9 +14,6 @@
 
 #define _IRTKFREEFORMTRANSFORMATION4D_H
 
-#include <irtkGeometry.h>
-
-#define FFDLOOKUPTABLESIZE 1000
 
 /**
  * Class for 4D free form transformations
@@ -92,7 +89,7 @@ protected:
 
   /// Deallocate memory for control points
   static double ****Deallocate(double ****, int, int, int, int);
-
+  
   /// Update transformation matrix
   virtual void UpdateMatrix();
 

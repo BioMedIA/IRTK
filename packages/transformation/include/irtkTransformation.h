@@ -15,6 +15,7 @@
 #define _IRTKTRANSFORMATION_H
 
 #include <irtkImage.h>
+#include <irtkGeometry.h>
 
 /// Definition of available states for individual degrees of freedom
 typedef enum { _Active, _Passive, _Unknown } _Status;
@@ -36,6 +37,9 @@ typedef enum { _Active, _Passive, _Unknown } _Status;
 #define IRTKTRANSFORMATION_LINEAR_FFD_EXT1  13
 #define IRTKTRANSFORMATION_BSPLINE_FFD_4D   14
 #define IRTKTRANSFORMATION_PERIODIC         20
+
+#define FFDLOOKUPTABLESIZE 1000
+
 
 /**
  * Abstract base class for general transformations.

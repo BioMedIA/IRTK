@@ -14,7 +14,6 @@
 
 #define _IRTKBSPLINEFREEFORMTRANSFORMATION4D_H
 
-#include <irtkGeometry.h>
 
 /**
  * Class for free form transformations based on tensor product B-splines.
@@ -30,41 +29,8 @@ class irtkBSplineFreeFormTransformation4D : public irtkFreeFormTransformation4D
 
 protected:
 
-  /// Returns the value of the first B-spline basis function
-  static double B0(double);
-
-  /// Returns the value of the second B-spline basis function
-  static double B1(double);
-
-  /// Returns the value of the third B-spline basis function
-  static double B2(double);
-
-  /// Returns the value of the fourth B-spline basis function
-  static double B3(double);
-
-  /// Returns the 1st derivative value of the first B-spline basis function
-  static double B0_I(double);
-
-  /// Returns the 1st derivative value of the second B-spline basis function
-  static double B1_I(double);
-
-  /// Returns the 1st derivative value of the third B-spline basis function
-  static double B2_I(double);
-
-  /// Returns the 1st derivative value of the fourth B-spline basis function
-  static double B3_I(double);
-
-  /// Returns the 2nd derivative value of the first B-spline basis function
-  static double B0_II(double);
-
-  /// Returns the 2nd derivative value of the second B-spline basis function
-  static double B1_II(double);
-
-  /// Returns the 2nd derivative value of the third B-spline basis function
-  static double B2_II(double);
-
-  /// Returns the 2nd derivative value of the fourth B-spline basis function
-  static double B3_II(double);
+  /// B-spline basis functions
+  irtkBSplineFunction _bspline;
 
   /// Subdivide FFD in 2D
   virtual void Subdivide2D();
@@ -72,36 +38,19 @@ protected:
   /// Subdivide FFD in 3D
   virtual void Subdivide3D();
 
-  /// Memory for lookup table for B-spline basis function values
-  static    double LookupTable[FFDLOOKUPTABLESIZE][4];
-
-  /* Memory for lookup table for first derivatives of B-spline basis
-   * function values */
-  static    double LookupTable_I[FFDLOOKUPTABLESIZE][4];
-
-  /* Memory for lookup table for second derivatives of B-spline basis
-   * function values */
-  static    double LookupTable_II[FFDLOOKUPTABLESIZE][4];
-
 public:
-
-  /// Returns the value of the B-spline basis function
-  static double B (double);
-
-  /// Returns the value of the i-th B-spline basis function
-  static double B (int, double);
-
-  /// Returns the 1st derivative value of the i-th B-spline basis function
-  static double B_I(int, double);
-
-  /// Returns the 2nd derivative value of the i-th B-spline basis function
-  static double B_II(int, double);
 
   /// Constructor
   irtkBSplineFreeFormTransformation4D();
 
-  /// Constructor
+  /// Construct FFD for given image domain
   irtkBSplineFreeFormTransformation4D(irtkBaseImage &, double, double, double, double);
+
+  /** Construct FFD for given image domain: This constructor allows one to
+   * alter the attributes of a given image before initializing the FFD, e.g.,
+   * in order to add a time domain to a 3D image
+   */
+  irtkBSplineFreeFormTransformation4D(irtkImageAttributes &, double, double, double, double);
 
   /// Constructor
   irtkBSplineFreeFormTransformation4D(double x1, double y1, double z1, double t1,
@@ -134,7 +83,7 @@ public:
   virtual void Subdivide();
 
   /// Calculates the FFD (for a point in FFD coordinates) with checks
-  virtual void FFD1(double &, double &, double &, double) const;
+  void FFD1(double &, double &, double &, double) const;
 
   /// Calculates the FFD (for a point in FFD coordinates) without checks
   virtual void FFD2(double &, double &, double &, double) const;
@@ -168,6 +117,9 @@ public:
 
   /// Calculate the Jacobian of the global transformation
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
+
+  /// Calculate the Jacobian of the transformation with respect to the transformation parameters
+  virtual void JacobianDOFs(double [3], int, double, double, double, double = 0);
 
   /// Calculate the bending energy of the transformation
   virtual double Bending(double, double, double, double);
@@ -206,124 +158,16 @@ public:
   virtual irtkCofstream& Write(irtkCofstream&);
 };
 
-inline double irtkBSplineFreeFormTransformation4D::B(double x)
+inline void irtkBSplineFreeFormTransformation4D::FFD1(double &x, double &y, double &z, double t) const
 {
-  x = fabs(x);
-  double value=0.0;
-  if (x < 2.0) {
-    if (x < 1.0) {
-      value = (double)(2.0f/3.0f + (0.5f*x-1.0)*x*x);
-    } else {
-      x -=2.0f;
-      value = -x*x*x/6.0f;
-    }
+  if ((x <   -2) || (y <   -2) || (z <   -2) || (t <   -2) ||
+      (x > _x+1) || (y > _y+1) || (z > _z+1) || (t > _t+1)) {
+    x = 0;
+    y = 0;
+    z = 0;
+  } else {
+    this->FFD2(x, y, z, t);
   }
-  return value;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B(int i, double t)
-{
-  switch (i) {
-  case 0:
-    return (1-t)*(1-t)*(1-t)/6.0;
-  case 1:
-    return (3*t*t*t - 6*t*t + 4)/6.0;
-  case 2:
-    return (-3*t*t*t + 3*t*t + 3*t + 1)/6.0;
-  case 3:
-    return (t*t*t)/6.0;
-  }
-  return 0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B_I(int i, double t)
-{
-  switch (i) {
-  case 0:
-    return -(1-t)*(1-t)/2.0;
-  case 1:
-    return (9*t*t - 12*t)/6.0;
-  case 2:
-    return (-9*t*t + 6*t + 3)/6.0;
-  case 3:
-    return (t*t)/2.0;
-  }
-  return 0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B_II(int i, double t)
-{
-  switch (i) {
-  case 0:
-    return 1 - t;
-  case 1:
-    return 3*t - 2;
-  case 2:
-    return -3*t + 1;
-  case 3:
-    return t;
-  }
-  return 0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B0(double t)
-{
-  return (1-t)*(1-t)*(1-t)/6.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B1(double t)
-{
-  return (3*t*t*t - 6*t*t + 4)/6.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B2(double t)
-{
-  return (-3*t*t*t + 3*t*t + 3*t + 1)/6.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B3(double t)
-{
-  return (t*t*t)/6.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B0_I(double t)
-{
-  return -(1-t)*(1-t)/2.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B1_I(double t)
-{
-  return (9*t*t - 12*t)/6.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B2_I(double t)
-{
-  return (-9*t*t + 6*t + 3)/6.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B3_I(double t)
-{
-  return (t*t)/2.0;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B0_II(double t)
-{
-  return 1 - t;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B1_II(double t)
-{
-  return 3*t - 2;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B2_II(double t)
-{
-  return -3*t + 1;
-}
-
-inline double irtkBSplineFreeFormTransformation4D::B3_II(double t)
-{
-  return t;
 }
 
 inline void irtkBSplineFreeFormTransformation4D::Transform(double &x, double &y, double &z, double t)
@@ -338,7 +182,7 @@ inline void irtkBSplineFreeFormTransformation4D::Transform(double &x, double &y,
   this->WorldToLattice(u, v, w);
 
   // Calculate FFD
-  this->FFD1(u, v, w, this->TimeToLattice(t));
+  FFD1(u, v, w, this->TimeToLattice(t));
 
   // Add FFD to world coordinates
   x += u;
@@ -399,7 +243,7 @@ inline void irtkBSplineFreeFormTransformation4D::LocalDisplacement(double &x, do
   this->WorldToLattice(x, y, z);
 
   // Calculate FFD
-  this->FFD1(x, y, z, this->TimeToLattice(t));
+  FFD1(x, y, z, this->TimeToLattice(t));
 }
 
 inline void irtkBSplineFreeFormTransformation4D::Displacement(double &x, double &y, double &z, double t)

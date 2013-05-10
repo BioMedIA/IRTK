@@ -14,7 +14,6 @@
 
 #define _IRTKMULTILEVELFREEFORMTRANSFORMATION_H
 
-#include <irtkGeometry.h>
 
 #define MAX_TRANS 200
 

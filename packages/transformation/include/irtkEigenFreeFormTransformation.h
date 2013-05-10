@@ -14,7 +14,6 @@
 
 #define _IRTKEIGENFREEFORMTRANSFORMATION_H
 
-#include <irtkGeometry.h>
 
 #undef NORMAL
 

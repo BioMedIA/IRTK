@@ -14,7 +14,6 @@
 
 #define _IRTKFLUIDFREEFORMTRANSFORMATION_H
 
-#include <irtkGeometry.h>
 
 /**
  * Class for fluid transformations

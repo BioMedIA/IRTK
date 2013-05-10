@@ -8,7 +8,6 @@
 
 #define _IRTKBSPLINEFREEFORMTRANSFORMATIONPERIODIC_H
 
-#include <irtkGeometry.h>
 
 /**
  * Class for free form transformations based on tensor product B-splines.

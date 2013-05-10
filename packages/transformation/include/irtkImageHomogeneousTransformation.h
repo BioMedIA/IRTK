@@ -14,8 +14,6 @@
 
 #define _IRTKHOMOGENEOUSIMAGETRANSFORMATION_H
 
-#include <irtkImage.h>
-
 #include <irtkTransformation.h>
 
 class irtkImageHomogeneousTransformation  : public irtkImageTransformation

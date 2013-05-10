@@ -14,7 +14,6 @@
 
 #define _IRTKFREEFORMTRANSFORMATION_H
 
-#include <irtkGeometry.h>
 
 /**
  * Class for free form transformations

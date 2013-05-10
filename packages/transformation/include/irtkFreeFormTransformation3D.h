@@ -14,9 +14,6 @@
 
 #define _IRTKFREEFORMTRANSFORMATION3D_H
 
-#include <irtkGeometry.h>
-
-#define FFDLOOKUPTABLESIZE 1000
 
 /**
  * Class for 3D free form transformations
