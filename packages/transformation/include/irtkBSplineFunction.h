@@ -68,7 +68,7 @@ public:
   /// Returns the value of the fourth B-spline basis function
   static double B3(double);
 
-  /// Returns the derivative value of the B-spline function
+  /// Returns the 1st derivative value of the B-spline function
   static double B_I(double);
 
   /// Returns the 1st derivative value of the i-th B-spline basis function
@@ -86,6 +86,9 @@ public:
   /// Returns the 1st derivative value of the fourth B-spline basis function
   static double B3_I(double);
 
+  /// Returns the 2nd derivative value of the B-spline function
+  static double B_II(double);
+
   /// Returns the 2nd derivative value of the i-th B-spline basis function
   static double B_II(int, double);
 
@@ -100,6 +103,42 @@ public:
 
   /// Returns the 2nd derivative value of the fourth B-spline basis function
   static double B3_II(double);
+
+  /// Returns the 3rd derivative value of the B-spline function
+  static double B_III(double);
+
+  /// Returns the 3rd derivative value of the i-th B-spline basis function
+  static double B_III(int, double);
+
+  /// Returns the 3rd derivative value of the first B-spline basis function
+  static double B0_III(double);
+
+  /// Returns the 3rd derivative value of the second B-spline basis function
+  static double B1_III(double);
+
+  /// Returns the 3rd derivative value of the third B-spline basis function
+  static double B2_III(double);
+
+  /// Returns the 3rd derivative value of the fourth B-spline basis function
+  static double B3_III(double);
+
+  /// Returns the n-th derivative value of the B-spline function
+  static double B_nI(int, double);
+
+  /// Returns the n-th derivative value of the i-th B-spline basis function
+  static double B_nI(int, int, double);
+
+  /// Returns the n-th derivative value of the first B-spline basis function
+  static double B0_nI(int, double);
+
+  /// Returns the n-th derivative value of the second B-spline basis function
+  static double B1_nI(int, double);
+
+  /// Returns the n-th derivative value of the third B-spline basis function
+  static double B2_nI(int, double);
+
+  /// Returns the n-th derivative value of the fourth B-spline basis function
+  static double B3_nI(int, double);
 
   /// Size of lookup tables used to store pre-computed function values
   static const int LookupTableSize = 1000;
@@ -221,6 +260,20 @@ inline double irtkBSplineFunction::B3_I(double t)
 }
 
 
+inline double irtkBSplineFunction::B_II(double t)
+{
+  double value = 0.0;
+  t = fabs(t);
+  if (t < 2.0) {
+    if (t < 1.0) {
+      value = 3.0 * t - 2.0;
+    } else {
+      value = -t + 2.0;
+    }
+  }
+  return value;
+}
+
 inline double irtkBSplineFunction::B_II(int i, double t)
 {
   switch (i) {
@@ -250,6 +303,119 @@ inline double irtkBSplineFunction::B2_II(double t)
 inline double irtkBSplineFunction::B3_II(double t)
 {
   return t;
+}
+
+
+inline double irtkBSplineFunction::B_III(double t)
+{
+  double y     = fabs(t);
+  double value = 0.0;
+  if (y < 2.0) {
+    if (y < 1.0) {
+      value = copysign(3.0,  t);
+    } else {
+      value = copysign(1.0, -t);
+    }
+  }
+  return value;
+}
+
+inline double irtkBSplineFunction::B_III(int i, double t)
+{
+  switch (i) {
+    case 0:  return B0_III(t);
+    case 1:  return B1_III(t);
+    case 2:  return B2_III(t);
+    case 3:  return B3_III(t);
+    default: return 0.0;
+  }
+}
+
+inline double irtkBSplineFunction::B0_III(double)
+{
+  return -1.0;
+}
+
+inline double irtkBSplineFunction::B1_III(double)
+{
+  return 3.0;
+}
+
+inline double irtkBSplineFunction::B2_III(double)
+{
+  return -3.0;
+}
+
+inline double irtkBSplineFunction::B3_III(double)
+{
+  return 1.0;
+}
+
+
+inline double irtkBSplineFunction::B_nI(int n, double t)
+{
+  switch(n) {
+    case 0:  return B    (t);
+    case 1:  return B_I  (t);
+    case 2:  return B_II (t);
+    case 3:  return B_III(t);
+    default: return 0.0;
+  }
+}
+
+inline double irtkBSplineFunction::B_nI(int i, int n, double t)
+{
+  switch(n) {
+    case 0:  return B    (i, t);
+    case 1:  return B_I  (i, t);
+    case 2:  return B_II (i, t);
+    case 3:  return B_III(i, t);
+    default: return 0.0;
+  }
+}
+
+inline double irtkBSplineFunction::B0_nI(int n, double t)
+{
+  switch(n) {
+    case 0:  return B0    (t);
+    case 1:  return B0_I  (t);
+    case 2:  return B0_II (t);
+    case 3:  return B0_III(t);
+    default: return 0.0;
+  }
+}
+
+inline double irtkBSplineFunction::B1_nI(int n, double t)
+{
+  switch(n) {
+    case 0:  return B1    (t);
+    case 1:  return B1_I  (t);
+    case 2:  return B1_II (t);
+    case 3:  return B1_III(t);
+    default: return 0.0;
+  }
+}
+
+inline double irtkBSplineFunction::B2_nI(int n, double t)
+{
+  switch(n) {
+    case 0:  return B2    (t);
+    case 1:  return B2_I  (t);
+    case 2:  return B2_II (t);
+    case 3:  return B2_III(t);
+    default: return 0.0;
+  }
+}
+
+inline double irtkBSplineFunction::B3_nI(int n, double t)
+{
+  switch(n) {
+    case 0:  return B3    (t);
+    case 1:  return B3_I  (t);
+    case 2:  return B3_II (t);
+    case 3:  return B3_III(t);
+    default: return 0.0;
+  }
 }
 
 
