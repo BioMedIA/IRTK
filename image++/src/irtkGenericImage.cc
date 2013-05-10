@@ -155,9 +155,6 @@ template <> const char *irtkGenericImage<double>::NameOfClass()
 
 template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const irtkImageAttributes &attr)
 {
-  int i, n;
-  VoxelType *ptr;
-
   // Free memory
   if ((_attr._x != attr._x) || (_attr._y != attr._y) || (_attr._z != attr._z) || (_attr._t != attr._t)) {
     // Free old memory
@@ -174,11 +171,7 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Initialize(const ir
   this->irtkBaseImage::Update(attr);
 
   // Initialize voxels
-  n   = this->GetNumberOfVoxels();
-  ptr = this->GetPointerToVoxels();
-  for (i = 0; i < n; i++) {
-    ptr[i] = VoxelType();
-  }
+  *this = VoxelType();
 }
 
 template <class VoxelType> void irtkGenericImage<VoxelType>::Clear()
@@ -783,6 +776,19 @@ template <class VoxelType> bool irtkGenericImage<VoxelType>::operator==(const ir
     if (ptr1[i] != ptr2[i]) return false;
   }
   return true;
+}
+
+template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelType>::operator=(VoxelType pixel)
+{
+  int i, n;
+  VoxelType *ptr;
+  
+  n   = this->GetNumberOfVoxels();
+  ptr = this->GetPointerToVoxels();
+  for (i = 0; i < n; i++) {
+    ptr[i] = pixel;
+  }
+  return *this;
 }
 
 template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelType>::operator+=(VoxelType pixel)

@@ -160,6 +160,8 @@ public:
   // Operators for image and Type arithmetics
   //
 
+  /// Set all pixels to a constant value
+  irtkGenericImage& operator= (VoxelType);
   /// Addition operator for type
   irtkGenericImage  operator+ (VoxelType);
   /// Addition operator for type (stores result)
