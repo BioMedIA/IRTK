@@ -107,7 +107,7 @@ public:
   virtual void LocalTransform (double &, double &, double &, double = 0) = 0;
 
   /// Calculate displacement
-  virtual void Displacement(double &, double &, double &, double = 0) = 0;
+  virtual void Displacement(double &, double &, double &, double = 0);
 
   /// Calculates displacement using the global transformation component only
   virtual void GlobalDisplacement(double &, double &, double &, double = 0);
@@ -131,16 +131,16 @@ public:
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0) = 0;
 
   /// Calculate the determinant of the Jacobian of the transformation with respect to world coordinates
-  virtual double Jacobian(double, double, double, double = 0);
+  double Jacobian(double, double, double, double = 0);
 
   /// Calculate the determinant of the Jacobian of the local transformation with respect to world coordinates
-  virtual double LocalJacobian(double, double, double, double = 0);
+  double LocalJacobian(double, double, double, double = 0);
 
   /// Calculate the determinant of the Jacobian of the global transformation with respect to world coordinates
-  virtual double GlobalJacobian(double, double, double, double = 0);
+  double GlobalJacobian(double, double, double, double = 0);
 
   /// Calculate displacement vectors for image
-  virtual void Displacement(irtkGenericImage<double> &);
+  virtual void Displacement(irtkGenericImage<double> &, double = 0);
 
   /// Checks whether transformation is an identity mapping (abstract)
   virtual bool IsIdentity() = 0;
@@ -210,6 +210,19 @@ inline void irtkTransformation::Transform(irtkPointSet &pset)
     this->Transform(p._x, p._y, p._z);
     pset(i) = p;
   }
+}
+
+inline void irtkTransformation::Displacement(double &x, double &y, double &z, double t)
+{
+  double a, b, c;
+  
+  a = x;
+  b = y;
+  c = z;
+  this->Transform(a, b, c, t);
+  x = a - x;
+  y = b - y;
+  z = c - z;
 }
 
 inline void irtkTransformation::GlobalDisplacement(double &x, double &y, double &z, double t)
@@ -323,31 +336,35 @@ inline ostream& irtkTransformation::Export(ostream &)
   exit(1);
 }
 
+
 // Homogeneous transformation classes
 #include <irtkHomogeneousTransformation.h>
 #include <irtkRigidTransformation.h>
 #include <irtkAffineTransformation.h>
 
+// Free-form transformations
 #include <irtkFreeFormTransformation.h>
 #include <irtkFreeFormTransformation3D.h>
-#include <irtkBSplineFreeFormTransformation3D.h>
+#include <irtkFreeFormTransformation4D.h>
+
 #include <irtkLinearFreeFormTransformation.h>
-
-#include <irtkMultiLevelFreeFormTransformation.h>
-
-#include <irtkFluidFreeFormTransformation.h>
+#include <irtkBSplineFreeFormTransformation3D.h>
 #include <irtkEigenFreeFormTransformation.h>
 
-#include <irtkFreeFormTransformation4D.h>
 #include <irtkBSplineFreeFormTransformation4D.h>
+#include <irtkBSplineFreeFormTransformationPeriodic.h>
 
+// Composite transformations
+#include <irtkMultiLevelFreeFormTransformation.h>
+#include <irtkFluidFreeFormTransformation.h>
+
+// Image transformation filters
 #include <irtkImageTransformation.h>
 #include <irtkImageTransformation2.h>
 #include <irtkImageHomogeneousTransformation.h>
 
-#include <irtkBSplineFreeFormTransformationPeriodic.h>
-
-// For backwards compatibility
+// Typedefs for backwards compatibility
 typedef class irtkBSplineFreeFormTransformation3D irtkBSplineFreeFormTransformation;
+
 
 #endif
