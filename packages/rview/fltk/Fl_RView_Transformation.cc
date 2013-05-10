@@ -543,7 +543,7 @@ void Fl_RViewUI::InitializeTransformationEditor()
           irtkTransformation *transform = rview->GetTransformation();
           for (i=0; i<transform->NumberOfDOFs(); i++) {
             o[i]->callback((Fl_Callback*)cb_editTransformationUpdate,
-                           (void *)i);
+                           reinterpret_cast<void *>(i));
             o[i]->type(FL_HOR_NICE_SLIDER);
             o[i]->box(FL_EMBOSSED_BOX);
             o[i]->value(transform->Get(i));

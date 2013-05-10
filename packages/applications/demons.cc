@@ -22,7 +22,6 @@ int main(int argc, char **argv)
   int ok;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
-  double dx, dy, dz;
 
   // Create registration filter
   irtkDemonsRegistration *registration = new irtkDemonsRegistration;
@@ -62,9 +61,6 @@ int main(int argc, char **argv)
   source_z2 = source.GetZ();
 
   // Parse remaining parameters
-  dx = 1;
-  dy = 1;
-  dz = 1;
   while (argc > 1) {
   ok = false;
   if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)) {

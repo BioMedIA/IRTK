@@ -104,7 +104,7 @@ void usage()
 int main(int argc, char **argv)
 {
   double dx, dy, dz, dt, noise;
-  int i1, j1, k1, l1, i2, j2, k2, l2, ok, dilate, fluid, ffd4D;
+  int i1, j1, k1, l1, i2, j2, k2, l2, ok, fluid, ffd4D;
 
   // Check command line
   if (argc < 4) {
@@ -144,10 +144,7 @@ int main(int argc, char **argv)
   dz = 20;
   dt = 20;
 
-  // Don't dilate bounding box
-  dilate = false;
-
-  // Don't dilate bounding box
+  // No 4D FFD
   ffd4D = false;
 
   // No fluid

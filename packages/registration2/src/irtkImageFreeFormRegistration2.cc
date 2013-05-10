@@ -647,12 +647,10 @@ void irtkImageFreeFormRegistration2::Update(bool updateGradient)
     this->irtkImageRegistration2::Update(updateGradient);
 
     if(_Lambda2 > 0) {
-        int index, index2, index3, i, j, k;
+        int index, i, j, k;
         double x,y,z,jacobian;
         // Update Jacobian and jacobian determinants;
         for (index = 0; index < _affd->NumberOfDOFs()/3; index++) {
-            index2 = _affd->NumberOfDOFs()/3 + index;
-            index3 = _affd->NumberOfDOFs()/3*2 + index;
             _affd->IndexToLattice(index,i,j,k);
             x = i;
             y = j;

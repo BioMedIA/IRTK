@@ -112,9 +112,6 @@ irtkGreyImage AddImage(irtkGreyImage image1, irtkGreyImage image2, irtkGreyImage
   short mingrey, maxgrey;
   irtkGreyImage image, tmpimage;
   image = image1;
-  float factor;
-
-  factor = original_image.GetZ()/image1.GetZ();
 
   for (z = 0; z < image1.GetZ(); z++) {
     tmpimage = image1.GetRegion(z, 0);

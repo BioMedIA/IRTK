@@ -139,10 +139,10 @@ template<typename VoxelType> void add_atlas(irtkGenericImage<VoxelType> *input, 
 
 int main(int argc, char **argv)
 {
-	irtkImage *input;
-	irtkGenericImage<double> *output;
+	irtkImage                *input = NULL;
+	irtkGenericImage<double> *output = NULL;
 	double scale, mean, sigma, epsilon;
-	int padding, norm, i, n, no, ok, image_type, useGaussianWeights;
+	int padding, norm, i, no, ok, image_type, useGaussianWeights;
 
 	// Check command line
 	if (argc < 4) {
@@ -296,7 +296,6 @@ int main(int argc, char **argv)
 	}
 
 	// Read and add one input image after the other
-	n = 0;
 	for (i = 0; i < no; i++) {
 		char buffer[255];
 

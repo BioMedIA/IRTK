@@ -38,7 +38,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int l, i, j, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
+  int l, i, numberOfImages, t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, ok, debug;
   double spacing, sigma, xaxis[3], yaxis[3], zaxis[3];
   irtkGreyPixel padding;
   irtkMultiLevelFreeFormTransformation *mffd;

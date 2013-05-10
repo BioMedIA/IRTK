@@ -91,7 +91,6 @@ short decideOnTie(countMap cMap){
   short numberWithMax = 0;
   int index, count;
   short temp;
-  double val;
 
   if (cMap.size() == 0){
     // No votes to count, treat as background.

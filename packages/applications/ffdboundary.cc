@@ -41,7 +41,7 @@ void usage()
 int main(int argc, char **argv)
 {
   irtkGreyImage image;
-  int ok, level, index, i, j, k;
+  int ok, level, i, j, k;
 
   // Check command line
   if (argc < 3) {
@@ -119,9 +119,6 @@ int main(int argc, char **argv)
         if ((i == 0) || (i ==  ffd->GetX()-1) ||
             (j == 0) || (j ==  ffd->GetY()-1) ||
             (k == 0) || (k ==  ffd->GetZ()-1)) {
-          // Convert control points to index
-          index = ffd->LatticeToIndex(i, j, k);
-
           ffd->PutStatusCP(i, j, k, status, status, status);
         }
       }

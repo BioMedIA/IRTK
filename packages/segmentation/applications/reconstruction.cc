@@ -743,7 +743,7 @@ int main(int argc, char **argv)
     reconstruction.SaveBiasFields();
     //reconstruction.SaveConfidenceMap();
     reconstruction.SimulateStacks(stacks);
-    for (i=0;i<stacks.size();i++)
+    for (unsigned int i=0;i<stacks.size();i++)
     {
       sprintf(buffer,"simulated%i.nii.gz",i);
       stacks[i].Write(buffer);

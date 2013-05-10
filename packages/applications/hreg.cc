@@ -158,7 +158,7 @@ void mreg(irtkGreyImage target, irtkGreyImage source,
 
 int main(int argc, char **argv)
 {
-  int i, ok, no_areg;
+  int i, ok;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
   double dx, dy, dz;
@@ -212,9 +212,8 @@ int main(int argc, char **argv)
   dz = 20;
 
   // Parse remaining parameters
-  no_areg = false;
-  debug   = false;
-  mode    = RegisterXYZ;
+  debug = false;
+  mode  = RegisterXYZ;
 
   while (argc > 1) {
     ok = false;

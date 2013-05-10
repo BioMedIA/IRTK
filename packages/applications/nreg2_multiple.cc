@@ -47,8 +47,6 @@ int main(int argc, char **argv)
 {
   int ok, padding;
   int i, j, numberOfImages;
-  double tox, toy, toz, sox, soy, soz;
-  tox = toy = toz = sox = soy = soz = 0.0;
   int mask_dilation = false;
   double sp,spacing,**weight;
 

@@ -41,7 +41,7 @@ void usage()
 int main(int argc, char **argv)
 {
 	
-	int i, k, x, y, z, t;
+	int i, k, x, y, z;
 	char buffer[255],posdirectorybuffer[255],negdirectorybuffer[255];
 	if(argc < 5){
 		usage();
@@ -54,8 +54,6 @@ int main(int argc, char **argv)
 	inputsequence.Read(argv[1]);
 
 	irtkImageAttributes inputSeqAttributes=inputsequence.GetImageAttributes();
-
-	t = inputSeqAttributes._t;
 
 	inputSeqAttributes._t = 1;
 

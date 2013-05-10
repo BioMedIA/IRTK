@@ -36,7 +36,7 @@ void usage()
 int main(int argc, char **argv)
 {
   double p[3], v[3];
-  int n, nx, ny, nz, x, y, z, ok, displacement;
+  int nx, ny, nz, x, y, z, ok, displacement;
 
   if (argc < 3) {
     usage();
@@ -88,7 +88,6 @@ int main(int argc, char **argv)
   nx = ffd->GetX();
   ny = ffd->GetY();
   nz = ffd->GetZ();
-  n  = nx*ny*nz;
 
   // Set up vtk points
   vtkPoints *points = vtkPoints::New();

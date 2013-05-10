@@ -71,7 +71,7 @@ double calculate_error(double x, double y, double z, irtkTransformation *t1,
 int main(int argc, char **argv)
 {
   irtkTransformation *t1, *t2;
-  int useImage, ok, fast, m, n, x, y, z;
+  int useImage, ok, fast, n, x, y, z;
   int target_threshold, source_threshold;
   int target_x1, target_y1, target_z1, target_x2, target_y2, target_z2;
   int source_x1, source_y1, source_z1, source_x2, source_y2, source_z2;
@@ -128,7 +128,6 @@ int main(int argc, char **argv)
   t2 = irtkTransformation::New(dof2_name);
 
   // Initialize remaining stuff
-  m = 0;
   n = 0;
   fast   = false;
   while (argc > 1) {
