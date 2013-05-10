@@ -16,6 +16,7 @@
 
 #include <irtkImage.h>
 #include <irtkGeometry.h>
+#include <irtkBSplineFunction.h>
 
 /// Definition of available states for individual degrees of freedom
 typedef enum { _Active, _Passive, _Unknown } _Status;

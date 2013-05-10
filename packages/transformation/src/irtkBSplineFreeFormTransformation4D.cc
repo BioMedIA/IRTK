@@ -12,13 +12,6 @@
 
 #include <irtkTransformation.h>
 
-#define LUTSIZE (double)(FFDLOOKUPTABLESIZE-1)
-
-double irtkBSplineFreeFormTransformation4D::LookupTable   [FFDLOOKUPTABLESIZE][4];
-
-double irtkBSplineFreeFormTransformation4D::LookupTable_I [FFDLOOKUPTABLESIZE][4];
-
-double irtkBSplineFreeFormTransformation4D::LookupTable_II[FFDLOOKUPTABLESIZE][4];
 
 irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D()
 {
@@ -79,20 +72,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D()
   }
 
   // Initialize lookup table
-  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-    this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
-    this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
-    this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
-    this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
-    this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
-    this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
-    this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
-    this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
-    this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
-    this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
-    this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
-    this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
-  }
+  _bspline.Initialize();
 }
 
 irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBaseImage &image, double dx, double dy, double dz, double dt)
@@ -166,20 +146,90 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBas
   }
 
   // Initialize lookup table
-  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-    this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
-    this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
-    this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
-    this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
-    this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
-    this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
-    this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
-    this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
-    this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
-    this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
-    this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
-    this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
+  _bspline.Initialize();
+}
+
+irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkImageAttributes & attr, double dx, double dy, double dz, double dt)
+{
+  int i;
+  double a, b, c, x1, y1, z1, x2, y2, z2;
+  
+  irtkMatrix matI2W = irtkBaseImage::GetImageToWorldMatrix(attr);
+  irtkMatrix matW2I = irtkBaseImage::GetWorldToImageMatrix(attr);
+  
+  // Figure out FOV
+  x1 = matI2W(0, 3);
+  y1 = matI2W(1, 3);
+  z1 = matI2W(2, 3);
+  x2 = matI2W(0, 0)*(attr._x-1)+matI2W(0, 1)*(attr._y-1)+matI2W(0, 2)*(attr._z-1)+matI2W(0, 3);
+  y2 = matI2W(1, 0)*(attr._x-1)+matI2W(1, 1)*(attr._y-1)+matI2W(1, 2)*(attr._z-1)+matI2W(1, 3);
+  z2 = matI2W(2, 0)*(attr._x-1)+matI2W(2, 1)*(attr._y-1)+matI2W(2, 2)*(attr._z-1)+matI2W(2, 3);
+  
+  // Initialize control point domain
+  _origin._x = (x2 + x1) / 2.0;
+  _origin._y = (y2 + y1) / 2.0;
+  _origin._z = (z2 + z1) / 2.0;
+  
+  // Initialize control point domain
+  _tMin = attr._torigin;
+  _tMax = attr._torigin + (attr._t-1)*attr._dt;
+  
+  // Initialize x-axis and y-axis
+  _xaxis[0] = attr._xaxis[0];
+  _xaxis[1] = attr._xaxis[1];
+  _xaxis[2] = attr._xaxis[2];
+  _yaxis[0] = attr._yaxis[0];
+  _yaxis[1] = attr._yaxis[1];
+  _yaxis[2] = attr._yaxis[2];
+  _zaxis[0] = attr._zaxis[0];
+  _zaxis[1] = attr._zaxis[1];
+  _zaxis[2] = attr._zaxis[2];
+  
+  a = x1 * _xaxis[0] + y1 * _xaxis[1] + z1 * _xaxis[2];
+  b = x1 * _yaxis[0] + y1 * _yaxis[1] + z1 * _yaxis[2];
+  c = x1 * _zaxis[0] + y1 * _zaxis[1] + z1 * _zaxis[2];
+  x1 = a;
+  y1 = b;
+  z1 = c;
+  a = x2 * _xaxis[0] + y2 * _xaxis[1] + z2 * _xaxis[2];
+  b = x2 * _yaxis[0] + y2 * _yaxis[1] + z2 * _yaxis[2];
+  c = x2 * _zaxis[0] + y2 * _zaxis[1] + z2 * _zaxis[2];
+  x2 = a;
+  y2 = b;
+  z2 = c;
+  
+  // Initialize control point dimensions
+  _x = round((x2 - x1) / dx) + 1;
+  _y = round((y2 - y1) / dy) + 1;
+  _z = round((z2 - z1) / dz) + 1;
+  _t = round((_tMax - _tMin) / dt) + 1;
+  
+  // Initialize control point spacing
+  _dx = (x2 - x1) / (_x - 1);
+  _dy = (y2 - y1) / (_y - 1);
+  _dz = (z2 - z1) / (_z - 1);
+  _dt = (_tMax - _tMin) / (_t - 1);
+  
+  // Initialize transformation matrix
+  _matL2W = irtkMatrix(4, 4);
+  _matW2L = irtkMatrix(4, 4);
+  
+  // Update transformation matrix
+  this->UpdateMatrix();
+  
+  // Intialize memory for control point values
+  _xdata = this->Allocate(_xdata, _x, _y, _z, _t);
+  _ydata = this->Allocate(_ydata, _x, _y, _z, _t);
+  _zdata = this->Allocate(_zdata, _x, _y, _z, _t);
+  
+  // Initialize memory for control point status
+  _status = new _Status[3*_x*_y*_z*_t];
+  for (i = 0; i < 3*_x*_y*_z*_t; i++) {
+    _status[i] = _Active;
   }
+  
+  // Initialize lookup table
+  _bspline.Initialize();
 }
 
 irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double x1, double y1, double z1, double t1,
@@ -251,20 +301,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double 
   }
 
   // Initialize lookup table
-  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-    this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
-    this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
-    this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
-    this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
-    this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
-    this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
-    this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
-    this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
-    this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
-    this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
-    this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
-    this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
-  }
+  _bspline.Initialize();
 }
 
 irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const irtkBSplineFreeFormTransformation4D &ffd) : irtkFreeFormTransformation4D(ffd)
@@ -333,85 +370,13 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const i
   for (i = 0; i < 3*_x*_y*_z*_t; i++) {
     _status[i] = ffd._status[i];
   }
-
-  // Initialize lookup table
-  for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-    this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
-    this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
-    this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
-    this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
-    this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
-    this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
-    this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
-    this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
-    this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
-    this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
-    this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
-    this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
-  }
 }
 
 irtkBSplineFreeFormTransformation4D::~irtkBSplineFreeFormTransformation4D()
 {
-  // Free memory for control points if necessary
   if (_xdata != NULL) _xdata = this->Deallocate(_xdata, _x, _y, _z, _t);
   if (_ydata != NULL) _ydata = this->Deallocate(_ydata, _x, _y, _z, _t);
   if (_zdata != NULL) _zdata = this->Deallocate(_zdata, _x, _y, _z, _t);
-
-  _x = 0;
-  _y = 0;
-  _z = 0;
-}
-
-void irtkBSplineFreeFormTransformation4D::FFD1(double &x, double &y, double &z, double time) const
-{
-  double s, t, u, v, B_I, B_J, B_K, B_L;
-  int a, b, c, d, i, j, k, l, S, T, U, V;
-
-  // Check if there is some work to do
-  if ((x < -2) || (y < -2) || (z < -2) || (time < -2) || (x > _x+1) || (y > _y+1) || (z > _z+1) || (time > _t+1)) {
-    x = 0;
-    y = 0;
-    z = 0;
-    return;
-  }
-
-  // Now calculate the real stuff
-  a = (int)floor(x)-1;
-  b = (int)floor(y)-1;
-  c = (int)floor(z)-1;
-  d = (int)floor(time)-1;
-
-  s = x-(a+1);
-  t = y-(b+1);
-  u = z-(c+1);
-  v = time-(d+1);
-
-  S = round(LUTSIZE*s);
-  T = round(LUTSIZE*t);
-  U = round(LUTSIZE*u);
-  V = round(LUTSIZE*v);
-
-  // Initialize displacement
-  x = 0;
-  y = 0;
-  z = 0;
-
-  for (l = 0; l < 4; l++) {
-    B_L = this->LookupTable[V][l];
-    for (k = 0; k < 4; k++) {
-      B_K = this->LookupTable[U][k] * B_L;
-      for (j = 0; j < 4; j++) {
-        B_J = this->LookupTable[T][j] * B_K;
-        for (i = 0; i < 4; i++) {
-          B_I = this->LookupTable[S][i] * B_J;
-          x += B_I * _xdata[d+l][c+k][b+j][a+i];
-          y += B_I * _ydata[d+l][c+k][b+j][a+i];
-          z += B_I * _zdata[d+l][c+k][b+j][a+i];
-        }
-      }
-    }
-  }
 }
 
 void irtkBSplineFreeFormTransformation4D::FFD2(double &x, double &y, double &z, double time) const
@@ -430,10 +395,10 @@ void irtkBSplineFreeFormTransformation4D::FFD2(double &x, double &y, double &z, 
   u = z-(c+1);
   v = time-(d+1);
 
-  S = round(LUTSIZE*s);
-  T = round(LUTSIZE*t);
-  U = round(LUTSIZE*u);
-  V = round(LUTSIZE*v);
+  S = _bspline.VariableToIndex(s);
+  T = _bspline.VariableToIndex(t);
+  U = _bspline.VariableToIndex(u);
+  V = _bspline.VariableToIndex(v);
 
   // Initialize displacement
   x = 0;
@@ -441,13 +406,13 @@ void irtkBSplineFreeFormTransformation4D::FFD2(double &x, double &y, double &z, 
   z = 0;
 
   for (l = 0; l < 4; l++) {
-    B_L = this->LookupTable[V][l];
+    B_L = _bspline.LookupTable[V][l];
     for (k = 0; k < 4; k++) {
-      B_K = this->LookupTable[U][k] * B_L;
+      B_K = _bspline.LookupTable[U][k] * B_L;
       for (j = 0; j < 4; j++) {
-        B_J = this->LookupTable[T][j] * B_K;
+        B_J = _bspline.LookupTable[T][j] * B_K;
         for (i = 0; i < 4; i++) {
-          B_I = this->LookupTable[S][i] * B_J;
+          B_I = _bspline.LookupTable[S][i] * B_J;
           x += B_I * _xdata[d+l][c+k][b+j][a+i];
           y += B_I * _ydata[d+l][c+k][b+j][a+i];
           z += B_I * _zdata[d+l][c+k][b+j][a+i];
@@ -513,38 +478,38 @@ double irtkBSplineFreeFormTransformation4D::Approximate(double *x1, double *y1, 
     t = y-b;
     u = z-c;
     v = time-d;
-    S = round(LUTSIZE*s);
-    T = round(LUTSIZE*t);
-    U = round(LUTSIZE*u);
-    V = round(LUTSIZE*v);
+    S = _bspline.VariableToIndex(s);
+    T = _bspline.VariableToIndex(t);
+    U = _bspline.VariableToIndex(u);
+    V = _bspline.VariableToIndex(v);
     norm = 0;
     for (l = 0; l < 4; l++) {
-      B_L = this->LookupTable[V][l];
+      B_L = _bspline.LookupTable[V][l];
       for (k = 0; k < 4; k++) {
-        B_K = B_L * this->LookupTable[U][k];
+        B_K = B_L * _bspline.LookupTable[U][k];
         for (j = 0; j < 4; j++) {
-          B_J = B_K * this->LookupTable[T][j];
+          B_J = B_K * _bspline.LookupTable[T][j];
           for (i = 0; i < 4; i++) {
-            B_I = B_J * this->LookupTable[S][i];
+            B_I = B_J * _bspline.LookupTable[S][i];
             norm += B_I * B_I;
           }
         }
       }
     }
     for (l = 0; l < 4; l++) {
-      B_L = this->LookupTable[V][l];
+      B_L = _bspline.LookupTable[V][l];
       L = l + d - 1;
       if ((L >= -2) && (L < _t+2)) {
         for (k = 0; k < 4; k++) {
-          B_K = B_L * this->LookupTable[U][k];
+          B_K = B_L * _bspline.LookupTable[U][k];
           K = k + c - 1;
           if ((K >= 0) && (K < _z+2)) {
             for (j = 0; j < 4; j++) {
-              B_J = B_K * this->LookupTable[T][j];
+              B_J = B_K * _bspline.LookupTable[T][j];
               J = j + b - 1;
               if ((J >= -2) && (J < _y+2)) {
                 for (i = 0; i < 4; i++) {
-                  B_I = B_J * this->LookupTable[S][i];
+                  B_I = B_J * _bspline.LookupTable[S][i];
                   I = i + a - 1;
                   if ((I >= -2) && (I < _x+2)) {
                     basis = B_I / norm;
@@ -670,37 +635,37 @@ void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double 
   frac_z = z-floor_z;
   frac_t = t-floor_t;
 
-  IND_X = round(LUTSIZE*frac_x);
-  IND_Y = round(LUTSIZE*frac_y);
-  IND_Z = round(LUTSIZE*frac_z);
-  IND_T = round(LUTSIZE*frac_t);
+  IND_X = _bspline.VariableToIndex(frac_x);
+  IND_Y = _bspline.VariableToIndex(frac_y);
+  IND_Z = _bspline.VariableToIndex(frac_z);
+  IND_T = _bspline.VariableToIndex(frac_t);
 
   for (l = 0; l < 4; l++){
   	L = l + floor_t - 1;
 
   	if ((L >= 0) && (L < _t)){
-			B_L   = this->LookupTable[IND_T][l];
+			B_L   = _bspline.LookupTable[IND_T][l];
 			// We are only returning the first three columns of the
 			// Jacobian so do not need the following commented out bit
 			// (the full Jacobian is a 4x3 matrix and we return a 3x3 one)
 
-			// B_L_I = this->LookupTable_I[IND_T][l];
+			// B_L_I = _bspline.LookupTable_I[IND_T][l];
 
   		for (k = 0; k < 4; k++) {
   			K = k + floor_z - 1;
   			if ((K >= 0) && (K < _z)) {
-  				B_K   = this->LookupTable[IND_Z][k];
-  				B_K_I = this->LookupTable_I[IND_Z][k];
+  				B_K   = _bspline.LookupTable[IND_Z][k];
+  				B_K_I = _bspline.LookupTable_I[IND_Z][k];
   				for (j = 0; j < 4; j++) {
   					J = j + floor_y - 1;
   					if ((J >= 0) && (J < _y)) {
-  						B_J   = this->LookupTable[IND_Y][j];
-  						B_J_I = this->LookupTable_I[IND_Y][j];
+  						B_J   = _bspline.LookupTable[IND_Y][j];
+  						B_J_I = _bspline.LookupTable_I[IND_Y][j];
   						for (i = 0; i < 4; i++) {
   							I = i + floor_x - 1;
   							if ((I >= 0) && (I < _x)) {
-  								B_I   = this->LookupTable[IND_X][i];
-  								B_I_I = this->LookupTable_I[IND_X][i];
+  								B_I   = _bspline.LookupTable[IND_X][i];
+  								B_I_I = _bspline.LookupTable_I[IND_X][i];
   								coeff = B_I_I * B_J * B_K * B_L;
   								x_i += _xdata[L][K][J][I] * coeff;
   								y_i += _ydata[L][K][J][I] * coeff;
@@ -748,6 +713,20 @@ void irtkBSplineFreeFormTransformation4D::LocalJacobian(irtkMatrix &jac, double 
   jac(0, 0) += 1;
   jac(1, 1) += 1;
   jac(2, 2) += 1;
+}
+
+void irtkBSplineFreeFormTransformation4D::JacobianDOFs(double jac[3], int dof, double x, double y, double z, double t)
+{
+  // Transform index to control point location
+  int i, j, k, l;
+  this->IndexToLattice(dof, i, j, k, l);
+  
+  // Compute lattice coordinates
+  this->WorldToLattice(x, y, z);
+  t = this->TimeToLattice(t);
+  
+  // Calculate derivatives w.r.t. control point coordinates
+  jac[0] = jac[1] = jac[2] = _bspline.B(x - i) * _bspline.B(y - j) * _bspline.B(z - k) * _bspline.B(t - l);
 }
 
 double irtkBSplineFreeFormTransformation4D::Bending(double, double, double, double)
