@@ -119,7 +119,8 @@ template <class VoxelType> irtkCUGenericImage<VoxelType>::irtkCUGenericImage(con
 {
 	cudaCheckSets();
 	int i, n;
-	VoxelType *ptr1, *ptr2;
+	VoxelType       *ptr1;
+    const VoxelType *ptr2;
 
 	// Initialize data
 	this->_matrix = NULL;
