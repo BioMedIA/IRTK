@@ -101,28 +101,28 @@ public:
   /// Subdivide FFD
   virtual void Subdivide() = 0;
 
-  /// Returns the of control points in x
+  /// Returns the number of control points in x
   virtual int GetX() const;
 
-  /// Returns the of control points in y
+  /// Returns the number of control points in y
   virtual int GetY() const;
 
-  /// Returns the of control points in z
+  /// Returns the number of control points in z
   virtual int GetZ() const;
 
-  /// Returns the of control points in t
+  /// Returns the number of control points in t
   virtual int GetT() const;
 
-  /// Returns the of control point spacing in x
+  /// Returns the control point spacing in x
   virtual double GetXSpacing() const;
 
-  /// Returns the of control point spacing in y
+  /// Returns the control point spacing in y
   virtual double GetYSpacing() const;
 
-  /// Returns the of control point spacing in z
+  /// Returns the control point spacing in z
   virtual double GetZSpacing() const;
 
-  /// Returns the of control point spacing in t
+  /// Returns the control point spacing in t
   virtual double GetTSpacing() const;
 
   /// Returns the number of parameters of the transformation
@@ -317,7 +317,7 @@ inline void irtkFreeFormTransformation4D::Put(int index, double x)
 {
   int i, j, k, l;
 
-  if (index >= 3*_x*_y*_z*_t) {
+  if (index < 0 || index >= 3*_x*_y*_z*_t) {
     cerr << "irtkFreeFormTransformation4D::Put: No such dof" << endl;
     exit(1);
   }
