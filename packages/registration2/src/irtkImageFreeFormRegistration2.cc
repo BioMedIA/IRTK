@@ -843,15 +843,12 @@ double irtkImageFreeFormRegistration2::Evaluate()
 void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
 {
     double basis, pos[3], offset;
-    int i, j, i1, i2, j1, j2, k1, k2, x, y, index, index2, index3;
+    int i, j, i1, i2, j1, j2, k1, k2, x, y, index, index2;
 
     // Initialize gradient to zero
     for (i = 0; i < _affd->NumberOfDOFs(); i++) {
         gradient[i] = 0;
     }
-
-    // Compute change in lattice coordinates per voxel (x-direction)
-    offset = _target->GetXSize() / _affd->GetXSpacing();
 
     // Loop over control points
     for (y = 0; y < _affd->GetY(); y++) {
@@ -860,10 +857,9 @@ void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
             // Compute DoFs corresponding to the control point
             index  = _affd->LatticeToIndex(x, y, 0);
             index2 = index+_affd->GetX()*_affd->GetY()*_affd->GetZ();
-            index3 = index+2*_affd->GetX()*_affd->GetY()*_affd->GetZ();
 
             // Check if any DoF corresponding to the control point is active
-            if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active) || (_affd->irtkTransformation::GetStatus(index3) == _Active)) {
+            if ((_affd->irtkTransformation::GetStatus(index) == _Active) || (_affd->irtkTransformation::GetStatus(index2) == _Active)) {
 
                 // If so, calculate bounding box of control point in image coordinates
                 _affd->BoundingBoxImage(_target, index, i1, j1, k1, i2, j2, k2, 1.0);
@@ -893,9 +889,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
                             //
                             gradient[index]  += basis * _similarityGradient(i, j, 0, 0);
                             gradient[index2] += basis * _similarityGradient(i, j, 0, 1);
-                            gradient[index3] += 0;
                         }
-
                     }
                 }
             }
@@ -1144,9 +1138,9 @@ void irtkImageFreeFormRegistration2::Run()
 
 
             if (_DebugFlag == true){
-                sprintf(buffer, "transformedsource_%d.nii.gz", _CurrentLevel);
+                sprintf(buffer, "transformedsource_%d_%03d.nii.gz", _CurrentLevel, _CurrentIteration);
                 _transformedSource.Write(buffer);
-                sprintf(buffer, "transformedsourcegradient_%d.nii.gz", _CurrentLevel);
+                sprintf(buffer, "transformedgradient_%d_%03d.nii.gz", _CurrentLevel, _CurrentIteration);
                 _transformedSourceGradient.Write(buffer);
             }
 
@@ -1158,8 +1152,32 @@ void irtkImageFreeFormRegistration2::Run()
             max_length = this->EvaluateGradient(gradient);
 
             if (_DebugFlag == true){
-                sprintf(buffer, "gradient_%d.nii.gz", _CurrentLevel);
+                sprintf(buffer, "similaritygradient_%d_%03d.nii.gz", _CurrentLevel, _CurrentIteration);
                 _similarityGradient.Write(buffer);
+                irtkImageAttributes attr;
+                attr._x  = _affd->GetX();
+                attr._y  = _affd->GetY();
+                attr._z  = _affd->GetZ();
+                attr._t  = 3;
+                attr._dx = _affd->GetXSpacing();
+                attr._dy = _affd->GetYSpacing();
+                attr._dz = _affd->GetZSpacing();
+                irtkGenericImage<double> g(attr);
+                int idx = 0;
+                for (int k = 0; k < g.GetZ(); k++) {
+                  for (int j = 0; j < g.GetY(); j++) {
+                    for (int i = 0; i < g.GetX(); i++) {
+                      int index1 = _affd->LatticeToIndex(i, j, k);
+                      int index2 = index1+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+                      int index3 = index2+_affd->GetX()*_affd->GetY()*_affd->GetZ();
+                      g(i, j, k, 0) = gradient[index1];
+                      g(i, j, k, 1) = gradient[index2];
+                      g(i, j, k, 2) = gradient[index3];
+                    }
+                  }
+                }
+                sprintf(buffer, "gradient_%d_%03d.nii.gz", _CurrentLevel, _CurrentIteration);
+                g.Write(buffer);
             }
 
             // Step along gradient direction until no further improvement is necessary
