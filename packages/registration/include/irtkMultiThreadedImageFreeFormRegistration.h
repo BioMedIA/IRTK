@@ -12,7 +12,7 @@
 
 #ifdef HAS_TBB
 
-extern tbb::deprecated::concurrent_queue<irtkSimilarityMetric *> sim_queue;
+extern concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 class irtkMultiThreadedImageFreeFormRegistrationEvaluate
 {
