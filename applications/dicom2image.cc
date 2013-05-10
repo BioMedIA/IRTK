@@ -154,7 +154,13 @@ int main(int argc, char **argv)
 
   // Read raw data
   FILE *fp = fopen(input_name, "r");
-  fread(image.GetPointerToVoxels(), sizeof(irtkGreyPixel), attr._x*attr._y*attr._z, fp);
+  size_t nvoxels = attr._x * attr._y * attr._z;
+  if (fread(image.GetPointerToVoxels(), sizeof(irtkGreyPixel), nvoxels, fp) != nvoxels) {
+    fclose(fp);
+    cerr << "Failed to read voxel data from input image file" << endl;
+    exit(1);
+  }
+  fclose(fp);
 
   cout << "Writing to " << output_name << endl;
   image.Write(output_name);

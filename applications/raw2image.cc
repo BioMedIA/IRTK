@@ -44,6 +44,8 @@ int main(int argc, char **argv)
   argv++;
   argc--;
 
+  size_t nvoxels = x*y*z;
+
   // Open raw file
   fp = fopen(input_name, "r");
   if (fp == NULL) {
@@ -53,17 +55,29 @@ int main(int argc, char **argv)
 
   if (strcmp(argv[1], "float") == 0) {
     irtkRealImage image(x, y, z);
-    fread(image.GetPointerToVoxels(), sizeof(float), x*y*z, fp);
+    if (fread(image.GetPointerToVoxels(), sizeof(float), nvoxels, fp) != nvoxels) {
+      fclose(fp);
+      cerr << "Failed to read data from input file or file contains less voxels than specified" << endl;
+      exit(1);
+    }
     image.Write(output_name);
   } else {
     if (strcmp(argv[1], "short") == 0) {
       irtkGreyImage image(x, y, z);
-      fread(image.GetPointerToVoxels(), sizeof(short), x*y*z, fp);
+      if (fread(image.GetPointerToVoxels(), sizeof(short), nvoxels, fp) != nvoxels) {
+        fclose(fp);
+        cerr << "Failed to read data from input file or file contains less voxels than specified" << endl;
+        exit(1);
+      }
       image.Write(output_name);
     } else {
       if (strcmp(argv[1], "uchar") == 0) {
         irtkByteImage image(x, y, z);
-        fread(image.GetPointerToVoxels(), sizeof(unsigned char), x*y*z, fp);
+        if (fread(image.GetPointerToVoxels(), sizeof(unsigned char), nvoxels, fp) != nvoxels) {
+          fclose(fp);
+          cerr << "Failed to read data from input file or file contains less voxels than specified" << endl;
+          exit(1);
+        }
         image.Write(output_name);
       } else {
         cerr << "Format: " << argv[1] << " not yet supported" << endl;
@@ -72,5 +86,6 @@ int main(int argc, char **argv)
     }
   }
 
+  fclose(fp);
   return 0;
 }
