@@ -28,7 +28,7 @@ irtkHistory *history;
 
 #ifdef HAS_TBB
 
-concurrent_queue<irtkSimilarityMetric *> sim_queue;
+tbb::deprecated::concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 #endif
 

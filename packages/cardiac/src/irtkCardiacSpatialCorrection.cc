@@ -20,9 +20,12 @@
 
 #include <irtkHomogeneousTransformationIterator.h>
 
+
 #ifdef HAS_TBB
 
-concurrent_queue<irtkSimilarityMetric *> queue;
+#include <irtkMultiThreadedImageRigidRegistration.h>
+
+tbb::deprecated::concurrent_queue<irtkSimilarityMetric *> cqueue;
 
 #endif
 
@@ -357,8 +360,8 @@ void irtkCardiacSpatialCorrection::Finalize(int level)
 
 #ifdef HAS_TBB
   irtkSimilarityMetric *metric;
-  while (queue.size() > 0) {
-    queue.pop(metric);
+  while (cqueue.size() > 0) {
+    cqueue.pop(metric);
     delete metric;
   }
 #endif
@@ -574,9 +577,9 @@ double irtkCardiacSpatialCorrection::RunStep(double &step)
 
 double irtkCardiacSpatialCorrection::Evaluate()
 {
-
+  int k;
 #ifndef HAS_TBB
-	int i, j, k, t, n;
+	int i, j, t, n;
 	double similarity;
 #endif
 

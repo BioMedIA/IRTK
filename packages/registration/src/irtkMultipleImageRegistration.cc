@@ -30,7 +30,7 @@ extern irtkHistory *history;
 
 #ifdef HAS_TBB
 
-extern concurrent_queue<irtkSimilarityMetric *> sim_queue;
+extern tbb::deprecated::concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 #endif
 
