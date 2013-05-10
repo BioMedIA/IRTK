@@ -80,6 +80,10 @@ int main(int argc, char **argv)
     } 
 
     irtkMultiLevelFreeFormTransformation *mffd = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(transform);
+    if (mffd == NULL) {
+      cerr << "Input transformation must be of type irtkMultiLevelFreeFormTransformation, but is " << transform->NameOfClass() << endl;
+      exit(1);
+    }
     cout << "Done" << endl;
 
     // Print transformation
