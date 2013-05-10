@@ -14,6 +14,11 @@
 
 #define _HOMOGENEOUSTRANSFORMATION_H
 
+
+typedef enum {TX, TY, TZ, RX, RY, RZ, SX, SY, SZ, SXY, SYZ, SXZ, SYX, SZY, SZX}
+    irtkHomogeneousTransformationParameterIndex;
+
+
 /**
  * Base class for homogeneous transformations.
  *
@@ -24,9 +29,6 @@
  * by twelve degrees of freedom.
  *
  */
-
-typedef enum {TX, TY, TZ, RX, RY, RZ, SX, SY, SZ, SXY, SYZ, SXZ, SYX, SZY, SZX}
-irtkHomogeneousTransformationParameterIndex;
 
 class irtkHomogeneousTransformation : public irtkTransformation
 {
