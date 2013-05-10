@@ -29,8 +29,8 @@ int main(int argc, char **argv)
   irtkImageAttributes iptI_at;     //add (1/2)
 
   // Parse options
-  double dt      = 1;
-  double torigin = 0;
+  double dt      = numeric_limits<double>::quiet_NaN();
+  double torigin = numeric_limits<double>::quiet_NaN();
 
   for (i = argc - 2; i > 0; i -= 2) {
     if (argv[i][0] != '-') break;
@@ -80,9 +80,10 @@ int main(int argc, char **argv)
 
   irtkImage          *output              = NULL;
   irtkImageAttributes OutputSeqAttributes = ipt0_at;
-  OutputSeqAttributes._t       = t;
-  OutputSeqAttributes._dt      = dt;
-  OutputSeqAttributes._torigin = torigin;
+
+  OutputSeqAttributes._t = t;
+  if (!isnan(dt))      OutputSeqAttributes._dt      = dt;
+  if (!isnan(torigin)) OutputSeqAttributes._torigin = torigin;
 
   // Convert image
   switch (input[0]->GetScalarType()) {
