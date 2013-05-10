@@ -3029,160 +3029,176 @@ void irtkBSplineFreeFormTransformation3D::Print()
 
 irtkCifstream& irtkBSplineFreeFormTransformation3D::Read(irtkCifstream& from)
 {
-	double *data;
-	int i, j, k, index;
-	unsigned int magic_no, trans_type;
+    unsigned int magic_no, trans_type;
 
-	// Read magic no. for transformations
-	from.ReadAsUInt(&magic_no, 1);
-	if (magic_no != IRTKTRANSFORMATION_MAGIC) {
-		cerr << "irtkBSplineFreeFormTransformation3D::Read: Not a vaild transformation file" << endl;
-		exit(1);
-	}
+    // Read magic no. for transformations
+    from.ReadAsUInt(&magic_no, 1);
+    if (magic_no != IRTKTRANSFORMATION_MAGIC) {
+        cerr << "irtkBSplineFreeFormTransformation3D::Read: Not a vaild transformation file" << endl;
+        exit(1);
+    }
 
-	// Read transformation type
-	from.ReadAsUInt(&trans_type, 1);
-	if ((trans_type != IRTKTRANSFORMATION_BSPLINE_FFD) && (trans_type != IRTKTRANSFORMATION_BSPLINE_FFD_EXT1)) {
-		cerr << "irtkBSplineFreeFormTransformation3D::Read: Not a vaild B-Spline FFD transformation" << endl;
-		exit(1);
-	}
+    // Read transformation type
+    from.ReadAsUInt(&trans_type, 1);
+    if ((trans_type != IRTKTRANSFORMATION_BSPLINE_FFD) && (trans_type != IRTKTRANSFORMATION_BSPLINE_FFD_EXT1)) {
+        cerr << "irtkBSplineFreeFormTransformation3D::Read: Not a vaild B-Spline FFD transformation" << endl;
+        exit(1);
+    }
 
-	// Free memory if necessary
-	_data = Deallocate(_data, _x, _y, _z);
-	delete []_status;
+    // Read control point data
+    this->ReadCP(from, trans_type == IRTKTRANSFORMATION_BSPLINE_FFD_EXT1);
 
-	// Read no of control points
-	from.ReadAsInt(&_x, 1);
-	from.ReadAsInt(&_y, 1);
-	from.ReadAsInt(&_z, 1);
+    // Update transformation matrix
+    this->UpdateMatrix();
 
-	// Read orientation of bounding box
-	from.ReadAsDouble(_xaxis, 3);
-	from.ReadAsDouble(_yaxis, 3);
-	if (trans_type == IRTKTRANSFORMATION_BSPLINE_FFD_EXT1) {
-		from.ReadAsDouble(_zaxis, 3);
-	} else {
-		_zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
-		_zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
-		_zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
-	}
+    return from;
+}
 
-	// Read spacing of bounding box
-	from.ReadAsDouble(&_dx, 1);
-	from.ReadAsDouble(&_dy, 1);
-	from.ReadAsDouble(&_dz, 1);
+irtkCifstream& irtkBSplineFreeFormTransformation3D::ReadCP(irtkCifstream& from, bool ext1)
+{
+    double *data;
+    int i, j, k, index;
 
-	// Read spacing of bounding box
-	from.ReadAsDouble(&_origin._x, 1);
-	from.ReadAsDouble(&_origin._y, 1);
-	from.ReadAsDouble(&_origin._z, 1);
+    // Free memory if necessary
+    _data = Deallocate(_data, _x, _y, _z);
+    delete []_status;
 
-	// Initialize control points
-	_data = Allocate(_data, _x, _y, _z);
+    // Read no of control points
+    from.ReadAsInt(&_x, 1);
+    from.ReadAsInt(&_y, 1);
+    from.ReadAsInt(&_z, 1);
 
-	// Initialize control points
-	for (i = -2; i < _x+2; i++) {
-		for (j = -2; j < _y+2; j++) {
-			for (k = -2; k < _z+2; k++) {
-				_data[k][j][i]._x = 0;
-				_data[k][j][i]._y = 0;
-				_data[k][j][i]._z = 0;
-			}
-		}
-	}
+    // Read orientation of bounding box
+    from.ReadAsDouble(_xaxis, 3);
+    from.ReadAsDouble(_yaxis, 3);
+    if (ext1) {
+        from.ReadAsDouble(_zaxis, 3);
+    } else {
+        _zaxis[0] = _xaxis[1]*_yaxis[2] - _xaxis[2]*_yaxis[1];
+        _zaxis[1] = _xaxis[2]*_yaxis[0] - _xaxis[0]*_yaxis[2];
+        _zaxis[2] = _xaxis[0]*_yaxis[1] - _xaxis[1]*_yaxis[0];
+    }
 
-	// Allocate temporary memory
-	data = new double[3*_x*_y*_z];
+    // Read spacing of bounding box
+    from.ReadAsDouble(&_dx, 1);
+    from.ReadAsDouble(&_dy, 1);
+    from.ReadAsDouble(&_dz, 1);
 
-	// Read control point data
-	from.ReadAsDouble(data, 3*_x*_y*_z);
+    // Read spacing of bounding box
+    from.ReadAsDouble(&_origin._x, 1);
+    from.ReadAsDouble(&_origin._y, 1);
+    from.ReadAsDouble(&_origin._z, 1);
 
-	// Convert data
-	index = 0;
-	for (i = 0; i < _x; i++) {
-		for (j = 0; j < _y; j++) {
-			for (k = 0; k < _z; k++) {
-				_data[k][j][i]._x = data[index];
-				_data[k][j][i]._y = data[index+1];
-				_data[k][j][i]._z = data[index+2];
-				index += 3;
-			}
-		}
-	}
+    // Initialize control points
+    _data = Allocate(_data, _x, _y, _z);
 
-	// Free temporary memory
-	delete []data;
+    // Initialize control points
+    for (i = -2; i < _x+2; i++) {
+        for (j = -2; j < _y+2; j++) {
+            for (k = -2; k < _z+2; k++) {
+                _data[k][j][i]._x = 0;
+                _data[k][j][i]._y = 0;
+                _data[k][j][i]._z = 0;
+            }
+        }
+    }
 
-	// Initialize memory for control point status
-	_status = new _Status[3*_x*_y*_z];
+    // Allocate temporary memory
+    data = new double[3*_x*_y*_z];
 
-	// Read control point status
-	from.ReadAsInt((int *)_status, 3*_x*_y*_z);
+    // Read control point data
+    from.ReadAsDouble(data, 3*_x*_y*_z);
 
-	// Update transformation matrix
-	this->UpdateMatrix();
+    // Convert data
+    index = 0;
+    for (i = 0; i < _x; i++) {
+        for (j = 0; j < _y; j++) {
+            for (k = 0; k < _z; k++) {
+                _data[k][j][i]._x = data[index];
+                _data[k][j][i]._y = data[index+1];
+                _data[k][j][i]._z = data[index+2];
+                index += 3;
+            }
+        }
+    }
 
-	return from;
+    // Free temporary memory
+    delete []data;
+
+    // Initialize memory for control point status
+    _status = new _Status[3*_x*_y*_z];
+
+    // Read control point status
+    from.ReadAsInt((int *)_status, 3*_x*_y*_z);
+
+    return from;
 }
 
 irtkCofstream& irtkBSplineFreeFormTransformation3D::Write(irtkCofstream& to)
 {
-	double *data;
-	int i, j, k, index;
-	unsigned int magic_no, trans_type;
+    unsigned int magic_no, trans_type;
 
-	// Write magic no. for transformations
-	magic_no = IRTKTRANSFORMATION_MAGIC;
-	to.WriteAsUInt(&magic_no, 1);
+    // Write magic no. for transformations
+    magic_no = IRTKTRANSFORMATION_MAGIC;
+    to.WriteAsUInt(&magic_no, 1);
 
-	// Write transformation type
-	trans_type = IRTKTRANSFORMATION_BSPLINE_FFD_EXT1;
-	to.WriteAsUInt(&trans_type, 1);
+    // Write transformation type
+    trans_type = IRTKTRANSFORMATION_BSPLINE_FFD_EXT1;
+    to.WriteAsUInt(&trans_type, 1);
 
-	// Write no of control points
-	to.WriteAsInt(&_x, 1);
-	to.WriteAsInt(&_y, 1);
-	to.WriteAsInt(&_z, 1);
+    // Write control point data
+    return this->WriteCP(to);
+}
 
-	// Write orientation of bounding box
-	to.WriteAsDouble(_xaxis, 3);
-	to.WriteAsDouble(_yaxis, 3);
-	to.WriteAsDouble(_zaxis, 3);
+irtkCofstream& irtkBSplineFreeFormTransformation3D::WriteCP(irtkCofstream& to)
+{
+    double *data;
+    int i, j, k, index;
 
-	// Write spacing of bounding box
-	to.WriteAsDouble(&_dx, 1);
-	to.WriteAsDouble(&_dy, 1);
-	to.WriteAsDouble(&_dz, 1);
+    // Write no of control points
+    to.WriteAsInt(&_x, 1);
+    to.WriteAsInt(&_y, 1);
+    to.WriteAsInt(&_z, 1);
 
-	// Write spacing of bounding box
-	to.WriteAsDouble(&_origin._x, 1);
-	to.WriteAsDouble(&_origin._y, 1);
-	to.WriteAsDouble(&_origin._z, 1);
+    // Write orientation of bounding box
+    to.WriteAsDouble(_xaxis, 3);
+    to.WriteAsDouble(_yaxis, 3);
+    to.WriteAsDouble(_zaxis, 3);
 
-	// Allocate temporary memory
-	data = new double[3*_x*_y*_z];
+    // Write spacing of bounding box
+    to.WriteAsDouble(&_dx, 1);
+    to.WriteAsDouble(&_dy, 1);
+    to.WriteAsDouble(&_dz, 1);
 
-	// Convert data
-	index = 0;
-	for (i = 0; i < _x; i++) {
-		for (j = 0; j < _y; j++) {
-			for (k = 0; k < _z; k++) {
-				data[index]   = _data[k][j][i]._x;
-				data[index+1] = _data[k][j][i]._y;
-				data[index+2] = _data[k][j][i]._z;
-				index += 3;
-			}
-		}
-	}
+    // Write spacing of bounding box
+    to.WriteAsDouble(&_origin._x, 1);
+    to.WriteAsDouble(&_origin._y, 1);
+    to.WriteAsDouble(&_origin._z, 1);
 
-	// Write control point data
-	to.WriteAsDouble(data, 3*_x*_y*_z);
+    // Allocate temporary memory
+    data = new double[3*_x*_y*_z];
 
-	// Free temporary memory
-	delete []data;
+    // Convert data
+    index = 0;
+    for (i = 0; i < _x; i++) {
+        for (j = 0; j < _y; j++) {
+            for (k = 0; k < _z; k++) {
+                data[index]   = _data[k][j][i]._x;
+                data[index+1] = _data[k][j][i]._y;
+                data[index+2] = _data[k][j][i]._z;
+                index += 3;
+            }
+        }
+    }
 
-	// Write control point status
-	to.WriteAsInt((int *)_status, 3*_x*_y*_z);
+    // Write control point data
+    to.WriteAsDouble(data, 3*_x*_y*_z);
 
-	return to;
+    // Free temporary memory
+    delete []data;
+
+    // Write control point status
+    to.WriteAsInt((int *)_status, 3*_x*_y*_z);
+
+    return to;
 }

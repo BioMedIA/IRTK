@@ -313,6 +313,14 @@ public:
   /// Exports a transformation to a file
   virtual ostream& Export(ostream&);
 
+protected:
+
+  /// Reads control points from a file
+  virtual irtkCifstream& ReadCP(irtkCifstream&, bool = true);
+
+  /// Writes control points to a file
+  virtual irtkCofstream& WriteCP(irtkCofstream&);
+
 };
 
 inline double irtkBSplineFreeFormTransformation3D::B(double x)
