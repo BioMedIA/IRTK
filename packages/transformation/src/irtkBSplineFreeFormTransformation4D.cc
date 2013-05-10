@@ -122,10 +122,10 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkBas
   _t = round((_tMax - _tMin) / dt) + 1;
 
   // Initialize control point spacing
-  _dx = (x2 - x1) / (_x - 1);
-  _dy = (y2 - y1) / (_y - 1);
-  _dz = (z2 - z1) / (_z - 1);
-  _dt = (_tMax - _tMin) / (_t - 1);
+  _dx = (_x > 1) ? ((x2 - x1)       / (_x - 1)) : dx;
+  _dy = (_y > 1) ? ((y2 - y1)       / (_y - 1)) : dy;
+  _dz = (_z > 1) ? ((z2 - z1)       / (_z - 1)) : dz;
+  _dt = (_t > 1) ? ((_tMax - _tMin) / (_t - 1)) : dt;
 
   // Initialize transformation matrix
   _matL2W = irtkMatrix(4, 4);
@@ -205,10 +205,10 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkIma
   _t = round((_tMax - _tMin) / dt) + 1;
   
   // Initialize control point spacing
-  _dx = (x2 - x1) / (_x - 1);
-  _dy = (y2 - y1) / (_y - 1);
-  _dz = (z2 - z1) / (_z - 1);
-  _dt = (_tMax - _tMin) / (_t - 1);
+  _dx = (_x > 1) ? ((x2 - x1)       / (_x - 1)) : dx;
+  _dy = (_y > 1) ? ((y2 - y1)       / (_y - 1)) : dy;
+  _dz = (_z > 1) ? ((z2 - z1)       / (_z - 1)) : dz;
+  _dt = (_t > 1) ? ((_tMax - _tMin) / (_t - 1)) : dt;
   
   // Initialize transformation matrix
   _matL2W = irtkMatrix(4, 4);
@@ -277,10 +277,10 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double 
   _t = round((_tMax - _tMin) / dt) + 1;
 
   // Initialize control point spacing
-  _dx = (x2 - x1) / (_x - 1);
-  _dy = (y2 - y1) / (_y - 1);
-  _dz = (z2 - z1) / (_z - 1);
-  _dt = (_tMax - _tMin) / (_t - 1);
+  _dx = (_x > 1) ? ((x2 - x1)       / (_x - 1)) : dx;
+  _dy = (_y > 1) ? ((y2 - y1)       / (_y - 1)) : dy;
+  _dz = (_z > 1) ? ((z2 - z1)       / (_z - 1)) : dz;
+  _dt = (_t > 1) ? ((_tMax - _tMin) / (_t - 1)) : dt;
 
   // Initialize transformation matrix
   _matL2W = irtkMatrix(4, 4);
