@@ -22,8 +22,12 @@
 #include <helper_functions.h>
 
 //testing
-//#undef USE_CUDA_NPP
-#define USE_CUDA_NPP
+//#ifdef USE_CUDA_NPP
+//#  undef USE_CUDA_NPP
+//#endif
+#ifndef USE_CUDA_NPP
+#  define USE_CUDA_NPP
+#endif
 
 #ifdef USE_CUDA_NPP
 #include <npp.h>
@@ -142,8 +146,8 @@ template <class VoxelType> template <class VoxelType2> irtkCUGenericImage<VoxelT
 {
 	cudaCheckSets();
 	int i, n;
-	VoxelType  *ptr1;
-	VoxelType2 *ptr2;
+	VoxelType        *ptr1;
+	const VoxelType2 *ptr2;
 
 	// Initialize data
 	this->_matrix = NULL;
@@ -170,8 +174,8 @@ template <class VoxelType> template <class VoxelType2> irtkCUGenericImage<VoxelT
 {
 	cudaCheckSets();
 	int i, n;
-	VoxelType  *ptr1;
-	VoxelType2 *ptr2;
+	VoxelType        *ptr1;
+	const VoxelType2 *ptr2;
 
 	// Initialize data
 	this->_matrix = NULL;
