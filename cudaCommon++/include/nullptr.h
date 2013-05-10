@@ -24,7 +24,7 @@
 
 
 const                                      // this is a const object...
-const class {
+class {
 public:
    template<class T>                       // convertible to any type
    _NULLPTR_DECL operator T*() const       // of null non-member
