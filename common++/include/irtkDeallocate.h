@@ -16,6 +16,13 @@
 
 #include <irtkCommon.h>
 
+/// Deallocate 1-dimensional array
+template <typename T> inline T *Deallocate(T *p)
+{
+  delete[] p;
+  return NULL;
+}
+
 template <class Type> inline Type **Deallocate(Type **matrix)
 {
   delete []matrix[0];

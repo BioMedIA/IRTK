@@ -16,6 +16,21 @@
 
 #include <irtkCommon.h>
 
+/// Allocate 1-dimensional array and initialize elements
+///
+/// @code
+/// // Allocate an array of 10 pointers to a grey image and initialize them to NULL
+/// irtkGreyImage *images = Allocate<irtkGreyImage *>(10);
+/// // Allocate an array of 5 integer values and initialize them to -1
+/// int *values = Allocate<int>(5, -1);
+/// @endcode
+template <typename Type> inline Type *Allocate(int n, const Type &init = Type())
+{
+  Type *p = new Type[n];
+  for (int i = 0; i < n; i++) p[i] = init;
+  return p;
+}
+
 template <class Type> inline Type **Allocate(Type **matrix, int x, int y)
 {
   int i;
