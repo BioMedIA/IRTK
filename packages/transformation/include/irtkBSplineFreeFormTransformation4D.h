@@ -378,7 +378,7 @@ inline void irtkBSplineFreeFormTransformation4D::LocalTransform(double &x, doubl
   w = z;
 
   // calculate displacement
-  this->LocalDisplacement(u, v, w, this->TimeToLattice(t));
+  this->LocalDisplacement(u, v, w, t);
 
   // Add displacement
   x += u;
