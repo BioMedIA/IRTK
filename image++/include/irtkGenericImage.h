@@ -28,8 +28,12 @@
  * be used for images with arbitrary voxel types using templates.
  */
 
-template <class VoxelType> class irtkGenericImage : public irtkBaseImage
+template <typename T> class irtkGenericImage : public irtkBaseImage
 {
+public:
+
+  /// Voxel type
+  typedef T VoxelType;
 
 protected:
 
@@ -54,7 +58,7 @@ public:
   irtkGenericImage(const irtkImageAttributes &);
 
   /// Copy constructor for image of different type
-  template <class T> irtkGenericImage(const irtkGenericImage<T> &);
+  template <class TVoxel2> irtkGenericImage(const irtkGenericImage<TVoxel2> &);
 
   /// Destructor
   ~irtkGenericImage(void);
@@ -95,7 +99,7 @@ public:
   /// Function for pixel access via pointers
   VoxelType *GetPointerToVoxels(int = 0, int = 0, int = 0, int = 0) const;
 
-  /// Funnction to convert pixel to index
+  /// Function to convert pixel to index
   int VoxelToIndex(int, int, int, int = 0) const;
 
   /// Function for pixel get access
@@ -130,7 +134,7 @@ public:
   irtkGenericImage<VoxelType>& operator= (const irtkGenericImage &);
   
   /// Copy operator for image
-  template <class T> irtkGenericImage<VoxelType>& operator= (const irtkGenericImage<T> &);
+  template <class TVoxel2> irtkGenericImage<VoxelType>& operator= (const irtkGenericImage<TVoxel2> &);
   
   /// Addition operator
   irtkGenericImage  operator+ (const irtkGenericImage &);
