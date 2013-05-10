@@ -153,10 +153,10 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkIma
 {
   int i;
   double a, b, c, x1, y1, z1, x2, y2, z2;
-  
+
   irtkMatrix matI2W = irtkBaseImage::GetImageToWorldMatrix(attr);
   irtkMatrix matW2I = irtkBaseImage::GetWorldToImageMatrix(attr);
-  
+
   // Figure out FOV
   x1 = matI2W(0, 3);
   y1 = matI2W(1, 3);
@@ -172,7 +172,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkIma
   
   // Initialize control point domain
   _tMin = attr._torigin;
-  _tMax = attr._torigin + (attr._t-1)*attr._dt;
+  _tMax = attr._torigin + attr._t * attr._dt;
   
   // Initialize x-axis and y-axis
   _xaxis[0] = attr._xaxis[0];
@@ -217,7 +217,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(irtkIma
   // Update transformation matrix
   this->UpdateMatrix();
   
-  // Intialize memory for control point values
+  // Initialize memory for control point values
   _xdata = this->Allocate(_xdata, _x, _y, _z, _t);
   _ydata = this->Allocate(_ydata, _x, _y, _z, _t);
   _zdata = this->Allocate(_zdata, _x, _y, _z, _t);
@@ -289,7 +289,7 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(double 
   // Update transformation matrix
   this->UpdateMatrix();
 
-  // Intialize memory for control point values
+  // Initialize memory for control point values
   _xdata = this->Allocate(_xdata, _x, _y, _z, _t);
   _ydata = this->Allocate(_ydata, _x, _y, _z, _t);
   _zdata = this->Allocate(_zdata, _x, _y, _z, _t);
@@ -317,13 +317,13 @@ irtkBSplineFreeFormTransformation4D::irtkBSplineFreeFormTransformation4D(const i
   _z = ffd._z;
   _t = ffd._t;
 
-  // Intialize control point spacing
+  // Initialize control point spacing
   _dx = ffd._dx;
   _dy = ffd._dy;
   _dz = ffd._dz;
   _dt = ffd._dt;
 
-  // Intialize time domain
+  // Initialize time domain
   _tMin = ffd._tMin;
   _tMax = ffd._tMax;
 
