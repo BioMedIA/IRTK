@@ -68,6 +68,9 @@ public:
   /// Returns the value of the fourth B-spline basis function
   static double B3(double);
 
+  /// Returns the derivative value of the B-spline function
+  static double B_I(double);
+
   /// Returns the 1st derivative value of the i-th B-spline basis function
   static double B_I(int, double);
   
@@ -169,6 +172,22 @@ inline double irtkBSplineFunction::B3(double t)
   return (t*t*t)/6.0;
 }
 
+
+inline double irtkBSplineFunction::B_I(double t)
+{
+  double y     = fabs(t);
+  double value = 0.0;
+  if (y < 2.0) {
+    if (y < 1.0) {
+      value = (1.5 * y - 2.0) * t;
+    } else {
+      y -= 2.0;
+      value = -0.5 * y * y;
+      if (t < 0.0) value = -value;
+    }
+  }
+  return value;
+}
 
 inline double irtkBSplineFunction::B_I(int i, double t)
 {
