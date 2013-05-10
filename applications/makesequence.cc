@@ -15,6 +15,10 @@
 void usage()
 {
   cerr << "Usage: makesequence [input 1 ... input n] [output] <options>\n" << endl;
+  cerr << endl;
+  cerr << "Options:" << endl;
+  cerr << "  -dt <float>      Temporal resolution of sequence." << endl;
+  cerr << "  -torigin <float> Temporal origin of sequence." << endl;
   exit(1);
 }
 
@@ -23,6 +27,20 @@ int main(int argc, char **argv)
   int i, x, y, z, t;
   irtkImageAttributes ipt0_at;     //add (1/2)
   irtkImageAttributes iptI_at;     //add (1/2)
+
+  // Parse options
+  double dt      = 1;
+  double torigin = 0;
+
+  for (i = argc - 2; i > 0; i -= 2) {
+    if (argv[i][0] != '-') break;
+    if (strcmp(argv[i], "-dt") == 0) {
+      dt = atof(argv[i+1]);
+    } else if (strcmp(argv[i], "-torigin") == 0) {
+      torigin = atof(argv[i+1]);
+    } else break;
+    argc -= 2;
+  }
 
   // Determine how many volumes we have
   t = argc-2;
@@ -38,6 +56,11 @@ int main(int argc, char **argv)
   input[0] = irtkImage::New(argv[1]);
   ipt0_at = input[0]->GetImageAttributes();
 
+  if (ipt0_at._t > 1) {
+    cerr << "Input images may not be four-dimensional" << endl;
+    exit(1);
+  }
+
   // Read remaining images
   for (i = 1; i < t; i++) {
 
@@ -45,15 +68,21 @@ int main(int argc, char **argv)
     input[i] = irtkImage::New(argv[i+1]);
 
     iptI_at = input[i]->GetImageAttributes();
-    if ((ipt0_at._x!=iptI_at._x)||(ipt0_at._y!=iptI_at._y)||(ipt0_at._z!=iptI_at._z)||(ipt0_at._t!=iptI_at._t)) {
+    if (iptI_at._t > 1) {
+      cerr << "Input images may not be four-dimensional" << endl;
+      exit(1);
+    }
+    if ((ipt0_at._x!=iptI_at._x)||(ipt0_at._y!=iptI_at._y)||(ipt0_at._z!=iptI_at._z)) {
       cerr << "Mismatch of volume geometry" << endl;
       exit(1);
     }
   }
 
-  irtkImageAttributes OutputSeqAttributes = input[0]->GetImageAttributes();
-  OutputSeqAttributes._t=t;
-  irtkImage *output = NULL;
+  irtkImage          *output              = NULL;
+  irtkImageAttributes OutputSeqAttributes = ipt0_at;
+  OutputSeqAttributes._t       = t;
+  OutputSeqAttributes._dt      = dt;
+  OutputSeqAttributes._torigin = torigin;
 
   // Convert image
   switch (input[0]->GetScalarType()) {
