@@ -91,16 +91,16 @@ public:
   // Access functions for voxel dimensions
   //
 
-  /// Returns the number of voxels in the x-direction
+  /// Returns the size of a voxel in the x-direction
   virtual double GetXSize() const;
 
-  /// Returns the number of voxels in the y-direction
+  /// Returns the size of a voxel in the y-direction
   virtual double GetYSize() const;
 
-  /// Returns the number of voxels in the z-direction
+  /// Returns the size of a voxel in the z-direction
   virtual double GetZSize() const;
 
-  /// Returns the number of voxels in the t-direction
+  /// Returns the size of a voxel in the t-direction
   virtual double GetTSize() const;
 
   /// Voxel dimensions get access
@@ -155,8 +155,14 @@ public:
   virtual void WorldToImage(double &, double &, double &) const;
 
   /// Return transformation matrix for image to world coordinates
+  static irtkMatrix GetImageToWorldMatrix(const irtkImageAttributes &);
+  
+  /// Return transformation matrix for image to world coordinates
   virtual irtkMatrix GetImageToWorldMatrix() const;
 
+  /// Return transformation matrix for image to world coordinates
+  static irtkMatrix GetWorldToImageMatrix(const irtkImageAttributes &);
+  
   /// Return transformation matrix for world to image coordinates
   virtual irtkMatrix GetWorldToImageMatrix() const;
 

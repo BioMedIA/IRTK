@@ -72,77 +72,80 @@ irtkBaseImage *irtkBaseImage::New(const irtkBaseImage *image)
   }
 }
 
+irtkMatrix irtkBaseImage::GetImageToWorldMatrix(const irtkImageAttributes & attr)
+{
+  irtkMatrix translate1(4, 4);
+  translate1(0, 3) = - (attr._x - 1) / 2.0;
+  translate1(1, 3) = - (attr._y - 1) / 2.0;
+  translate1(2, 3) = - (attr._z - 1) / 2.0;
+  translate1(3, 3) = 1.0;
+  
+  irtkMatrix scale(4, 4);
+  scale(0, 0) = attr._dx;
+  scale(1, 1) = attr._dy;
+  scale(2, 2) = attr._dz;
+  scale(3, 3) = 1.0;
+  
+  irtkMatrix rot(4, 4);
+  rot(0, 0) = attr._xaxis[0];
+  rot(1, 0) = attr._xaxis[1];
+  rot(2, 0) = attr._xaxis[2];
+  rot(0, 1) = attr._yaxis[0];
+  rot(1, 1) = attr._yaxis[1];
+  rot(2, 1) = attr._yaxis[2];
+  rot(0, 2) = attr._zaxis[0];
+  rot(1, 2) = attr._zaxis[1];
+  rot(2, 2) = attr._zaxis[2];
+  rot(3, 3) = 1;
+  
+  irtkMatrix translate2(4, 4);
+  translate2(0, 3) = attr._xorigin;
+  translate2(1, 3) = attr._yorigin;
+  translate2(2, 3) = attr._zorigin;
+  translate2(3, 3) = 1.0;
+  
+  return translate2 * (rot * (scale * translate1));
+}
+
+irtkMatrix irtkBaseImage::GetWorldToImageMatrix(const irtkImageAttributes & attr)
+{
+  irtkMatrix translate1(4, 4);
+  translate1(0, 3) = - attr._xorigin;
+  translate1(1, 3) = - attr._yorigin;
+  translate1(2, 3) = - attr._zorigin;
+  translate1(3, 3) = 1.0;
+  
+  irtkMatrix rot(4, 4);
+  rot(0, 0) = attr._xaxis[0];
+  rot(0, 1) = attr._xaxis[1];
+  rot(0, 2) = attr._xaxis[2];
+  rot(1, 0) = attr._yaxis[0];
+  rot(1, 1) = attr._yaxis[1];
+  rot(1, 2) = attr._yaxis[2];
+  rot(2, 0) = attr._zaxis[0];
+  rot(2, 1) = attr._zaxis[1];
+  rot(2, 2) = attr._zaxis[2];
+  rot(3, 3) = 1.0;
+  
+  irtkMatrix scale(4, 4);
+  scale(0, 0) = 1.0 / attr._dx;
+  scale(1, 1) = 1.0 / attr._dy;
+  scale(2, 2) = 1.0 / attr._dz;
+  scale(3, 3) = 1.0;
+  
+  irtkMatrix translate2(4, 4);
+  translate2(0, 3) = (attr._x - 1) / 2.0;
+  translate2(1, 3) = (attr._y - 1) / 2.0;
+  translate2(2, 3) = (attr._z - 1) / 2.0;
+  translate2(3, 3) = 1.0;
+  
+  return translate2 * (scale * (rot * translate1));
+}
+
 void irtkBaseImage::UpdateMatrix()
 {
-  // Note that the update of zaxis is taken place in the
-  // Initialize routines, in case a specific zaxis is passed.
-
-  // Update image to world coordinate system matrix
-  _matI2W.Ident();
-  _matI2W(0, 0) = _attr._xaxis[0];
-  _matI2W(1, 0) = _attr._xaxis[1];
-  _matI2W(2, 0) = _attr._xaxis[2];
-  _matI2W(0, 1) = _attr._yaxis[0];
-  _matI2W(1, 1) = _attr._yaxis[1];
-  _matI2W(2, 1) = _attr._yaxis[2];
-  _matI2W(0, 2) = _attr._zaxis[0];
-  _matI2W(1, 2) = _attr._zaxis[1];
-  _matI2W(2, 2) = _attr._zaxis[2];
-
-  irtkMatrix tmp1(4, 4);
-  tmp1.Ident();
-  tmp1(0, 3) = - (_attr._x - 1) / 2.0;
-  tmp1(1, 3) = - (_attr._y - 1) / 2.0;
-  tmp1(2, 3) = - (_attr._z - 1) / 2.0;
-
-  irtkMatrix tmp2(4, 4);
-  tmp2.Ident();
-  tmp2(0, 0) = _attr._dx;
-  tmp2(1, 1) = _attr._dy;
-  tmp2(2, 2) = _attr._dz;
-
-  irtkMatrix tmp3(4, 4);
-  tmp3.Ident();
-  tmp3(0, 3) = _attr._xorigin;
-  tmp3(1, 3) = _attr._yorigin;
-  tmp3(2, 3) = _attr._zorigin;
-
-  _matI2W = tmp3 * (_matI2W * (tmp2 * tmp1));
-
-  // Update world to image coordinate system matrix
-
-  // _matW2I is the inverse of the above matrix _matI2W but we can calculate
-  // it exactly because we know analytic expressions for the individual matrices
-  // that form its product.  For example, the rotation part inverse below is
-  // the transpose of the one above as they are orthogonal matrices.
-
-  _matW2I.Ident();
-  _matW2I(0, 0) = _attr._xaxis[0];
-  _matW2I(0, 1) = _attr._xaxis[1];
-  _matW2I(0, 2) = _attr._xaxis[2];
-  _matW2I(1, 0) = _attr._yaxis[0];
-  _matW2I(1, 1) = _attr._yaxis[1];
-  _matW2I(1, 2) = _attr._yaxis[2];
-  _matW2I(2, 0) = _attr._zaxis[0];
-  _matW2I(2, 1) = _attr._zaxis[1];
-  _matW2I(2, 2) = _attr._zaxis[2];
-
-  tmp1.Ident();
-  tmp1(0, 3) = (_attr._x - 1) / 2.0;
-  tmp1(1, 3) = (_attr._y - 1) / 2.0;
-  tmp1(2, 3) = (_attr._z - 1) / 2.0;
-
-  tmp2.Ident();
-  tmp2(0, 0) = 1.0 / _attr._dx;
-  tmp2(1, 1) = 1.0 / _attr._dy;
-  tmp2(2, 2) = 1.0 / _attr._dz;
-
-  tmp3.Ident();
-  tmp3(0, 3) = - _attr._xorigin;
-  tmp3(1, 3) = - _attr._yorigin;
-  tmp3(2, 3) = - _attr._zorigin;
-
-  _matW2I = tmp1 * (tmp2 * (_matW2I * tmp3));
+  _matI2W = GetImageToWorldMatrix(_attr);
+  _matW2I = GetWorldToImageMatrix(_attr);
 }
 
 void irtkBaseImage::Update(const irtkImageAttributes &attr)
