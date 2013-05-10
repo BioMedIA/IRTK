@@ -184,6 +184,9 @@ public:
   irtkBSplineFreeFormTransformation3D(irtkBaseImage &, double, double, double);
 
   /// Constructor
+  irtkBSplineFreeFormTransformation3D(irtkImageAttributes &, double, double, double);
+
+  /// Constructor
   irtkBSplineFreeFormTransformation3D(irtkGenericImage<double> &);
 
   /// Constructor

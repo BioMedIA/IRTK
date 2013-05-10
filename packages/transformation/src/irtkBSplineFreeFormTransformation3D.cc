@@ -173,123 +173,209 @@ irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkGen
 	}
 }
 
+irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkImageAttributes &attr, double dx, double dy, double dz)
+{
+    irtkMatrix matI2W = irtkBaseImage::GetImageToWorldMatrix(attr);
+    irtkMatrix matW2I = irtkBaseImage::GetWorldToImageMatrix(attr);
+
+    // Figure out FOV
+    double x1 = matI2W(0, 3);
+    double y1 = matI2W(1, 3);
+    double z1 = matI2W(2, 3);
+    double x2 = matI2W(0, 0)*(attr._x-1)+matI2W(0, 1)*(attr._y-1)+matI2W(0, 2)*(attr._z-1)+matI2W(0, 3);
+    double y2 = matI2W(1, 0)*(attr._x-1)+matI2W(1, 1)*(attr._y-1)+matI2W(1, 2)*(attr._z-1)+matI2W(1, 3);
+    double z2 = matI2W(2, 0)*(attr._x-1)+matI2W(2, 1)*(attr._y-1)+matI2W(2, 2)*(attr._z-1)+matI2W(2, 3);
+
+    // Initialize control point domain
+    _origin._x = (x2 + x1) / 2.0;
+    _origin._y = (y2 + y1) / 2.0;
+    _origin._z = (z2 + z1) / 2.0;
+
+    // Initialize x-axis and y-axis
+    _xaxis[0] = attr._xaxis[0];
+    _xaxis[1] = attr._xaxis[1];
+    _xaxis[2] = attr._xaxis[2];
+    _yaxis[0] = attr._yaxis[0];
+    _yaxis[1] = attr._yaxis[1];
+    _yaxis[2] = attr._yaxis[2];
+    _zaxis[0] = attr._zaxis[0];
+    _zaxis[1] = attr._zaxis[1];
+    _zaxis[2] = attr._zaxis[2];
+
+    double a, b, c;
+
+    a = x1 * _xaxis[0] + y1 * _xaxis[1] + z1 * _xaxis[2];
+    b = x1 * _yaxis[0] + y1 * _yaxis[1] + z1 * _yaxis[2];
+    c = x1 * _zaxis[0] + y1 * _zaxis[1] + z1 * _zaxis[2];
+    x1 = a;
+    y1 = b;
+    z1 = c;
+    a = x2 * _xaxis[0] + y2 * _xaxis[1] + z2 * _xaxis[2];
+    b = x2 * _yaxis[0] + y2 * _yaxis[1] + z2 * _yaxis[2];
+    c = x2 * _zaxis[0] + y2 * _zaxis[1] + z2 * _zaxis[2];
+    x2 = a;
+    y2 = b;
+    z2 = c;
+
+    // Initialize control point dimensions
+    _x = round((x2 - x1) / dx) + 1;
+    _y = round((y2 - y1) / dy) + 1;
+    _z = round((z2 - z1) / dz) + 1;
+
+    // Initialize control point spacing
+    _dx = (x2 - x1) / (_x - 1);
+    _dy = (y2 - y1) / (_y - 1);
+    _dz = _z > 1 ? (z2 - z1) / (_z - 1) : dz;
+
+    // Initialize transformation matrix
+    _matL2W = irtkMatrix(4, 4);
+    _matW2L = irtkMatrix(4, 4);
+
+    // Update transformation matrix
+    this->UpdateMatrix();
+
+    // Initialize memory for control point values
+    _data = this->Allocate(_data, _x, _y, _z);
+
+    // Initialize memory for control point status
+    _status = new _Status[3*_x*_y*_z];
+    for (int i = 0; i < 3*_x*_y*_z; i++) {
+      _status[i] = _Active;
+    }
+
+    // Initialize lookup table
+    for (int i = 0; i < FFDLOOKUPTABLESIZE; i++) {
+        this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
+        this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
+        this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
+        this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
+        this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
+        this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
+        this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
+        this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
+        this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
+        this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
+        this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
+        this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
+    }
+}
+
 irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(irtkBaseImage &image, double dx, double dy, double dz)
 {
-	int i;
-	double x1, y1, z1, x2, y2, z2;
+    int i;
+    double x1, y1, z1, x2, y2, z2;
 
-	// Figure out FOV
-	x1 = 0;
-	y1 = 0;
-	z1 = 0;
-	x2 = image.GetX()-1;
-	y2 = image.GetY()-1;
-	z2 = image.GetZ()-1;
-	image.ImageToWorld(x1, y1, z1);
-	image.ImageToWorld(x2, y2, z2);
+    // Figure out FOV
+    x1 = 0;
+    y1 = 0;
+    z1 = 0;
+    x2 = image.GetX()-1;
+    y2 = image.GetY()-1;
+    z2 = image.GetZ()-1;
+    image.ImageToWorld(x1, y1, z1);
+    image.ImageToWorld(x2, y2, z2);
 
-	// Initialize control point domain
-	_origin._x = (x2 + x1) / 2.0;
-	_origin._y = (y2 + y1) / 2.0;
-	_origin._z = (z2 + z1) / 2.0;
+    // Initialize control point domain
+    _origin._x = (x2 + x1) / 2.0;
+    _origin._y = (y2 + y1) / 2.0;
+    _origin._z = (z2 + z1) / 2.0;
 
-	// Initialize x-axis and y-axis
-	image.GetOrientation(_xaxis, _yaxis, _zaxis);
+    // Initialize x-axis and y-axis
+    image.GetOrientation(_xaxis, _yaxis, _zaxis);
 
-	double a = x1 * _xaxis[0] + y1 * _xaxis[1] + z1 * _xaxis[2];
-	double b = x1 * _yaxis[0] + y1 * _yaxis[1] + z1 * _yaxis[2];
-	double c = x1 * _zaxis[0] + y1 * _zaxis[1] + z1 * _zaxis[2];
-	x1 = a;
-	y1 = b;
-	z1 = c;
-	a = x2 * _xaxis[0] + y2 * _xaxis[1] + z2 * _xaxis[2];
-	b = x2 * _yaxis[0] + y2 * _yaxis[1] + z2 * _yaxis[2];
-	c = x2 * _zaxis[0] + y2 * _zaxis[1] + z2 * _zaxis[2];
-	x2 = a;
-	y2 = b;
-	z2 = c;
+    double a = x1 * _xaxis[0] + y1 * _xaxis[1] + z1 * _xaxis[2];
+    double b = x1 * _yaxis[0] + y1 * _yaxis[1] + z1 * _yaxis[2];
+    double c = x1 * _zaxis[0] + y1 * _zaxis[1] + z1 * _zaxis[2];
+    x1 = a;
+    y1 = b;
+    z1 = c;
+    a = x2 * _xaxis[0] + y2 * _xaxis[1] + z2 * _xaxis[2];
+    b = x2 * _yaxis[0] + y2 * _yaxis[1] + z2 * _yaxis[2];
+    c = x2 * _zaxis[0] + y2 * _zaxis[1] + z2 * _zaxis[2];
+    x2 = a;
+    y2 = b;
+    z2 = c;
 
-	// Initialize control point dimensions
-	_x = round((x2 - x1) / dx) + 1;
-	_y = round((y2 - y1) / dy) + 1;
-	_z = round((z2 - z1) / dz) + 1;
-	if (image.GetZ() > 1) {
-		// Check if spacing is too large in any direction
-		if (_x < 2) {
-			cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
-			exit(1);
-		}
-		if (_y < 2) {
-			cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
-			exit(1);
-		}
-		if (_z < 2) {
-			cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the z-direction too large" << endl;
-			exit(1);
-		}
-	} else {
-		// Check if spacing is too large in any direction
-		if (_x < 2) {
-			cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
-			exit(1);
-		}
-		if (_y < 2) {
-			cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
-			exit(1);
-		}
-		_z = 1;
-	}
+    // Initialize control point dimensions
+    _x = round((x2 - x1) / dx) + 1;
+    _y = round((y2 - y1) / dy) + 1;
+    _z = round((z2 - z1) / dz) + 1;
+    if (image.GetZ() > 1) {
+        // Check if spacing is too large in any direction
+        if (_x < 2) {
+            cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
+            exit(1);
+        }
+        if (_y < 2) {
+            cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
+            exit(1);
+        }
+        if (_z < 2) {
+            cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the z-direction too large" << endl;
+            exit(1);
+        }
+    } else {
+        // Check if spacing is too large in any direction
+        if (_x < 2) {
+            cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the x-direction too large" << endl;
+            exit(1);
+        }
+        if (_y < 2) {
+            cerr << "irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D: Requested control point spacing in the y-direction too large" << endl;
+            exit(1);
+        }
+        _z = 1;
+    }
 
-	// Initialize control point spacing
-	_dx = (x2 - x1) / (_x - 1);
-	_dy = (y2 - y1) / (_y - 1);
-	if (image.GetZ() > 1) {
-		_dz = (z2 - z1) / (_z - 1);
-	} else {
-		_dz = 1;
-	}
+    // Initialize control point spacing
+    _dx = (x2 - x1) / (_x - 1);
+    _dy = (y2 - y1) / (_y - 1);
+    if (_z > 1) {
+        _dz = (z2 - z1) / (_z - 1);
+    } else {
+        _dz = dz;
+    }
 
+    // Initialize transformation matrix
+    _matL2W = irtkMatrix(4, 4);
+    _matW2L = irtkMatrix(4, 4);
 
-	// Initialize transformation matrix
-	_matL2W = irtkMatrix(4, 4);
-	_matW2L = irtkMatrix(4, 4);
+    // Update transformation matrix
+    this->UpdateMatrix();
 
-	// Update transformation matrix
-	this->UpdateMatrix();
+    // Intialize memory for control point values
+    _data = this->Allocate(_data, _x, _y, _z);
 
-	// Intialize memory for control point values
-	_data = this->Allocate(_data, _x, _y, _z);
+    // Initialize memory for control point status
+    _status = new _Status[3*_x*_y*_z];
+    if (_z == 1) {
+        for (i = 0; i < 2*_x*_y*_z; i++) {
+            _status[i] = _Active;
+        }
+        for (i = 2*_x*_y*_z; i < 3*_x*_y*_z; i++) {
+            _status[i] = _Passive;
+        }
+    } else {
+        for (i = 0; i < 3*_x*_y*_z; i++) {
+            _status[i] = _Active;
+        }
+    }
 
-	// Initialize memory for control point status
-	_status = new _Status[3*_x*_y*_z];
-	if (_z == 1) {
-		for (i = 0; i < 2*_x*_y*_z; i++) {
-			_status[i] = _Active;
-		}
-		for (i = 2*_x*_y*_z; i < 3*_x*_y*_z; i++) {
-			_status[i] = _Passive;
-		}
-	} else {
-		for (i = 0; i < 3*_x*_y*_z; i++) {
-			_status[i] = _Active;
-		}
-	}
-
-	// Initialize lookup table
-	for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
-		this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
-		this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
-		this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
-		this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
-		this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
-		this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
-		this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
-		this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
-		this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
-		this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
-		this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
-		this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
-	}
+    // Initialize lookup table
+    for (i = 0; i < FFDLOOKUPTABLESIZE; i++) {
+        this->LookupTable[i][0]   = this->B0(i/LUTSIZE);
+        this->LookupTable[i][1]   = this->B1(i/LUTSIZE);
+        this->LookupTable[i][2]   = this->B2(i/LUTSIZE);
+        this->LookupTable[i][3]   = this->B3(i/LUTSIZE);
+        this->LookupTable_I[i][0] = this->B0_I(i/LUTSIZE);
+        this->LookupTable_I[i][1] = this->B1_I(i/LUTSIZE);
+        this->LookupTable_I[i][2] = this->B2_I(i/LUTSIZE);
+        this->LookupTable_I[i][3] = this->B3_I(i/LUTSIZE);
+        this->LookupTable_II[i][0] = this->B0_II(i/LUTSIZE);
+        this->LookupTable_II[i][1] = this->B1_II(i/LUTSIZE);
+        this->LookupTable_II[i][2] = this->B2_II(i/LUTSIZE);
+        this->LookupTable_II[i][3] = this->B3_II(i/LUTSIZE);
+    }
 }
 
 irtkBSplineFreeFormTransformation3D::irtkBSplineFreeFormTransformation3D(double x1, double y1, double z1, double x2, double y2, double z2, double dx, double dy, double dz, double* xaxis, double* yaxis, double* zaxis)
