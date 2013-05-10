@@ -14,7 +14,6 @@
 
 #define _IRTKQUATERNIONTRANSFORMATION_H
 
-#include <irtkTransformation.h>
 
 class irtkQuaternionTransformation : public irtkTransformation
 {
@@ -162,46 +161,27 @@ public:
   virtual void Put(int param, double val);
 
   /** Transforms a point. */
-  virtual void Transform(double& x, double& y, double& z);
+  virtual void Transform(double& x, double& y, double& z, double = 0);
 
   /// Transforms a point using the global transformation component only
-  virtual void GlobalTransform(double &, double &, double &);
+  virtual void GlobalTransform(double &, double &, double &, double = 0);
 
   /// Transforms a point using the local transformation component only
-  virtual void LocalTransform (double &, double &, double &);
-
-  /// Calculates displacement using the global transformation component only
-  virtual void GlobalDisplacement(double &, double &, double &);
-
-  /// Calculates displacement using the local transformation component only
-  virtual void LocalDisplacement(double &, double &, double &);
+  virtual void LocalTransform (double &, double &, double &, double = 0);
 
   /** Inverts the transformation. */
   virtual void Invert();
 
   /** Computes the Jacobian of the transformation at a point. */
-  virtual void Jacobian(double x, double y, double z, irtkMatrix& jac);
+  virtual void Jacobian(irtkMatrix &, double, double, double, double = 0);
 
-  /** Computes the determinant of the Jacobian at a point. */
-  virtual double Jacobian(double x, double y, double z);
+  /** Returns the local Jacobian of the transformation at a point. */
+  virtual void LocalJacobian(irtkMatrix &, double, double, double, double = 0);
 
-  /** Returns the local Jacobian of the transformation at a point.
-      \param x The x-coordinate of the point.
-      \param y The y-coordinate of the point.
-      \param z The z-coordinate of the point.
-      \param jac The matrix to return the Jacobian in. */
+  /** Returns the global Jacobian of the transformation at a point. */
+  virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
 
-  virtual void LocalJacobian(double x, double y, double z, irtkMatrix& jac);
-
-  /** Returns the global Jacobian of the transformation at a point.
-      \param x The x-coordinate of the point.
-      \param y The y-coordinate of the point.
-      \param z The z-coordinate of the point.
-      \param jac The matrix to return the Jacobian in. */
-  virtual void GlobalJacobian(double x, double y, double z, irtkMatrix& jac);
-
-  /** Returns true if the file passed to the function is an
-      irtkQuaternionTransformation. */
+  /** Returns true if the file passed to the function is an irtkQuaternionTransformation. */
   static int CheckHeader(char* pFileName);
 
   /** Returns true if the transformation is an identity transformation. */
@@ -403,24 +383,14 @@ inline int irtkQuaternionTransformation::NumberOfDOFs() const
   return NUMBER_OF_DOFS;
 }
 
-inline void irtkQuaternionTransformation::GlobalDisplacement(double &, double &, double &)
+inline void irtkQuaternionTransformation::GlobalTransform(double & x, double & y, double & z, double t)
 {
-  cerr << "irtkQuaternionTransformation::GlobalDisplacement: No implemented yet" << endl;
+  this->Transform(x, y, z, t);
 }
 
-inline void irtkQuaternionTransformation::LocalDisplacement(double &, double &, double &)
+inline void irtkQuaternionTransformation::LocalTransform(double &, double &, double &, double)
 {
-  cerr << "irtkQuaternionTransformation::LocalDisplacement: No implemented yet" << endl;
-}
-
-inline void irtkQuaternionTransformation::GlobalTransform(double &, double &, double &)
-{
-  cerr << "irtkQuaternionTransformation::GlobalTransform: No implemented yet" << endl;
-}
-
-inline void irtkQuaternionTransformation::LocalTransform(double &, double &, double &)
-{
-  cerr << "irtkQuaternionTransformation::LocalTransform: No implemented yet" << endl;
+  // no local transformation, only global
 }
 
 inline double irtkQuaternionTransformation::Get(int param) const
