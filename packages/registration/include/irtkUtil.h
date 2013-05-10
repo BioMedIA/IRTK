@@ -147,10 +147,10 @@ inline bool  irtkHistory::Find(const irtkTransformation *transformation,
 inline void irtkHistory::Print()
 {
   if (_no > 0) {
-    cout << "Cache has " << _no << " entries" << endl;
-    cout << "Cache statistics: " << 100 * _success / (_success + _failed)
+    std::cout << "Cache has " << _no << " entries" << std::endl;
+    std::cout << "Cache statistics: " << 100 * _success / (_success + _failed)
          << " % hits (" << _success << " out of " << (_success + _failed)
-         << ")" << endl;
+         << ")" << std::endl;
   }
 }
 
@@ -163,7 +163,7 @@ extern int  irtkCalculateNumberOfBins(irtkGreyImage *, int, int, int);
 extern double GuessResolution(double, double);
 extern double GuessResolution(double, double, double);
 extern int GuessPadding(irtkGreyImage &);
-extern int read_line(istream &, char *, char *&);
+extern int read_line(std::istream &, char *, char *&);
 
 
 #ifdef HAS_VTK
