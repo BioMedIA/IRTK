@@ -11,7 +11,7 @@
 =========================================================================*/
 
 #include <irtkQuaternion.h>
-
+#include <irtkTransformation.h>
 #include <irtkQuaternionTransformation.h>
 
 const unsigned int MAX_BUFFER_LENGTH = 1024;
@@ -205,7 +205,7 @@ void irtkQuaternionTransformation::ResetOrigin()
   UpdateMatrix();
 }
 
-void irtkQuaternionTransformation::Transform(double& x, double& y, double& z)
+void irtkQuaternionTransformation::Transform(double& x, double& y, double& z, double)
 {
   double nx, ny, nz;
 
@@ -280,30 +280,24 @@ void irtkQuaternionTransformation::Invert()
   _matrix = trans1i*rotMatrix3*rotMatrix2*rotMatrix1*trans2i;
 }
 
-void irtkQuaternionTransformation::Jacobian(double, double, double , irtkMatrix& jac)
+void irtkQuaternionTransformation::Jacobian(irtkMatrix & jac, double x, double y, double z, double t)
+{
+  this->GlobalJacobian(jac, x, y, z, t);
+}
+
+void irtkQuaternionTransformation::LocalJacobian(irtkMatrix & jac, double, double, double, double)
 {
   jac.Initialize(3, 3);
+  for(int i = 0; i < 3; i++) jac(i, i) = 1;
+}
 
+void irtkQuaternionTransformation::GlobalJacobian(irtkMatrix & jac, double, double, double, double)
+{
+  jac.Initialize(3, 3);
+  
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
       jac(i, j) = _matrix(i, j);
-}
-
-double irtkQuaternionTransformation::Jacobian(double, double, double)
-{
-  return (_matrix(0, 0)*(_matrix(1, 1)*_matrix(2, 2) - _matrix(1, 2)*_matrix(2, 1)) - _matrix(0, 1)*(_matrix(1, 0)*_matrix(2, 2) - _matrix(1, 2)*_matrix(2, 0)) + _matrix(0, 2)*(_matrix(1, 0)*_matrix(2, 1) - _matrix(1, 1)*_matrix(2, 0)));
-}
-
-void irtkQuaternionTransformation::LocalJacobian(double, double, double, irtkMatrix&)
-{
-  cerr << "irtkQuaternionTransformation::LocalJacobian: Not implemented yet" << endl;
-  exit(1);
-}
-
-void irtkQuaternionTransformation::GlobalJacobian(double, double, double, irtkMatrix&)
-{
-  cerr << "irtkQuaternionTransformation::GlobalJacobian: Not implemented yet" << endl;
-  exit(1);
 }
 
 bool irtkQuaternionTransformation::IsIdentity()

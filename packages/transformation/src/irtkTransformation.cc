@@ -12,8 +12,6 @@
 
 #include <irtkTransformation.h>
 
-#include <irtkFluidFreeFormTransformation.h>
-
 #ifdef HAS_SUBDIVISION
 #include <irtkLatticeFreeFormTransformation.h>
 #include <irtkMultiFrameLatticeFreeFormTransformation.h>
@@ -177,7 +175,7 @@ irtkTransformation *irtkTransformation::New(char *name)
   }
 }
 
-void irtkTransformation::Displacement(irtkGenericImage<double> &image)
+void irtkTransformation::Displacement(irtkGenericImage<double> &image, double t)
 {
 	int i, j, k;
 	double x, y, z;
@@ -192,7 +190,7 @@ void irtkTransformation::Displacement(irtkGenericImage<double> &image)
         // Transform point into world coordinates
         image.ImageToWorld(x, y, z);
         // Calculate displacement
-        this->Displacement(x, y, z);
+        this->Displacement(x, y, z, t);
         // Store displacement
         image(i, j, k, 0) = x;
         image(i, j, k, 1) = y;
