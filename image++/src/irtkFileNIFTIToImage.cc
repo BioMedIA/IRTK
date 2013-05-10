@@ -295,9 +295,14 @@ void irtkFileNIFTIToImage::ReadHeader()
   R = D * M * D_inv;
 
   // Set image origin by adding q/sform offset to third column of R:
-  this->_attr._xorigin  = R(0, 3) + mat_44.m[0][3];
-  this->_attr._yorigin  = R(1, 3) + mat_44.m[1][3];
-  this->_attr._zorigin  = R(2, 3) + mat_44.m[2][3];
+  this->_attr._xorigin = R(0, 3) + mat_44.m[0][3];
+  this->_attr._yorigin = R(1, 3) + mat_44.m[1][3];
+  this->_attr._zorigin = R(2, 3) + mat_44.m[2][3];
+
+  // Set temporal origin (in ms)
+  this->_attr._torigin = hdr.nim->toffset;
+  if      (hdr.nim->time_units == NIFTI_UNITS_SEC)  this->_attr._torigin *= 1.0e3;
+  else if (hdr.nim->time_units == NIFTI_UNITS_USEC) this->_attr._torigin /= 1.0e3;
 
   // Set data type and number of bytes per voxels
   switch (hdr.nim->datatype) {

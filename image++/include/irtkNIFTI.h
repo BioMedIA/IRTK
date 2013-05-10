@@ -45,7 +45,7 @@ public:
   void Read(const char *);
 
   // Initialize header with minimal set of fields and orientation info.
-  void Initialize(int, int, int, int, double, double, double, double, int, irtkMatrix &i2w);
+  void Initialize(int, int, int, int, double, double, double, double, int, irtkMatrix &i2w, double torigin = 0);
 
   /// Print header (for debugging purposes)
   void Print();
@@ -84,7 +84,7 @@ inline void irtkNIFTIHeader::Read(const char *filename)
 inline void irtkNIFTIHeader::Initialize(int x, int y, int z, int t,
                                         double xsize, double ysize, double zsize, double tsize,
                                         int datatype,
-                                        irtkMatrix &i2w)
+                                        irtkMatrix &i2w, double torigin)
 {
   int nbytepix = 0, ss = 0;
   int i, j;
@@ -146,8 +146,8 @@ inline void irtkNIFTIHeader::Initialize(int x, int y, int z, int t,
 
   // Set the units to mm and seconds
   nim->xyz_units  = NIFTI_UNITS_MM;
-  nim->time_units = NIFTI_UNITS_SEC;
-  nim->toffset = 0;
+  nim->time_units = NIFTI_UNITS_MSEC;
+  nim->toffset    = torigin;
 
   // Other stuff I could think of:
   nim->scl_slope = 1;

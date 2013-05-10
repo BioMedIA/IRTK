@@ -35,16 +35,16 @@ public:
   /// Voxel t-dimensions (in ms)
   double _dt;
 
-  /// Image x-origin
+  /// Image x-origin (in mm)
   double _xorigin;
 
-  /// Image y-origin
+  /// Image y-origin (in mm)
   double _yorigin;
   
-  /// Image z-origin
+  /// Image z-origin (in mm)
   double _zorigin;
 
-  /// Image origin (temporal)
+  /// Image t-origin (in ms)
   double _torigin;
 
   /// Direction of x-axis

@@ -65,59 +65,56 @@ void irtkImageToFileNIFTI::Finalize()
 
 void irtkImageToFileNIFTI::Initialize()
 {
-	int x, y, z, t;
-	double xsize, ysize, zsize, tsize;
-	irtkMatrix i2w;
+  int x, y, z, t;
+  double xsize, ysize, zsize, tsize;
+  irtkMatrix i2w;
+  double torigin;
 
-	// Get image info
-	x = this->_input->GetX();
-	y = this->_input->GetY();
-	z = this->_input->GetZ();
-	t = this->_input->GetT();
+  // Get image info
+  x = this->_input->GetX();
+  y = this->_input->GetY();
+  z = this->_input->GetZ();
+  t = this->_input->GetT();
 
-	this->_input->GetPixelSize(&xsize, &ysize, &zsize, &tsize);
+  this->_input->GetPixelSize(&xsize, &ysize, &zsize, &tsize);
 
-	i2w = this->_input->GetImageToWorldMatrix();
+  i2w = this->_input->GetImageToWorldMatrix();
+  torigin = this->_input->ImageToTime(0);
 
-	// Init header
-	switch (this->_input->GetScalarType()) {
-		case IRTK_VOXEL_CHAR: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT8, i2w);
-			break;
-		}
-		case IRTK_VOXEL_UNSIGNED_CHAR: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT8, i2w);
-			break;
-		}
-		case IRTK_VOXEL_SHORT: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT16, i2w);
-			break;
-		}
-		case IRTK_VOXEL_UNSIGNED_SHORT: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT16, i2w);
-			break;
-		}
-		case IRTK_VOXEL_INT: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT32, i2w);
-			break;
-		}
-		case IRTK_VOXEL_UNSIGNED_INT: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT32, i2w);
-			break;
-		}
-		case IRTK_VOXEL_FLOAT: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT32, i2w);
-			break;
-		}
-		case IRTK_VOXEL_DOUBLE: {
-			_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT64, i2w);
-			break;
-		}
-		default:
-		cerr << "irtkImageToFileNIFTI::Run(): Unknown voxel type" << endl;
-		exit(1);
-	}
-
+  // Init header
+  switch (this->_input->GetScalarType()) {
+    case IRTK_VOXEL_UNSIGNED_CHAR: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT8, i2w, torigin);
+        break;
+      }
+    case IRTK_VOXEL_SHORT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT16, i2w, torigin);
+        break;
+      }
+    case IRTK_VOXEL_UNSIGNED_SHORT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT16, i2w, torigin);
+        break;
+      }
+    case IRTK_VOXEL_INT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT32, i2w, torigin);
+        break;
+      }
+    case IRTK_VOXEL_UNSIGNED_INT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT32, i2w, torigin);
+        break;
+      }
+    case IRTK_VOXEL_FLOAT: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT32, i2w, torigin);
+        break;
+      }
+    case IRTK_VOXEL_DOUBLE: {
+        _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_FLOAT64, i2w, torigin);
+        break;
+      }
+    default:
+      cerr << "irtkImageToFileNIFTI::Run(): Unknown voxel type" << endl;
+      exit(1);
+  }
 }
 
 void irtkImageToFileNIFTI::Run()
