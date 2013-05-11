@@ -75,10 +75,10 @@ irtkBaseImage *irtkBaseImage::New(const irtkBaseImage *image)
 irtkMatrix irtkBaseImage::GetImageToWorldMatrix(const irtkImageAttributes & attr)
 {
   irtkMatrix translate1(4, 4);
+  translate1.Ident();
   translate1(0, 3) = - (attr._x - 1) / 2.0;
   translate1(1, 3) = - (attr._y - 1) / 2.0;
   translate1(2, 3) = - (attr._z - 1) / 2.0;
-  translate1(3, 3) = 1.0;
   
   irtkMatrix scale(4, 4);
   scale(0, 0) = attr._dx;
@@ -97,12 +97,12 @@ irtkMatrix irtkBaseImage::GetImageToWorldMatrix(const irtkImageAttributes & attr
   rot(1, 2) = attr._zaxis[1];
   rot(2, 2) = attr._zaxis[2];
   rot(3, 3) = 1;
-  
+
   irtkMatrix translate2(4, 4);
+  translate2.Ident();
   translate2(0, 3) = attr._xorigin;
   translate2(1, 3) = attr._yorigin;
   translate2(2, 3) = attr._zorigin;
-  translate2(3, 3) = 1.0;
   
   return translate2 * (rot * (scale * translate1));
 }
@@ -110,10 +110,10 @@ irtkMatrix irtkBaseImage::GetImageToWorldMatrix(const irtkImageAttributes & attr
 irtkMatrix irtkBaseImage::GetWorldToImageMatrix(const irtkImageAttributes & attr)
 {
   irtkMatrix translate1(4, 4);
+  translate1.Ident();
   translate1(0, 3) = - attr._xorigin;
   translate1(1, 3) = - attr._yorigin;
   translate1(2, 3) = - attr._zorigin;
-  translate1(3, 3) = 1.0;
   
   irtkMatrix rot(4, 4);
   rot(0, 0) = attr._xaxis[0];
@@ -134,10 +134,10 @@ irtkMatrix irtkBaseImage::GetWorldToImageMatrix(const irtkImageAttributes & attr
   scale(3, 3) = 1.0;
   
   irtkMatrix translate2(4, 4);
+  translate2.Ident();
   translate2(0, 3) = (attr._x - 1) / 2.0;
   translate2(1, 3) = (attr._y - 1) / 2.0;
   translate2(2, 3) = (attr._z - 1) / 2.0;
-  translate2(3, 3) = 1.0;
   
   return translate2 * (scale * (rot * translate1));
 }
