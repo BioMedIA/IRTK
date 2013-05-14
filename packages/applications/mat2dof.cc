@@ -10,9 +10,9 @@
 
 =========================================================================*/
 
-#define POINT_SCALING 100
 
-#include <irtkRegistration.h>
+#include <irtkImage.h>
+#include <irtkTransformation.h>
 
 char *mat_name = NULL;
 char *dof_name = NULL;
@@ -28,8 +28,6 @@ int main(int argc, char **argv)
   int ok, affine, import, invert;
 
   irtkMatrix matrix;
-  //irtkTransformation *transformation = NULL;
-  //irtkPointRegistration *registration = NULL;
 
   // Check arguments
   if (argc < 3) usage();
@@ -44,7 +42,7 @@ int main(int argc, char **argv)
 
   // Default
   invert = false;
-  affine = false;
+  affine = true;
   import = false;
   while (argc > 1) {
     ok = false;
@@ -109,66 +107,4 @@ int main(int argc, char **argv)
 	  transformation.Print();
   }
 
-  /*// Create homogeneous transformation from matrix
-  irtkHomogeneousTransformation mattrans;
-  mattrans.PutMatrix(matrix);
-
-  // Create pointsets for registration
-  irtkPointSet pset1;
-  irtkPointSet pset2;
-  for (x = -1; x <= 1; x += 2) {
-    for (y = -1; y <= 1; y += 2) {
-      for (z = -1; z <= 1; z += 2) {
-        pset1.Add(irtkPoint(POINT_SCALING * x, POINT_SCALING * y, POINT_SCALING * z));
-        pset2.Add(irtkPoint(POINT_SCALING * x, POINT_SCALING * y, POINT_SCALING * z));
-      }
-    }
-  }
-
-  // Transform point set
-  mattrans.irtkTransformation::Transform(pset1);
-
-  if (affine != true) {
-    // Create transformation;
-    transformation = new irtkRigidTransformation;
-    // Create registration
-    registration = new irtkPointRigidRegistration;
-    // Setup registration
-    irtkPointSet tmp1 = pset1;
-    irtkPointSet tmp2 = pset2;
-    registration->SetInput(&tmp1, &tmp2);
-    registration->SetOutput(transformation);
-    registration->Run();
-  } else {
-    // Create transformation
-    transformation = new irtkAffineTransformation;
-    // Create registration
-    registration = new irtkPointAffineRegistration;
-    // Setup registration
-    irtkPointSet tmp1 = pset1;
-    irtkPointSet tmp2 = pset2;
-    registration->SetInput(&tmp1, &tmp2);
-    registration->SetOutput(transformation);
-    registration->Run();
-  }
-
-  // Calculate residual error
-  transformation->irtkTransformation::Transform(pset2);
-
-  error = 0;
-  for (i = 0; i < pset1.Size(); i++) {
-    irtkPoint p1 = pset1(i);
-    irtkPoint p2 = pset2(i);
-    error += sqrt(pow(double(p1._x - p2._x), 2.0) +
-                  pow(double(p1._y - p2._y), 2.0) +
-                  pow(double(p1._z - p2._z), 2.0));
-  }
-  error /= pset1.Size();
-  if (error > 0.1) {
-    cout << "RMS is " << error/pset1.Size() << " mm" << endl;
-  }*/
-
-  // Write transformation
-  //transformation->Write(dof_name);
-  //transformation->Print();
 }
