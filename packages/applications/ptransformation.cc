@@ -39,7 +39,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int ok, invert,sourceon,targeton, pnumber;
+  int ok, invert,sourceGiven,targetGiven, noOfPointsToTransform;
   irtkPointSet output, input;
   irtkTransformation *transformation;
   irtkGreyImage target,source;
@@ -48,7 +48,9 @@ int main(int argc, char **argv)
   if (argc < 3) {
     usage();
   }
-  pnumber = 0;
+
+  // Setting this to zero actually defaults to transforming all the points in the input file.
+  noOfPointsToTransform = 0;
 
 
   // Parse input and output point lists
@@ -61,8 +63,8 @@ int main(int argc, char **argv)
 
   // Default parameters
   invert = false;
-  targeton = false;
-  sourceon = false;
+  targetGiven = false;
+  sourceGiven = false;
 
   // Parse arguments
   while (argc > 1) {
@@ -85,7 +87,7 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       ok = true;
-	  sourceon = true;
+	  sourceGiven = true;
 	  source.Read(argv[1]);
 	  argc--;
       argv++;
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
 	if ((ok == false) && (strcmp(argv[1], "-target") == 0)) {
 		argc--;
 		argv++;
-		targeton = true;
+		targetGiven = true;
 		target.Read(argv[1]);
 		ok = true;
 		argc--;
@@ -102,7 +104,7 @@ int main(int argc, char **argv)
 	if ((ok == false) && (strcmp(argv[1], "-partial") == 0)) {
 		argc--;
 		argv++;
-		pnumber = atoi(argv[1]);
+		noOfPointsToTransform = atoi(argv[1]);
 		ok = true;
 		argc--;
 		argv++;
@@ -128,22 +130,26 @@ int main(int argc, char **argv)
 
   vtkPolyData* surface = reader->GetOutput();
   vtkPoints*   points  = surface->GetPoints();
+  double p[3];
 
   for (int i=0; i < points->GetNumberOfPoints(); i++) {
-    double p[3];
+
     points->GetPoint(i,p);
-	if(sourceon&&targeton){
-		target.WorldToImage(p[0],p[1],p[2]);
-		//p[1] = target.GetY() - p[1];
-		source.ImageToWorld(p[0],p[1],p[2]);
-	}
-	if(i<pnumber || pnumber == 0){
-		if (invert == false) {
-			transformation->Transform(p[0],p[1],p[2]);
-		} else {
-			transformation->Inverse(p[0],p[1],p[2]);
-		}
-	}
+
+    if(sourceGiven && targetGiven){
+      target.WorldToImage(p[0],p[1],p[2]);
+      source.ImageToWorld(p[0],p[1],p[2]);
+    }
+
+    if(i < noOfPointsToTransform || noOfPointsToTransform == 0){
+
+      if (invert == false) {
+        transformation->Transform(p[0],p[1],p[2]);
+      } else {
+        transformation->Inverse(p[0],p[1],p[2]);
+      }
+    }
+
     points->SetPoint(i,p);
   }
 
