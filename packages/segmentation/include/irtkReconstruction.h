@@ -21,7 +21,6 @@
 #include <vector>
 using namespace std;
 
-
 /*
 
 Reconstruction of volume from 2D slices
@@ -175,6 +174,10 @@ public:
   void StackRegistrations(vector<irtkRealImage>& stacks, vector<irtkRigidTransformation>& stack_transformations, int templateNumber);
   ///Create slices from the stacks and slice-dependent transformations from stack transformations
   void CreateSlicesAndTransformations(vector<irtkRealImage>& stacks, vector<irtkRigidTransformation>& stack_transformations, vector<double>& thickness);
+  void SetSlicesAndTransformations( vector<irtkRealImage>& slices,
+                                    vector<irtkRigidTransformation>& slice_transformations,
+                                    vector<int>& stack_ids,
+                                    vector<double>& thickness );
   ///Invert all stack transformation
   void InvertStackTransformations(vector<irtkRigidTransformation>& stack_transformations);
   ///Match stack intensities
@@ -221,6 +224,8 @@ public:
   void SaveWeights();
   ///Save transformations
   void SaveTransformations();
+  void GetTransformations( vector<irtkRigidTransformation> &transformations );
+  void SetTransformations( vector<irtkRigidTransformation> &transformations );
   ///Save confidence map
   void SaveConfidenceMap();
   ///Save confidence map
@@ -230,6 +235,7 @@ public:
   inline void SetSigma(double sigma);
   ///Return reconstructed volume
   inline irtkRealImage GetReconstructed();
+  void SetReconstructed(irtkRealImage &reconstructed);
   ///Return resampled mask
   inline irtkRealImage GetMask();
   ///Set smoothing parameters
@@ -280,7 +286,8 @@ public:
   void HalfImage(irtkRealImage image, vector<irtkRealImage>& stacks);
   ///Splits stacks into packages and each package into even and odd slices and top and bottom roi
   void SplitImageEvenOddHalf(irtkRealImage image, int packages, vector<irtkRealImage>& stacks, int iter = 1);
-  
+
+  friend class ParallelSliceToVolumeRegistration;
 };
 
 inline double irtkReconstruction::G(double x,double s)
@@ -362,6 +369,5 @@ inline void irtkReconstruction::SetForceExcludedSlices(vector<int>& force_exclud
 {
   _force_excluded = force_excluded;  
 }
-
 
 #endif
