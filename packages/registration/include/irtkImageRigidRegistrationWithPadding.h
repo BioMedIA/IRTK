@@ -69,7 +69,7 @@ inline void irtkImageRigidRegistrationWithPadding::SetOutput(irtkTransformation 
 
 inline const char *irtkImageRigidRegistrationWithPadding::NameOfClass()
 {
-  return "irtkImageRigidRegistration";
+  return "irtkImageRigidRegistrationWithPadding";
 }
 
 inline void irtkImageRigidRegistrationWithPadding::Print()

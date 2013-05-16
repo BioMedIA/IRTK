@@ -22,12 +22,6 @@ Changes   : $Author$
 
 #define HISTORY
 
-#ifdef HISTORY
-
-extern irtkHistory *history;
-
-#endif
-
 #ifdef HAS_TBB
 
 extern concurrent_queue<irtkSimilarityMetric *> sim_queue;

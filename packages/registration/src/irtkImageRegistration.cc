@@ -20,19 +20,11 @@
 
 #define HISTORY
 
-#ifdef HISTORY
-
-irtkHistory *history;
-
-#endif
-
 #ifdef HAS_TBB
 
 concurrent_queue<irtkSimilarityMetric *> sim_queue;
 
 #endif
-
-irtkGreyImage *tmp_target, *tmp_source;
 
 irtkImageRegistration::irtkImageRegistration()
 {

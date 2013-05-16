@@ -15,9 +15,6 @@
 // Used as temporary memory for transformed intensities
 irtkGreyImage *_tmpSourceImage, *_tmpTargetImage;
 
-// The original target and source images
-extern irtkGreyImage *tmp_target, *tmp_source;
-
 irtkSymmetricImageFreeFormRegistration::irtkSymmetricImageFreeFormRegistration()
 {
   // Print debugging information

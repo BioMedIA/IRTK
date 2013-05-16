@@ -48,6 +48,9 @@ protected:
    */
   irtkGenericImage<short> *_source;
 
+  irtkGenericImage<short> *tmp_target;
+  irtkGenericImage<short> *tmp_source;
+
   /** Current estimate of the source image transformed back into the target
    *  coordinate system. This is updated every time the Update function is
    *  called.

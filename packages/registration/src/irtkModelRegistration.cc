@@ -20,12 +20,6 @@
 
 #define HISTORY
 
-#ifdef HISTORY
-
-extern irtkHistory *history;
-
-#endif
-
 irtkGreyImage *tmp_image;
 
 #ifdef HAS_VTK

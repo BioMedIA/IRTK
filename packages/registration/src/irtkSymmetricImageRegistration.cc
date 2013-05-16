@@ -20,14 +20,6 @@
 
 //#define HISTORY
 
-#ifdef HISTORY
-
-extern irtkHistory *history;
-
-#endif
-
-extern irtkGreyImage *tmp_target, *tmp_source;
-
 irtkSymmetricImageRegistration::irtkSymmetricImageRegistration()
 {
   int i;

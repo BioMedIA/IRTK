@@ -51,6 +51,9 @@ protected:
    */
   irtkGreyImage *_source;
 
+  irtkGreyImage *tmp_target;
+  irtkGreyImage *tmp_source;
+
   /// Outputs
   irtkTransformation *_transformation1;
   irtkTransformation *_transformation2;

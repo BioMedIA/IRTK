@@ -18,12 +18,6 @@
 
 //#define HISTORY
 
-#ifdef HISTORY
-
-extern irtkHistory *history;
-
-#endif
-
 irtkSurfaceRegistration::irtkSurfaceRegistration ()
 {
   // Set inputs

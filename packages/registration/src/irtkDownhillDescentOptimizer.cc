@@ -14,12 +14,6 @@
 
 #define HISTORY
 
-#ifdef HISTORY
-
-extern irtkHistory *history;
-
-#endif
-
 double irtkDownhillDescentOptimizer::Run()
 {
   int i, j, k;
@@ -27,6 +21,7 @@ double irtkDownhillDescentOptimizer::Run()
 
   // Assume that the transformation is the optimal transformation
 #ifdef HISTORY
+  irtkHistory *history = _Registration->history;
   if (history->Find(_Transformation, similarity) == true) {
     old_similarity = new_similarity = similarity;
   } else {

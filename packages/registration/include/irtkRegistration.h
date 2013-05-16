@@ -53,6 +53,8 @@ class irtkRegistration : public irtkObject
 
 public:
 
+    irtkHistory *history;
+
   /// Evaluate similarity metric
   virtual double Evaluate() = 0;
 

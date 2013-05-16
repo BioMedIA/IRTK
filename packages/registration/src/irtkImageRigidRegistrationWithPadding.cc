@@ -321,9 +321,9 @@ void irtkImageRigidRegistrationWithPadding::Finalize()
 double irtkImageRigidRegistrationWithPadding::Evaluate()
 {
 
-#ifndef HAS_TBB
+//  #ifndef HAS_TBB
   int i, j, k, t;
-#endif
+//  #endif
 
   // Pointer to reference data
   irtkGreyPixel *ptr2target;
@@ -344,10 +344,10 @@ double irtkImageRigidRegistrationWithPadding::Evaluate()
   // Pointer to voxels in target image
   ptr2target = _target->GetPointerToVoxels();
 
-#ifdef HAS_TBB
-  irtkMultiThreadedImageRigidRegistrationWithPaddingEvaluate evaluate(this);
-  parallel_reduce(blocked_range<int>(0, _target->GetZ(), 20), evaluate);
-#else
+// #ifdef HAS_TBB
+//   irtkMultiThreadedImageRigidRegistrationWithPaddingEvaluate evaluate(this);
+//   parallel_reduce(blocked_range<int>(0, _target->GetZ(), 20), evaluate);
+// #else
 
   for (t = 0; t < _target->GetT(); t++) {
 
@@ -385,7 +385,7 @@ double irtkImageRigidRegistrationWithPadding::Evaluate()
     }
   }
 
-#endif
+//  #endif
 
 
   // Invert transformation

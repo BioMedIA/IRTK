@@ -15,9 +15,6 @@
 
 #define MAX_NO_LINE_ITERATIONS 20
 
-extern irtkGreyImage *tmp_target;
-irtkGreyImage **tmp_tsource;
-
 inline double GetBasisSplineValue(double x)
 {
 	x = fabs(x);
