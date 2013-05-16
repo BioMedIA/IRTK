@@ -97,30 +97,11 @@ extern double weightedmedian(int, double,double, float*, float*);
 #include <irtkAllocate.h>
 #include <irtkDeallocate.h>
 #include <irtkException.h>
+#include <irtkParallel.h>
 
 #ifdef HAS_VTK
-
-#include <vtkConfigure.h>
-
+#  include <vtkConfigure.h>
 #endif
 
-#ifdef HAS_TBB
-
-#include <tbb/task_scheduler_init.h>
-#include <tbb/blocked_range.h>
-#include <tbb/parallel_for.h>
-#include <tbb/parallel_reduce.h>
-#include <tbb/tick_count.h>
-#include <tbb/concurrent_queue.h>
-
-using namespace tbb;
-
-// Default: Debugging of TBB code
-extern int tbb_debug;
-
-// Default: Number of threads is determined automatically
-extern int tbb_no_threads;
-
-#endif
 
 #endif

@@ -4,6 +4,7 @@ SET(COMMON_INCLUDES
 ../include/irtkCofstream.h
 ../include/irtkObject.h
 ../include/irtkCommon.h
+../include/irtkParallel.h
 )
 
 SET(COMMON_SRCS 
@@ -14,6 +15,7 @@ irtkCifstream.cc
 irtkException.cc 
 irtkCofstream.cc 
 irtkObject.cc
+irtkParallel.cc
 read.cc 
 swap.cc
  weightedmedian.cc uncompress.cc)
