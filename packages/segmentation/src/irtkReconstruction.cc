@@ -125,10 +125,11 @@ irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,
 		cerr << "Please create the template before calculating the average of the stacks." << endl;
 		exit(1);
 	}
-	irtkRealImage average = _reconstructed;
-        irtkRealImage weights = _reconstructed;
-	ClearImage(average, 0);
-        ClearImage(weights, 0);
+	irtkRealImage average( _reconstructed.GetImageAttributes() );
+        average = 0;
+        irtkRealImage weights( _reconstructed.GetImageAttributes() );
+        weights = 0;
+        
 	//transform stack to the template space
 	irtkImageTransformation *imagetransformation = new irtkImageTransformation;
 	irtkImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
@@ -138,8 +139,7 @@ irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,
 		irtkRealImage s = stacks[i];
 		irtkRigidTransformation t = stack_transformations[i];
 		imagetransformation->SetInput(&s, &t);
-		irtkRealImage image = _reconstructed;
-		ClearImage(image, 0);
+		irtkRealImage image( _reconstructed.GetImageAttributes() );
 		imagetransformation->SetOutput(&image);
 		//target contains zeros and ones image, need padding -1
 		imagetransformation->PutTargetPaddingValue(-1);
@@ -230,7 +230,7 @@ void irtkReconstruction::SetMask(irtkRealImage * mask, double sigma)
 	else
 	{
 		//fill the mask with ones
-		ClearImage(_mask, 1);
+		_mask = 1;
 	}
 	//set flag that mask was created
 	_have_mask = true;
@@ -483,10 +483,10 @@ void irtkReconstruction::RestoreSliceIntensities()
   
   for (inputIndex=0;inputIndex<_slices.size();inputIndex++)
   {
-    //calculate scling factor
+    //calculate scaling factor
     factor = _stack_factor[_stack_index[inputIndex]];//_average_value;
     
-    // read the poiner to current slice
+    // read the pointer to current slice
     p=_slices[inputIndex].GetPointerToVoxels();
     for(i=0;i<_slices[inputIndex].GetNumberOfVoxels();i++)
     {
@@ -521,8 +521,8 @@ void irtkReconstruction::ScaleVolume()
     w = _weights[inputIndex];
 
     //Calculate simulated slice
-    sim = slice;
-    ClearImage(sim, 0);
+    sim.Initialize( slice.GetImageAttributes() );
+    sim = 0;
 
     for (i = 0; i < slice.GetX(); i++)
       for (j = 0; j < slice.GetY(); j++)
@@ -588,8 +588,8 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
     slice = _slices[inputIndex];
 
     //Calculate simulated slice
-    sim = slice;
-    ClearImage(sim, 0);
+    sim.Initialize( slice.GetImageAttributes() );
+    sim = 0;
 
     for (i = 0; i < slice.GetX(); i++)
       for (j = 0; j < slice.GetY(); j++)
@@ -757,12 +757,11 @@ void irtkReconstruction::InvertStackTransformations(
 {
 	//for each stack
 	for (unsigned int i = 0; i < stack_transformations.size(); i++)
-			{
-		//invert transformation for the stacks
-		irtkMatrix m = stack_transformations[i].GetMatrix();
-		m.Invert();
-		stack_transformations[i].PutMatrix(m);
-	}
+            {
+                //invert transformation for the stacks
+                stack_transformations[i].Invert();
+                stack_transformations[i].UpdateParameter();
+            }
 }
 
 void irtkReconstruction::CreateSlicesAndTransformations(vector<irtkRealImage>& stacks,
@@ -817,16 +816,6 @@ void irtkReconstruction::SetSlicesAndTransformations( vector<irtkRealImage>& sli
         //get slice transformation
         _transformations.push_back(slice_transformations[i]);
     }
-}
-
-void irtkReconstruction::ClearImage(irtkRealImage &image, double value)
-{
-	irtkRealPixel* ptr = image.GetPointerToVoxels();
-	for (int i = 0; i < image.GetNumberOfVoxels(); i++)
-			{
-		*ptr = value;
-		ptr++;
-	}
 }
 
 void irtkReconstruction::MaskSlices()
@@ -1023,8 +1012,8 @@ void irtkReconstruction::CoeffInit()
 	double res = vx;
 
 	//prepare image for volume weights, will be needed for Gaussian Reconstruction
-	_volume_weights = _reconstructed;
-	ClearImage(_volume_weights, 0);
+	_volume_weights.Initialize( _reconstructed.GetImageAttributes() );
+	_volume_weights = 0;
 
 	cout << "Initialising matrix coefficients...";
 	for (unsigned int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
@@ -1244,7 +1233,7 @@ void irtkReconstruction::CoeffInit()
 															slice_inside = true;
 														}
 													}
-								//if there were no voxels do noting
+								//if there were no voxels do nothing
 								if ((sum <= 0) || (!inside))
 									continue;
 								//now calculate the transformed PSF
@@ -1356,7 +1345,7 @@ void irtkReconstruction::GaussianReconstruction()
 	int slice_vox_num;
 
 	//clear _reconstructed image
-	ClearImage(_reconstructed, 0);
+	_reconstructed = 0;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
 	{
@@ -1401,11 +1390,8 @@ void irtkReconstruction::GaussianReconstruction()
 	}
 
 	//normalize the volume by proportion of contributing slice voxels for each volume voxel
-	for (i = 0; i < _reconstructed.GetX(); i++)
-		for (j = 0; j < _reconstructed.GetY(); j++)
-			for (k = 0; k < _reconstructed.GetZ(); k++)
-				if (_volume_weights(i, j, k) > 0)
-					_reconstructed(i, j, k) /= _volume_weights(i, j, k);
+        _reconstructed /= _volume_weights;
+        
 	cout << "done." << endl;
 
 	if (_debug)
@@ -1537,8 +1523,8 @@ void irtkReconstruction::InitializeRobustStatistics()
 	for (unsigned int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
 	{
 		slice = _slices[inputIndex];
-		sim=slice;
-		ClearImage(sim,0);
+		sim.Initialize( slice.GetImageAttributes() );
+		sim = 0;
 
 		//flag to see whether the current slice has overlap with masked ROI in volume
 		slice_inside = false;
@@ -1628,8 +1614,8 @@ void irtkReconstruction::EStep()
 	{
 		// read the current slice
 		slice = _slices[inputIndex];
-		sim=slice;
-		ClearImage(sim,0);
+		sim.Initialize( slice.GetImageAttributes() );
+		sim = 0;
 		//read current weight image
 		w = _weights[inputIndex];
 		//read the current bias image
@@ -1928,8 +1914,8 @@ void irtkReconstruction::Scale()
 		scaleden = 0;
 
 		//Calculate simulated slice
-		sim = slice;
-		ClearImage(sim, 0);
+		sim.Initialize( slice.GetImageAttributes() );
+		sim = 0;
 
 		for (i = 0; i < slice.GetX(); i++)
 			for (j = 0; j < slice.GetY(); j++)
@@ -2015,8 +2001,8 @@ void irtkReconstruction::Bias()
 		wb = w;
 
 		//simulated slice
-		sim = slice;
-		ClearImage(sim, 0);
+		sim.Initialize( slice.GetImageAttributes() );
+		sim = 0;
 		wresidual = sim;
 
 		for (i = 0; i < slice.GetX(); i++)
@@ -2122,19 +2108,19 @@ void irtkReconstruction::Superresolution(int iter)
 	original = _reconstructed;
 
 	//Clear addon
-	addon = _reconstructed;
-	ClearImage(addon, 0);
+	addon.Initialize( _reconstructed.GetImageAttributes() );
+	addon = 0;
 
 	//Clear confidence map
-	_confidence_map = _reconstructed;
-	ClearImage(_confidence_map, 0);
+	_confidence_map.Initialize( _reconstructed.GetImageAttributes() );
+	_confidence_map = 0;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
 	{
 		// read the current slice
 		slice = _slices[inputIndex];
-		sim=slice;
-		ClearImage(sim,0);
+		sim.Initialize( slice.GetImageAttributes() );
+		sim = 0;
 		//read the current weight image
 		w = _weights[inputIndex];
 		//read the current bias image
@@ -2241,8 +2227,8 @@ void irtkReconstruction::MStep(int iter)
 	{
 		// read the current slice
 		slice = _slices[inputIndex];
-		sim=slice;
-		ClearImage(sim,0);
+		sim.Initialize( slice.GetImageAttributes() );
+		sim = 0;
 		//read the current weight image
 		w = _weights[inputIndex];
 		//read the current bias image
@@ -2890,9 +2876,8 @@ void irtkReconstruction::NormaliseBias(int iter)
 	char buffer[256];
 
 	//clear _reconstructed image
-	bias = _reconstructed;
-	ClearImage(bias, 0);
-	
+	bias.Initialize( _reconstructed.GetImageAttributes() );
+	bias = 0;
 
 	for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
 	{
@@ -2937,11 +2922,8 @@ void irtkReconstruction::NormaliseBias(int iter)
 	}
 
 	//normalize the volume by proportion of contributing slice voxels for each volume voxel
-	for (i = 0; i < _reconstructed.GetX(); i++)
-		for (j = 0; j < _reconstructed.GetY(); j++)
-			for (k = 0; k < _reconstructed.GetZ(); k++)
-				if (_volume_weights(i, j, k) > 0)
-					bias(i, j, k) /= _volume_weights(i, j, k);
+        bias /= _volume_weights;
+        
 	if(_debug)
 	  cout << "done." << endl;
 
