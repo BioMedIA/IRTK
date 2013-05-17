@@ -60,6 +60,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkLargestConnectedComponentIterative.h
 ../include/irtkLinearInterpolateImageFunction2D.h
 ../include/irtkLinearInterpolateImageFunction.h
+../include/irtkModeFilter.h
 ../include/irtkMedianFilter.h
 ../include/irtkNearestNeighborInterpolateImageFunction2D.h
 ../include/irtkNearestNeighborInterpolateImageFunction.h
@@ -143,6 +144,7 @@ irtkLargestConnectedComponent.cc
 irtkLargestConnectedComponentIterative.cc
 irtkLinearInterpolateImageFunction.cc
 irtkLinearInterpolateImageFunction2D.cc
+irtkModeFilter.cc
 irtkNearestNeighborInterpolateImageFunction.cc
 irtkNearestNeighborInterpolateImageFunction2D.cc
 irtkNonLocalMedianFilter.cc
