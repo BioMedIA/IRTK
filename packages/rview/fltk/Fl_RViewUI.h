@@ -61,8 +61,8 @@
 #include <Fl_RView_Histogram.h>
 
 // Slider ranges for affine DOFs
-#define _GLOBAL_TRANSLATION_MIN  -80
-#define _GLOBAL_TRANSLATION_MAX   80
+#define _GLOBAL_TRANSLATION_MIN  -150
+#define _GLOBAL_TRANSLATION_MAX   150
 #define _GLOBAL_SCALING_MIN        1
 #define _GLOBAL_SCALING_MAX      200
 #define _GLOBAL_ROTATION_MIN    -180
