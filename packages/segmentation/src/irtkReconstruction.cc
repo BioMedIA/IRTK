@@ -2750,7 +2750,7 @@ void irtkReconstruction::HalfImage(irtkRealImage image, vector<irtkRealImage>& s
 
 void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd, bool half, int half_iter)
 {
-  irtkImageRigidRegistration rigidregistration;
+  irtkImageRigidRegistrationWithPadding rigidregistration;
   irtkGreyImage t,s;
   //irtkRigidTransformation transformation;
   vector<irtkRealImage> packages;
