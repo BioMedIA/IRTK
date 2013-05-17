@@ -298,12 +298,7 @@ void irtkMultipleImageFreeFormRegistration2::UpdateSource()
   double x, y, z, t1, t2, u1, u2, v1, v2;
   int a, b, c, i, j, k, n, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
-#ifdef USE_TIMING
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
-#endif
+  IRTK_START_TIMING();
 
   for(n = 0; n < _numberOfImages; n++){
       // Generate transformed tmp image
@@ -378,13 +373,7 @@ void irtkMultipleImageFreeFormRegistration2::UpdateSource()
       }
   }
 
-#ifdef USE_TIMING
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkMultipleImageFreeFormRegistration2::UpdateSource() = " << cpu_time_used << endl;
-#endif
-
+  IRTK_END_TIMING("irtkMultipleImageFreeFormRegistration2::UpdateSource");
 }
 
 void irtkMultipleImageFreeFormRegistration2::UpdateSourceAndGradient()
@@ -393,12 +382,7 @@ void irtkMultipleImageFreeFormRegistration2::UpdateSourceAndGradient()
     double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
     int a, b, c, i, j, k, n, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
-#ifdef USE_TIMING
-    // Start timing
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-#endif
+    IRTK_START_TIMING();
 
     for(n = 0; n < _numberOfImages; n++){
 
@@ -504,13 +488,7 @@ void irtkMultipleImageFreeFormRegistration2::UpdateSourceAndGradient()
         }
     }
 
-#ifdef USE_TIMING
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkMultipleImageFreeFormRegistration2::UpdateSourceAndGradient() = " << cpu_time_used << endl;
-#endif
-
+    IRTK_END_TIMING("irtkMultipleImageFreeFormRegistration2::UpdateSourceAndGradient");
 }
 
 void irtkMultipleImageFreeFormRegistration2::Update(bool updateGradient)

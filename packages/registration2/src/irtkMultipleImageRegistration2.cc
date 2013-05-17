@@ -729,12 +729,7 @@ double irtkMultipleImageRegistration2::Evaluate()
 {
   double metric;
 
-#ifdef USE_TIMING
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
-#endif
+  IRTK_START_TIMING();
 
   // Print debugging information
   this->Debug("irtkMultipleImageRegistration2::Evaluate");
@@ -759,12 +754,7 @@ double irtkMultipleImageRegistration2::Evaluate()
   }
 #endif
 
-#ifdef USE_TIMING
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  cout << "CPU time for irtkMultipleImageRegistration2::Evaluate() = " << cpu_time_used << endl;
-#endif
+  IRTK_END_TIMING("irtkMultipleImageRegistration2::Evaluate");
 
   // Evaluate similarity measure
   return metric;

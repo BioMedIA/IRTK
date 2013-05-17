@@ -553,12 +553,7 @@ void irtkImageTSFFDRegistration::UpdateSource()
     int a, b, c, i, j, k, n, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
     double xl, yl, zl, xt, yt, zt;
 
-#ifdef USE_TIMING
-    // Start timing
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-#endif
+    IRTK_START_TIMING();
 
     // Generate transformed tmp image
     for (n = 0; n < _N_source; n++) {
@@ -670,14 +665,8 @@ void irtkImageTSFFDRegistration::UpdateSource()
             }
         }
     }
-    //cout<<"irtkImageTSFFDRegistration::UpdateSource end"<<endl;
-#ifdef USE_TIMING
-    // Stop timing
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    cout << "CPU time for irtkImageTSFFDRegistration::UpdateSource() = " << cpu_time_used << endl;
-#endif
-
+    
+    IRTK_END_TIMING("irtkImageTSFFDRegistration::UpdateSource");
 }
 
 void irtkImageTSFFDRegistration::UpdateSourceAndGradient()
@@ -687,12 +676,7 @@ void irtkImageTSFFDRegistration::UpdateSourceAndGradient()
     int a, b, c, i, j, k, n, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
     double xl, yl, zl, xt, yt, zt;
 
-#ifdef USE_TIMING
-    // Start timing
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-#endif
+    IRTK_START_TIMING();
 
     // Generate transformed tmp image
     for (n = 0; n < _N_source; n++) {
@@ -845,14 +829,8 @@ void irtkImageTSFFDRegistration::UpdateSourceAndGradient()
             }
         }
     }
-    //cout<<"irtkImageTSFFDRegistration::UpdateSourceAndGradient end"<<endl;
-#ifdef USE_TIMING
-    // Stop timing
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    cout << "CPU time for irtkImageTSFFDRegistration::UpdateSourceAndGradient() = " << cpu_time_used << endl;
-#endif
-
+    
+    IRTK_END_TIMING("irtkImageTSFFDRegistration::UpdateSourceAndGradient");
 }
 
 void irtkImageTSFFDRegistration::Update(bool updateGradient)

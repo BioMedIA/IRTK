@@ -1021,12 +1021,7 @@ void irtkSparseFreeFormRegistration::UpdateSource()
     double x, y, z, t1, t2, u1, u2, v1, v2;
     int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
-#ifdef USE_TIMING
-    // Start timing
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-#endif
+    IRTK_START_TIMING();
 
     // Generate transformed tmp image
     _transformedSource = *_target;
@@ -1134,13 +1129,7 @@ void irtkSparseFreeFormRegistration::UpdateSource()
         }
     }
 
-#ifdef USE_TIMING
-    // Stop timing
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    cout << "CPU time for irtkImageRegistration2::UpdateSource() = " << cpu_time_used << endl;
-#endif
-
+    IRTK_END_TIMING("irtkImageRegistration2::UpdateSource");
 }
 
 void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
@@ -1149,12 +1138,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
     double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
     int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
-#ifdef USE_TIMING
-    // Start timing
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-#endif
+    IRTK_START_TIMING();
 
     // Generate transformed tmp image
     _transformedSource = *_target;
@@ -1307,13 +1291,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
         }
     }
 
-#ifdef USE_TIMING
-    // Stop timing
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    cout << "CPU time for irtkImageRegistration2::UpdateSourceAndGradient() = " << cpu_time_used << endl;
-#endif
-
+    IRTK_END_TIMING("irtkImageRegistration2::UpdateSourceAndGradient");
 }
 
 void irtkSparseFreeFormRegistration::NormalizeGradient()
