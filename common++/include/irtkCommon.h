@@ -37,6 +37,9 @@
 
 #ifdef WIN32
 
+// Windows called copysign differently before C++11
+#define copysign _copysign
+
 // Windows is missing M_PI constants
 #define M_PI		3.14159265358979323846
 
