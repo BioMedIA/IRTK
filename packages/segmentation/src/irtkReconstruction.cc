@@ -2694,7 +2694,7 @@ void irtkReconstruction::SplitImageEvenOdd(irtkRealImage image, int packages, ve
 
    stacks.clear();
    SplitImage(image,packages,packs);
-   for (uint i=0;i<packs.size();i++)
+   for (int i=0;i<packs.size();i++)
    {
      cout<<"Package "<<i<<": "<<endl;
      packs2.clear();
@@ -2719,11 +2719,11 @@ void irtkReconstruction::SplitImageEvenOddHalf(irtkRealImage image, int packages
      SplitImageEvenOddHalf(image,packages,packs,iter-1);
    else
      SplitImageEvenOdd(image,packages,packs);
-   for (uint i=0;i<packs.size();i++)
+   for (int i=0;i<packs.size();i++)
    {
      packs2.clear();
      HalfImage(packs[i],packs2);
-     for (uint j=0; j<packs2.size(); j++)
+     for (int j=0; j<packs2.size(); j++)
        stacks.push_back(packs2[j]);
    }     
 }
