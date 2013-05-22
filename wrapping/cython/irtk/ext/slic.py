@@ -1,3 +1,5 @@
+__all__ = [ "slic" ]
+
 import _slic
 
 def slic( img, size=300, compactness=10 ):

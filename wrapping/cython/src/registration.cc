@@ -6,7 +6,12 @@ void rigid2py( irtkRigidTransformation &transform,
                double &tz,
                double &rx,
                double &ry,
-               double &rz ) {
+               double &rz,
+               bool invert ) {
+    if (invert) {
+        transform.Invert(); // inverts only the matrix
+        transform.UpdateParameter();
+    }
     tx = transform.GetTranslationX();
     ty = transform.GetTranslationY();
     tz = transform.GetTranslationZ();
@@ -21,13 +26,69 @@ void py2rigid( irtkRigidTransformation &transform,
                double tz,
                double rx,
                double ry,
-               double rz ) {
+               double rz,
+               bool invert ) {
     transform.PutTranslationX( tx );
     transform.PutTranslationY( ty );
     transform.PutTranslationZ( tz );
     transform.PutRotationX( rx );
     transform.PutRotationY( ry );
     transform.PutRotationZ( rz );
+    if (invert) {
+        transform.Invert(); // inverts only the matrix
+        transform.UpdateParameter();
+    }    
+}
+
+void pyList2rigidVector( std::vector< irtkRigidTransformation > &vec,
+                         double* tx,
+                         double* ty,
+                         double* tz,
+                         double* rx,
+                         double* ry,
+                         double* rz,
+                         int n,
+                         bool invert ) {
+
+    // clean the vector first
+    vec.clear();
+    vec.reserve( n );
+
+    for ( int i = 0; i < n; i++ ) {
+        irtkRigidTransformation transform;
+        py2rigid( transform,
+                  tx[i],
+                  ty[i],
+                  tz[i],
+                  rx[i],
+                  ry[i],
+                  rz[i],
+                  invert );
+        vec.push_back(transform);
+    }    
+}
+
+void rigidVector2pyList( std::vector< irtkRigidTransformation > &vec,
+                         double* tx,
+                         double* ty,
+                         double* tz,
+                         double* rx,
+                         double* ry,
+                         double* rz,
+                         bool invert ) {
+
+    int n = vec.size();
+
+    for ( int i = 0; i < n; i++ )
+        rigid2py( vec[i],
+                  tx[i],
+                  ty[i],
+                  tz[i],
+                  rx[i],
+                  ry[i],
+                  rz[i],
+                  invert );
+ 
 }
 
 void _read_rigid( char* filename,
@@ -85,7 +146,8 @@ void _transform_rigid( double tx,
     irtkRigidTransformation transform;
     py2rigid( transform,
               tx,ty,tz,
-              rx ,ry, rz );
+              rx ,ry, rz,
+              true );
 
     // source
     irtkGenericImage<float> source;
@@ -238,8 +300,8 @@ void _registration_rigid( short* source_img,
               tx,ty,tz,
               rx ,ry, rz );
 
-    transformation.Invert(); // inverts only the matrix
-    transformation.UpdateParameter();
+    // transformation.Invert(); // inverts only the matrix
+    // transformation.UpdateParameter();
     
     // Create registration
     // The goal of the registration is to find the transformation which maps the
@@ -261,8 +323,8 @@ void _registration_rigid( short* source_img,
     // Run registration filter
     registration.Run();
 
-    transformation.Invert(); // inverts only the matrix
-    transformation.UpdateParameter();
+    // transformation.Invert(); // inverts only the matrix
+    // transformation.UpdateParameter();
 
     // We return the transformation mapping locations in the target image to
     // locations in the source image (this is the input expected by

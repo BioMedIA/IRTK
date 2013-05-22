@@ -1,5 +1,7 @@
 from __future__ import division
 
+__all__ = [ "RigidTransformation" ]
+
 import numpy as np
 from math import cos, sin, pi, asin, atan2
 
@@ -103,6 +105,19 @@ class RigidTransformation:
 
     def apply( self, img, target_header=None,
                interpolation='linear', gaussian_parameter=1.0 ):
+        if not isinstance( img, irtk.Image ):
+            # point transformation
+            pt = np.array(img, dtype='float64', copy=True)
+            if len(pt.shape) == 1:
+                tmp_pt = np.hstack((pt,[1])).astype('float64')
+                return np.dot( self.matrix(), tmp_pt )[:3]
+            else:
+                pt = _irtk.transform_points( self.matrix(), pt )
+                return pt  
+                # tmp_pt = np.hstack((pt,[[1]]*pt.shape[0])).astype('float64')
+                # return np.transpose( np.dot( self.matrix(),
+                #                              np.transpose(tmp_pt) ) )[:,:3]
+        
         if target_header is None:
             target_header = img.get_header()
         if isinstance( target_header, irtk.Image ):

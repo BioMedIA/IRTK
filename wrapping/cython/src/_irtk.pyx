@@ -19,6 +19,12 @@ ctypedef unsigned char uchar
 ctypedef unsigned short ushort
 ctypedef unsigned int uint
 
+cdef extern from "irtk2cython.h":
+     void Initialize()
+
+def initialise_library():
+    Initialize()
+
 ########## Image function ##########
 
 cdef extern from "irtk2cython.h":
@@ -40,6 +46,18 @@ cdef extern from "irtk2cython.h":
                 float* img_out,
                 int interpolation_method,
                 float gaussian_parameter )
+    void _transform_points( double* m,
+                            double* pts,
+                            size_t n )
+    void _points_to_image( unsigned char* img,
+                       double* pixelSize,
+                       double* xAxis,
+                       double* yAxis,
+                       double* zAxis,
+                       double* origin,
+                       int* dim,
+                       double* pts,
+                       size_t n )
     
 def get_header( bytes py_string ):
     cdef char* c_string = py_string
@@ -126,6 +144,43 @@ def resample( np.ndarray[float, ndim=4,  mode="c"] img_in,
                 gaussian_parameter )
 
     return img_out, header
+
+def transform_points( np.ndarray[double, ndim=2,  mode="c"] m,
+                      np.ndarray[double, ndim=2,  mode="c"] pts ):
+    cdef size_t n = pts.shape[0]
+    _transform_points( <double*> m.data,
+                        <double*> pts.data,
+                        n )
+    return pts
+
+def points_to_image( np.ndarray[double, ndim=2,  mode="c"] pts,
+                     header ):
+    cdef np.ndarray[double, ndim=1,  mode="c"] pixelSize = header['pixelSize']
+    cdef np.ndarray[double, ndim=1,  mode="c"] xAxis = header['orientation'][0]
+    cdef np.ndarray[double, ndim=1,  mode="c"] yAxis = header['orientation'][1]
+    cdef np.ndarray[double, ndim=1,  mode="c"] zAxis = header['orientation'][2]
+    cdef np.ndarray[double, ndim=1,  mode="c"] origin = header['origin']
+    cdef np.ndarray[int, ndim=1,  mode="c"] dim =  header['dim']
+
+    cdef size_t n = pts.shape[0]
+
+    cdef np.ndarray[unsigned char, ndim=4,  mode="c"] img = np.zeros( (dim[3],
+                                                               dim[2],
+                                                               dim[1],
+                                                               dim[0]),
+                                                              dtype='uint8' )
+
+    _points_to_image( <unsigned char*> img.data,
+                       <double*> pixelSize.data,
+                       <double*> xAxis.data,
+                       <double*> yAxis.data,
+                       <double*> zAxis.data,
+                       <double*> origin.data,
+                       <int*> dim.data,
+                       <double*> pts.data,
+                       n )
+
+    return img
     
 ########## Registration ##########
 
@@ -357,4 +412,184 @@ def voxellise( np.ndarray[double, ndim=2,  mode="c"] points,
                  <double*> origin.data,
                  <int*> dim.data )
 
+    return img
+
+########## Functions on list of images ##########
+
+cdef extern from "irtk2cython.h":
+    void _write_list( float* img,
+                 double* pixelSize,
+                 double* xAxis,
+                 double* yAxis,
+                 double* zAxis,
+                 double* origin,
+                 int* dim,
+                 int n )
+
+def write_list( np.ndarray[float, ndim=1,  mode="c"] img,
+                np.ndarray[double, ndim=1,  mode="c"] pixelSize,
+                np.ndarray[double, ndim=1,  mode="c"] xAxis,
+                np.ndarray[double, ndim=1,  mode="c"] yAxis,
+                np.ndarray[double, ndim=1,  mode="c"] zAxis,
+                np.ndarray[double, ndim=1,  mode="c"] origin,
+                np.ndarray[int, ndim=1,  mode="c"] dim,
+                int n ):
+    _write_list( <float*> img.data,
+                 <double*> pixelSize.data,
+                 <double*> xAxis.data,
+                 <double*> yAxis.data,
+                 <double*> zAxis.data,
+                 <double*> origin.data,
+                 <int*> dim.data,
+                 n)
+
+
+########## Reconstruction ##########
+cdef extern from "reconstruction.h":
+    void _reconstruct(
+                 # input stacks or slices
+                 float* img,
+                 double* pixelSize,
+                 double* xAxis,
+                 double* yAxis,
+                 double* zAxis,
+                 double* origin,
+                 int* dim,
+
+                 # number of stacks
+                 int n,
+
+                 # stack ids: which stack each slice
+                 # comes from
+                 int* _stack_ids,
+
+                 # number of reconstruction iterations to run
+                 int iterations,
+
+                 # initial transformations
+                 double* tx,
+                 double* ty,
+                 double* tz,
+                 double* rx,
+                 double* ry,
+                 double* rz,
+
+                 # slice thickness
+                 double* _thickness,
+
+                 # mask (header same as template)
+                 float* mask_img,
+                 
+                 # output: reconstructed image
+                 float* reconstructed_img,
+                 double* reconstructed_pixelSize,
+                 double* reconstructed_xAxis,
+                 double* reconstructed_yAxis,
+                 double* reconstructed_zAxis,
+                 double* reconstructed_origin,
+                 int* reconstructed_dim )
+
+def reconstruct( np.ndarray[float, ndim=1,  mode="c"] img,
+                 np.ndarray[double, ndim=1,  mode="c"] pixelSize,
+                 np.ndarray[double, ndim=1,  mode="c"] xAxis,
+                 np.ndarray[double, ndim=1,  mode="c"] yAxis,
+                 np.ndarray[double, ndim=1,  mode="c"] zAxis,
+                 np.ndarray[double, ndim=1,  mode="c"] origin,
+                 np.ndarray[int, ndim=1,  mode="c"] dim,
+                 int n,
+                 np.ndarray[int, ndim=1,  mode="c"] stack_ids,
+                 int iterations,
+                 np.ndarray[double, ndim=1,  mode="c"] tx,
+                 np.ndarray[double, ndim=1,  mode="c"] ty,
+                 np.ndarray[double, ndim=1,  mode="c"] tz,
+                 np.ndarray[double, ndim=1,  mode="c"] rx,
+                 np.ndarray[double, ndim=1,  mode="c"] ry,
+                 np.ndarray[double, ndim=1,  mode="c"] rz,
+                 np.ndarray[double, ndim=1,  mode="c"] thickness,
+                 np.ndarray[float, ndim=4,  mode="c"] mask,
+                 template_header ):
+
+    cdef np.ndarray[double, ndim=1,  mode="c"] template_pixelSize = template_header['pixelSize']
+    cdef np.ndarray[double, ndim=1,  mode="c"] template_xAxis = template_header['orientation'][0]
+    cdef np.ndarray[double, ndim=1,  mode="c"] template_yAxis = template_header['orientation'][1]
+    cdef np.ndarray[double, ndim=1,  mode="c"] template_zAxis = template_header['orientation'][2]
+    cdef np.ndarray[double, ndim=1,  mode="c"] template_origin = template_header['origin']
+    cdef np.ndarray[int, ndim=1,  mode="c"] template_dim =  template_header['dim']
+
+    cdef np.ndarray[float, ndim=4,  mode="c"] reconstructed = np.zeros( (template_dim[3],
+                                                                         template_dim[2],
+                                                                         template_dim[1],
+                                                                         template_dim[0]),
+                                                                        dtype='float32' )
+
+    _reconstruct(
+        # input stacks or slices
+        <float*> img.data,
+         <double*> pixelSize.data,
+         <double*> xAxis.data,
+         <double*> yAxis.data,
+         <double*> zAxis.data,
+         <double*> origin.data,
+         <int*> dim.data,
+
+         # number of stacks
+         n,
+
+         # stack ids: which stack each slice
+         # comes from
+         <int*>stack_ids.data,
+
+         # number of reconstruction iterations to run
+         iterations,
+
+         # initial transformations
+         <double*> tx.data,
+         <double*> ty.data,
+         <double*> tz.data,
+         <double*> rx.data,
+         <double*> ry.data,
+         <double*> rz.data,
+
+         # slice thickness
+         <double*> thickness.data,
+
+         # mask (header same as template)
+         <float*> mask.data,
+         
+         # output: reconstructed image
+         <float*> reconstructed.data,
+         <double*> template_pixelSize.data,
+         <double*> template_xAxis.data,
+         <double*> template_yAxis.data,
+         <double*> template_zAxis.data,
+         <double*> template_origin.data,
+         <int*> template_dim.data )
+
+    return reconstructed
+
+########## Drawing ##########
+
+cdef extern from "drawing.h":
+    void _drawSphere( unsigned char* img,
+                  int shape0,
+                  int shape1,
+                  int shape2,
+                  int x0,
+                  int y0,
+                  int z0,
+                  int rx,
+                  int ry,
+                  int rz )
+
+def drawSphere( np.ndarray[unsigned char, ndim=3,  mode="c"] img,
+                int x0, int y0, int z0,
+                int rx, int ry, int rz ):
+    cdef int shape0 = img.shape[0]
+    cdef int shape1 = img.shape[1]
+    cdef int shape2 = img.shape[2]
+    _drawSphere( <unsigned char*> img.data,
+                  shape0, shape1, shape2,
+                  x0, y0, z0,
+                  rx, ry, rz )
+    print "MAX:", np.max(img)
     return img

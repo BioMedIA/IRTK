@@ -1,6 +1,12 @@
 #ifndef IRTK2CYTHON_H
 #define IRTK2CYTHON_H
 
+#include <string>
+#include <sstream>
+#include <ios>
+#include <iostream>
+#include <vector>
+
 #include <irtkImage.h>
 #include <irtkFileToImage.h>
 #include <irtkImageFunction.h>
@@ -33,6 +39,8 @@ inline size_t index( size_t i, size_t j, size_t k, size_t l,
                      size_t shape0, size_t shape1, size_t shape2, size_t shape3 ) {
     return l + shape3*( k + shape2*( j + shape1*i ) );
 }
+
+void Initialize();
 
 int _get_header( char* filename,
                   double* pixelSize,
@@ -100,6 +108,7 @@ void irtk2py( irtkGenericImage<dtype>& irtk_image,
     
     irtkImageAttributes attr = irtk_image.GetImageAttributes();
 
+    //int new_dim[4];
     get_attributes( attr,
                     pixelSize,
                     xAxis,
@@ -108,12 +117,81 @@ void irtk2py( irtkGenericImage<dtype>& irtk_image,
                     origin,
                     dim );
 
+    /* if ( dim[0] != new_dim[0] */
+    /*      || dim[1] != new_dim[1] */
+    /*      || dim[2] != new_dim[2] */
+    /*      || dim[3] != new_dim[3] ) { */
+    /*     std::cout << "the memory must be allocated in Python,\n" */
+    /*               << "so dim must be known beforehand\n"; */
+    /*     exit(1); */
+    /* } */
+
     int n   = irtk_image.GetNumberOfVoxels();
     dtype* ptr = irtk_image.GetPointerToVoxels();
     for ( int i = 0; i < n; i++)
         img[i] = ptr[i];
 
     return;
+}
+
+template <class dtype>
+void pyList2irtkVector( std::vector< irtkGenericImage<dtype> >& vec,
+                        dtype* img,
+                        double* pixelSize,
+                        double* xAxis,
+                        double* yAxis,
+                        double* zAxis,
+                        double* origin,
+                        int* dim,
+                        int n ) {
+
+    // clean the vector first
+    vec.clear();
+    vec.reserve( n );
+
+    size_t offset = 0;
+    for ( size_t i = 0; i < n; i++ ) {
+        irtkGenericImage<dtype> irtk_image;
+        py2irtk<dtype>( irtk_image,
+                        &img[offset],
+                        &pixelSize[4*i],
+                        &xAxis[3*i],
+                        &yAxis[3*i],
+                        &zAxis[3*i],
+                        &origin[4*i],
+                        &dim[4*i] );
+        offset += dim[4*i]*dim[4*i+1]*dim[4*i+2]*dim[4*i+3];
+        vec.push_back(irtk_image);
+    }
+
+}
+
+template <class dtype>
+void irtkVector2pyList( std::vector< irtkGenericImage<dtype> >& vec,
+                        dtype* img,
+                        double* pixelSize,
+                        double* xAxis,
+                        double* yAxis,
+                        double* zAxis,
+                        double* origin,
+                        int* dim,
+                        int& n ) {
+
+    n = vec.size();
+
+    size_t offset = 0;
+    for ( size_t i = 0; i < n; i++ ) {
+        py2irtk<dtype>( vec[i],
+                        &img[offset],
+                        &pixelSize[4*i],
+                        &xAxis[3*i],
+                        &yAxis[3*i],
+                        &zAxis[3*i],
+                        &origin[4*i],
+                        &dim[4*i] );
+        offset += dim[4*i]*dim[4*i+1]*dim[4*i+2]*dim[4*i+3];
+    }
+
 }
 
 void _resample( float* img_in,
@@ -130,5 +208,34 @@ void _resample( float* img_in,
 
 irtkMatrix py2matrix( int rows, int cols, double* data );
 
+void _write_list( float* img,
+                 double* pixelSize,
+                 double* xAxis,
+                 double* yAxis,
+                 double* zAxis,
+                 double* origin,
+                 int* dim,
+                 int n );
 
+void _read_list( float* img,
+                 double* pixelSize,
+                 double* xAxis,
+                 double* yAxis,
+                 double* zAxis,
+                 double* origin,
+                 int* dim,
+                 int& n );
+
+void _transform_points( double* m, double* pts, size_t n );
+
+void _points_to_image( unsigned char* img,
+                       double* pixelSize,
+                       double* xAxis,
+                       double* yAxis,
+                       double* zAxis,
+                       double* origin,
+                       int* dim,
+                       double* pts,
+                       size_t n );
+    
 #endif

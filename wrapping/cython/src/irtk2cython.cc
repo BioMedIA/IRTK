@@ -1,5 +1,11 @@
 #include "irtk2cython.h"
 
+void Initialize() {
+    // turn off the synchronization of iostream objects and cstdio streams
+    // for increased speed
+    std::ios_base::sync_with_stdio(false);
+}
+
 int _get_header( char* filename,
                   double* pixelSize,
                   double* xAxis,
@@ -174,8 +180,6 @@ void _resample( float* img_in,
                     zAxis,
                     origin,
                     dim );
-
-    irtk_image.Print();
     
     irtkResampling<float> resampling( new_pixelSize[0],
                                       new_pixelSize[1],
@@ -184,8 +188,6 @@ void _resample( float* img_in,
     resampling.SetOutput( &irtk_image );
     resampling.SetInterpolator( interpolator );
     resampling.Run();
-
-    irtk_image.Print();
 
     irtk2py<float>( irtk_image,
                     img_out,
@@ -207,3 +209,116 @@ irtkMatrix py2matrix( int rows, int cols, double* data ) {
     return matrix;
 }
 
+// test function
+void _write_list( float* img,
+                 double* pixelSize,
+                 double* xAxis,
+                 double* yAxis,
+                 double* zAxis,
+                 double* origin,
+                 int* dim,
+                 int n ) {
+    std::vector< irtkGenericImage<float> > vec;
+    pyList2irtkVector( vec,
+                       img,
+                       pixelSize,
+                       xAxis,
+                       yAxis,
+                       zAxis,
+                       origin,
+                       dim,
+                       n );
+
+    
+    for ( int i = 0; i < n; i++ ) {
+        std::stringstream ss;
+        ss << "file" << i << ".nii";
+        vec[i].Write( ss.str().c_str() );
+    }
+    
+}
+
+// test function
+void _read_list( float* img,
+                 double* pixelSize,
+                 double* xAxis,
+                 double* yAxis,
+                 double* zAxis,
+                 double* origin,
+                 int* dim,
+                 int& n ) {
+    // we need to know the number of pixels beforehand,
+    // or a maximal number of pixels for Python to allocate memory...
+    std::vector< irtkGenericImage<float> > vec;
+    for ( int i = 0; i < 3; i++ ) {
+        irtkGenericImage<float> irtk_image;
+        std::stringstream ss;
+        ss << "file" << i << ".nii";
+        irtk_image.Read( ss.str().c_str() );
+        vec.push_back( irtk_image );
+    }
+    irtkVector2pyList( vec,
+                       img,
+                       pixelSize,
+                       xAxis,
+                       yAxis,
+                       zAxis,
+                       origin,
+                       dim,
+                       n );
+
+}
+
+void _transform_points( double* m, double* pts, size_t n ) {
+    double tmp_pt[3];
+    for ( size_t i = 0; i < n; i++ ) {
+        tmp_pt[0] = m[index(0,0,4,4)] * pts[index(i,0,n,3)] + m[index(0,1,4,4)] * pts[index(i,1,n,3)] + m[index(0,2,4,4)] * pts[index(i,2,n,3)] + m[index(0,3,4,4)];
+        tmp_pt[1] = m[index(1,0,4,4)] * pts[index(i,0,n,3)] + m[index(1,1,4,4)] * pts[index(i,1,n,3)] + m[index(1,2,4,4)] * pts[index(i,2,n,3)] + m[index(1,3,4,4)];
+        tmp_pt[2] = m[index(2,0,4,4)] * pts[index(i,0,n,3)] + m[index(2,1,4,4)] * pts[index(i,1,n,3)] + m[index(2,2,4,4)] * pts[index(i,2,n,3)] + m[index(2,3,4,4)];
+        pts[index(i,0,n,3)] = tmp_pt[0];
+        pts[index(i,1,n,3)] = tmp_pt[1];
+        pts[index(i,2,n,3)] = tmp_pt[2];
+    }        
+}
+
+void _points_to_image( unsigned char* img,
+                       double* pixelSize,
+                       double* xAxis,
+                       double* yAxis,
+                       double* zAxis,
+                       double* origin,
+                       int* dim,
+                       double* pts,
+                       size_t n ) {
+
+    irtkGenericImage<unsigned char> irtk_image;
+    py2irtk<unsigned char>( irtk_image,
+                    img,
+                    pixelSize,
+                    xAxis,
+                    yAxis,
+                    zAxis,
+                    origin,
+                    dim );
+
+    double pt[3];
+    for ( size_t i = 0; i < n; i++ ) {
+        pt[0] = pts[index(i,0,n,3)];
+        pt[1] = pts[index(i,1,n,3)];
+        pt[2] = pts[index(i,2,n,3)];
+        irtk_image.WorldToImage( pt[0], pt[1], pt[2] );
+        if ( pt[0] >= 0 && pt[0] < irtk_image.GetX()
+             && pt[1] >= 0 && pt[1] < irtk_image.GetY()
+             && pt[2] >= 0 && pt[2] < irtk_image.GetZ() )
+            irtk_image( pt[0], pt[1], pt[2] ) = 1;
+    }
+
+    irtk2py<unsigned char>( irtk_image,
+                    img,
+                    pixelSize,
+                    xAxis,
+                    yAxis,
+                    zAxis,
+                    origin,
+                    dim );    
+}

@@ -17,6 +17,19 @@ ipython qtconsole --pylab=inline
 
 """
 
+__all__ = [ "Image",
+            "imread",
+            "imwrite",
+            "zeros",
+            "ones",
+            "rview",
+            "display",
+            "imshow",
+            "new_header",
+            "PointsToImage",
+            "drawSphere",
+            "sphere" ]
+
 import numpy as np
 import pprint
 import copy
@@ -27,8 +40,8 @@ import IPython.core.display
 import cv2
 
 import _irtk
-import Transformation
-import Utils
+import registration
+import utils
 
 # A temporary directory is created when the module is imported
 # and is deleted when the module is exited.
@@ -58,6 +71,19 @@ def run_from_ipython():
     except NameError:
         return False
 
+def new_header( pixelSize=[1,1,1,1],
+                orientation=(np.array([1,0,0],dtype='float64'),
+                             np.array([0,1,0],dtype='float64'),
+                             np.array([0,0,1],dtype='float64')),
+                origin=[0,0,0,0],
+                dim=None ):
+    if dim is None:
+        raise ValueError( "at least dim must be specified" )
+    return { 'pixelSize' : np.array( pixelSize, dtype='float64'),
+             'orientation' : orientation,
+             'origin' : np.array( origin, dtype='float64'),
+             'dim' : np.array( dim, dtype='int32') }
+
 class Image(np.ndarray):
 
     def __new__(cls,
@@ -85,6 +111,10 @@ class Image(np.ndarray):
 
         img = np.squeeze(img)
         obj = np.asarray(img).view(cls)
+
+        for i in xrange(4):
+            if header['dim'][i] == 0:
+                header['dim'][i] = 1
         
         obj.header = header
         obj.I2W = np.eye(4,dtype='float64')
@@ -104,7 +134,10 @@ class Image(np.ndarray):
         return text
 
     def __str__(self):
-        return self.__repr__()
+        if len(self.shape) == 0:
+            return str(self.view(np.ndarray))
+        else:
+            return self.__repr__()
 
     def __array_finalize__(self, parent):
         # print 'In __array_finalize__:'
@@ -188,10 +221,14 @@ class Image(np.ndarray):
   
         return Image(data,header, copy=False)
 
-    # def __getslice__(self, i,j):
-    #     print 'In __getslice__:'
-    #     print i,j
-    #     return self.__getitem__(slice(i,j,None))
+    def __reduce__(self):
+        """
+        Required for pickling/unpickling, which is used for instance
+        in joblib Parallel.
+        An example implementation can be found in numpy/ma/core.py .
+        """        
+        return ( _ImageReconstruct,
+                 (self.get_data(), self.get_header()) )
 
     def __updateMatrix(self):
         #  Update image to world coordinate system matrix
@@ -233,6 +270,10 @@ class Image(np.ndarray):
 
     def origin(self):
         return self.header['origin'][:3]
+
+    def nb_pixels(self):
+        dim = self.header['dim']
+        return dim[0]*dim[1]*dim[2]*dim[3]
     
     def ImageToWorld( self, pt ):
         """
@@ -242,26 +283,33 @@ class Image(np.ndarray):
                               (img.shape[1]-1)/2,
                               (img.shape[0]-1)/2] )
         """
-        pt = np.array(pt)
-        if len(pt.shape) == 1:
-            tmp_pt = np.hstack((pt,[1])).astype('float64')
+        tmp_pt = np.array( pt, dtype='float64', copy=True )
+        if len(tmp_pt.shape) == 1:
+            tmp_pt = np.hstack((tmp_pt,[1])).astype('float64')
             return np.dot( self.I2W, tmp_pt )[:3]
         else:
+            tmp_pt = _irtk.transform_points( self.I2W, tmp_pt )
+            return tmp_pt            
             #tmp_pt = np.hstack((pt,[[1]]*pt.shape[0])).astype('float64')
-            return np.array( map( self.ImageToWorld, pt) )
+            #return np.transpose( np.dot( self.I2W, np.transpose(tmp_pt) ) )[:,:3]
+            #return np.array( map( self.ImageToWorld, pt) )
             # return np.dot( self.I2W, tmp_pt )[:,:3]
     
     def WorldToImage( self, pt ):
         """
         Returns integers
         """
-        pt = np.array(pt)
-        if len(pt.shape) == 1:
-            tmp_pt = np.hstack((pt,[1])).astype('float64')
-            return np.rint( np.dot( self.W2I, tmp_pt )[:3] )
+        tmp_pt = np.array( pt, dtype='float64', copy=True )
+        if len(tmp_pt.shape) == 1:
+            tmp_pt = np.hstack((tmp_pt,[1])).astype('float64')
+            return np.rint( np.dot( self.W2I, tmp_pt )[:3] ).astype('int32')
         else:
-            return np.array( map( self.WorldToImage, pt) )
-        
+            tmp_pt = np.rint( _irtk.transform_points( self.W2I, tmp_pt ) ).astype('int32')
+            return tmp_pt
+            #tmp_pt = np.hstack((pt,[[1]]*pt.shape[0])).astype('float64')
+            #return np.rint( np.transpose( np.dot( self.W2I, np.transpose(tmp_pt) ) )[:,:3])
+            #return np.array( map( self.WorldToImage, pt) )
+                 
     def get_header(self):
         return copy.deepcopy(self.header)
     
@@ -302,6 +350,8 @@ class Image(np.ndarray):
         return Image( data, self.header )
 
     def resample( self, pixelSize=[1,1,1], interpolation='linear', gaussian_parameter=1.0 ):
+        if not isinstance(pixelSize,tuple) and not isinstance(pixelSize,list):
+            pixelSize = [pixelSize]*3
         pixelSize = np.asarray(pixelSize, dtype='float64')
         new_img, new_header = _irtk.resample( self.get_data('float32', 'cython'),
                                               self.get_header(),
@@ -311,10 +361,10 @@ class Image(np.ndarray):
         return Image( new_img, new_header )
 
     def register( self, target, transformation=None ):
-        return Transformation.registration_rigid( self, target, transformation )
+        return registration.registration_rigid( self, target, transformation )
 
     def transform( self,
-                   transformation=Transformation.RigidTransformation(),
+                   transformation=registration.RigidTransformation(),
                    target=None,
                    interpolation='linear',
                    gaussian_parameter=1.0):
@@ -333,7 +383,13 @@ class Image(np.ndarray):
     def reset_header( self, header=None ):
         return Image( self.view(np.ndarray), header )
 
-    def thumbnail( self, seg=None, overlay=None, colors=None, opacity=0.5, step=2 ):
+    def thumbnail( self,
+                   seg=None,
+                   overlay=None,
+                   colors=None,
+                   opacity=0.5,
+                   step=2,
+                   unroll=False ):
         img = self.copy('int')
         if overlay is not None and seg is not None:
             print "You cannot specify both seg and overlay"
@@ -347,9 +403,9 @@ class Image(np.ndarray):
             img = zeros(img.get_header(), dtype='uint8')
             opacity = 1.0
         if isinstance( colors, str ):
-            colors = Utils.get_colormap( colors )
+            colors = utils.get_colormap( colors )
         if seg is not None and colors is None:
-            colors = Utils.random_colormap(seg.max())
+            colors = utils.random_colormap(seg.max())
 
         # now, seg == overlay
         if overlay is not None:
@@ -364,7 +420,7 @@ class Image(np.ndarray):
                 data = np.concatenate( [ data,
                                          data,
                                          data ], axis=2 )
-                rgb_overlay = Utils.remap( seg, colors )
+                rgb_overlay = utils.remap( seg, colors )
                 op = (1-opacity) * (seg != 0).astype('float') + (seg == 0).astype('float')
                 op = op.reshape(op.shape[0],
                                 op.shape[1],
@@ -377,45 +433,64 @@ class Image(np.ndarray):
             return img
         
         elif len(img.shape) == 3:
-            shape = np.array(img.shape).max()
-            if seg is None:
-                output = np.ones((shape,shape*3+step*(3-1)))*255
-            else:
-                output = np.ones((shape,shape*3+step*(3-1),3))*255
+            if not unroll:
+                shape = np.array(img.shape).max()
+                if seg is None:
+                    output = np.ones((shape,shape*3+step*(3-1)))*255
+                else:
+                    output = np.ones((shape,shape*3+step*(3-1),3))*255
 
-            offset1 = (shape - img.shape[1])/2
-            offset2 = (shape - img.shape[2])/2
-            if seg is None:
-                tmp_img = img[img.shape[0]/2,:,:]
-            else:
-                tmp_img = Image(img[img.shape[0]/2,:,:]).thumbnail( seg[img.shape[0]/2,:,:], colors=colors, opacity=opacity )
-            output[offset1:offset1+img.shape[1],
-                   offset2:offset2+img.shape[2]] = tmp_img
-    
-            offset1 = (shape - img.shape[0])/2
-            offset2 = shape + step + (shape - img.shape[2])/2
-            if seg is None:
-                tmp_img = img[:,img.shape[1]/2,:]
-            else:
-                tmp_img = Image(img[:,img.shape[1]/2,:]).thumbnail( seg[:,img.shape[1]/2,:], colors=colors, opacity=opacity)
-            output[offset1:offset1+img.shape[0],
-                   offset2:offset2+img.shape[2]] = tmp_img
-    
-            offset1 = (shape - img.shape[0])/2
-            offset2 = 2*shape + 2*step + (shape - img.shape[1])/2
-            if seg is None:
-                tmp_img = img[:,:,img.shape[2]/2]
-            else:
-                tmp_img = Image(img[:,:,img.shape[2]/2]).thumbnail( seg[:,:,img.shape[2]/2], colors=colors, opacity=opacity )
-            output[offset1:offset1+img.shape[0],
-                   offset2:offset2+img.shape[1]] = tmp_img
+                offset1 = (shape - img.shape[1])/2
+                offset2 = (shape - img.shape[2])/2
+                if seg is None:
+                    tmp_img = img[img.shape[0]/2,:,:]
+                else:
+                    tmp_img = Image(img[img.shape[0]/2,:,:]).thumbnail( seg[img.shape[0]/2,:,:], colors=colors, opacity=opacity )
+                output[offset1:offset1+img.shape[1],
+                       offset2:offset2+img.shape[2]] = tmp_img
 
-            return output
+                offset1 = (shape - img.shape[0])/2
+                offset2 = shape + step + (shape - img.shape[2])/2
+                if seg is None:
+                    tmp_img = img[:,img.shape[1]/2,:]
+                else:
+                    tmp_img = Image(img[:,img.shape[1]/2,:]).thumbnail( seg[:,img.shape[1]/2,:], colors=colors, opacity=opacity)
+                output[offset1:offset1+img.shape[0],
+                       offset2:offset2+img.shape[2]] = tmp_img
+
+                offset1 = (shape - img.shape[0])/2
+                offset2 = 2*shape + 2*step + (shape - img.shape[1])/2
+                if seg is None:
+                    tmp_img = img[:,:,img.shape[2]/2]
+                else:
+                    tmp_img = Image(img[:,:,img.shape[2]/2]).thumbnail( seg[:,:,img.shape[2]/2], colors=colors, opacity=opacity )
+                output[offset1:offset1+img.shape[0],
+                       offset2:offset2+img.shape[1]] = tmp_img
+
+                return output
+            else: # unroll is True
+                if seg is None:
+                    output = np.ones( ( self.shape[1],
+                                        self.shape[2]*self.shape[0]+2*(self.shape[0]-1) )
+                                      ) * 255
+                else:
+                    output = np.ones( ( self.shape[1],
+                                        self.shape[2]*self.shape[0]+2*(self.shape[0]-1),
+                                        3 )
+                                      ) * 255
+                for k in xrange(self.shape[0]):
+                    if seg is None:
+                        tmp_img = img[k,:,:]
+                    else:
+                        tmp_img = Image(img[k,:,:]).thumbnail( seg[k,:,:], colors=colors, opacity=opacity )
+                    output[:,
+                        k*self.shape[2]+2*k:(k+1)*self.shape[2]+2*k] = tmp_img
+                return output
         else:
             raise "Wrong number of dimensions for thumbnail: " + str(len(self.shape)) 
 
     # We need to override certain functions so that they do not return an image
-    #https://github.com/numpy/numpy/blob/master/numpy/matrixlib/defmatrix.py
+    # https://github.com/numpy/numpy/blob/master/numpy/matrixlib/defmatrix.py
     # def max(self, **kwargs):
     #     return self.view(np.ndarray).max(**kwargs)
     # def min(self, **kwargs):
@@ -423,6 +498,82 @@ class Image(np.ndarray):
     # def sum(self, **kwargs):
     #     return self.view(np.ndarray).sum(**kwargs)
 
+    # def unroll( self ):
+    #     output = np.ones( ( self.shape[1],
+    #                         self.shape[2]*self.shape[0]+2*(self.shape[0]-1) )
+    #                       ) * 255
+    #     for k in xrange(self.shape[0]):
+    #         output[:,
+    #             k*self.shape[2]+2*k:(k+1)*self.shape[2]+2*k] = self[k,:,:]
+
+    #     return output
+
+
+    def bbox( self, crop=False ):
+        pts = np.transpose(np.nonzero(self))
+        if len(self.shape) == 2:
+            y_min, x_min = pts.min(axis=0)
+            y_max, x_max = pts.max(axis=0)
+            if not crop:
+                return (x_min, y_min, x_max, y_max )
+            else:
+                return self[y_min:y_max+1,
+                            x_min:x_max+1]        
+        if len(self.shape) == 3:
+            z_min, y_min, x_min = pts.min(axis=0)
+            z_max, y_max, x_max = pts.max(axis=0)
+            if not crop:
+                return (x_min, y_min, z_min, x_max, y_max, z_max )
+            else:
+                return self[z_min:z_max+1,
+                            y_min:y_max+1,
+                            x_min:x_max+1]
+
+    def resample2D( self, new_pixelSize, interpolation='linear' ):
+        if not isinstance(new_pixelSize, tuple): new_pixelSize = (new_pixelSize,)
+        if len(new_pixelSize) == 1:
+            new_pixelSize = new_pixelSize*2
+        if len(new_pixelSize) > 2:
+            raise ValueError( "this function is for XY resampling only" )
+
+        interpolation_cv2 = {
+            'nearest' : cv2.INTER_NEAREST, # nearest-neighbor interpolation
+            'linear' : cv2.INTER_LINEAR, # bilinear interpolation
+            'area' : cv2.INTER_AREA, # resampling using pixel area relation. It
+            # may be a preferred method for image decimation, as it gives
+            # moire-free results. But when the image is zoomed, it is similar
+            # to the INTER_NEAREST method.
+            'cubic' : cv2.INTER_CUBIC, # bicubic interpolation over 4x4 pixel neighborhood
+            'lanczos' : cv2.INTER_LANCZOS4 # Lanczos interpolation over 8x8
+            # pixel neighborhood
+            }
+        
+        data = self.get_data(purpose='cython')
+        header = self.get_header()
+        # Determine the new dimensions of the image
+        dim = header['dim']
+        pixelSize = header['pixelSize']
+        new_x = int(float(dim[0]) * pixelSize[0] / new_pixelSize[0])
+        new_y = int(float(dim[1]) * pixelSize[1] / new_pixelSize[1])
+        header['pixelSize'][0] = new_pixelSize[0]
+        header['pixelSize'][1] = new_pixelSize[1]
+        header['dim'][0] = new_x
+        header['dim'][1] = new_y
+        new_data = np.zeros( header['dim'][::-1], dtype=data.dtype )
+        # if len(data.shape) == 2:
+        #     data = cv2.resize( data, (new_x, new_y),
+        #                        interpolation=interpolation_cv2[interpolation])
+        # elif len(data.shape) == 3:
+        #     for z in xrange(data.shape[0]):
+        #         data[z] = cv2.resize( data[z], (new_x, new_y),
+        #                        interpolation=interpolation_cv2[interpolation])
+        # elif len(data.shape) == 4:
+        for t in xrange(data.shape[0]):
+            for z in xrange(data.shape[1]):
+                new_data[t,z] = cv2.resize( data[t,z], (new_x, new_y),
+                                        interpolation=interpolation_cv2[interpolation])
+        return Image(new_data, header)
+    
 def imread( filename, dtype=None ):
     reader = {
         "int8" : _irtk.imread_char,
@@ -442,6 +593,8 @@ def imread( filename, dtype=None ):
     return Image(img,header)
 
 def imwrite( filename, img ):
+    if img.dtype.name == "bool":
+        img = img.astype("uint8")
     writer = {
         "int8" : _irtk.imwrite_char,
         "uint8" : _irtk.imwrite_uchar,
@@ -475,9 +628,9 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
             overlay = img.rescale() # we want to see img in colors
             img = zeros(img.get_header(), dtype='int16')
         if isinstance( colors, str ):
-            colors = Utils.get_colormap( colors )
+            colors = utils.get_colormap( colors )
         if seg is not None and colors is None:
-            colors = Utils.random_colormap(seg.max())
+            colors = utils.random_colormap(seg.max())
 
         # now, seg == overlay
         if overlay is not None:
@@ -494,7 +647,7 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
             colors_filename = tmp_dir + "/rview_colors.txt"
             imwrite( seg_filename, seg.astype('int16') )
             args.extend( ["-seg", seg_filename])
-            Utils.colormap( colors, colors_filename )
+            utils.colormap( colors, colors_filename )
             args.extend( ["-lut", colors_filename])
         if overlay is not None:
             args.append("-labels")
@@ -505,25 +658,105 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
 def display( img, seg=None, overlay=None, colors=None ):
     rview(img, seg, overlay, colors, binary="display")
 
-def imshow( img, seg=None, overlay=None, colors=None, opacity=0.5, filename=None ):
+def imshow( img,
+            seg=None,
+            overlay=None,
+            colors=None,
+            opacity=0.5,
+            filename=None,
+            unroll=False ):
     """
     Display a 2D image
     """
-    img = img.rescale()
-    if filename is None:
-        filename = tmp_dir + "/show.png"
-    if len(img.shape) in [2,3]:
-        img = img.thumbnail( seg,
-                             overlay,
-                             colors,
-                             opacity )
-        if len(img.shape) == 3:
-            # OpenCV uses BGR and not RGB
-            img = img[:,:,::-1]
-        cv2.imwrite(filename, img ) 
-    else:
+    if len(img.shape) not in [2,3]:
         print "Invalid image shape: ", img.shape
         return
-    return IPython.core.display.Image(filename=filename) 
+    
+    if filename is None:
+        filename = tmp_dir + "/show.png"
+        write_only = False
+    else:
+        write_only = True
+
+    img = img.rescale()
+    img = img.thumbnail( seg=seg,
+                         overlay=overlay,
+                         colors=colors,
+                         opacity=opacity,
+                         unroll=unroll )
+    
+    if len(img.shape) == 3:
+        # OpenCV uses BGR and not RGB
+        img = img[:,:,::-1]
+
+    if write_only:
+        cv2.imwrite(filename, img )
+        return
+
+    elif run_from_ipython():
+        cv2.imwrite(filename, img ) 
+        return IPython.core.display.Image(filename=filename)
+
+    else:
+        cv2.imshow( "imshow", img )
+        cv2.waitKey(0)
     
 
+def write_list( img_list ):
+    n = len(img_list)
+    nb_pixels = 0
+    for img in img_list:
+        nb_pixels += img.nb_pixels()
+
+    pixelData = np.zeros( nb_pixels, dtype='float32' )
+    pixelSize = np.zeros( 4*n, dtype='float64' )
+    xAxis = np.zeros( 3*n, dtype='float64' )
+    yAxis = np.zeros( 3*n, dtype='float64' )
+    zAxis = np.zeros( 3*n, dtype='float64' )
+    origin = np.zeros( 4*n, dtype='float64' )
+    dim = np.zeros( 4*n, dtype='int32' )
+    
+    offset = 0
+    for i, img in enumerate(img_list):
+        pixelData[offset:offset+img.nb_pixels()] = img.flatten()
+        offset += img.nb_pixels()
+        pixelSize[4*i:4*(i+1)] = img.header['pixelSize']
+        xAxis[3*i:3*(i+1)] = img.header['orientation'][0]
+        yAxis[3*i:3*(i+1)] = img.header['orientation'][1]
+        zAxis[3*i:3*(i+1)] = img.header['orientation'][2]
+        origin[4*i:4*(i+1)] = img.header['origin']
+        dim[4*i:4*(i+1)] = img.header['dim']
+
+    print pixelData.shape
+
+    _irtk.write_list( pixelData, pixelSize, xAxis, yAxis, zAxis, origin, dim, n )
+
+def PointsToImage( pts, header ):
+    if isinstance(header,Image):
+        header = header.get_header()
+    pts = np.array(pts, dtype="float64")
+    img = _irtk.points_to_image( pts, header )
+    return Image( img, header )
+
+def drawSphere( img, (x,y,z), rx, ry=None, rz=None ):
+    if ry is None:
+        ry = rx
+    if rz is None:
+        rz = rx
+    _irtk.drawSphere( img, x, y, z, rx, ry, rz )
+
+def sphere( (x, y, z), r, header ):
+    img = zeros( header, dtype='uint8' )
+    x0, y0, z0 = img.WorldToImage( (x, y, z) )
+    rx = int(round( r / header['pixelSize'][0] ))
+    ry = int(round( r / header['pixelSize'][1] ))
+    rz = int(round( r / header['pixelSize'][2] ))
+    print "Sphere:",  x0, y0, z0, rx, ry, rz
+    _irtk.drawSphere( img, x0, y0, z0, rx, ry, rz )
+    return img #Image( img, header )
+
+def _ImageReconstruct( data, header ):
+    """Internal function that builds a new Image from the
+    information stored in a pickle.
+    """
+    return Image( data, header )

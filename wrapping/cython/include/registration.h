@@ -12,7 +12,8 @@ void rigid2py( irtkRigidTransformation &transform,
                double &tz,
                double &rx,
                double &ry,
-               double &rz );
+               double &rz,
+               bool invert=false );
 
 void py2rigid( irtkRigidTransformation &transform,
                double tx,
@@ -20,7 +21,27 @@ void py2rigid( irtkRigidTransformation &transform,
                double tz,
                double rx,
                double ry,
-               double rz );
+               double rz,
+               bool invert=false );
+
+void pyList2rigidVector( std::vector< irtkRigidTransformation > &vec,
+                         double* tx,
+                         double* ty,
+                         double* tz,
+                         double* rx,
+                         double* ry,
+                         double* rz,
+                         int n,
+                         bool invert=false );
+
+void rigidVector2pyList( std::vector< irtkRigidTransformation > &vec,
+                         double* tx,
+                         double* ty,
+                         double* tz,
+                         double* rx,
+                         double* ry,
+                         double* rz,
+                         bool invert=false );
 
 void _read_rigid( char* filename,
                   double &tx,

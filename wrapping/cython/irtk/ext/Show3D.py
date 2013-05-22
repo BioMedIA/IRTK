@@ -1,8 +1,11 @@
+__all__ = [ "render" ]
+
 import vtk
 import numpy as np
 import sys
 
 from scipy.stats.mstats import mquantiles
+import scipy.interpolate
 
 from vtk.util.vtkConstants import *
 
@@ -101,8 +104,6 @@ def vtk_basic( actors ):
     iren.Initialize()
     iren.Start()
 
-        
-import scipy.interpolate
     
 def render( img, tf=None, colors=None, opacity=None ):
     """

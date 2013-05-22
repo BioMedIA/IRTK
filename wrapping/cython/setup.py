@@ -18,8 +18,21 @@ IRTK_build = build_lib + "/../../"
 
 TMP_DIR = build_tmp
 
-VTK_libdir = "/vol/vtk/vtk-5.4.2/lib/vtk-5.4/"
-VTK_include_dir = "/vol/vtk/vtk-5.4.2/include/vtk-5.4/"
+if os.environ['USER'] == "kevin":
+    VTK_libdir = "/usr/lib/"
+    VTK_include_dir = "/usr/include/vtk-5.8/"
+    TBB_libdir = VTK_libdir
+    TBB_include_dir = VTK_include_dir
+    extra_link_args = ["-lpython2.7"]
+
+else:
+    VTK_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib/vtk-5.8"
+    VTK_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include/vtk-5.8"
+    TBB_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib"
+    TBB_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include"
+    extra_link_args = ["-lpython2.6"]
+
+TBB_libs = ["tbb", "rt"]
 
 # http://docs.python.org/2/distutils/apiref.html
 
@@ -72,15 +85,18 @@ setup(
         Extension( "_irtk",
                   [ 
                     "src/registration.cc",
+                    "src/reconstruction.cc",
                     TMP_DIR + "/templates.cc",
                     "src/irtk2cython.cc",
                     "src/voxellise.cc",
+                    "src/drawing.cc",
                     TMP_DIR + "/tmp_irtk.pyx"],
                    language="c++",
                    include_dirs = get_numpy_include_dirs()
                                 + get_IRTK_include_dirs()
-                                + [ "include", TMP_DIR, VTK_include_dir ],
-                   library_dirs = [ IRTK_build + "/lib", VTK_libdir ],
+                                + [ "include", TMP_DIR, VTK_include_dir,
+                                    TBB_include_dir ],
+                   library_dirs = [ IRTK_build + "/lib", VTK_libdir, TBB_libdir ],
                    # the order of the libraries matters
                    libraries = [ "z","m","SM","dl","nsl","png","jpeg",
                                  "niftiio",
@@ -95,27 +111,39 @@ setup(
                                  "contrib++",
                                  "geometry++",
                                  "rview++" ]
-                               + get_VTK_libs(), 
+                               + get_VTK_libs()
+                               + TBB_libs, 
                    extra_objects = get_IRTK_static_libraries(),
-                   extra_compile_args = ["-fPIC -O2 -rdynamic -DHAS_VTK"],
+                   extra_compile_args = ["-fPIC", "-O2", "-rdynamic",
+                                         "-DHAS_TBB", "-DHAS_VTK", "-DHAS_VTK_HYBRID"],
                    runtime_library_dirs = [IRTK_build + "/lib"],
-                   extra_link_args = ["-lpython2.7",
-                                      "-Wl,-no-undefined -rdynamic -DHAS_VTK"]
+                   extra_link_args = [ "-Wl,-no-undefined", "-rdynamic" ]
+                                     + extra_link_args
                    ),
         
         # ext directory (non IRTK stuff)
         Extension( "_template",
-                   [ "src/ext/_template.pyx" ],
+                   [ "ext/_template.pyx" ],
                    #language="c++",
                    include_dirs = get_numpy_include_dirs()
                    ),
 
         Extension( "_slic",
-                   [ "src/ext/_slic.pyx", "src/ext/SLIC.cc" ],
+                   [ "ext/SLIC/_slic.pyx", "ext/SLIC/SLIC.cc" ],
                    language = "c++",
                    include_dirs = get_numpy_include_dirs()
-                                + [ "include/ext" ]
-                   )
+                                + [ "ext/SLIC" ]
+                   ),
+
+        Extension("graphcut", [ "ext/graphcut/graphcut.pyx",
+                                "ext/graphcut/_graphcut.cc",
+                                "ext/graphcut/maxflow-v3.02.src/graph.cpp",
+                                "ext/graphcut/maxflow-v3.02.src/maxflow.cpp" ],
+                  language="c++",
+                  include_dirs = get_numpy_include_dirs()
+                               + [ "ext/graphcut/",
+                                   "ext/graphcut/maxflow-v3.02.src" ]
+                  ),
         ]
     )
 

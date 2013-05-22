@@ -1,3 +1,5 @@
+__all__ = [ "match_template" ]
+
 """
 template.py - Template matching
 
