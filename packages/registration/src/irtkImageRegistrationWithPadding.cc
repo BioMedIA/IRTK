@@ -41,7 +41,7 @@ void irtkImageRegistrationWithPadding::Initialize(int level)
 
   // Blur images if necessary
   if (_TargetBlurring[level] > 0) {
-    cout << "Blurring target ... "; cout.flush();
+    cout << "Blurring target ... ";
     irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
     blurring.SetInput (_target);
     blurring.SetOutput(_target);
@@ -50,7 +50,7 @@ void irtkImageRegistrationWithPadding::Initialize(int level)
   }
 
   if (_SourceBlurring[level] > 0) {
-    cout << "Blurring source ... "; cout.flush();
+    cout << "Blurring source ... ";
     irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level],_SourcePadding);
     blurring.SetInput (_source);
     blurring.SetOutput(_source);
@@ -62,7 +62,7 @@ void irtkImageRegistrationWithPadding::Initialize(int level)
   temp = fabs(_TargetResolution[0][0]-dx) + fabs(_TargetResolution[0][1]-dy) + fabs(_TargetResolution[0][2]-dz);
 
   if (level > 0 || temp > 0.000001) {
-    cout << "Resampling target ... "; cout.flush();
+    cout << "Resampling target ... ";
     // Create resampling filter
     irtkResamplingWithPadding<irtkGreyPixel> resample(_TargetResolution[level][0],
         _TargetResolution[level][1],
@@ -78,7 +78,7 @@ void irtkImageRegistrationWithPadding::Initialize(int level)
   temp = fabs(_SourceResolution[0][0]-dx) + fabs(_SourceResolution[0][1]-dy) + fabs(_SourceResolution[0][2]-dz);
 
   if (level > 0 || temp > 0.000001) {
-    cout << "Resampling source ... "; cout.flush();
+    cout << "Resampling source ... ";
     // Create resampling filter
     irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
         _SourceResolution[level][1],

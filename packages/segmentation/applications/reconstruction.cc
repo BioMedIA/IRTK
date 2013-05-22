@@ -60,6 +60,7 @@ void usage()
   cerr << "\t-no_intensity_matching    Switch off intensity matching."<<endl;
   cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
+  cerr << "\t-no_log                   Do not redirect cout and cerr to log files."<<endl;
   cerr << "\t" << endl;
   cerr << "\t" << endl;
   exit(1);
@@ -67,6 +68,10 @@ void usage()
 
 int main(int argc, char **argv)
 {
+
+    // turn off the synchronization of iostream objects and cstdio streams
+    // for increased speed
+    std::ios_base::sync_with_stdio(false);
   
   //utility variables
   int i, ok;
@@ -114,6 +119,7 @@ int main(int argc, char **argv)
   irtkRealImage average;
 
   string log_id;
+  bool no_log = false;
   
   
   //forced exclusion of slices
@@ -128,14 +134,12 @@ int main(int argc, char **argv)
   argc--;
   argv++;
   cout<<"Recontructed volume name ... "<<output_name<<endl;
-  cout.flush();
 
   //read number of stacks
   nStacks = atoi(argv[1]);
   argc--;
   argv++;
   cout<<"Number 0f stacks ... "<<nStacks<<endl;
-  cout.flush();
 
   // Read stacks 
   for (i=0;i<nStacks;i++)
@@ -144,7 +148,6 @@ int main(int argc, char **argv)
           //log_id = argv[1];
     stack.Read(argv[1]);
     cout<<"Reading stack ... "<<argv[1]<<endl;
-    cout.flush();
     argc--;
     argv++;
     stacks.push_back(stack);
@@ -166,7 +169,6 @@ int main(int argc, char **argv)
       transformation = irtkTransformation::New(argv[1]);
     }
     cout<<" done."<<endl;
-    cout.flush();
 
     argc--;
     argv++;
@@ -192,7 +194,6 @@ int main(int argc, char **argv)
         argv++;
        }
        cout<<"."<<endl;
-       cout.flush();
       ok = true;
     }
     
@@ -209,7 +210,6 @@ int main(int argc, char **argv)
         argv++;
        }
        cout<<"."<<endl;
-       cout.flush();
       ok = true;
     }
 
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
       ok = true;
     }
     
-    //Read transformations from this folder
+    //Prefix for log files
     if ((ok == false) && (strcmp(argv[1], "-log_prefix") == 0)){
       argc--;
       argv++;
@@ -345,6 +345,14 @@ int main(int argc, char **argv)
       argc--;
       argv++;
     }
+
+    //No log files
+    if ((ok == false) && (strcmp(argv[1], "-no_log") == 0)){
+      argc--;
+      argv++;
+      no_log=true;
+      ok = true;
+    }    
 
     //Read transformations from this folder
     if ((ok == false) && (strcmp(argv[1], "-transformations") == 0)){
@@ -381,7 +389,6 @@ int main(int argc, char **argv)
         argv++;
        }
        cout<<"."<<endl;
-       cout.flush();
 
       ok = true;
     }
@@ -405,7 +412,6 @@ int main(int argc, char **argv)
       cout<<thickness[i]<<" ";
     }
     cout<<"."<<endl;
-    cout.flush();
   }
 
   //Create reconstruction object
@@ -483,8 +489,11 @@ int main(int argc, char **argv)
 
   //perform volumetric registration of the stacks
   //redirect output to files
-  cerr.rdbuf(file_e.rdbuf());
-  cout.rdbuf (file.rdbuf());
+  if ( ! no_log ) {
+      cerr.rdbuf(file_e.rdbuf());
+      cout.rdbuf (file.rdbuf());
+  }
+  
   //volumetric registration
   reconstruction.StackRegistrations(stacks,stack_transformations,templateNumber);
 
@@ -493,10 +502,11 @@ int main(int argc, char **argv)
     reconstruction.CreateMaskFromBlackBackground(stacks,stack_transformations, smooth_mask);
   
   cout<<endl;
-  cout.flush();
   //redirect output back to screen
-  cout.rdbuf (strm_buffer);
-  cerr.rdbuf (strm_buffer_e);
+  if ( ! no_log ) {
+      cout.rdbuf (strm_buffer);
+      cerr.rdbuf (strm_buffer_e);
+  }
   
   //Volumetric registrations are stack-to-template while slice-to-volume 
   //registrations are actually performed as volume-to-slice (reasons: technicalities of implementation)
@@ -528,15 +538,19 @@ int main(int argc, char **argv)
   //Repeat volumetric registrations with cropped stacks
   reconstruction.InvertStackTransformations(stack_transformations);
   //redirect output to files
-  cerr.rdbuf(file_e.rdbuf());
-  cout.rdbuf (file.rdbuf());
+  if ( ! no_log ) {
+      cerr.rdbuf(file_e.rdbuf());
+      cout.rdbuf (file.rdbuf());
+  }
   //volumetric registration
   reconstruction.StackRegistrations(stacks,stack_transformations,templateNumber);
   cout<<endl;
-  cout.flush();
+
   //redirect output back to screen
-  cout.rdbuf (strm_buffer);
-  cerr.rdbuf (strm_buffer_e);
+  if ( ! no_log ) {
+      cout.rdbuf (strm_buffer);
+      cerr.rdbuf (strm_buffer_e);
+  }
   reconstruction.InvertStackTransformations(stack_transformations);
   
   //Rescale intensities of the stacks to have the same average
@@ -583,15 +597,18 @@ int main(int argc, char **argv)
   for (int iter=0;iter<iterations;iter++)
   {
     //Print iteration number on the screen
-    cout.rdbuf (strm_buffer);
+      if ( ! no_log ) {
+          cout.rdbuf (strm_buffer);
+      }
     cout<<"Iteration "<<iter<<". "<<endl;
-    cout.flush();
 
     //perform slice-to-volume registrations - skip the first iteration 
     if (iter>0)
     {
-      cerr.rdbuf(file_e.rdbuf());
-      cout.rdbuf (file.rdbuf());
+        if ( ! no_log ) {
+            cerr.rdbuf(file_e.rdbuf());
+            cout.rdbuf (file.rdbuf());
+        }
       cout<<"Iteration "<<iter<<": "<<endl;
       
       if((packages.size()>0)&&(iter<=iterations*(levels-1)/levels)&&(iter<(iterations-1)))
@@ -620,13 +637,16 @@ int main(int argc, char **argv)
         reconstruction.SliceToVolumeRegistration();
       
       cout<<endl;
-      cout.flush();
-      cerr.rdbuf (strm_buffer_e);
+      if ( ! no_log ) {
+          cerr.rdbuf (strm_buffer_e);
+      }
     }
 
     
     //Write to file
-    cout.rdbuf (file2.rdbuf());
+    if ( ! no_log ) {
+        cout.rdbuf (file2.rdbuf());
+    }
     cout<<endl<<endl<<"Iteration "<<iter<<": "<<endl<<endl;
     
     //Set smoothing parameters 
@@ -722,11 +742,15 @@ int main(int argc, char **argv)
     }
 
    //Evaluate - write number of included/excluded/outside/zero slices in each iteration in the file
-   cout.rdbuf (fileEv.rdbuf());
+    if ( ! no_log ) {
+        cout.rdbuf (fileEv.rdbuf());
+    }
    reconstruction.Evaluate(iter);
    cout<<endl;
-   cout.flush();
-   cout.rdbuf (strm_buffer); 
+
+   if ( ! no_log ) {
+       cout.rdbuf (strm_buffer);
+   }
    
   }// end of interleaved registration-reconstruction iterations
 

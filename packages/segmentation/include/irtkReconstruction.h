@@ -27,24 +27,24 @@ Reconstruction of volume from 2D slices
 
 */
 
+struct POINT
+{
+    short x;
+    short y;
+    short z;
+    double value;
+};
+
+typedef std::vector<POINT> VOXELCOEFFS; 
+typedef std::vector<std::vector<VOXELCOEFFS> > SLICECOEFFS;
+
 class irtkReconstruction : public irtkObject
 {
 
 protected:
 
   //Structures to store the matrix of transformation between volume and slices
-  struct POINT
-  {
-    short x;
-    short y;
-    short z;
-    double value;
-  };
-
-  typedef std::vector<POINT> VOXELCOEFFS; 
-  typedef std::vector<std::vector<VOXELCOEFFS> > SLICECOEFFS;
   std::vector<SLICECOEFFS> _volcoeffs;
-
 
   //SLICES
   /// Slices
@@ -287,7 +287,9 @@ public:
   ///Splits stacks into packages and each package into even and odd slices and top and bottom roi
   void SplitImageEvenOddHalf(irtkRealImage image, int packages, vector<irtkRealImage>& stacks, int iter = 1);
 
+  friend class ParallelStackRegistrations;
   friend class ParallelSliceToVolumeRegistration;
+  friend class ParallelCoeffInit;
 };
 
 inline double irtkReconstruction::G(double x,double s)

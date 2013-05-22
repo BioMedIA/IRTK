@@ -74,7 +74,6 @@ double irtkReconstruction::CreateTemplate(irtkRealImage stack, double resolution
 		d = resolution;
 
 	cout << "Constructing volume with isotropic voxel size " << d << endl;
-	cout.flush();
 
 	//resample "enlarged" to resolution "d"
 	irtkImageFunction *interpolator = new irtkNearestNeighborInterpolateImageFunction;
@@ -109,9 +108,7 @@ void irtkReconstruction::CreateMaskFromBlackBackground(vector<irtkRealImage>& st
 	//Calculate LCC of the mask to remove disconected structures
 	irtkMeanShift msh2(mask, 0, 256);
 	msh2.SetOutput(&mask);
-	cout.flush();
 	msh2.Lcc(1);
-	cout.flush();
 	irtkRealImage m = mask;
 	SetMask(&m, smooth_mask);
 
@@ -385,14 +382,87 @@ void irtkReconstruction::ResetOrigin(irtkGreyImage &image, irtkRigidTransformati
   transformation.PutRotationZ(0);
 }
 
+class ParallelStackRegistrations {
+    irtkReconstruction *reconstructor;
+    vector<irtkRealImage>& stacks;
+    vector<irtkRigidTransformation>& stack_transformations;
+    int templateNumber;
+    irtkGreyImage& target;
+    irtkRigidTransformation& offset;
+        
+public:
+    ParallelStackRegistrations( irtkReconstruction *_reconstructor,
+                                vector<irtkRealImage>& _stacks,
+                                vector<irtkRigidTransformation>& _stack_transformations,
+                                int _templateNumber,
+                                irtkGreyImage& _target,
+                                irtkRigidTransformation& _offset ) : 
+        reconstructor(_reconstructor),
+        stacks(_stacks),
+        stack_transformations(_stack_transformations),
+        target(_target),
+        offset(_offset) {
+        templateNumber = _templateNumber;
+    }
+
+    void operator() (const blocked_range<size_t> &r) const {
+        for ( size_t i = r.begin(); i != r.end(); ++i ) {            
+
+            //do not perform registration for template
+            if (i == templateNumber)
+                continue;
+
+            //rigid registration object
+            irtkImageRigidRegistrationWithPadding registration;
+            //buffer to create the name
+            char buffer[256];
+        
+            //set target and source (need to be converted to irtkGreyImage)
+            irtkGreyImage source = stacks[i];
+
+            //include offset in trasformation	
+            irtkMatrix mo = offset.GetMatrix();
+            irtkMatrix m = stack_transformations[i].GetMatrix();
+            m=m*mo;
+            stack_transformations[i].PutMatrix(m);
+
+            //perform rigid registration
+            registration.SetInput(&target, &source);
+            registration.SetOutput(&stack_transformations[i]);
+            registration.GuessParameterThickSlices();
+            registration.SetTargetPadding(0);
+            registration.Run();
+		
+            mo.Invert();
+            m = stack_transformations[i].GetMatrix();
+            m=m*mo;
+            stack_transformations[i].PutMatrix(m);
+
+            //save volumetric registrations
+            if (reconstructor->_debug) {
+                    registration.irtkImageRegistration::Write((char *) "parout-volume.rreg");
+                    sprintf(buffer, "stack-transformation%i.dof.gz", i);
+                    stack_transformations[i].irtkTransformation::Write(buffer);
+                    target.Write("target.nii.gz");
+                    sprintf(buffer, "stack%i.nii.gz", i);
+                    stacks[i].Write(buffer);
+            }            
+        }
+    }
+
+  // execute
+  void operator() () const {
+    task_scheduler_init init(tbb_no_threads);
+    parallel_for( blocked_range<size_t>(0, stacks.size() ),
+                  *this );
+    init.terminate();
+  }
+
+};
 
 void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 		vector<irtkRigidTransformation>& stack_transformations, int templateNumber)
 {
-	//rigid registration object
-	irtkImageRigidRegistrationWithPadding registration;
-	//buffer to create the name
-	char buffer[256];
 
 	//template is set as the target
 	irtkGreyImage target = stacks[templateNumber];
@@ -431,45 +501,13 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
 	ResetOrigin(target,offset);
 
 	//register all stacks to the target
-	for (int i = 0; i < (int)stacks.size(); i++)
-			{
-		//do not perform registration for template
-		if (i == templateNumber)
-			continue;
-
-		//set target and source (need to be converted to irtkGreyImage)
-		irtkGreyImage source = stacks[i];
-
-               //include offset in trasformation	
-		irtkMatrix mo = offset.GetMatrix();
-		irtkMatrix m = stack_transformations[i].GetMatrix();
-		m=m*mo;
-		stack_transformations[i].PutMatrix(m);
-
-		//perform rigid registration
-		registration.SetInput(&target, &source);
-		registration.SetOutput(&stack_transformations[i]);
-		registration.GuessParameterThickSlices();
-		registration.SetTargetPadding(0);
-		registration.Run();
-		
-		mo.Invert();
-		m = stack_transformations[i].GetMatrix();
-		m=m*mo;
-		stack_transformations[i].PutMatrix(m);
-
-
-		//save volumetric registrations
-		if (_debug)
-		{
-			registration.irtkImageRegistration::Write((char *) "parout-volume.rreg");
-			sprintf(buffer, "stack-transformation%i.dof.gz", i);
-			stack_transformations[i].irtkTransformation::Write(buffer);
-			target.Write("target.nii.gz");
-			sprintf(buffer, "stack%i.nii.gz", i);
-			stacks[i].Write(buffer);
-		}
-	}
+        ParallelStackRegistrations registration( this,
+                                                 stacks,
+                                                 stack_transformations,
+                                                 templateNumber,
+                                                 target,
+                                                 offset );
+        registration();           
 }
 
 void irtkReconstruction::RestoreSliceIntensities()
@@ -701,7 +739,6 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 			cout << stack_average[ind] << " ";
 		cout << endl;
 		cout << "The new average value is " << averageValue << endl;
-		cout.flush();
 	}
 
 	//Rescale stacks
@@ -746,7 +783,6 @@ void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
 			cout << _stack_factor[ind] << " ";
 		cout << endl;
 		cout << "The new average value is " << averageValue << endl;
-		cout.flush();
 	}
 
 }
@@ -992,315 +1028,348 @@ void irtkReconstruction::SaveConfidenceMap()
 	_confidence_map.Write("confidence-map.nii.gz");
 }
 
+class ParallelCoeffInit {
+public:
+    irtkReconstruction *reconstructor;
+
+    ParallelCoeffInit(irtkReconstruction *_reconstructor) : 
+    reconstructor(_reconstructor) { }
+
+    void operator() (const blocked_range<size_t> &r) const {
+        
+        for ( size_t inputIndex = r.begin(); inputIndex != r.end(); ++inputIndex ) {
+
+            bool slice_inside;
+
+            //current slice
+            irtkRealImage slice;
+
+            //get resolution of the volume
+            double vx, vy, vz;
+            reconstructor->_reconstructed.GetPixelSize(&vx, &vy, &vz);
+            //volume is always isotropic
+            double res = vx;
+        
+            //start of a loop for a slice inputIndex
+            cout << inputIndex << " ";
+
+            //read the slice
+            slice = reconstructor->_slices[inputIndex];
+
+            //prepare structures for storage
+            POINT p;
+            VOXELCOEFFS empty;
+            SLICECOEFFS slicecoeffs(slice.GetX(), vector < VOXELCOEFFS > (slice.GetY(), empty));
+
+            //to check whether the slice has an overlap with mask ROI
+            slice_inside = false;
+
+            //PSF will be calculated in slice space in higher resolution
+
+            //get slice voxel size to define PSF
+            double dx, dy, dz;
+            slice.GetPixelSize(&dx, &dy, &dz);
+
+            //sigma of 3D Gaussian (sinc with FWHM=dx or dy in-plane, Gaussian with FWHM = dz through-plane)
+            double sigmax = 1.2 * dx / 2.3548;
+            double sigmay = 1.2 * dy / 2.3548;
+            double sigmaz = dz / 2.3548;
+            /*
+              cout<<"Original sigma"<<sigmax<<" "<<sigmay<<" "<<sigmaz<<endl;
+		
+              //readjust for resolution of the volume
+              //double sigmax,sigmay,sigmaz;
+              double sigmamin = res/(3*2.3548);
+		
+              if((dx-res)>sigmamin)
+              sigmax = 1.2 * sqrt(dx*dx-res*res) / 2.3548;
+              else sigmax = sigmamin;
+
+              if ((dy-res)>sigmamin)
+              sigmay = 1.2 * sqrt(dy*dy-res*res) / 2.3548;
+              else
+              sigmay=sigmamin;
+              if ((dz-1.2*res)>sigmamin)
+              sigmaz = sqrt(dz*dz-1.2*1.2*res*res) / 2.3548;
+              else sigmaz=sigmamin;
+		
+              cout<<"Adjusted sigma:"<<sigmax<<" "<<sigmay<<" "<<sigmaz<<endl;
+            */
+		
+            //calculate discretized PSF
+
+            //isotropic voxel size of PSF - derived from resolution of reconstructed volume
+            double size = res / reconstructor->_quality_factor;
+
+            //number of voxels in each direction
+            //the ROI is 2*voxel dimension
+
+            int xDim = round(2 * dx / size);
+            int yDim = round(2 * dy / size);
+            int zDim = round(2 * dz / size);
+
+            //image corresponding to PSF
+            irtkImageAttributes attr;
+            attr._x = xDim;
+            attr._y = yDim;
+            attr._z = zDim;
+            attr._dx = size;
+            attr._dy = size;
+            attr._dz = size;
+            irtkRealImage PSF(attr);
+
+            //centre of PSF
+            double cx, cy, cz;
+            cx = 0.5 * (xDim - 1);
+            cy = 0.5 * (yDim - 1);
+            cz = 0.5 * (zDim - 1);
+            PSF.ImageToWorld(cx, cy, cz);
+
+            double x, y, z;
+            double sum = 0;
+            int i, j, k;
+            for (i = 0; i < xDim; i++)
+                for (j = 0; j < yDim; j++)
+                    for (k = 0; k < zDim; k++)
+                        {
+                            x = i;
+                            y = j;
+                            z = k;
+                            PSF.ImageToWorld(x, y, z);
+                            x -= cx;
+                            y -= cy;
+                            z -= cz;
+                            //continuous PSF does not need to be normalized as discrete will be
+                            PSF(i, j, k) = exp(
+                                               -x * x / (2 * sigmax * sigmax) - y * y / (2 * sigmay * sigmay)
+                                               - z * z / (2 * sigmaz * sigmaz));
+                            sum += PSF(i, j, k);
+                        }
+            PSF /= sum;
+
+            if (reconstructor->_debug)
+                if (inputIndex == 0)
+                    PSF.Write("PSF.nii.gz");
+
+            //prepare storage for PSF transformed and resampled to the space of reconstructed volume
+            //maximum dim of rotated kernel - the next higher odd integer plus two to accound for rounding error of tx,ty,tz.
+            //Note conversion from PSF image coordinates to tPSF image coordinates *size/res
+            int dim = (floor(ceil(sqrt(double(xDim * xDim + yDim * yDim + zDim * zDim)) * size / res) / 2))
+                * 2 + 1 + 2;
+            //prepare image attributes. Voxel dimension will be taken from the reconstructed volume
+            attr._x = dim;
+            attr._y = dim;
+            attr._z = dim;
+            attr._dx = res;
+            attr._dy = res;
+            attr._dz = res;
+            //create matrix from transformed PSF
+            irtkRealImage tPSF(attr);
+            //calculate centre of tPSF in image coordinates
+            int centre = (dim - 1) / 2;
+
+            //for each voxel in current slice calculate matrix coefficients
+            int ii, jj, kk;
+            int tx, ty, tz;
+            int nx, ny, nz;
+            int l, m, n;
+            double weight;
+            for (i = 0; i < slice.GetX(); i++)
+                for (j = 0; j < slice.GetY(); j++)
+                    if (slice(i, j, 0) != -1)
+                        {
+                            //calculate centrepoint of slice voxel in volume space (tx,ty,tz)
+                            x = i;
+                            y = j;
+                            z = 0;
+                            slice.ImageToWorld(x, y, z);
+                            reconstructor->_transformations[inputIndex].Transform(x, y, z);
+                            reconstructor->_reconstructed.WorldToImage(x, y, z);
+                            tx = round(x);
+                            ty = round(y);
+                            tz = round(z);
+
+                            //Clear the transformed PSF
+                            for (ii = 0; ii < dim; ii++)
+                                for (jj = 0; jj < dim; jj++)
+                                    for (kk = 0; kk < dim; kk++)
+                                        tPSF(ii, jj, kk) = 0;
+
+                            //for each point of the PSF
+                            for (ii = 0; ii < xDim; ii++)
+                                for (jj = 0; jj < yDim; jj++)
+                                    for (kk = 0; kk < zDim; kk++)
+                                        {
+                                            //Calculate the position of the point of PSF centered over current slice voxel
+                                            //This is a bit complicated because slices can be oriented in any direction
+
+                                            //PSF image coordinates
+                                            x = ii;
+                                            y = jj;
+                                            z = kk;
+                                            //change to PSF world coordinates - now real sizes in mm
+                                            PSF.ImageToWorld(x, y, z);
+                                            //centre around the centrepoint of the PSF
+                                            x -= cx;
+                                            y -= cy;
+                                            z -= cz;
+
+                                            //Need to convert (x,y,z) to slice image coordinates because slices can have transformations included in them (they are nifti)  and those are not reflected in PSF. In slice image coordinates we are sure that z is through-plane
+
+                                            //adjust according to voxel size
+                                            x /= dx;
+                                            y /= dy;
+                                            z /= dz;
+                                            //center over current voxel
+                                            x += i;
+                                            y += j;
+
+                                            //convert from slice image coordinates to world coordinates
+                                            slice.ImageToWorld(x, y, z);
+
+                                            //x+=(vx-cx); y+=(vy-cy); z+=(vz-cz);
+                                            //Transform to space of reconstructed volume
+                                            reconstructor->_transformations[inputIndex].Transform(x, y, z);
+                                            //Change to image coordinates
+                                            reconstructor->_reconstructed.WorldToImage(x, y, z);
+
+                                            //determine coefficients of volume voxels for position x,y,z
+                                            //using linear interpolation
+
+                                            //Find the 8 closest volume voxels
+
+                                            //lowest corner of the cube
+                                            nx = (int) floor(x);
+                                            ny = (int) floor(y);
+                                            nz = (int) floor(z);
+
+                                            //not all neighbours might be in ROI, thus we need to normalize
+                                            //(l,m,n) are image coordinates of 8 neighbours in volume space
+                                            //for each we check whether it is in volume
+                                            sum = 0;
+                                            //to find wether the current slice voxel has overlap with ROI
+                                            bool inside = false;
+                                            for (l = nx; l <= nx + 1; l++)
+                                                if ((l >= 0) && (l < reconstructor->_reconstructed.GetX()))
+                                                    for (m = ny; m <= ny + 1; m++)
+                                                        if ((m >= 0) && (m < reconstructor->_reconstructed.GetY()))
+                                                            for (n = nz; n <= nz + 1; n++)
+                                                                if ((n >= 0) && (n < reconstructor->_reconstructed.GetZ()))
+                                                                    {
+                                                                        weight = (1 - fabs(l - x)) * (1 - fabs(m - y)) * (1 - fabs(n - z));
+                                                                        sum += weight;
+                                                                        if (reconstructor->_mask(l, m, n) == 1)
+                                                                            {
+                                                                                inside = true;
+                                                                                slice_inside = true;
+                                                                            }
+                                                                    }
+                                            //if there were no voxels do nothing
+                                            if ((sum <= 0) || (!inside))
+                                                continue;
+                                            //now calculate the transformed PSF
+                                            for (l = nx; l <= nx + 1; l++)
+                                                if ((l >= 0) && (l < reconstructor->_reconstructed.GetX()))
+                                                    for (m = ny; m <= ny + 1; m++)
+                                                        if ((m >= 0) && (m < reconstructor->_reconstructed.GetY()))
+                                                            for (n = nz; n <= nz + 1; n++)
+                                                                if ((n >= 0) && (n < reconstructor->_reconstructed.GetZ()))
+                                                                    {
+                                                                        weight = (1 - fabs(l - x)) * (1 - fabs(m - y)) * (1 - fabs(n - z));
+
+                                                                        //image coordinates in tPSF
+                                                                        //(centre,centre,centre) in tPSF is aligned with (tx,ty,tz)
+                                                                        int aa, bb, cc;
+                                                                        aa = l - tx + centre;
+                                                                        bb = m - ty + centre;
+                                                                        cc = n - tz + centre;
+
+                                                                        //resulting value
+                                                                        double value = PSF(ii, jj, kk) * weight / sum;
+
+                                                                        //Check that we are in tPSF
+                                                                        if ((aa < 0) || (aa >= dim) || (bb < 0) || (bb >= dim) || (cc < 0)
+                                                                            || (cc >= dim))
+                                                                            {
+                                                                                cerr << "Error while trying to populate tPSF. " << aa << " " << bb
+                                                                                     << " " << cc << endl;
+                                                                                cerr << l << " " << m << " " << n << endl;
+                                                                                cerr << tx << " " << ty << " " << tz << endl;
+                                                                                cerr << centre << endl;
+                                                                                tPSF.Write("tPSF.nii.gz");
+                                                                                exit(1);
+                                                                            }
+                                                                        else
+                                                                            //update transformed PSF
+                                                                            tPSF(aa, bb, cc) += value;
+                                                                    }
+
+                                        } //end of the loop for PSF points
+
+                            //store tPSF values
+                            for (ii = 0; ii < dim; ii++)
+                                for (jj = 0; jj < dim; jj++)
+                                    for (kk = 0; kk < dim; kk++)
+                                        if (tPSF(ii, jj, kk) > 0)
+                                            {
+                                                p.x = ii + tx - centre;
+                                                p.y = jj + ty - centre;
+                                                p.z = kk + tz - centre;
+                                                p.value = tPSF(ii, jj, kk);
+                                                slicecoeffs[i][j].push_back(p);
+                                            }
+                        } //end of loop for slice voxels
+
+            reconstructor->_volcoeffs[inputIndex] = slicecoeffs;
+            reconstructor->_slice_inside[inputIndex] = slice_inside;
+
+	}  //end of loop through the slices                            
+            
+    }
+
+  // execute
+  void operator() () const {
+      task_scheduler_init init(tbb_no_threads);
+    parallel_for( blocked_range<size_t>(0, reconstructor->_slices.size() ),
+                  *this );
+    init.terminate();
+  }
+
+};
+
 void irtkReconstruction::CoeffInit()
 {
 	//clear slice-volume matrix from previous iteration
 	_volcoeffs.clear();
+        _volcoeffs.resize(_slices.size());
 
 	//clear indicator of slice having and overlap with volumetric mask
 	_slice_inside.clear();
+        _slice_inside.resize(_slices.size());
 
-	bool slice_inside;
-
-	//current slice
-	irtkRealImage slice;
-
-	//get resolution of the volume
-	double vx, vy, vz;
-	_reconstructed.GetPixelSize(&vx, &vy, &vz);
-	//volume is always isotropic
-	double res = vx;
+	cout << "Initialising matrix coefficients...";
+        ParallelCoeffInit coeffinit(this);
+        coeffinit();
+	cout << " ... done." << endl;
 
 	//prepare image for volume weights, will be needed for Gaussian Reconstruction
 	_volume_weights.Initialize( _reconstructed.GetImageAttributes() );
 	_volume_weights = 0;
 
-	cout << "Initialising matrix coefficients...";
-	for (unsigned int inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
-			{
-		//start of a loop for a slice inputIndex
-		cout << inputIndex << " ";
-		cout.flush();
-
-		//read the slice
-		slice = _slices[inputIndex];
-
-		//prepare structures for storage
-		POINT p;
-		VOXELCOEFFS empty;
-		SLICECOEFFS slicecoeffs(slice.GetX(), vector < VOXELCOEFFS > (slice.GetY(), empty));
-
-		//to check whether the slice has an overlap with mask ROI
-		slice_inside = false;
-
-		//PSF will be calculated in slice space in higher resolution
-
-		//get slice voxel size to define PSF
-		double dx, dy, dz;
-		slice.GetPixelSize(&dx, &dy, &dz);
-
-		//sigma of 3D Gaussian (sinc with FWHM=dx or dy in-plane, Gaussian with FWHM = dz through-plane)
-		double sigmax = 1.2 * dx / 2.3548;
-		double sigmay = 1.2 * dy / 2.3548;
-		double sigmaz = dz / 2.3548;
-		/*
-		cout<<"Original sigma"<<sigmax<<" "<<sigmay<<" "<<sigmaz<<endl;
-		
-		//readjust for resolution of the volume
-		//double sigmax,sigmay,sigmaz;
-		double sigmamin = res/(3*2.3548);
-		
-		if((dx-res)>sigmamin)
-		  sigmax = 1.2 * sqrt(dx*dx-res*res) / 2.3548;
-		else sigmax = sigmamin;
-
-		if ((dy-res)>sigmamin)
-		  sigmay = 1.2 * sqrt(dy*dy-res*res) / 2.3548;
-		else
-		  sigmay=sigmamin;
-		if ((dz-1.2*res)>sigmamin)
-		  sigmaz = sqrt(dz*dz-1.2*1.2*res*res) / 2.3548;
-		else sigmaz=sigmamin;
-		
-		cout<<"Adjusted sigma:"<<sigmax<<" "<<sigmay<<" "<<sigmaz<<endl;
-                */
-		
-		//calculate discretized PSF
-
-		//isotropic voxel size of PSF - derived from resolution of reconstructed volume
-		double size = res / _quality_factor;
-
-		//number of voxels in each direction
-		//the ROI is 2*voxel dimension
-
-		int xDim = round(2 * dx / size);
-		int yDim = round(2 * dy / size);
-		int zDim = round(2 * dz / size);
-
-		//image corresponding to PSF
-		irtkImageAttributes attr;
-		attr._x = xDim;
-		attr._y = yDim;
-		attr._z = zDim;
-		attr._dx = size;
-		attr._dy = size;
-		attr._dz = size;
-		irtkRealImage PSF(attr);
-
-		//centre of PSF
-		double cx, cy, cz;
-		cx = 0.5 * (xDim - 1);
-		cy = 0.5 * (yDim - 1);
-		cz = 0.5 * (zDim - 1);
-		PSF.ImageToWorld(cx, cy, cz);
-
-		double x, y, z;
-		double sum = 0;
-		int i, j, k;
-		for (i = 0; i < xDim; i++)
-			for (j = 0; j < yDim; j++)
-				for (k = 0; k < zDim; k++)
-						{
-					x = i;
-					y = j;
-					z = k;
-					PSF.ImageToWorld(x, y, z);
-					x -= cx;
-					y -= cy;
-					z -= cz;
-					//continuous PSF does not need to be normalized as discrete will be
-					PSF(i, j, k) = exp(
-							-x * x / (2 * sigmax * sigmax) - y * y / (2 * sigmay * sigmay)
-									- z * z / (2 * sigmaz * sigmaz));
-					sum += PSF(i, j, k);
-				}
-		PSF /= sum;
-
-		if (_debug)
-			if (inputIndex == 0)
-				PSF.Write("PSF.nii.gz");
-
-		//prepare storage for PSF transformed and resampled to the space of reconstructed volume
-		//maximum dim of rotated kernel - the next higher odd integer plus two to accound for rounding error of tx,ty,tz.
-		//Note conversion from PSF image coordinates to tPSF image coordinates *size/res
-		int dim = (floor(ceil(sqrt(double(xDim * xDim + yDim * yDim + zDim * zDim)) * size / res) / 2))
-				* 2 + 1 + 2;
-		//prepare image attributes. Voxel dimension will be taken from the reconstructed volume
-		attr._x = dim;
-		attr._y = dim;
-		attr._z = dim;
-		attr._dx = res;
-		attr._dy = res;
-		attr._dz = res;
-		//create matrix from transformed PSF
-		irtkRealImage tPSF(attr);
-		//calculate centre of tPSF in image coordinates
-		int centre = (dim - 1) / 2;
-
-		//for each voxel in current slice calculate matrix coefficients
-		int ii, jj, kk;
-		int tx, ty, tz;
-		int nx, ny, nz;
-		int l, m, n;
-		double weight;
-		for (i = 0; i < slice.GetX(); i++)
-			for (j = 0; j < slice.GetY(); j++)
-				if (slice(i, j, 0) != -1)
-						{
-					//calculate centrepoint of slice voxel in volume space (tx,ty,tz)
-					x = i;
-					y = j;
-					z = 0;
-					slice.ImageToWorld(x, y, z);
-					_transformations[inputIndex].Transform(x, y, z);
-					_reconstructed.WorldToImage(x, y, z);
-					tx = round(x);
-					ty = round(y);
-					tz = round(z);
-
-					//Clear the transformed PSF
-					for (ii = 0; ii < dim; ii++)
-						for (jj = 0; jj < dim; jj++)
-							for (kk = 0; kk < dim; kk++)
-								tPSF(ii, jj, kk) = 0;
-
-					//for each point of the PSF
-					for (ii = 0; ii < xDim; ii++)
-						for (jj = 0; jj < yDim; jj++)
-							for (kk = 0; kk < zDim; kk++)
-									{
-								//Calculate the position of the point of PSF centered over current slice voxel
-								//This is a bit complicated because slices can be oriented in any direction
-
-								//PSF image coordinates
-								x = ii;
-								y = jj;
-								z = kk;
-								//change to PSF world coordinates - now real sizes in mm
-								PSF.ImageToWorld(x, y, z);
-								//centre around the centrepoint of the PSF
-								x -= cx;
-								y -= cy;
-								z -= cz;
-
-								//Need to convert (x,y,z) to slice image coordinates because slices can have transformations included in them (they are nifti)  and those are not reflected in PSF. In slice image coordinates we are sure that z is through-plane
-
-								//adjust according to voxel size
-								x /= dx;
-								y /= dy;
-								z /= dz;
-								//center over current voxel
-								x += i;
-								y += j;
-
-								//convert from slice image coordinates to world coordinates
-								slice.ImageToWorld(x, y, z);
-
-								//x+=(vx-cx); y+=(vy-cy); z+=(vz-cz);
-								//Transform to space of reconstructed volume
-								_transformations[inputIndex].Transform(x, y, z);
-								//Change to image coordinates
-								_reconstructed.WorldToImage(x, y, z);
-
-								//determine coefficients of volume voxels for position x,y,z
-								//using linear interpolation
-
-								//Find the 8 closest volume voxels
-
-								//lowest corner of the cube
-								nx = (int) floor(x);
-								ny = (int) floor(y);
-								nz = (int) floor(z);
-
-								//not all neighbours might be in ROI, thus we need to normalize
-								//(l,m,n) are image coordinates of 8 neighbours in volume space
-								//for each we check whether it is in volume
-								sum = 0;
-								//to find wether the current slice voxel has overlap with ROI
-								bool inside = false;
-								for (l = nx; l <= nx + 1; l++)
-									if ((l >= 0) && (l < _reconstructed.GetX()))
-										for (m = ny; m <= ny + 1; m++)
-											if ((m >= 0) && (m < _reconstructed.GetY()))
-												for (n = nz; n <= nz + 1; n++)
-													if ((n >= 0) && (n < _reconstructed.GetZ()))
-															{
-														weight = (1 - fabs(l - x)) * (1 - fabs(m - y)) * (1 - fabs(n - z));
-														sum += weight;
-														if (_mask(l, m, n) == 1)
-																{
-															inside = true;
-															slice_inside = true;
-														}
-													}
-								//if there were no voxels do nothing
-								if ((sum <= 0) || (!inside))
-									continue;
-								//now calculate the transformed PSF
-								for (l = nx; l <= nx + 1; l++)
-									if ((l >= 0) && (l < _reconstructed.GetX()))
-										for (m = ny; m <= ny + 1; m++)
-											if ((m >= 0) && (m < _reconstructed.GetY()))
-												for (n = nz; n <= nz + 1; n++)
-													if ((n >= 0) && (n < _reconstructed.GetZ()))
-															{
-														weight = (1 - fabs(l - x)) * (1 - fabs(m - y)) * (1 - fabs(n - z));
-
-														//image coordinates in tPSF
-														//(centre,centre,centre) in tPSF is aligned with (tx,ty,tz)
-														int aa, bb, cc;
-														aa = l - tx + centre;
-														bb = m - ty + centre;
-														cc = n - tz + centre;
-
-														//resulting value
-														double value = PSF(ii, jj, kk) * weight / sum;
-
-														//Check that we are in tPSF
-														if ((aa < 0) || (aa >= dim) || (bb < 0) || (bb >= dim) || (cc < 0)
-																|| (cc >= dim))
-																{
-															cerr << "Error while trying to populate tPSF. " << aa << " " << bb
-																	<< " " << cc << endl;
-															cerr << l << " " << m << " " << n << endl;
-															cerr << tx << " " << ty << " " << tz << endl;
-															cerr << centre << endl;
-															tPSF.Write("tPSF.nii.gz");
-															exit(1);
-														}
-														else
-															//update transformed PSF
-															tPSF(aa, bb, cc) += value;
-
-														_volume_weights(l, m, n) += value;
-													}
-
-							} //end of the loop for PSF points
-
-							//store tPSF values
-					for (ii = 0; ii < dim; ii++)
-						for (jj = 0; jj < dim; jj++)
-							for (kk = 0; kk < dim; kk++)
-								if (tPSF(ii, jj, kk) > 0)
-										{
-									p.x = ii + tx - centre;
-									p.y = jj + ty - centre;
-									p.z = kk + tz - centre;
-									p.value = tPSF(ii, jj, kk);
-									slicecoeffs[i][j].push_back(p);
-								}
-								
-
-				} //end of loop for slice voxels
-
-		_volcoeffs.push_back(slicecoeffs);
-		_slice_inside.push_back(slice_inside);
-
-	}  //end of loop through the slices
-
-	if (_debug)
-		_volume_weights.Write("volume_weights.nii.gz");
-	cout << " ... done." << endl;
+        int inputIndex, i, j, n, k;
+        POINT p;
+        for ( inputIndex = 0; inputIndex < _slices.size(); ++inputIndex) {
+            for ( i = 0; i < _slices[inputIndex].GetX(); i++)
+                for ( j = 0; j < _slices[inputIndex].GetY(); j++) {
+                        n = _volcoeffs[inputIndex][i][j].size();
+                        for (k = 0; k < n; k++) {
+                            p = _volcoeffs[inputIndex][i][j][k];
+                            _volume_weights(p.x, p.y, p.z) += p.value;
+                        }
+                }
+        }
+        if (_debug)
+            _volume_weights.Write("volume_weights.nii.gz");
 	
 	//find average volume weight to modify alpha parameters accordingly
 	irtkRealPixel *ptr = _volume_weights.GetPointerToVoxels();
@@ -1322,7 +1391,6 @@ void irtkReconstruction::CoeffInit()
 	if(_debug)
 	{
 	  cout<<"Average volume weight is "<<_average_volume_weight<<endl;
-	  cout.flush();
 	}
 	
 }  //end of CoeffInit()
@@ -1779,7 +1847,6 @@ void irtkReconstruction::EStep()
 			if (den < 0) //this should not happen
 				cout << "All slices are outliers. ";
 			cout << "Setting sigma to " << sqrt(_sigma_s) << endl;
-			cout.flush();
 		}
 	}
 
@@ -1805,7 +1872,6 @@ void irtkReconstruction::EStep()
 			if (den2 <= 0)
 				cout << "All slices inliers. ";
 			cout << "Setting sigma_s2 to " << sqrt(_sigma_s2) << endl;
-			cout.flush();
 		}
 	}
 
@@ -1883,7 +1949,6 @@ void irtkReconstruction::EStep()
 		for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
 			cout << _slice_weight[inputIndex] << " ";
 		cout << endl;
-		cout.flush();
 	}
 
 }
@@ -1970,7 +2035,6 @@ void irtkReconstruction::Scale()
 		for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
 			cout << _scale[inputIndex] << " ";
 		cout << endl;
-		cout.flush();
 	}
 }
 
@@ -2589,7 +2653,6 @@ void irtkReconstruction::ReadTransformation(char* folder)
 		exit(1);
 	}
 	cout << "Reading transformations:" << endl;
-	cout.flush();
 
 	_transformations.clear();
 	for (int i = 0; i < n; i++)
@@ -2609,8 +2672,6 @@ void irtkReconstruction::ReadTransformation(char* folder)
 		_transformations.push_back(*rigidTransf);
 		delete transformation;
 		cout << path << endl;
-		cout.flush();
-
 	}
 }
 
@@ -2647,7 +2708,6 @@ void irtkReconstruction::SplitImage(irtkRealImage image, int packages, vector<ir
     attr._dz = pkg_dz;
     
     cout<<"split image "<<l<<" has "<<attr._z<<" slices."<<endl;
-    cout.flush();
   
     //fill values in each stack
     irtkRealImage stack(attr);
@@ -2682,7 +2742,6 @@ void irtkReconstruction::SplitImage(irtkRealImage image, int packages, vector<ir
      stacks.push_back(stack);
   }
   cout<<"done."<<endl;
-  cout.flush();
 
 }
 
@@ -2704,8 +2763,6 @@ void irtkReconstruction::SplitImageEvenOdd(irtkRealImage image, int packages, ve
    }
    
    cout<<"done."<<endl;
-   cout.flush();
-     
 }
 
 void irtkReconstruction::SplitImageEvenOddHalf(irtkRealImage image, int packages, vector<irtkRealImage>& stacks, int iter)
@@ -2776,7 +2833,6 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
     for (unsigned int j = 0; j < packages.size(); j++)
     {
       cout<<"Package "<<j<<" of stack "<<i<<endl;
-      cout.flush();
       if (_debug)
       {
         sprintf(buffer,"package%i-%i.nii.gz",i,j);
@@ -2838,7 +2894,6 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
 	{
 	  cerr<<"irtkRecnstruction::PackageToVolume: sliceIndex out of range."<<endl;
 	  cerr<<sliceIndex<<" "<<_transformations.size()<<endl;
-	  cerr.flush();
 	  exit(1);
 	}
 	
@@ -2857,7 +2912,6 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
       
     }
     cout<<"End of stack "<<i<<endl<<endl;
-    cout.flush();
     
     firstSlice += stacks[i].GetZ();
   }
@@ -2885,7 +2939,6 @@ void irtkReconstruction::NormaliseBias(int iter)
           if(_debug)
 	  {
 	    cout<<inputIndex<<" ";
-	    cout.flush();
 	  }
           // read the current slice
 	  slice = _slices[inputIndex];
