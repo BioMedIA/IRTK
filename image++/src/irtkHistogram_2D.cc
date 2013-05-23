@@ -728,7 +728,7 @@ template <> void irtkHistogram_2D<double>::Smooth()
   }
 
   // Smoothing kernel
-  double kernel[3] = { 1.0/6.0, 2.0/6.0, 1.0/6.0 };
+  double kernel[3] = { 1.0/6.0, 2.0/3.0, 1.0/6.0 };
 
   // Allocate temporary memory
   tmp  = Allocate(_bins, _nbins_x, _nbins_y);
