@@ -1,5 +1,7 @@
 #include "voxellise.h"
 
+#ifdef HAS_VTK
+
 void voxellise( vtkPolyData *poly, // input mesh (must be closed)
                 irtkGreyImage &image,
                 double value ) {
@@ -99,8 +101,8 @@ void create_polydata( double* points,
     poly->Update();
 }
 
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkPolyDataWriter.h>
+#endif
+
 void _voxellise( double* points,
                  int npoints,
                  int* triangles,
@@ -112,6 +114,7 @@ void _voxellise( double* points,
                  double* zAxis,
                  double* origin,
                  int* dim ) {
+#ifdef HAS_VTK
     vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
 
     create_polydata( points,
@@ -125,7 +128,6 @@ void _voxellise( double* points,
         vtkSmartPointer<vtkPolyDataWriter>::New();
     writer->SetFileName("debug.vtk");
     writer->SetInput(poly);
-    //writer->SetDataModeToAscii();
     writer->Write();
 
     irtkGenericImage<short> irtk_image;
@@ -149,5 +151,8 @@ void _voxellise( double* points,
                     yAxis,
                     zAxis,
                     origin,
-                    dim );    
+                    dim );
+#endif
 }
+
+

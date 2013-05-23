@@ -16,23 +16,28 @@ for i in xrange(1,len(sys.argv)):
 IRTK_src = "../../"
 IRTK_build = build_lib + "/../../"
 
-TMP_DIR = build_tmp
+TMP_DIR = build_tmp        
 
-if os.environ['USER'] == "kevin":
-    VTK_libdir = "/usr/lib/"
-    VTK_include_dir = "/usr/include/vtk-5.8/"
-    TBB_libdir = VTK_libdir
-    TBB_include_dir = VTK_include_dir
-    extra_link_args = ["-lpython2.7"]
+python_version = sys.version[:3]
+extra_link_args = ["-lpython"+python_version]
 
-else:
-    VTK_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib/vtk-5.8"
-    VTK_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include/vtk-5.8"
-    TBB_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib"
-    TBB_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include"
-    extra_link_args = ["-lpython2.6"]
+has_vtk = False
+has_tbb = False
+VTK_libdir = ""
+VTK_include_dir = ""
+TBB_libdir = ""
+TBB_include_dir = ""
+extra_compile_args = []
 
-TBB_libs = ["tbb", "rt"]
+if os.path.exists("local.py"):
+    # use local configuration
+    from local import *
+
+if has_vtk:
+    extra_compile_args.extend( ["-DHAS_VTK", "-DHAS_VTK_HYBRID"] )
+
+if has_tbb:
+    extra_compile_args.append("-DHAS_TBB")
 
 # http://docs.python.org/2/distutils/apiref.html
 
@@ -75,9 +80,41 @@ def get_IRTK_static_libraries( folder=IRTK_build ):
         lambda x: folder + "/lib/" + x,
         static_libraries )
 
-def get_VTK_libs( folder=VTK_libdir ):
+def get_VTK_include_dirs( folder=VTK_include_dir, has_vtk=has_vtk ):
+    if not has_vtk:
+        return []
+    else:
+        return [folder]
+
+def get_VTK_libdir( folder=VTK_libdir, has_vtk=has_vtk ):
+    if not has_vtk:
+        return []
+    else:
+        return [folder]    
+    
+def get_VTK_libs( folder=VTK_libdir, has_vtk=has_vtk ):
+    if not has_vtk:
+        return []
     libs = glob( folder + "/libvtk*.so" )
     return map( lambda x: os.path.basename( x )[3:-3], libs )
+
+def get_TBB_include_dirs( folder=TBB_include_dir, has_tbb=has_tbb ):
+    if not has_tbb:
+        return []
+    else:
+        return [folder]
+
+def get_TBB_libdir( folder=TBB_libdir, has_tbb=has_tbb ):
+    if not has_tbb:
+        return []
+    else:
+        return [folder]     
+    
+def get_TBB_libs( has_tbb=has_tbb ):
+    if not has_tbb:
+        return []
+    else:
+        return ["tbb", "rt"]
         
 setup(
     cmdclass = { 'build_ext' : build_ext },
@@ -94,9 +131,12 @@ setup(
                    language="c++",
                    include_dirs = get_numpy_include_dirs()
                                 + get_IRTK_include_dirs()
-                                + [ "include", TMP_DIR, VTK_include_dir,
-                                    TBB_include_dir ],
-                   library_dirs = [ IRTK_build + "/lib", VTK_libdir, TBB_libdir ],
+                                + get_TBB_include_dirs()
+                                + get_VTK_include_dirs()
+                                + [ "include", TMP_DIR ],
+                   library_dirs = [ IRTK_build + "/lib" ]
+                                + get_TBB_libdir()
+                                + get_VTK_libdir(),
                    # the order of the libraries matters
                    libraries = [ "z","m","SM","dl","nsl","png","jpeg",
                                  "niftiio",
@@ -112,10 +152,10 @@ setup(
                                  "geometry++",
                                  "rview++" ]
                                + get_VTK_libs()
-                               + TBB_libs, 
+                               + get_TBB_libs(), 
                    extra_objects = get_IRTK_static_libraries(),
-                   extra_compile_args = ["-fPIC", "-O2", "-rdynamic",
-                                         "-DHAS_TBB", "-DHAS_VTK", "-DHAS_VTK_HYBRID"],
+                   extra_compile_args = ["-fPIC", "-O2", "-rdynamic" ]
+                                        + extra_compile_args,
                    runtime_library_dirs = [IRTK_build + "/lib"],
                    extra_link_args = [ "-Wl,-no-undefined", "-rdynamic" ]
                                      + extra_link_args

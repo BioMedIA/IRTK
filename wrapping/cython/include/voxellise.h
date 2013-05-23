@@ -4,8 +4,9 @@
 #include "irtk2cython.h"
 
 #include <irtkImage.h>
-
 #include <irtkGaussianBlurring.h>
+
+#ifdef HAS_VTK
 
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
@@ -26,6 +27,9 @@
 #include <vtkCellArray.h>
 #include <vtkTriangle.h>
 
+#include <vtkXMLPolyDataWriter.h>
+#include <vtkPolyDataWriter.h>
+
 void voxellise( vtkPolyData *poly, // input mesh (must be closed)
                 irtkGreyImage &image,
                 double value=1 );
@@ -35,6 +39,8 @@ void create_polydata( double* points,
                       int* triangles,
                       int ntriangles,
                       vtkPolyData *poly );
+
+#endif
 
 void _voxellise( double* points,
                  int npoints,

@@ -1,0 +1,73 @@
+This is a Python interface to IRTK using Cython.
+
+
+*** Basic installation: ***
+Check out a fresh version of IRTK from SVN:
+      svn co svn+ssh://shell4.doc.ic.ac.uk/vol/vipdata/vipsvn/SVN/irtk
+or
+        svn co file:///vol/vipdata/vipsvn/SVN/irtk
+
+Then:
+        cd irtk
+        mkdir build
+        cd build
+        cmake -D WRAP_CYTHON=ON ..
+        make -j 3 VERBOSE=1
+        cd ../wrapping/cython
+        make
+
+Now you need to update your PYTHONPATH:
+get the full path of full_path/irtk/build/lib
+for bash, add to your ~/.bashrc
+    export PYTHONPATH=full_path/irtk/build/lib:$PYTHONPATH
+for tcsh, add to your ~/.cshrc
+    setenv PYTHONPATH full_path/irtk/build/lib:$PYTHONPATH
+
+You are now ready to go!
+
+If you do not have OpenCV or VTK installed, the library will still be usable,
+but some functionalities will be missing.
+
+
+
+*** Advanced installation: ***
+
+If you compiled IRTK with TBB or VTK, you will need to
+create a file local.py in irtk/wrapping/cython
+
+This file should not be checked into SVN as it is installation specific.
+It should contain the following code (update the values to your system):
+
+##########
+
+__all__ = [ "has_vtk","has_tbb",
+            "VTK_libdir","VTK_include_dir",
+            "TBB_libdir", "TBB_include_dir" ]
+
+has_vtk = True
+has_tbb = True
+
+VTK_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib/vtk-5.8"
+VTK_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include/vtk-5.8"
+TBB_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib"
+TBB_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include"
+
+##########
+
+
+Note:
+You can get:
+ - OpenCV from http://opencv.org/
+ - TBB from http://threadingbuildingblocks.org/
+ - VTK from http://www.vtk.org/
+
+Python tips:
+ - Installing Python packages: "easy_install" or "pip install"
+ - Having your own Python installation: http://www.virtualenv.org/
+ - Interactive Python: ipython, ipython notebook, ipython qtconsole
+ - Machine Learning: http://scikit-learn.org/
+ - Plotting: http://matplotlib.org/
+ - Parallel code: http://pythonhosted.org/joblib/
+
+And never forget: Python will do fast what he is meant to do fast.
+For the rest, you have C++ easily accessible through Cython (http://www.cython.org/).
