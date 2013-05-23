@@ -18,9 +18,6 @@ IRTK_build = build_lib + "/../../"
 
 TMP_DIR = build_tmp        
 
-python_version = sys.version[:3]
-extra_link_args = ["-lpython"+python_version]
-
 has_vtk = False
 has_tbb = False
 VTK_libdir = ""
@@ -28,6 +25,7 @@ VTK_include_dir = ""
 TBB_libdir = ""
 TBB_include_dir = ""
 extra_compile_args = []
+extra_link_args = []
 
 if os.path.exists("local.py"):
     # use local configuration
@@ -157,7 +155,7 @@ setup(
                    extra_compile_args = ["-fPIC", "-O2", "-rdynamic" ]
                                         + extra_compile_args,
                    runtime_library_dirs = [IRTK_build + "/lib"],
-                   extra_link_args = [ "-Wl,-no-undefined", "-rdynamic" ]
+                   extra_link_args = [ "-rdynamic" ]
                                      + extra_link_args
                    ),
         

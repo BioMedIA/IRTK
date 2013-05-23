@@ -42,7 +42,8 @@ It should contain the following code (update the values to your system):
 
 __all__ = [ "has_vtk","has_tbb",
             "VTK_libdir","VTK_include_dir",
-            "TBB_libdir", "TBB_include_dir" ]
+            "TBB_libdir", "TBB_include_dir",
+            "extra_link_args" ]
 
 has_vtk = True
 has_tbb = True
@@ -51,6 +52,12 @@ VTK_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib/vtk-5.8"
 VTK_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include/vtk-5.8"
 TBB_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib"
 TBB_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include"
+
+# useful for debugging compilation/linking issues
+import sys
+python_version = sys.version[:3]
+extra_link_args = [ "-lpython"+python_version,
+                    "-Wl,-no-undefined" ]
 
 ##########
 
