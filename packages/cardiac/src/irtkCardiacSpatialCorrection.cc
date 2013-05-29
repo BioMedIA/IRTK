@@ -25,7 +25,7 @@
 
 #include <irtkMultiThreadedImageRigidRegistration.h>
 
-concurrent_queue<irtkSimilarityMetric *> cqueue;
+tbb::deprecated::concurrent_queue<irtkSimilarityMetric *> cqueue;
 
 #endif
 
