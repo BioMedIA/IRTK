@@ -30,6 +30,12 @@ MARK_AS_ADVANCED(BUILD_TBB_EXE)
 IF (BUILD_TBB_EXE)
   FIND_PACKAGE(TBB REQUIRED)
   IF (TBB_FOUND)
+    # Attention: DO NOT define TBB_DEPRECATED by default or before including the
+    #            other TBB header files, in particular parallel_for. The deprecated
+    #            behavior of parallel_for is to not choose the chunk size (grainsize)
+    #            automatically!
+    #
+    # http://software.intel.com/sites/products/documentation/doclib/tbb_sa/help/tbb_userguide/Automatic_Chunking.htm
     ADD_DEFINITIONS(-DHAS_TBB)
     INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
     LINK_DIRECTORIES(${TBB_LIBRARY_DIRS})

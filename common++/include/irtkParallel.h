@@ -22,6 +22,13 @@ extern int tbb_no_threads;
 
 // If TBB is available and BUILD_TBB_EXE is set to ON, use TBB to execute
 // any parallelizable code concurrently
+//
+// Attention: DO NOT define TBB_DEPRECATED by default or before including the
+//            other TBB header files, in particular parallel_for. The deprecated
+//            behavior of parallel_for is to not choose the chunk size (grainsize)
+//            automatically!
+//
+// http://software.intel.com/sites/products/documentation/doclib/tbb_sa/help/tbb_userguide/Automatic_Chunking.htm
 #ifdef HAS_TBB
 #  include <tbb/task_scheduler_init.h>
 #  include <tbb/blocked_range.h>
