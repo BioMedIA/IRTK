@@ -27,7 +27,8 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkSegmentationFunction.h
 ../include/irtkPatchBasedSegmentation.h
 ../include/irtkEMClassification2ndOrderMRF.h
-../include/irtkBiasCorrectionMask.h)
+../include/irtkBiasCorrectionMask.h
+../include/irtkPolynomialBiasField.h)
 
 SET(SEGMENTATION_SRCS
 irtkBiasCorrection.cc
@@ -55,7 +56,8 @@ irtkMultiImageGraphCut.cc
 irtkPatchBasedSegmentation.cc
 irtkSegmentationFunction.cc
 irtkEMClassification2ndOrderMRF.cc
-irtkBiasCorrectionMask.cc)
+irtkBiasCorrectionMask.cc
+irtkPolynomialBiasField.cc)
 
 ADD_LIBRARY(segmentation++ ${SEGMENTATION_INCLUDES} ${SEGMENTATION_SRCS})
 INSTALL_FILES(/include FILES ${SEGMENTATION_INCLUDES})
