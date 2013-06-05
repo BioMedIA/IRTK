@@ -10,6 +10,12 @@
 
 #include <irtkMultiImageGraphCut.h>
 
+#include <irtkGradientImageFilter.h>
+
+#include <irtkPatchMatch.h>
+
+#include <irtkPatchMatchSegmentation.h>
+
 #ifdef HAS_OPENCV
 
 #include <highgui.h>
