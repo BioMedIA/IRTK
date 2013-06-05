@@ -307,16 +307,16 @@ template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVor
 } /* edtVornoiEDT */
 
 
-template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVornoiEDT_anisotropic(float *f, long n, float w)
+template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVornoiEDT_anisotropic(double *f, long n, double w)
 /*
  * This is Procedure edtVornoiEDT() in tPAMI paper.
  */
 {
   long i, l, n_S;
-  float a, b, c, v, lhs, rhs;
+  double a, b, c, v, lhs, rhs;
   static int firstCall = 1;
   static long size_gh = 0;
-  static float *g, *h;
+  static double *g, *h;
 
   /* this procedure is called often */
   /* we keep static arrays to avoid frequent calls to malloc() */
@@ -331,13 +331,13 @@ template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVor
   /* malloc arrays if this is first call to procedure, or if arrays */
   /* are too small and need to be reallocated */
   if (firstCall) {
-    g = (float *)malloc(n * sizeof(float));
+    g = (double *)malloc(n * sizeof(double));
     if (g == NULL) {
       fprintf(stderr, "Error in edtVornoiEDT()\n");
       fprintf(stderr, "Cannot malloc g\n");
       exit(EXIT_FAILURE);
     }
-    h = (float *)malloc(n * sizeof(float));
+    h = (double *)malloc(n * sizeof(double));
     if (h == NULL) {
       fprintf(stderr, "Error in edtVornoiEDT()\n");
       fprintf(stderr, "Cannot malloc h\n");
@@ -417,17 +417,17 @@ template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVor
   return (1);
 } /* edtVornoiEDT_anisotropic */
 
-template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_2D_anisotropic(float *img, float *edt, long nX, long nY, float wX, float wY)
+template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_2D_anisotropic(double *img, double *edt, long nX, long nY, double wX, double wY)
 /*
  * This procedure computes the squared EDT of a 2D binary image with anisotropic
  * voxels. See notes for edtComputeEDT_2D. The difference relative to edtComputeEDT_2D
- * is that the edt is a float array instead of a long array, and there are
+ * is that the edt is a double array instead of a long array, and there are
  * additional parameters for the image voxel dimensions wX and wY.
  */
 {
-  float *c;
+  double *c;
   long i, j, nXY;
-  float d, *p, *q, *f;
+  double d, *p, *q, *f;
 
   /* nXY is number of voxels in 2D image */
   nXY = nX * nY;
@@ -490,7 +490,7 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
 
   /* compute D_2 = squared EDT */
   /* solve 1D problem for each column (y direction) */
-  f = (float *)malloc(nY * sizeof(float));
+  f = (double *)malloc(nY * sizeof(double));
   if (f == NULL) {
     fprintf(stderr, "Error in edtComputeEDT_2D()\n");
     fprintf(stderr, "Cannot malloc f\n");
@@ -522,11 +522,11 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
  * voxels. See notes for edtComputeEDT_2D_anisotropic.
  */
 
-template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_3D_anisotropic(float *img, float *edt, long nX, long nY, long nZ, float wX, float wY, float wZ)
+template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_3D_anisotropic(double *img, double *edt, long nX, long nY, long nZ, double wX, double wY, double wZ)
 {
-  float *c;
+  double *c;
   long i, k, nXY, nXYZ;
-  float *p, *q, *f;
+  double *p, *q, *f;
 
   /* nXY is number of voxels in each plane (xy) */
   /* nXYZ is number of voxels in 3D image */
@@ -552,7 +552,7 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
 
   /* compute D_3 */
   /* solve 1D problem for each column (z direction) */
-  f = (float *)malloc(nZ * sizeof(float));
+  f = (double *)malloc(nZ * sizeof(double));
   if (f == NULL) {
     fprintf(stderr, "Error in edtComputeEDT_3D()\n");
     fprintf(stderr, "Cannot malloc f\n");

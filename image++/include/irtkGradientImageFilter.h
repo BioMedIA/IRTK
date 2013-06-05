@@ -32,7 +32,7 @@ protected:
 	int _type;
 
     /// Padding
-    int _Padding;
+    double _Padding;
 
   /** Initialize the filter. This function must be called by any derived
    *  filter class to perform some initialize tasks. */

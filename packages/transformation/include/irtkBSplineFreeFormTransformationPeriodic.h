@@ -210,12 +210,18 @@ public:
    */
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
                            int &, int &, int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &, int &,
+                             int &, int &, int &, int &, double = 1) const;
   // temporal bounding box is in continuous space (no discrete frames!)
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
                            int &, int &, double &, double &, double = 1) const;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &, int &,
+                             int &, int &, double &, double &, double = 1) const;
   // for inheritance
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
                            int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &, int &,
+                             int &, int &, double = 1) const;
 
 //  // alternative bounding box without index
 //  virtual void BoundingBox(irtkGreyImage *, int &, int &, int &, int &,

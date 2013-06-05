@@ -43,14 +43,14 @@ protected:
   void edtComputeEDT_3D(char *, long *, long, long, long);
 
   /// Calculate the Vornoi diagram for anisotripic voxel sizes
-  int edtVornoiEDT_anisotropic(float *, long, float);
+  int edtVornoiEDT_anisotropic(double *, long, double);
 
   /// Calculate 2D distance transform for anisotripic voxel sizes
-  void edtComputeEDT_2D_anisotropic(float *, float *, long, long, float, float);
+  void edtComputeEDT_2D_anisotropic(double *, double *, long, long, double, double);
 
   /// Calculate 3D distance transform for anisotripic voxel sizes
-  void edtComputeEDT_3D_anisotropic(float *, float *, long, long, long, float, float,
-                                    float);
+  void edtComputeEDT_3D_anisotropic(double *, double *, long, long, long, double, double,
+                                    double);
 
   /// Returns the name of the class
   virtual const char *NameOfClass();

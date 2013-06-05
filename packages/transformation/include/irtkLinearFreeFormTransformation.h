@@ -141,6 +141,8 @@ public:
    */
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
                                 int &, int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &,
+                                  int &, int &, int &, double = 1) const;
 
   /** Compose this transformation (T1) with second transformation (T2). The
    *  result is defined as T = T1 o T2

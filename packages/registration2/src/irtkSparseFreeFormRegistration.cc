@@ -25,7 +25,7 @@ Changes   : $Author$
 #define MAX_SSD 0
 #define MAX_NMI 2
 
-extern irtkGreyImage *tmp_target, *tmp_source;
+extern irtkRealImage *tmp_target, *tmp_source;
 
 irtkSparseFreeFormRegistration::irtkSparseFreeFormRegistration()
 {
@@ -63,7 +63,7 @@ void irtkSparseFreeFormRegistration::GuessParameter()
 {
     int i,slices;
     double xsize, ysize, zsize;
-    irtkGreyPixel min,max;
+    irtkRealPixel min,max;
 
     if ((_target == NULL) || (_source == NULL)) {
         cerr << "irtkSparseFreeFormRegistration::GuessParameter: Target and source image not found" << endl;
@@ -904,7 +904,7 @@ void irtkSparseFreeFormRegistration::EvaluateGradient2D()
                         for (i = i1; i <= i2; i++) {
 
                             // Check whether reference point is valid
-                            if ((_target->Get(i, j, 0) >= 0) && (_transformedSource(i, j, 0) >= 0)) {
+                        	if ((_distanceMask(i, j, 0) == 0) && (_transformedSource(i, j, 0) > _SourcePadding)) {
 
                                 // Convert position from voxel coordinates to world coordinates
                                 pos[0] = i;
@@ -972,7 +972,7 @@ void irtkSparseFreeFormRegistration::EvaluateGradient3D()
                             for (j = j1; j <= j2; j++) {
                                 for (i = i1; i <= i2; i++) {
                                     // Check whether reference point is valid
-                                    if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
+                                	if ((_distanceMask(i, j, k) == 0) && (_transformedSource(i, j, k) > _SourcePadding)) {
                                         pos[0] = i;
                                         pos[1] = j;
                                         pos[2] = k;
@@ -1039,7 +1039,7 @@ void irtkSparseFreeFormRegistration::UpdateSource()
     if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
         for (j = 0; j < _target->GetY(); j++) {
             for (i = 0; i < _target->GetX(); i++) {
-                if (_target->Get(i, j, 0) >= 0) {
+            	if (_distanceMask(i, j, 0) == 0) {
                     x = i;
                     y = j;
                     z = 0;
@@ -1081,7 +1081,7 @@ void irtkSparseFreeFormRegistration::UpdateSource()
         for (k = 0; k < _target->GetZ(); k++) {
             for (j = 0; j < _target->GetY(); j++) {
                 for (i = 0; i < _target->GetX(); i++) {
-                    if (_target->Get(i, j, k) >= 0) {
+                	if (_distanceMask(i, j, k) == 0) {
                         x = i;
                         y = j;
                         z = k;
@@ -1156,7 +1156,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
     if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
         for (j = 0; j < _target->GetY(); j++) {
             for (i = 0; i < _target->GetX(); i++) {
-                if (_target->Get(i, j, 0) >= 0) {
+            	if (_distanceMask(i, j, 0) == 0) {
                     x = i;
                     y = j;
                     z = 0;
@@ -1214,7 +1214,7 @@ void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
         for (k = 0; k < _target->GetZ(); k++) {
             for (j = 0; j < _target->GetY(); j++) {
                 for (i = 0; i < _target->GetX(); i++) {
-                    if (_target->Get(i, j, k) >= 0) {
+                	if (_distanceMask(i, j, k) == 0) {
                         x = i;
                         y = j;
                         z = k;

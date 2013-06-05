@@ -12,7 +12,7 @@
 
 #include <irtkRegistration2.h>
 
-#include <irtkResamplingWithPadding.h>
+#include <irtkResampling.h>
 
 #include <irtkGaussianBlurring.h>
 
@@ -26,7 +26,7 @@
 
 #define MAX_NO_LINE_ITERATIONS 20
 
-extern irtkGreyImage *tmp_target, *tmp_source;
+extern irtkRealImage *tmp_target, *tmp_source;
 
 inline double GetBasisSplineValue(double x)
 {
@@ -128,15 +128,34 @@ void irtkImageRegistration2::Initialize()
 void irtkImageRegistration2::Initialize(int level)
 {
   double dx, dy, dz, temp;
-  int i, j, k, t, target_nbins, source_nbins;
+  int i, j, k, t;
 
   // Copy source and target to temp space
-  tmp_target = new irtkGreyImage(*_target);
-  tmp_source = new irtkGreyImage(*_source);
+  tmp_target = new irtkRealImage(*_target);
+  tmp_source = new irtkRealImage(*_source);
 
   // Swap source and target with temp space copies
   swap(tmp_target, _target);
   swap(tmp_source, _source);
+
+  // Blur images if necessary
+  if (_TargetBlurring[level] > 0) {
+      cout << "Blurring target ... "; cout.flush();
+      irtkGaussianBlurring<irtkRealPixel> blurring(_TargetBlurring[level]);
+      blurring.SetInput (_target);
+      blurring.SetOutput(_target);
+      blurring.Run();
+      cout << "done" << endl;
+  }
+
+  if (_SourceBlurring[level] > 0) {
+      cout << "Blurring source ... "; cout.flush();
+      irtkGaussianBlurring<irtkRealPixel> blurring(_SourceBlurring[level]);
+      blurring.SetInput (_source);
+      blurring.SetOutput(_source);
+      blurring.Run();
+      cout << "done" << endl;
+  }
 
   _target->GetPixelSize(&dx, &dy, &dz);
   temp = fabs(_TargetResolution[level][0]-dx) 
@@ -146,12 +165,16 @@ void irtkImageRegistration2::Initialize(int level)
   if (level > 0 || temp > 0.000001) {
     cout << "Resampling target ... "; cout.flush();
     // Create resampling filter
-    irtkResamplingWithPadding<irtkGreyPixel> resample(_TargetResolution[level][0],
+    irtkResampling<irtkRealPixel> resample(_TargetResolution[level][0],
         _TargetResolution[level][1],
-        _TargetResolution[level][2],
-        _TargetPadding);
+        _TargetResolution[level][2]);
     resample.SetInput (_target);
     resample.SetOutput(_target);
+    if (_target->GetZ() == 1) {
+      resample.SetInterpolator(new irtkLinearInterpolateImageFunction2D);
+    } else {
+      resample.SetInterpolator(new irtkLinearInterpolateImageFunction);
+    }
     resample.Run();
     cout << "done" << endl;
   }
@@ -164,167 +187,45 @@ void irtkImageRegistration2::Initialize(int level)
   if (level > 0 || temp > 0.000001) {
     cout << "Resampling source ... "; cout.flush();
     // Create resampling filter
-    irtkResamplingWithPadding<irtkGreyPixel> resample(_SourceResolution[level][0],
+    irtkResampling<irtkRealPixel> resample(_SourceResolution[level][0],
         _SourceResolution[level][1],
-        _SourceResolution[level][2], 
-        _SourcePadding);
-
+        _SourceResolution[level][2]);
     resample.SetInput (_source);
     resample.SetOutput(_source);
+    if (_source->GetZ() == 1) {
+	  resample.SetInterpolator(new irtkLinearInterpolateImageFunction2D);
+	} else {
+	  resample.SetInterpolator(new irtkLinearInterpolateImageFunction);
+	}
     resample.Run();
     cout << "done" << endl;
   }
 
-  // Blur images if necessary
-  if (_TargetBlurring[level] > 0) {
-      cout << "Blurring target ... "; cout.flush();
-      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_TargetBlurring[level], _TargetPadding);
-      blurring.SetInput (_target);
-      blurring.SetOutput(_target);
-      blurring.Run();
-      cout << "done" << endl;
-  }
-
-  if (_SourceBlurring[level] > 0) {
-      cout << "Blurring source ... "; cout.flush();
-      irtkGaussianBlurringWithPadding<irtkGreyPixel> blurring(_SourceBlurring[level], _SourcePadding);
-      blurring.SetInput (_source);
-      blurring.SetOutput(_source);
-      blurring.Run();
-      cout << "done" << endl;
-  }
-
-  // Find out the min and max values in target image, ignoring padding
-  _target_max = MIN_GREY;
-  _target_min = MAX_GREY;
-  for (t = 0; t < _target->GetT(); t++) {
-    for (k = 0; k < _target->GetZ(); k++) {
-      for (j = 0; j < _target->GetY(); j++) {
-        for (i = 0; i < _target->GetX(); i++) {
-          if (_target->Get(i, j, k, t) > _TargetPadding) {
-            if (_target->Get(i, j, k, t) > _target_max)
-              _target_max = _target->Get(i, j, k, t);
-            if (_target->Get(i, j, k, t) < _target_min)
-              _target_min = _target->Get(i, j, k, t);
-          } else {
-            _target->Put(i, j, k, t, _TargetPadding);
-          }
-        }
-      }
-    }
-  }
-  if(_target_max == MIN_GREY && _target_min == MAX_GREY){
-      _target_max = _TargetPadding;
-      _target_min = _TargetPadding;
-  }
-
-  // Find out the min and max values in source image
-  _source_max = MIN_GREY;
-  _source_min = MAX_GREY;
-  for (t = 0; t < _source->GetT(); t++) {
-    for (k = 0; k < _source->GetZ(); k++) {
-      for (j = 0; j < _source->GetY(); j++) {
-        for (i = 0; i < _source->GetX(); i++) {
-            if (_source->Get(i, j, k, t) > _SourcePadding) {
-          if (_source->Get(i, j, k, t) > _source_max)
-            _source_max = _source->Get(i, j, k, t);
-          if (_source->Get(i, j, k, t) < _source_min)
-            _source_min = _source->Get(i, j, k, t);
-            } else {
-                _source->Put(i, j, k, t, _SourcePadding);
-            }
-        }
-      }
-    }
-  }
-  if(_source_max == MIN_GREY && _source_min == MAX_GREY){
-      _source_max = _SourcePadding;
-      _source_min = _SourcePadding;
-  }
-
-  // Check whether dynamic range of data is not to large
-  if (_target_max - _target_min > MAX_GREY) {
-    cerr << this->NameOfClass()
-    << "::Initialize: Dynamic range of target is too large" << endl;
-    exit(1);
-  } else {
-    for (t = 0; t < _target->GetT(); t++) {
-      for (k = 0; k < _target->GetZ(); k++) {
-        for (j = 0; j < _target->GetY(); j++) {
-          for (i = 0; i < _target->GetX(); i++) {
-            if (_target->Get(i, j, k, t) > _TargetPadding) {
-              _target->Put(i, j, k, t, _target->Get(i, j, k, t) - _target_min);
-            } else {
-              _target->Put(i, j, k, t, -1);
-            }
-          }
-        }
-      }
-    }
-  }
+  _target->GetMinMaxAsDouble(&_target_min, &_target_max);
+  _source->GetMinMaxAsDouble(&_source_min, &_source_max);
 
   // Compute the maximum possible difference across target and source
   _maxDiff = (_target_min - _source_max) * (_target_min - _source_max) > (_target_max - _source_min) * (_target_max - _source_min) ?
              (_target_min - _source_max) * (_target_min - _source_max) : (_target_max - _source_min) * (_target_max - _source_min);
 
-  if (_SimilarityMeasure == SSD) {
-    if (_source_max - _target_min > MAX_GREY) {
-      cerr << this->NameOfClass()
-      << "::Initialize: Dynamic range of source is too large" << endl;
-      exit(1);
-    } else {
-      for (t = 0; t < _source->GetT(); t++) {
-        for (k = 0; k < _source->GetZ(); k++) {
-          for (j = 0; j < _source->GetY(); j++) {
-            for (i = 0; i < _source->GetX(); i++) {
-                if ( _source->Get(i, j, k, t) > _SourcePadding) {
-                    _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _target_min);
-                }else {
-                    _source->Put(i, j, k, t, -1);
-                }
-            }
-          }
-        }
-      }
-    }
-  } else {
-    if (_source_max - _source_min > MAX_GREY) {
-      cerr << this->NameOfClass()
-      << "::Initialize: Dynamic range of source is too large" << endl;
-      exit(1);
-    } else {
-      for (t = 0; t < _source->GetT(); t++) {
-        for (k = 0; k < _source->GetZ(); k++) {
-          for (j = 0; j < _source->GetY(); j++) {
-            for (i = 0; i < _source->GetX(); i++) {
-                if ( _source->Get(i, j, k, t) > _SourcePadding) {
-                    _source->Put(i, j, k, t, _source->Get(i, j, k, t) - _source_min);
-                }else {
-                    _source->Put(i, j, k, t, -1);
-                }
-            }
-          }
-        }
-      }
-    }
-  }
+  // Initialise distance mask
+  _distanceMask.Initialize(_target->GetImageAttributes());
 
-  // Pad target image if necessary
-  irtkPadding(*_target, _TargetPadding);
-
-  irtkPadding(*_source, _SourcePadding);
+  //Compute distance mask image if necessary
+  irtkPadding(*_target, _TargetPadding, &_distanceMask);
 
   // Allocate memory for histogram if necessary
   switch (_SimilarityMeasure) {
     case SSD:
+    case NGD:
+    case NGP:
+    case NGS:
       break;
     case JE:
     case MI:
     case NMI:
-      // Rescale images by an integer factor if necessary
-      target_nbins = irtkCalculateNumberOfBins(_target, _NumberOfBins, _target_min, _target_max);
-      source_nbins = irtkCalculateNumberOfBins(_source, _NumberOfBins, _source_min, _source_max);
-      _histogram = new irtkHistogram_2D<double>(target_nbins, source_nbins);
+      //Create histogram
+      _histogram = new irtkHistogram_2D<double>(_NumberOfBins, _NumberOfBins);
       break;
     default:
       cerr << this->NameOfClass() << "::Initialize(int): No such metric implemented" << endl;
@@ -336,13 +237,11 @@ void irtkImageRegistration2::Initialize(int level)
   irtkGenericImage<double> tmp = *_source;
   gradient.SetInput (&tmp);
   gradient.SetOutput(&_sourceGradient);
-  gradient.SetPadding(-1);
+  gradient.SetPadding(_SourcePadding);
   gradient.Run();
 
-  // Determine attributes of source image
-  irtkImageAttributes attr = _target->GetImageAttributes();
-
   // Set up gradient of source image (transformed)
+  irtkImageAttributes attr = _target->GetImageAttributes();
   attr._t = 3;
   _transformedSourceGradient.Initialize(attr);
 
@@ -544,8 +443,9 @@ double irtkImageRegistration2::EvaluateSSD()
   this->Debug("irtkImageRegistration2::EvaluateSSD");
 
   // Pointer to voxels in images
-  short  *ptr2target = _target->GetPointerToVoxels();
-  double *ptr2source = _transformedSource.GetPointerToVoxels();
+  double *ptr2target  = _target->GetPointerToVoxels();
+  double *ptr2source  = _transformedSource.GetPointerToVoxels();
+  short  *ptr2mask    = _distanceMask.GetPointerToVoxels();
 
   // Initialize metric
   n = 0;
@@ -553,12 +453,13 @@ double irtkImageRegistration2::EvaluateSSD()
 
   // Compute metric
   for (i = 0; i < _target->GetNumberOfVoxels(); i++) {
-    if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
+	if ((*ptr2mask == 0) && (*ptr2source > _SourcePadding)) {
       ssd += (*ptr2target - *ptr2source) * (*ptr2target - *ptr2source);
       n++;
     }
     ptr2target++;
     ptr2source++;
+    ptr2mask++;
   }
 
   // Normalize similarity measure by number of voxels and maximum SSD
@@ -575,25 +476,29 @@ double irtkImageRegistration2::EvaluateSSD()
 
 double irtkImageRegistration2::EvaluateNMI()
 {
-  int i;
+  int i, targetBinValue, sourceBinValue;
 
   // Print debugging information
   this->Debug("irtkImageRegistration2::EvaluateNMI");
 
   // Pointer to voxels in images
-  short  *ptr2target = _target->GetPointerToVoxels();
+  double *ptr2target = _target->GetPointerToVoxels();
   double *ptr2source = _transformedSource.GetPointerToVoxels();
+  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Initialize metric
   _histogram->Reset();
 
   // Compute metric
   for (i = 0; i < _target->GetNumberOfVoxels(); i++) {
-    if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
-      _histogram->Add(*ptr2target, round(*ptr2source));
+	if ((*ptr2mask == 0) && (*ptr2source > _SourcePadding)) {
+	  targetBinValue = irtkGetBinIndex(*ptr2target, _target_min, _target_max, _histogram->NumberOfBinsX());
+	  sourceBinValue = irtkGetBinIndex(*ptr2source, _source_min, _source_max, _histogram->NumberOfBinsY());
+      _histogram->Add(targetBinValue, sourceBinValue);
     }
     ptr2target++;
     ptr2source++;
+    ptr2mask++;
   }
 
   // Smooth histogram if appropriate
@@ -636,14 +541,15 @@ void irtkImageRegistration2::EvaluateGradientSSD()
   this->Debug("irtkImageRegistration2::EvaluateGradient");
 
   // Pointer to voxels in images
-  short  *ptr2target = _target->GetPointerToVoxels();
+  double *ptr2target = _target->GetPointerToVoxels();
   double *ptr2source = _transformedSource.GetPointerToVoxels();
+  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Compute gradient
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
-        if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
+    	if ((*ptr2mask == 0) && (*ptr2source > _SourcePadding)) {
           ssd = 2 * (*ptr2target - *ptr2source) / _maxDiff;
           _similarityGradient(i, j, k, 0) = ssd * _transformedSourceGradient(i, j, k, 0);
           _similarityGradient(i, j, k, 1) = ssd * _transformedSourceGradient(i, j, k, 1);
@@ -655,6 +561,7 @@ void irtkImageRegistration2::EvaluateGradientSSD()
         }
         ptr2target++;
         ptr2source++;
+        ptr2mask++;
       }
     }
   }
@@ -665,6 +572,10 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   int i, j, k, l, t, r;
   double w, je, nmi, tmp, targetEntropyGrad[3], sourceEntropyGrad[3], jointEntropyGrad[3];
 
+  //Compute constant values
+  je  = _histogram->JointEntropy();
+  nmi = _histogram->NormalizedMutualInformation();
+
   // Allocate new histograms
   irtkHistogram_1D<double> logMarginalXHistogram(_histogram->NumberOfBinsX());
   irtkHistogram_1D<double> logMarginalYHistogram(_histogram->NumberOfBinsY());
@@ -673,26 +584,20 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   // Recompute joint histogram
   for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
     for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
-
-      logJointHistogram.Add(i, j, _histogram->irtkHistogram_2D<double>::operator()(i, j));
+      logJointHistogram.Add(i, j, (double)_histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }
-
-  // Smooth joint histogram
-  //logJointHistogram.Smooth();
-  je  = logJointHistogram.JointEntropy();
-  nmi = logJointHistogram.NormalizedMutualInformation();
 
   // Recompute marginal histogram for X
   for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
     for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
-      logMarginalXHistogram.Add(i, _histogram->irtkHistogram_2D<double>::operator()(i, j));
+      logMarginalXHistogram.Add(i, (double)_histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }
   // Recompute marginal histogram for Y
   for (j = 0; j < _histogram->NumberOfBinsY(); j++) {
     for (i = 0; i < _histogram->NumberOfBinsX(); i++) {
-      logMarginalYHistogram.Add(j, _histogram->irtkHistogram_2D<double>::operator()(i, j));
+      logMarginalYHistogram.Add(j, (double)_histogram->irtkHistogram_2D<double>::operator()(i, j));
     }
   }
 
@@ -702,8 +607,9 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   logMarginalYHistogram.Log();
 
   // Pointer to voxels in images
-  short *ptr2target  = _target->GetPointerToVoxels();
+  double *ptr2target = _target->GetPointerToVoxels();
   double *ptr2source = _transformedSource.GetPointerToVoxels();
+  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Loop over images
   for (k = 0; k < _target->GetZ(); k++) {
@@ -711,67 +617,56 @@ void irtkImageRegistration2::EvaluateGradientNMI()
       for (i = 0; i < _target->GetX(); i++) {
 
         // This code is based on an idea from Marc Modat for computing the NMI derivative as suggested in his niftyreg package
-        if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
-          irtkGreyPixel targetValue = *ptr2target;
-          irtkRealPixel sourceValue = *ptr2source;
+    	if ((*ptr2mask == 0) && (*ptr2source > _SourcePadding)) {
+    	  int targetBinValue = irtkGetBinIndex(*ptr2target, _target_min, _target_max, _histogram->NumberOfBinsX());
+    	  int sourceBinValue = irtkGetBinIndex(*ptr2source, _source_min, _source_max, _histogram->NumberOfBinsY());
 
-          if ((targetValue < _histogram->NumberOfBinsX()) && (sourceValue < _histogram->NumberOfBinsY())) {
-            // The two is added because the image is resample between 2 and bin +2
-            // if 64 bins are used the histogram will have 68 bins et the image will be between 2 and 65
+          for (l = 0; l < 3; l++) {
+            jointEntropyGrad [l] = 0;
+            targetEntropyGrad[l] = 0;
+            sourceEntropyGrad[l] = 0;
+          }
 
-            sourceValue = (float)floor((double)sourceValue);
+          for (t = targetBinValue-1; t <= targetBinValue+1; t++) {
+            if ((t >= 0) && (t < _histogram->NumberOfBinsX())) {
+              for (r = sourceBinValue-1; r <= sourceBinValue+1; r++) {
+                if ((r >= 0) && (r < _histogram->NumberOfBinsY())) {
+                  w = GetBasisSplineValue((double)t-(double)targetBinValue) * GetBasisSplineDerivativeValue((double)r-(double)sourceBinValue);
 
-            for (l = 0; l < 3; l++) {
-              jointEntropyGrad [l] = 0;
-              targetEntropyGrad[l] = 0;
-              sourceEntropyGrad[l] = 0;
-            }
+                  double jointLog  = logJointHistogram(t, r);
+                  double targetLog = logMarginalXHistogram(t);
+                  double resultLog = logMarginalYHistogram(r);
 
-            for (t = targetValue-1; t < targetValue+2; t++) {
-              if ((t >= 0) && (t < _histogram->NumberOfBinsX())) {
-                for (r = (int)(sourceValue-1.0); r < (int)(sourceValue+2.0); r++) {
-                  if ((r >= 0) && (r < _histogram->NumberOfBinsY())) {
-                    w = GetBasisSplineValue((double)t-(double)targetValue) * GetBasisSplineDerivativeValue((double)r-(double)sourceValue);
+                  tmp = -w * _transformedSourceGradient(i, j, k, 0);
+                  jointEntropyGrad[0]  -= tmp * jointLog;
+                  targetEntropyGrad[0] -= tmp * targetLog;
+                  sourceEntropyGrad[0] -= tmp * resultLog;
 
-                    double jointLog  = logJointHistogram(t, r);
-                    double targetLog = logMarginalXHistogram(t);
-                    double resultLog = logMarginalYHistogram(r);
+                  tmp = -w * _transformedSourceGradient(i, j, k, 1);
+                  jointEntropyGrad[1]  -= tmp * jointLog;
+                  targetEntropyGrad[1] -= tmp * targetLog;
+                  sourceEntropyGrad[1] -= tmp * resultLog;
 
-                    tmp = -w * _transformedSourceGradient(i, j, k, 0);
-                    jointEntropyGrad[0]  -= tmp * jointLog;
-                    targetEntropyGrad[0] -= tmp * targetLog;
-                    sourceEntropyGrad[0] -= tmp * resultLog;
-
-                    tmp = -w * _transformedSourceGradient(i, j, k, 1);
-                    jointEntropyGrad[1]  -= tmp * jointLog;
-                    targetEntropyGrad[1] -= tmp * targetLog;
-                    sourceEntropyGrad[1] -= tmp * resultLog;
-
-                    tmp = -w * _transformedSourceGradient(i, j, k, 2);
-                    jointEntropyGrad[2]  -= tmp * jointLog;
-                    targetEntropyGrad[2] -= tmp * targetLog;
-                    sourceEntropyGrad[2] -= tmp * resultLog;
-
-                  }
+                  tmp = -w * _transformedSourceGradient(i, j, k, 2);
+                  jointEntropyGrad[2]  -= tmp * jointLog;
+                  targetEntropyGrad[2] -= tmp * targetLog;
+                  sourceEntropyGrad[2] -= tmp * resultLog;
                 }
               }
             }
-
-            _similarityGradient(i, j, k, 0) = ((targetEntropyGrad[0] + sourceEntropyGrad[0] - nmi * jointEntropyGrad[0]) / je);
-            _similarityGradient(i, j, k, 1) = ((targetEntropyGrad[1] + sourceEntropyGrad[1] - nmi * jointEntropyGrad[1]) / je);
-            _similarityGradient(i, j, k, 2) = ((targetEntropyGrad[2] + sourceEntropyGrad[2] - nmi * jointEntropyGrad[2]) / je);
-          } else {
-            _similarityGradient(i, j, k, 0) = 0;
-            _similarityGradient(i, j, k, 1) = 0;
-            _similarityGradient(i, j, k, 2) = 0;
           }
-        }else {
-            _similarityGradient(i, j, k, 0) = 0;
-            _similarityGradient(i, j, k, 1) = 0;
-            _similarityGradient(i, j, k, 2) = 0;
+
+          _similarityGradient(i, j, k, 0) = ((targetEntropyGrad[0] + sourceEntropyGrad[0] - nmi * jointEntropyGrad[0]) / je);
+          _similarityGradient(i, j, k, 1) = ((targetEntropyGrad[1] + sourceEntropyGrad[1] - nmi * jointEntropyGrad[1]) / je);
+          _similarityGradient(i, j, k, 2) = ((targetEntropyGrad[2] + sourceEntropyGrad[2] - nmi * jointEntropyGrad[2]) / je);
+        } else {
+          _similarityGradient(i, j, k, 0) = 0;
+          _similarityGradient(i, j, k, 1) = 0;
+          _similarityGradient(i, j, k, 2) = 0;
         }
         ptr2target++;
         ptr2source++;
+        ptr2mask++;
       }
     }
   }
@@ -782,10 +677,7 @@ double irtkImageRegistration2::EvaluateGradient(double *)
   int i, j, k;
   double x, y, z;
 
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
+  IRTK_START_TIMING();
 
   // Allocate memory for metric
   switch (_SimilarityMeasure) {
@@ -803,32 +695,29 @@ double irtkImageRegistration2::EvaluateGradient(double *)
   // Extract matrix for reorientation of gradient
   irtkMatrix m = _source->GetImageToWorldMatrix();
 
-  // Pointer to voxels in images
-  short  *ptr2target = _target->GetPointerToVoxels();
+  // Pointer to voxels in mask
   double *ptr2source = _transformedSource.GetPointerToVoxels();
+  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Reorient gradient
   for (k = 0; k < _target->GetZ(); k++) {
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
-        if ((*ptr2target >= 0) && (*ptr2source >= 0)) {
-          x = m(0, 0) * _similarityGradient(i, j, k, 0) + m(0, 1) * _similarityGradient(i, j, k, 1) + m(0, 2) * _similarityGradient(i, j, k, 2);
-          y = m(1, 0) * _similarityGradient(i, j, k, 0) + m(1, 1) * _similarityGradient(i, j, k, 1) + m(1, 2) * _similarityGradient(i, j, k, 2);
-          z = m(2, 0) * _similarityGradient(i, j, k, 0) + m(2, 1) * _similarityGradient(i, j, k, 1) + m(2, 2) * _similarityGradient(i, j, k, 2);
-          _similarityGradient(i, j, k, 0) = x;
-          _similarityGradient(i, j, k, 1) = y;
-          _similarityGradient(i, j, k, 2) = z;
+      	if ((*ptr2mask == 0) && (*ptr2source > _SourcePadding)) {
+      	  x = m(0, 0) * _similarityGradient(i, j, k, 0) + m(0, 1) * _similarityGradient(i, j, k, 1) + m(0, 2) * _similarityGradient(i, j, k, 2);
+      	  y = m(1, 0) * _similarityGradient(i, j, k, 0) + m(1, 1) * _similarityGradient(i, j, k, 1) + m(1, 2) * _similarityGradient(i, j, k, 2);
+      	  z = m(2, 0) * _similarityGradient(i, j, k, 0) + m(2, 1) * _similarityGradient(i, j, k, 1) + m(2, 2) * _similarityGradient(i, j, k, 2);
+      	  _similarityGradient(i, j, k, 0) = x;
+      	  _similarityGradient(i, j, k, 1) = y;
+      	  _similarityGradient(i, j, k, 2) = z;
         }
-        ptr2target++;
+        ptr2mask++;
         ptr2source++;
       }
     }
   }
 
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //cout << "CPU time for irtkImageRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
+  IRTK_END_TIMING("irtkImageRegistration2::EvaluateGradient()");
 
   // This function always returns 0
   return 0;
@@ -969,7 +858,7 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
     ok = true;
   }
   if (strstr(buffer1, "Padding value") != NULL) {
-    this->_TargetPadding = atoi(buffer2);
+    this->_TargetPadding = atof(buffer2);
     ok = true;
   }
   if (strstr(buffer1, "Source padding value") != NULL) {
@@ -1016,6 +905,21 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
                       if (strstr(buffer2, "ML") != NULL) {
                         this->_SimilarityMeasure = ML;
                         ok = true;
+                      } else {
+                        if (strstr(buffer2, "NGD") != NULL) {
+                          this->_SimilarityMeasure = NGD;
+                          ok = true;
+                        } else {
+                          if (strstr(buffer2, "NGP") != NULL) {
+                            this->_SimilarityMeasure = NGP;
+                            ok = true;
+                          } else {
+                            if (strstr(buffer2, "NGS") != NULL) {
+                              this->_SimilarityMeasure = NGS;
+                              ok = true;
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -1108,6 +1012,15 @@ void irtkImageRegistration2::Write(ostream &to)
       break;
     case ML:
       to << "Similarity measure                = ML" << endl;
+      break;
+    case NGD:
+      to << "Similarity measure                = NGD" << endl;
+      break;
+    case NGP:
+      to << "Similarity measure                = NGP" << endl;
+      break;
+    case NGS:
+      to << "Similarity measure                = NGS" << endl;
       break;
   }
 

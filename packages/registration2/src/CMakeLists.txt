@@ -3,9 +3,7 @@ SET(REGISTRATION2_INCLUDES
 ../include/irtkImageFreeFormRegistration2.h
 ../include/irtkImageRegistration2.h
 ../include/irtkImageRigidRegistration2.h
-../include/irtkMultipleImageRegistration2.h
-../include/irtkMultipleImageRigidRegistration2.h
-../include/irtkMultipleImageFreeFormRegistration2.h
+../include/irtkImageGradientFreeFormRegistration2.h
 ../include/irtkRegistration2.h
 ../include/irtkSparseFreeFormRegistration.h
 ../include/irtkTemporalImageRegistration.h
@@ -16,9 +14,7 @@ SET(REGISTRATION2_INCLUDES
 SET(REGISTRATION2_SRCS 
 irtkImageAffineRegistration2.cc
 irtkImageFreeFormRegistration2.cc
-irtkMultipleImageRegistration2.cc
-irtkMultipleImageRigidRegistration2.cc
-irtkMultipleImageFreeFormRegistration2
+irtkImageGradientFreeFormRegistration2.cc
 irtkImageRegistration2.cc
 irtkImageRigidRegistration2.cc
 irtkSparseFreeFormRegistration.cc

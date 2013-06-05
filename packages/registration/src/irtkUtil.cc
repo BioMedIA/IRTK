@@ -50,6 +50,58 @@ double combine_mysimilarity(irtkSimilarityMetric **s, double *weight, double num
     return combined;
 }
 
+void irtkPadding(irtkRealImage &image, irtkRealPixel padding, irtkGreyImage *result)
+{
+    int i, j, k, l, m, n, p, t;
+
+    // Calculate padding
+    m = 0;
+    n = 0;
+
+    for (t = 0; t < image.GetT(); t++) {
+        for (i = 0; i < image.GetX(); i++) {
+            for (j = 0; j < image.GetY(); j++) {
+                for (k = 0; k < image.GetZ(); k++) {
+                    if (image(i, j, k, t) <= padding) {
+                        // Count no. of padded voxels
+                        n++;
+                    } else {
+                        // Count no. of unpadded voxels
+                        m++;
+                    }
+                }
+            }
+        }
+    }
+    if (n > 0) {
+
+        // Print some padding information
+        cout << "Padding value = " << padding << endl;
+        cout << "Padding ratio = " << 100*double(n)/(double(m)+double(n)) << " %" << endl;
+
+        // Calculate distances
+        for (t = 0; t < image.GetT(); t++) {
+            for (k = 0; k < image.GetZ(); k++) {
+                for (j = 0; j < image.GetY(); j++) {
+                    for (i = 0; i < image.GetX(); i++) {
+                        if (image(i, j, k, t) <= padding) {
+                            for (l = i; l < image.GetX(); l++) {
+                                if (image(l, j, k, t) > padding) {
+                                    break;
+                                }
+                            }
+                            for (p = i; p < l; p++) {
+                            	result->Put(p, j, k, t, l - p);
+                            }
+                            i = l - 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding)
 {
     int i, j, k, l, m, n, p, t;
@@ -100,6 +152,52 @@ void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding)
             }
         }
     }
+}
+
+void irtkPadding(irtkRealImage &image, irtkRealPixel padding, irtkFreeFormTransformation3D *ffd)
+{
+    int i, j, k, x, y, z, x1, y1, z1, x2, y2, z2, ok, index;
+    int t;
+
+    // Calculate number of active and passive control points
+    for (i = 0; i < ffd->GetX(); i++) {
+        for (j = 0; j < ffd->GetY(); j++) {
+            for (k = 0; k < ffd->GetZ(); k++) {
+                // Convert control points to index
+                index = ffd->LatticeToIndex(i, j, k);
+
+                // Calculate bounding box of control point in voxels
+                ffd->BoundingBoxImage(&image, index, x1, y1, z1, x2, y2, z2, 0.5);
+
+                ok = false;
+                for (t = 0; t < image.GetT(); t++) {
+                    for (z = z1; z <= z2; z++) {
+                        for (y = y1; y <= y2; y++) {
+                            for (x = x1; x <= x2; x++) {
+                                if (image(x, y, z, t) > padding) {
+                                    ok = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (ok == false) {
+                    ffd->PutStatusCP(i, j, k, _Passive, _Passive, _Passive);
+                }
+            }
+        }
+    }
+}
+
+int irtkGetBinIndex(irtkRealPixel pix, int min, int max, int nbins) {
+  int val;
+
+  val = (int)(((pix - min)/(max - min)) * (double)(nbins));
+
+  if (val < 0) val = 0;
+  if (val > nbins - 1) val = nbins - 1;
+
+  return val;
 }
 
 void irtkPadding(irtkGreyImage &image, irtkGreyPixel padding, irtkFreeFormTransformation3D *ffd)

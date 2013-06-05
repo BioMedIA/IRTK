@@ -29,6 +29,8 @@ class irtkBSplineFreeFormTransformation3D : public irtkFreeFormTransformation3D
 
   friend class irtkImageFreeFormRegistration2;
 
+  friend class irtkImageGradientFreeFormRegistration2;
+
   friend class irtkMultipleImageFreeFormRegistration2;
 
   friend class irtkLinearFreeFormTransformation;
@@ -284,6 +286,8 @@ public:
    */
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
                                 int &, int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &,
+                                  int &, int &, int &, double = 1) const;
 
   /** Returns the bounding box for a control point (in pixels). The last
    *  parameter specifies what fraction of the bounding box to return. The
@@ -291,6 +295,8 @@ public:
    */
   virtual void MultiBoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
                                      int &, int &, int &, double = 1) const;
+  virtual void MultiBoundingBoxImage(irtkRealImage *, int, int &, int &, int &,
+                                       int &, int &, int &, double = 1) const;
 
   /// Prints the parameters of the transformation
   virtual void Print();

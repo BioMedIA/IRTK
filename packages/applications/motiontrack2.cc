@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 {
     int t, x, y, z, x1, y1, z1, t1, x2, y2, z2, t2, framemode, ok, debug;
     double spacing, sigma, adaptive, xaxis[3], yaxis[3], zaxis[3], sp, vp;
-    irtkGreyPixel padding;
+    irtkRealPixel padding;
     irtkImageFreeFormRegistrationMode mode;
     irtkMultiLevelFreeFormTransformation *mffd;
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     // Read image sequence
     cout << "Reading image sequence ... ";
     cout.flush();
-    irtkGreyImage *image = new irtkGreyImage(image_name);
+    irtkRealImage *image = new irtkRealImage(image_name);
 
     // Fix ROI
     x1 = 0;
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
     if (sigma > 0) {
         cout << "Blurring image sequences ... ";
         cout.flush();
-        irtkGaussianBlurring4D<irtkGreyPixel> gaussianBlurring4D(sigma);
+        irtkGaussianBlurring4D<irtkRealPixel> gaussianBlurring4D(sigma);
         gaussianBlurring4D.SetInput(image);
         gaussianBlurring4D.SetOutput(image);
         gaussianBlurring4D.Run();
@@ -300,8 +300,8 @@ int main(int argc, char **argv)
             // Combine images
             irtkImageAttributes attr = image->GetImageAttributes();
             attr._t = 1;
-            irtkGreyImage *target = new irtkGreyImage(attr);
-            irtkGreyImage *source = new irtkGreyImage(attr);
+            irtkRealImage *target = new irtkRealImage(attr);
+            irtkRealImage *source = new irtkRealImage(attr);
             for (z = 0; z < target->GetZ(); z++) {
                 for (y = 0; y < target->GetY(); y++) {
                     for (x = 0; x < target->GetX(); x++) {
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
             }
 
             // Mask target
-            irtkGreyImage mask;
+            irtkRealImage mask;
             if (mask_name != NULL) {
                 mask.Read(mask_name);
                 irtkInterpolateImageFunction *interpolator = new irtkShapeBasedInterpolateImageFunction;
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
                 size = xsize;
                 size = (size < ysize) ? size : ysize;
                 size = (size < zsize) ? size : zsize;
-                irtkResampling<irtkGreyPixel> resampling(size, size, size);
+                irtkResampling<irtkRealPixel> resampling(size, size, size);
                 resampling.SetInput(&mask);
                 resampling.SetOutput(&mask);
                 resampling.SetInterpolator(interpolator);
@@ -413,8 +413,8 @@ int main(int argc, char **argv)
             // Combine images
             irtkImageAttributes attr = image->GetImageAttributes();
             attr._t = 1;
-            irtkGreyImage *target = new irtkGreyImage(attr);
-            irtkGreyImage *source = new irtkGreyImage(attr);
+            irtkRealImage *target = new irtkRealImage(attr);
+            irtkRealImage *source = new irtkRealImage(attr);
             for (z = 0; z < target->GetZ(); z++) {
                 for (y = 0; y < target->GetY(); y++) {
                     for (x = 0; x < target->GetX(); x++) {
@@ -425,7 +425,7 @@ int main(int argc, char **argv)
             }
 
             // Mask target
-            irtkGreyImage mask;
+            irtkRealImage mask;
             if (mask_name != NULL) {
                 mask.Read(mask_name);
                 irtkInterpolateImageFunction *interpolator = new irtkShapeBasedInterpolateImageFunction;
@@ -434,7 +434,7 @@ int main(int argc, char **argv)
                 size = xsize;
                 size = (size < ysize) ? size : ysize;
                 size = (size < zsize) ? size : zsize;
-                irtkResampling<irtkGreyPixel> resampling(size, size, size);
+                irtkResampling<irtkRealPixel> resampling(size, size, size);
                 resampling.SetInput(&mask);
                 resampling.SetOutput(&mask);
                 resampling.SetInterpolator(interpolator);

@@ -988,6 +988,33 @@ void irtkLinearFreeFormTransformation::BoundingBoxImage(irtkGreyImage *image, in
   k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
 }
 
+void irtkLinearFreeFormTransformation::BoundingBoxImage(irtkRealImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
+{
+	irtkPoint p1, p2;
+  double x1, y1, z1, x2, y2, z2;
+
+  // Calculate bounding box in world coordinates
+  this->BoundingBoxCP(index, p1, p2, fraction);
+  x1 = p1._x;
+  y1 = p1._y;
+  z1 = p1._z;
+  x2 = p2._x;
+  y2 = p2._y;
+  z2 = p2._z;
+
+  // Transform world coordinates to image coordinates
+  image->WorldToImage(x1, y1, z1);
+  image->WorldToImage(x2, y2, z2);
+
+  // Calculate bounding box in image coordinates
+  i1 = (x1 < 0) ? 0 : int(x1)+1;
+  j1 = (y1 < 0) ? 0 : int(y1)+1;
+  k1 = (z1 < 0) ? 0 : int(z1)+1;
+  i2 = (int(x2) >= image->GetX()) ? image->GetX()-1 : int(x2);
+  j2 = (int(y2) >= image->GetY()) ? image->GetY()-1 : int(y2);
+  k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
+}
+
 int irtkLinearFreeFormTransformation::CheckHeader(char *name)
 {
   char buffer[255];

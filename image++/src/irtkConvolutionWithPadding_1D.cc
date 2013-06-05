@@ -38,7 +38,7 @@ template <class VoxelType> VoxelType irtkConvolutionWithPadding_1D<VoxelType>::G
 template <class VoxelType> double irtkConvolutionWithPadding_1D<VoxelType>::Run(int x, int y, int z, int t)
 {
   int x1, x2;
-  float *ptr2;
+  double *ptr2;
   VoxelType *ptr;
   double val, sum;
 

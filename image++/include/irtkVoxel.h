@@ -6,10 +6,10 @@
 
 typedef unsigned char  irtkBytePixel;
 typedef short          irtkGreyPixel;
-typedef float          irtkRealPixel;
+typedef double         irtkRealPixel;
 
-#define MIN_GREY std::numeric_limits<short>::min()
-#define MAX_GREY std::numeric_limits<short>::max()
+#define MIN_GREY (double)std::numeric_limits<short>::min()
+#define MAX_GREY (double)std::numeric_limits<short>::max()
 
 #define IRTK_VOXEL_UNKNOWN  				0
 #define IRTK_VOXEL_CHAR     				1

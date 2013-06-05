@@ -144,6 +144,8 @@ public:
    */
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
   		                          int &, int &, int &, double = 1) const;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &,
+    		                          int &, int &, int &, double = 1) const;
 
   /// Prints the parameters of the transformation
   virtual void Print();

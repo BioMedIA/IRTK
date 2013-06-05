@@ -154,6 +154,12 @@ inline void irtkHistory::Print()
   }
 }
 
+/***** VERSION FOR REAL IMAGES IN PACKAGE REGISTRATION2 *****/
+extern void irtkPadding(irtkRealImage &, irtkRealPixel, irtkGreyImage *);
+extern void irtkPadding(irtkRealImage &, irtkRealPixel, irtkFreeFormTransformation3D *);
+extern int irtkGetBinIndex(irtkRealPixel, int, int, int);
+/************************************************************/
+
 extern void irtkPadding(irtkGreyImage &, irtkGreyPixel);
 extern void irtkPadding(irtkGreyImage &, irtkGreyPixel, irtkFreeFormTransformation3D *);
 extern void irtkPadding(irtkGreyImage **, irtkGreyPixel, irtkFreeFormTransformation3D *, int);

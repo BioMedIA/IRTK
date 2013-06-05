@@ -75,7 +75,7 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Initialize()
   }
 
   // Make sure that output has the correct dimensions
-  if ((_type == GRADIENT_VECTOR) || (_type == NORMALISED_GRADIENT_VECTOR)) {
+  if (_type == GRADIENT_VECTOR) {
     irtkImageAttributes attr = this->_input->GetImageAttributes();
     attr._t = 3;
     this->_output->Initialize(attr);
@@ -86,7 +86,7 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Initialize()
 
 template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
 {
-  double dx, dy, dz, norm;
+  double dx, dy, dz;
   int x, y, z, x1, y1, z1, x2, y2, z2;
 
   // Do the initial set up
@@ -101,37 +101,63 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
     for (y = 0; y < this->_input->GetY(); ++y) {
       y1 = y - 1;
       if (y1 < 0) y1 = 0;
-      y2 = y + 1;
-      if (y2 > this->_input->GetY()-1) y2 = this->_input->GetY()-1;
+	  y2 = y + 1;
+	  if (y2 > this->_input->GetY()-1) y2 = this->_input->GetY()-1;
 
       for (x = 0; x < this->_input->GetX(); ++x) {
-        x1 = x - 1;
-        if (x1 < 0) x1 = 0;
-        x2 = x + 1;
-        if (x2 > this->_input->GetX()-1) x2 = this->_input->GetX()-1;
+    	x1 = x - 1;
+		if (x1 < 0) x1 = 0;
+		x2 = x + 1;
+		if (x2 > this->_input->GetX()-1) x2 = this->_input->GetX()-1;
 
-        // Compute derivatives
-        if (x1 != x2 
-            && this->_input->Get(x2, y, z) > _Padding
-            && this->_input->Get(x1, y, z) > _Padding) {
-          dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
-        } else {
-          dx = 0;
-        }
-        if (y1 != y2
-            && this->_input->Get(x, y2, z) > _Padding
-            && this->_input->Get(x, y1, z) > _Padding) {
-          dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
-        } else {
-          dy = 0;
-        }
-        if (z1 != z2
-            && this->_input->Get(x, y, z2) > _Padding
-            && this->_input->Get(x, y, z1) > _Padding) {
-          dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
-        } else {
-          dz = 0;
-        }
+		// Compute derivatives
+		if (this->_input->Get(x, y, z) > _Padding) {
+          if (x1 != x2) {
+            if ((this->_input->Get(x2, y, z) > _Padding) && (this->_input->Get(x1, y, z) > _Padding)) {
+              dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
+            } else if ((this->_input->Get(x2, y, z) > _Padding) && (x != x2)) {
+        	  dx = (this->_input->Get(x2, y, z) - this->_input->Get(x, y, z)) / ((x2 - x)*this->_input->GetXSize());
+            } else if ((this->_input->Get(x1, y, z) > _Padding) && (x != x1)) {
+          	  dx = (this->_input->Get(x, y, z) - this->_input->Get(x1, y, z)) / ((x - x1)*this->_input->GetXSize());
+            } else {
+			  dx = 0;
+			}
+          } else {
+            dx = 0;
+          }
+
+		  if (y1 != y2) {
+			if ((this->_input->Get(x, y2, z) > _Padding) && (this->_input->Get(x, y1, z) > _Padding)) {
+			  dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
+			} else if ((this->_input->Get(x, y2, z) > _Padding) && (y != y2)) {
+			  dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y, z)) / ((y2 - y)*this->_input->GetYSize());
+			} else if ((this->_input->Get(x, y1, z) > _Padding) && (y != y1)) {
+			  dy = (this->_input->Get(x, y, z) - this->_input->Get(x, y1, z)) / ((y - y1)*this->_input->GetYSize());
+			} else {
+			  dy = 0;
+			}
+		  } else {
+			dy = 0;
+		  }
+
+		  if (z1 != z2) {
+			if ((this->_input->Get(x, y, z2) > _Padding) && (this->_input->Get(x, y, z1) > _Padding)) {
+			  dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
+			} else if ((this->_input->Get(x, y, z2) > _Padding) && (z != z2)) {
+			  dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z)) / ((z2 - z)*this->_input->GetZSize());
+			} else if ((this->_input->Get(x, y, z1) > _Padding) && (z != z1)) {
+			  dz = (this->_input->Get(x, y, z) - this->_input->Get(x, y, z1)) / ((z - z1)*this->_input->GetZSize());
+			} else {
+			  dz = 0;
+			}
+		  } else {
+			dz = 0;
+		  }
+		} else {
+		  dx = 0;
+		  dy = 0;
+		  dz = 0;
+		}
 
         switch (_type) {
           case GRADIENT_X:
@@ -150,15 +176,6 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
             this->_output->PutAsDouble(x, y, z, 0, dx);
             this->_output->PutAsDouble(x, y, z, 1, dy);
             this->_output->PutAsDouble(x, y, z, 2, dz);
-            break;
-          case NORMALISED_GRADIENT_VECTOR:
-			  norm = sqrt(dx*dx + dy*dy + dz*dz);
-			  dx /= (norm + 1E-10);
-			  dy /= (norm + 1E-10);
-			  dz /= (norm + 1E-10);
-			  this->_output->PutAsDouble(x, y, z, 0, dx);
-			  this->_output->PutAsDouble(x, y, z, 1, dy);
-			  this->_output->PutAsDouble(x, y, z, 2, dz);
             break;
           default:
             cerr << this->NameOfClass() << "::Run: Unknown gradient computation" << endl;

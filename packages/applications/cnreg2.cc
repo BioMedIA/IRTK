@@ -78,11 +78,11 @@ int main(int argc, char **argv)
 
   // Read target image
   cout << "Reading target ... "; cout.flush();
-  irtkGreyImage target(target_name);
+  irtkRealImage target(target_name);
   cout << "done" << endl;
   // Read source image
   cout << "Reading source ... "; cout.flush();
-  irtkGreyImage source(source_name);
+  irtkRealImage source(source_name);
   cout << "done" << endl;
 
   // Fix ROI
@@ -354,8 +354,8 @@ int main(int argc, char **argv)
   // Is there a mask to use?
   if (mask_name != NULL) {
     int voxels, i;
-    irtkGreyPixel *ptr2target, *ptr2mask;
-    irtkGreyImage mask(mask_name);
+    irtkRealPixel *ptr2target, *ptr2mask;
+    irtkRealImage mask(mask_name);
 
     if (mask.GetX() != target.GetX() ||
         mask.GetY() != target.GetY() ||
@@ -365,7 +365,7 @@ int main(int argc, char **argv)
     }
 
     if (mask_dilation > 0) {
-      irtkDilation<irtkGreyPixel> dilation;
+      irtkDilation<irtkRealPixel> dilation;
     	dilation.SetConnectivity(CONNECTIVITY_26);
       dilation.SetInput(&mask);
       dilation.SetOutput(&mask);
@@ -428,7 +428,7 @@ int main(int argc, char **argv)
   }
 
   // Create tmp image
-	irtkGreyImage tmp;
+	irtkRealImage tmp;
 	tmp.Initialize(target.GetImageAttributes());
 
   // Create interpolator

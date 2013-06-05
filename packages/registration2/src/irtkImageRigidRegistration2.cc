@@ -115,9 +115,10 @@ void irtkImageRigidRegistration2::UpdateSource()
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
-  short *ptr2target;
-  short *ptr2source;
+  double *ptr2target;
+  double *ptr2source;
   double *ptr2result;
+  short  *ptr2mask;
 
   // Start timing
   clock_t start, end;
@@ -134,6 +135,7 @@ void irtkImageRigidRegistration2::UpdateSource()
   // Pointer to voxels in images
   ptr2target = _target->GetPointerToVoxels();
   ptr2result = _transformedSource.GetPointerToVoxels();
+  ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Calculate offsets for fast pixel access
   offset1 = 0;
@@ -154,7 +156,7 @@ void irtkImageRigidRegistration2::UpdateSource()
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
         // Check whether reference point is valid
-        if (*ptr2target >= 0) {
+        if (*ptr2mask == 0) {
           // Check whether transformed point is inside source volume
           if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
               (iterator._y > _source_y1) && (iterator._y < _source_y2)) {
@@ -172,18 +174,19 @@ void irtkImageRigidRegistration2::UpdateSource()
             ptr2source  = _source->GetPointerToVoxels(a, b, 0);
             *ptr2result = t1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
           } else {
-            *ptr2result = -1;
+            *ptr2result = 0;
           }
           iterator.NextX();
         } else {
           // Advance iterator by offset
-          iterator.NextX(*ptr2target * -1);
-          i          -= (*ptr2target) + 1;
-          ptr2result -= (*ptr2target) + 1;
-          ptr2target -= (*ptr2target) + 1;
+          iterator.NextX(*ptr2mask);
+          i          += (*ptr2mask) + 1;
+          ptr2result += (*ptr2mask) + 1;
+          ptr2target += (*ptr2mask) + 1;
         }
         ptr2target++;
         ptr2result++;
+        ptr2mask++;
       }
       iterator.NextY();
     }
@@ -193,7 +196,7 @@ void irtkImageRigidRegistration2::UpdateSource()
       for (j = 0; j < _target->GetY(); j++) {
         for (i = 0; i < _target->GetX(); i++) {
           // Check whether reference point is valid
-          if (*ptr2target >= 0) {
+          if (*ptr2mask == 0) {
             // Check whether transformed point is inside source volume
             if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
                 (iterator._y > _source_y1) && (iterator._y < _source_y2) &&
@@ -218,15 +221,15 @@ void irtkImageRigidRegistration2::UpdateSource()
                              t2 * (u2 * (v2 * ptr2source[offset1] + v1 * ptr2source[offset5]) +
                                    u1 * (v2 * ptr2source[offset3] + v1 * ptr2source[offset7])));
             } else {
-              *ptr2result = -1;
+              *ptr2result = 0;
             }
             iterator.NextX();
           } else {
             // Advance iterator by offset
-            iterator.NextX(*ptr2target * -1);
-            i          -= (*ptr2target) + 1;
-            ptr2result -= (*ptr2target) + 1;
-            ptr2target -= (*ptr2target) + 1;
+            iterator.NextX(*ptr2mask);
+            i          += (*ptr2mask) + 1;
+            ptr2result += (*ptr2mask) + 1;
+            ptr2target += (*ptr2mask) + 1;
           }
           ptr2target++;
           ptr2result++;
@@ -249,13 +252,14 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
-  short *ptr2target;
-  short *ptr2source;
+  double *ptr2target;
+  double *ptr2source;
   double *ptr2result;
   double *ptr2gradX;
   double *ptr2gradY;
   double *ptr2gradZ;
   double *ptr;
+  short  *ptr2mask;
 
   // Start timing
   clock_t start, end;
@@ -272,6 +276,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
   // Pointer to voxels in images
   ptr2target = _target->GetPointerToVoxels();
   ptr2result = _transformedSource.GetPointerToVoxels();
+  ptr2mask   = _distanceMask.GetPointerToVoxels();
   ptr2gradX  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 0);
   ptr2gradY  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 1);
   ptr2gradZ  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 2);
@@ -295,7 +300,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
         // Check whether reference point is valid
-        if (*ptr2target >= 0) {
+        if (*ptr2mask == 0) {
           // Check whether transformed point is inside source volume
           if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
               (iterator._y > _source_y1) && (iterator._y < _source_y2)) {
@@ -320,24 +325,25 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
             *ptr2gradY = t1 * (u2 * ptr[offset2] + u1 * ptr[offset4]) + t2 * (u2 * ptr[offset1] + u1 * ptr[offset3]);
 
           } else {
-            *ptr2result = -1;
+            *ptr2result = 0;
             *ptr2gradX  = 0;
             *ptr2gradY  = 0;
           }
           iterator.NextX();
         } else {
           // Advance iterator by offset
-          iterator.NextX(*ptr2target * -1);
-          i          -= (*ptr2target) + 1;
-          ptr2result -= (*ptr2target) + 1;
-          ptr2gradX  -= (*ptr2target) + 1;
-          ptr2gradY  -= (*ptr2target) + 1;
-          ptr2target -= (*ptr2target) + 1;
+          iterator.NextX(*ptr2mask);
+          i          += (*ptr2mask) + 1;
+          ptr2result += (*ptr2mask) + 1;
+          ptr2gradX  += (*ptr2mask) + 1;
+          ptr2gradY  += (*ptr2mask) + 1;
+          ptr2target += (*ptr2mask) + 1;
         }
         ptr2target++;
         ptr2result++;
         ptr2gradX++;
         ptr2gradY++;
+        ptr2mask++;
       }
       iterator.NextY();
     }
@@ -347,7 +353,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
       for (j = 0; j < _target->GetY(); j++) {
         for (i = 0; i < _target->GetX(); i++) {
           // Check whether reference point is valid
-          if (*ptr2target >= 0) {
+          if (*ptr2mask == 0) {
             // Check whether transformed point is inside source volume
             if ((iterator._x > _source_x1) && (iterator._x < _source_x2) &&
                 (iterator._y > _source_y1) && (iterator._y < _source_y2) &&
@@ -391,7 +397,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
                                   u1 * (v2 * ptr[offset3] + v1 * ptr[offset7])));
 
             } else {
-              *ptr2result = -1;
+              *ptr2result = 0;
               *ptr2gradX  = 0;
               *ptr2gradY  = 0;
               *ptr2gradZ  = 0;
@@ -399,19 +405,20 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
             iterator.NextX();
           } else {
             // Advance iterator by offset
-            iterator.NextX(*ptr2target * -1);
-            i          -= (*ptr2target) + 1;
-            ptr2result -= (*ptr2target) + 1;
-            ptr2gradX  -= (*ptr2target) + 1;
-            ptr2gradY  -= (*ptr2target) + 1;
-            ptr2gradZ  -= (*ptr2target) + 1;
-            ptr2target -= (*ptr2target) + 1;
+            iterator.NextX(*ptr2mask);
+            i          += (*ptr2mask) + 1;
+            ptr2result += (*ptr2mask) + 1;
+            ptr2gradX  += (*ptr2mask) + 1;
+            ptr2gradY  += (*ptr2mask) + 1;
+            ptr2gradZ  += (*ptr2mask) + 1;
+            ptr2target += (*ptr2mask) + 1;
           }
           ptr2target++;
           ptr2result++;
           ptr2gradX++;
           ptr2gradY++;
           ptr2gradZ++;
+          ptr2mask++;
         }
         iterator.NextY();
       }
@@ -432,16 +439,14 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   static double *g = NULL, *h = NULL, gg, dgg, gamma;
 
   // Pointer to reference data
-  short *ptr2target;
+  double *ptr2target;
+  short  *ptr2mask;
   double *ptr2result, *ptr2gradX, *ptr2gradY, *ptr2gradZ;
 
   // Compute gradient with respect to displacements
   this->irtkImageRegistration2::EvaluateGradient(gradient);
 
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
+  IRTK_START_TIMING();
 
   // Convert this gradient into gradient with respect to parameters
   for (i = 0; i < _transformation->NumberOfDOFs(); i++) {
@@ -451,6 +456,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   // Pointer to voxels in images
   ptr2target = _target->GetPointerToVoxels();
   ptr2result = _transformedSource.GetPointerToVoxels();
+  ptr2mask   = _distanceMask.GetPointerToVoxels();
   ptr2gradX  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 0);
   ptr2gradY  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 1);
   ptr2gradZ  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 2);
@@ -460,7 +466,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
     for (j = 0; j < _target->GetY(); j++) {
       for (i = 0; i < _target->GetX(); i++) {
         // Check whether reference point is valid
-        if ((*ptr2target >= 0) && (*ptr2result >= 0)) {
+        if (*ptr2mask == 0) {
           x = i;
           y = j;
           z = k;
@@ -481,6 +487,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
         ptr2gradZ++;
         ptr2target++;
         ptr2result++;
+        ptr2mask++;
       }
     }
   }
@@ -526,10 +533,7 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
     }
   }
 
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //cout << "CPU time for irtkImageRigidRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
+  IRTK_END_TIMING("irtkImageRigidRegistration2::EvaluateGradient()");
 
   return max_length;
 }

@@ -40,13 +40,13 @@ protected:
     /** First set of input image. This image is denoted as target image and its
    *  coordinate system defines the frame of reference for the registration.
    */
-  irtkGreyImage **_target;
+  irtkRealImage **_target;
 
   /** Second input image. This image is denoted as source image. The goal of
    *  the registration is to find the transformation which maps the source
    *  image into the coordinate system of the target image.
    */
-  irtkGreyImage **_source;
+  irtkRealImage **_source;
 
 #ifdef HAS_VTK
   /// Landmark input
@@ -208,7 +208,7 @@ public:
   virtual ~irtkMultipleImageRegistration2();
 
   /// Sets input for the registration filter
-  virtual void SetInput (irtkGreyImage **, irtkGreyImage **, int);
+  virtual void SetInput (irtkRealImage **, irtkRealImage **, int);
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
@@ -278,13 +278,13 @@ public:
 
 };
 
-inline void irtkMultipleImageRegistration2::SetInput(irtkGreyImage **target, irtkGreyImage **source, int n)
+inline void irtkMultipleImageRegistration2::SetInput(irtkRealImage **target, irtkRealImage **source, int n)
 {
     int i;
 
     _numberOfImages = n;
-    _target = new irtkGreyImage*[_numberOfImages];
-    _source = new irtkGreyImage*[_numberOfImages];
+    _target = new irtkRealImage*[_numberOfImages];
+    _source = new irtkRealImage*[_numberOfImages];
     for (i = 0; i < _numberOfImages; i++) {
         _target[i] = target[i];
         _source[i] = source[i];

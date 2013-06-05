@@ -180,6 +180,8 @@ public:
    */
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &,
                                 int &, int &, int &, double = 1) const = 0;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &,
+                                  int &, int &, int &, double = 1) const = 0;
 
   /** Approximate displacements: This function takes a set of points and a
       set of displacements and find a FFD which approximates these

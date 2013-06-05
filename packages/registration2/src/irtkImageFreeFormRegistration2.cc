@@ -175,6 +175,7 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
 {
     int i, j, k;
     double x, y, z, *ptr2latt, *ptr2disp;
+    short *ptr2mask;
 
     // Print debugging information
     this->Debug("irtkImageFreeFormRegistration2::Initialize(int)");
@@ -183,7 +184,7 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
     this->irtkImageRegistration2::Initialize(level);
 
     // Padding of FFD
-    irtkPadding(*_target, -1, _affd);
+    irtkPadding(*_target, _TargetPadding, _affd);
 
     // Register in the x-direction only
     if (_Mode == RegisterX) {
@@ -232,10 +233,11 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
 
     ptr2disp = _displacementLUT;
     ptr2latt = _latticeCoordLUT;
+    ptr2mask = _distanceMask.GetPointerToVoxels();
     for (k = 0; k < _target->GetZ(); k++) {
         for (j = 0; j < _target->GetY(); j++) {
             for (i = 0; i < _target->GetX(); i++) {
-                if (_target->Get(i, j, k) >= 0) {
+                if (*ptr2mask == 0) {
                     x = i;
                     y = j;
                     z = k;
@@ -262,6 +264,7 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
                 }
                 ptr2disp += 3;
                 ptr2latt += 3;
+                ptr2mask++;
             }
         }
     }
@@ -318,7 +321,7 @@ void irtkImageFreeFormRegistration2::Finalize(int level)
 
 void irtkImageFreeFormRegistration2::UpdateSource()
 {
-    short *ptr1;
+    double *ptr1;
     double x, y, z, t1, t2, u1, u2, v1, v2;
     int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
@@ -342,12 +345,11 @@ void irtkImageFreeFormRegistration2::UpdateSource()
     if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
         for (j = 0; j < _target->GetY(); j++) {
             for (i = 0; i < _target->GetX(); i++) {
-                if (_target->Get(i, j, 0) >= 0) {
+            	if (_distanceMask(i, j, 0) == 0) {
                     x = ptr2latt[0];
                     y = ptr2latt[1];
-                    z = ptr2latt[2];
+                    z = 0;
                     _affd->FFD2D(x, y);
-                    z  = 0;
                     x += ptr2disp[0];
                     y += ptr2disp[1];
                     z += ptr2disp[2];
@@ -369,17 +371,17 @@ void irtkImageFreeFormRegistration2::UpdateSource()
                                 u2 = 1 - u1;
 
                                 // Linear interpolation in source image
-                                ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+                                ptr1 = (double *)_source->GetScalarPointer(a, b, 0);
                                 _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
                             } else {
                                 // Interpolation in source image
                                 _transformedSource(i, j, 0) = _interpolator->Evaluate(x, y, 0);
                             }
                     } else {
-                        _transformedSource(i, j, 0) = -1;
+                        _transformedSource(i, j, 0) = _SourcePadding;
                     }
                 } else {
-                    _transformedSource(i, j, 0) = -1;
+                    _transformedSource(i, j, 0) = _SourcePadding;
                 }
                 ptr2disp += 3;
                 ptr2latt += 3;
@@ -389,7 +391,7 @@ void irtkImageFreeFormRegistration2::UpdateSource()
         for (k = 0; k < _target->GetZ(); k++) {
             for (j = 0; j < _target->GetY(); j++) {
                 for (i = 0; i < _target->GetX(); i++) {
-                    if (_target->Get(i, j, k) >= 0) {
+                	if (_distanceMask(i, j, k) == 0) {
                         x = ptr2latt[0];
                         y = ptr2latt[1];
                         z = ptr2latt[2];
@@ -419,7 +421,7 @@ void irtkImageFreeFormRegistration2::UpdateSource()
                                     v2 = 1 - v1;
 
                                     // Linear interpolation in source image
-                                    ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+                                    ptr1 = (double *)_source->GetScalarPointer(a, b, c);
                                     _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
                                         u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
                                         t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
@@ -429,10 +431,10 @@ void irtkImageFreeFormRegistration2::UpdateSource()
                                     _transformedSource(i, j, k) = _interpolator->Evaluate(x, y, z);
                                 }
                         } else {
-                            _transformedSource(i, j, k) = -1;
+                            _transformedSource(i, j, k) = _SourcePadding;
                         }
                     } else {
-                        _transformedSource(i, j, k) = -1;
+                        _transformedSource(i, j, k) = _SourcePadding;
                     }
                     ptr2disp += 3;
                     ptr2latt += 3;
@@ -446,7 +448,7 @@ void irtkImageFreeFormRegistration2::UpdateSource()
 
 void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
 {
-    short *ptr1;
+    double *ptr1;
     double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
     int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
@@ -470,12 +472,11 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
     if ((_target->GetZ() == 1) && (_source->GetZ() == 1)) {
         for (j = 0; j < _target->GetY(); j++) {
             for (i = 0; i < _target->GetX(); i++) {
-                if (_target->Get(i, j, 0) >= 0) {
+            	if (_distanceMask(i, j, 0) == 0) {
                     x = ptr2latt[0];
                     y = ptr2latt[1];
-                    z = ptr2latt[2];
+                    z = 0;
                     _affd->FFD2D(x, y);
-                    z  = 0;
                     x += ptr2disp[0];
                     y += ptr2disp[1];
                     z += ptr2disp[2];
@@ -497,7 +498,7 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                                 u2 = 1 - u1;
 
                                 // Linear interpolation in source image
-                                ptr1 = (short *)_source->GetScalarPointer(a, b, 0);
+                                ptr1 = (double *)_source->GetScalarPointer(a, b, 0);
                                 _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
 
                                 // Linear interpolation in gradient image
@@ -515,12 +516,12 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                                 _transformedSourceGradient(i, j, 0, 1) = _interpolatorGradient->Evaluate(x, y, 0, 1);
                             }
                     } else {
-                        _transformedSource(i, j, 0) = -1;
+                        _transformedSource(i, j, 0) = _SourcePadding;
                         _transformedSourceGradient(i, j, 0, 0) = 0;
                         _transformedSourceGradient(i, j, 0, 1) = 0;
                     }
                 } else {
-                    _transformedSource(i, j, 0) = -1;
+                    _transformedSource(i, j, 0) = _SourcePadding;
                     _transformedSourceGradient(i, j, 0, 0) = 0;
                     _transformedSourceGradient(i, j, 0, 1) = 0;
                 }
@@ -532,7 +533,7 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
         for (k = 0; k < _target->GetZ(); k++) {
             for (j = 0; j < _target->GetY(); j++) {
                 for (i = 0; i < _target->GetX(); i++) {
-                    if (_target->Get(i, j, k) >= 0) {
+                	if (_distanceMask(i, j, k) == 0) {
                         x = ptr2latt[0];
                         y = ptr2latt[1];
                         z = ptr2latt[2];
@@ -562,7 +563,7 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                                     v2 = 1 - v1;
 
                                     // Linear interpolation in source image
-                                    ptr1 = (short *)_source->GetScalarPointer(a, b, c);
+                                    ptr1 = (double *)_source->GetScalarPointer(a, b, c);
                                     _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
                                         u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
                                         t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +
@@ -595,13 +596,13 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                                     _transformedSourceGradient(i, j, k, 2) = _interpolatorGradient->Evaluate(x, y, z, 2);
                                 }
                         } else {
-                            _transformedSource(i, j, k) = -1;
+                            _transformedSource(i, j, k) = _SourcePadding;
                             _transformedSourceGradient(i, j, k, 0) = 0;
                             _transformedSourceGradient(i, j, k, 1) = 0;
                             _transformedSourceGradient(i, j, k, 2) = 0;
                         }
                     } else {
-                        _transformedSource(i, j, k) = -1;
+                        _transformedSource(i, j, k) = _SourcePadding;
                         _transformedSourceGradient(i, j, k, 0) = 0;
                         _transformedSourceGradient(i, j, k, 1) = 0;
                         _transformedSourceGradient(i, j, k, 2) = 0;
@@ -845,7 +846,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
                     for (i = i1; i <= i2; i++) {
 
                         // Check whether reference point is valid
-                        if ((_target->Get(i, j, 0) >= 0) && (_transformedSource(i, j, 0) >= 0)) {
+                    	if ((_distanceMask(i, j, 0) == 0) && (_transformedSource(i, j, 0) > _SourcePadding)) {
 
                             // Convert position from voxel coordinates to world coordinates
                             pos[0] = i;
@@ -908,7 +909,7 @@ void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
                             ptr = &(_latticeCoordLUT[3 * (k * (_target->GetX()*_target->GetY()) + j * _target->GetX() + i1)]);
                             for (i = i1; i <= i2; i++) {
                                 // Check whether reference point is valid
-                                if ((_target->Get(i, j, k) >= 0) && (_transformedSource(i, j, k) >= 0)) {
+                            	if ((_distanceMask(i, j, k) == 0) && (_transformedSource(i, j, k) > _SourcePadding)) {
                                     // Compute B-spline tensor product at current position
                                     basis = _affd->B(ptr[0] - x) * _affd->B(ptr[1] - y) * _affd->B(ptr[2] - z);
 
@@ -957,9 +958,9 @@ void irtkImageFreeFormRegistration2::NormalizeGradient(double *gradient)
                 //normalize
                 if(norm > 0){
                     norm = sqrt(norm);
-                    gradient[index1] = gradient[index1]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
-                    gradient[index2] = gradient[index2]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
-                    gradient[index3] = gradient[index3]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                    gradient[index1] = gradient[index1]/pow((norm + _Epsilon*spacingnorm + 1e-5),_Lambda3);
+                    gradient[index2] = gradient[index2]/pow((norm + _Epsilon*spacingnorm + 1e-5),_Lambda3);
+                    gradient[index3] = gradient[index3]/pow((norm + _Epsilon*spacingnorm + 1e-5),_Lambda3);
                 }
             }
         }
@@ -975,8 +976,7 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     // Compute gradient with respect to displacements
     this->irtkImageRegistration2::EvaluateGradient(gradient);
 
-    // Start timing
-    //clock_t start = clock();
+    IRTK_START_TIMING();
 
     if (_affd->GetZ() == 1) {
         this->EvaluateGradient2D(gradient);
@@ -985,16 +985,16 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     }
 
     if (this->_Lambda1 > 0) {
-        this->SmoothnessPenaltyGradient(gradient);
-    }
+		this->SmoothnessPenaltyGradient(gradient);
+	}
 
-    if (this->_Lambda2 > 0) {
-        this->VolumePreservationPenaltyGradient(gradient);
-    }
+	if (this->_Lambda2 > 0) {
+		this->VolumePreservationPenaltyGradient(gradient);
+	}
 
-    if(_Lambda3 > 0){
-        this->NormalizeGradient(gradient);
-    }
+	if(this->_Lambda3 > 0){
+		this->NormalizeGradient(gradient);
+	}
 
     // Update gradient
     if (_CurrentIteration == 0) {
@@ -1045,10 +1045,7 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
         }
     }
 
-    // Stop timing
-    //clock_t end = clock();
-    //double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    //cout << "CPU time for irtkImageFreeFormRegistration2::EvaluateGradient() = " << cpu_time_used << endl;
+    IRTK_END_TIMING("irtkImageFreeFormRegistration2::EvaluateGradient()");
 
     return max_length;
 }

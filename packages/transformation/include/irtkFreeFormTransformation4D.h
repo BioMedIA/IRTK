@@ -202,6 +202,8 @@ public:
    */
   virtual void BoundingBoxImage(irtkGreyImage *, int, int &, int &, int &, int &,
                                 int &, int &, double = 1) const = 0;
+  virtual void BoundingBoxImage(irtkRealImage *, int, int &, int &, int &, int &,
+                                  int &, int &, double = 1) const = 0;
 
   /// Inverts the transformation (abstract)
   virtual double Inverse(double &, double &, double &, double = 0, double = 0.01);

@@ -19,14 +19,16 @@ char *input_name = NULL, *input_name_x = NULL, *input_name_y = NULL, *input_name
 
 void usage()
 {
-  cerr << "Usage: image2dof [image] [dx] [dy] [dz] [dof]\n" << endl;
+  cerr << "Usage: image2dof [image] [dx] [dy] [dz] [dof] <options> \n" << endl;
+  cerr << "where <options> is one or more of the following:\n" << endl;
+  cerr << "<-bspline spacing>        Fit an approximation using a BSpline FFD with the specified spacing in mm" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
-  int x, y, z;
-  double x1, y1, z1, x2, y2, z2, xsize, ysize, zsize, xaxis[3], yaxis[3], zaxis[3];
+  int i, j, k, ok, bspline;
+  double x, y, z, x1, y1, z1, x2, y2, z2, xsize, ysize, zsize, xaxis[3], yaxis[3], zaxis[3], spacing;
 
   if (argc < 3) {
     usage();
@@ -48,6 +50,24 @@ int main(int argc, char **argv)
   output_name  = argv[1];
   argc--;
   argv++;
+
+  bspline = false;
+  while (argc > 1) {
+    ok = false;
+    if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)) {
+	  argc--;
+	  argv++;
+	  spacing = atof(argv[1]);
+	  argc--;
+	  argv++;
+	  bspline = true;
+	  ok = true;
+    }
+    if (ok == false) {
+	  cerr << "Can not parse argument " << argv[1] << endl;
+	  usage();
+    }
+  }
 
   // Read image
   irtkGreyImage image;
@@ -75,16 +95,64 @@ int main(int argc, char **argv)
 
   // Create transformation
   irtkMultiLevelFreeFormTransformation *transformation = new irtkMultiLevelFreeFormTransformation;
+  irtkFreeFormTransformation3D *ffd;
 
-  // Create deformation
-  irtkLinearFreeFormTransformation *ffd = new
-  irtkLinearFreeFormTransformation(x1, y1, z1, x2, y2, z2, xsize, ysize, zsize, xaxis, yaxis, zaxis);
+  if (bspline) {
+	int no = dx.GetX() * dx.GetY() * dx.GetZ();
+	int index;
+	double dispX, dispY, dispZ, point2X, point2Y, point2Z;
+	double *pointsX = new double[no];
+	double *pointsY = new double[no];
+	double *pointsZ = new double[no];
+	double *displacementsX = new double[no];
+	double *displacementsY = new double[no];
+	double *displacementsZ = new double[no];
 
-  // Initialize point structure with transformed point positions
-  for (z = 0; z < dx.GetZ(); z++) {
-    for (y = 0; y < dx.GetY(); y++) {
-      for (x = 0; x < dx.GetX(); x++) {
-        ffd->Put(x, y, z, dx(x, y, z), dy(x, y, z), dz(x, y, z));
+	//Create deformation
+	ffd = new irtkBSplineFreeFormTransformation(x1, y1, z1, x2, y2, z2, spacing, spacing, spacing, xaxis, yaxis, zaxis);
+
+	index = 0;
+	for (k = 0; k < image.GetZ(); k++) {
+	  for (j = 0; j < image.GetY(); j++) {
+		for (i = 0; i < image.GetX(); i++) {
+		  x = i;
+		  y = j;
+		  z = k;
+		  image.ImageToWorld(x, y, z);
+		  pointsX[index] = x;
+		  pointsY[index] = y;
+		  pointsZ[index] = z;
+
+		  point2X = i + dx.Get(i, j, k);
+		  point2Y = j + dy.Get(i, j, k);
+		  point2Z = k + dz.Get(i, j, k);
+		  image.ImageToWorld(point2X, point2Y, point2Z);
+
+		  dispX = point2X - x;
+		  dispY = point2Y - y;
+		  dispZ = point2Z - z;
+
+		  displacementsX[index] = dispX;
+		  displacementsY[index] = dispY;
+		  displacementsZ[index] = dispZ;
+
+		  index++;
+		}
+	  }
+	}
+
+	ffd->Approximate(pointsX, pointsY, pointsZ, displacementsX, displacementsY, displacementsZ, no);
+
+  } else {
+    // Create deformation
+    ffd = new irtkLinearFreeFormTransformation(x1, y1, z1, x2, y2, z2, xsize, ysize, zsize, xaxis, yaxis, zaxis);
+
+    // Initialize point structure with transformed point positions
+    for (k = 0; k < dx.GetZ(); k++) {
+	  for (j = 0; j < dx.GetY(); j++) {
+		for (i = 0; i < dx.GetX(); i++) {
+          ffd->Put(i, j, k, dx(i, j, k), dy(i, j, k), dz(i, j, k));
+        }
       }
     }
   }

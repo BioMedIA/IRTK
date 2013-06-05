@@ -29,7 +29,7 @@ typedef enum { DownhillDescent,
              } irtkOptimizationMethod;
 
 // Definition of available similarity measures
-typedef enum { JE, CC, MI, NMI, SSD, CR_XY, CR_YX, LC, K, ML, NGC }
+typedef enum { JE, CC, MI, NMI, SSD, CR_XY, CR_YX, LC, K, ML, NGD, NGP, NGS }
 irtkSimilarityMeasure;
 
 #include <irtkImage.h>

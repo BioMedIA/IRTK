@@ -40,16 +40,19 @@ protected:
   /** First input image. This image is denoted as target image and its
    *  coordinate system defines the frame of reference for the registration.
    */
-  irtkGenericImage<short> *_target;
+  irtkGenericImage<double> *_target;
 
   /** Second input image. This image is denoted as source image. The goal of
    *  the registration is to find the transformation which maps the source
    *  image into the coordinate system of the target image.
    */
-  irtkGenericImage<short> *_source;
+  irtkGenericImage<double> *_source;
 
-  irtkGenericImage<short> *tmp_target;
-  irtkGenericImage<short> *tmp_source;
+  irtkGenericImage<double> *tmp_target;
+  irtkGenericImage<double> *tmp_source;
+
+  //Distance image for masking used/unused voxels and determine the distance to the closest one
+  irtkGenericImage<short> _distanceMask;
 
   /** Current estimate of the source image transformed back into the target
    *  coordinate system. This is updated every time the Update function is
@@ -100,10 +103,10 @@ protected:
   int    _NumberOfIterations[MAX_NO_RESOLUTIONS];
 
   /// Padding value of target image
-  short  _TargetPadding;
+  double  _TargetPadding;
 
-  /// Padding value of source image
-  short _SourcePadding;
+  /// Padding value of target image
+  double  _SourcePadding;
 
   /// Number of levels of multiresolution pyramid
   int    _NumberOfLevels;
@@ -127,9 +130,9 @@ protected:
   int    _DebugFlag;
 
   /// Current min and max voxel values
-  int _target_min, _target_max;
-  int _source_min, _source_max;
-  int _maxDiff;
+  double _target_min, _target_max;
+  double _source_min, _source_max;
+  double _maxDiff;
 
   /// Current level in the multi-resolution pyramid
   int _CurrentLevel;
@@ -183,7 +186,7 @@ public:
   virtual ~irtkImageRegistration2();
 
   /// Sets input for the registration filter
-  virtual void SetInput (irtkGreyImage *, irtkGreyImage *);
+  virtual void SetInput (irtkRealImage *, irtkRealImage *);
 
   /// Sets output for the registration filter
   virtual void SetOutput(irtkTransformation *) = 0;
@@ -243,7 +246,7 @@ public:
 
 };
 
-inline void irtkImageRegistration2::SetInput(irtkGreyImage *target, irtkGreyImage *source)
+inline void irtkImageRegistration2::SetInput(irtkRealImage *target, irtkRealImage *source)
 {
   _target = target;
   _source = source;
@@ -257,6 +260,7 @@ inline void irtkImageRegistration2::Debug(string message)
 #include <irtkImageRigidRegistration2.h>
 #include <irtkImageAffineRegistration2.h>
 #include <irtkImageFreeFormRegistration2.h>
+#include <irtkImageGradientFreeFormRegistration2.h>
 #include <irtkSparseFreeFormRegistration.h>
 #include <irtkTemporalImageRegistration.h>
 #include <irtkImageTFFDRegistration.h>

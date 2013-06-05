@@ -185,7 +185,6 @@ public:
     virtual GetMacro(Lambda1, double);
     virtual SetMacro(Lambda3, double);
     virtual GetMacro(Lambda3, double);
-
 };
 
 inline void irtkSparseFreeFormRegistration::SetOutput(irtkTransformation *transformation)

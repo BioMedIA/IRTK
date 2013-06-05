@@ -1669,6 +1669,49 @@ void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkGreyImage *
     //  cout<<"[BondingBox] i: "<<i1<<" - "<<i2<<" ; j: "<<j1<<" - "<<j2<<" ; k: "<<k1<<" - "<<k2<<endl;
 }
 
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkRealImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, int &t1, int &t2, double fraction) const
+{
+    cerr << "irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage: Not applicable for this Transformation" << endl;
+    exit(1);
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkRealImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double fraction) const
+{
+    cerr << "irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage: Not applicable for this Transformation" << endl;
+    exit(1);
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::BoundingBoxImage(irtkRealImage *image, int index, int &i1, int &j1, int &k1, int &i2, int &j2, int &k2, double &t1, double &t2, double fraction) const
+{
+    double x1, y1, z1, x2, y2, z2;
+
+    // Calculate bounding box in world coordinates
+    this->BoundingBoxCP(index, x1, y1, z1, t1, x2, y2, z2, t2, fraction);
+
+    // Transform world coordinates to image coordinates
+    image->WorldToImage(x1, y1, z1);
+    image->WorldToImage(x2, y2, z2);
+    //  t1 = image->TimeToImage(t1);
+    //  t2 = image->TimeToImage(t1);
+    //  cout<<"[BondingBox] x: "<<x1<<" - "<<x2<<" ; y: "<<y1<<" - "<<y2<<" ; z: "<<z1<<" - "<<z2<<endl;
+    // Calculate bounding box in image coordinates
+    i1 = (x1 < 0) ? 0 : int(x1)+1;
+    j1 = (y1 < 0) ? 0 : int(y1)+1;
+    k1 = (z1 < 0) ? 0 : int(z1)+1;
+    //  l1 = (t1 < 0) ? 0 : int(t1)+1;
+    i2 = (x2 < 0) ? -1 : int(x2);
+    j2 = (y2 < 0) ? -1 : int(y2);
+    k2 = (z2 < 0) ? -1 : int(z2);
+    i2 = (i2 >= image->GetX()) ? image->GetX()-1 : i2;
+    j2 = (j2 >= image->GetY()) ? image->GetY()-1 : j2;
+    k2 = (k2 >= image->GetZ()) ? image->GetZ()-1 : k2;
+    //  i2 = (int(x2) >= image->GetX()) ? image->GetX()-1 : int(x2);
+    //  j2 = (int(y2) >= image->GetY()) ? image->GetY()-1 : int(y2);
+    //  k2 = (int(z2) >= image->GetZ()) ? image->GetZ()-1 : int(z2);
+    //  l2 = (int(t2) >= image->GetT()) ? image->GetT()-1 : int(t2);
+    //  cout<<"[BondingBox] i: "<<i1<<" - "<<i2<<" ; j: "<<j1<<" - "<<j2<<" ; k: "<<k1<<" - "<<k2<<endl;
+}
+
 
 void irtkBSplineFreeFormTransformationPeriodic::Print()
 {

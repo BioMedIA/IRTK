@@ -138,7 +138,7 @@ irtkGreyImage AddImage(irtkGreyImage image1, irtkGreyImage image2, irtkGreyImage
 irtkRealImage sim3Ddmap(irtkRealImage image, float slices)
 {
   int x, y, z;
-  float m;
+  double m;
   irtkRealImage output, output2;
   output  = image;
   output2 = image;
