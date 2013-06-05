@@ -671,7 +671,7 @@ void irtkEMClassification2ndOrderMRF::RefineSegmentation(int bg = -1)
 	  irtkRealImage segmentation;
 
 	  int i, j;
-	  double max;
+	  double max_val;
 	  irtkRealPixel *ptr;
 
 	  cerr<<"Constructing segmentation"<<endl;
@@ -687,11 +687,11 @@ void irtkEMClassification2ndOrderMRF::RefineSegmentation(int bg = -1)
 
 	  for (i = 0; i < _input.GetNumberOfVoxels(); i++) {
 	    if (*ptr != _padding && *pm == 1) {
-	      max  = 0;
+	      max_val  = 0;
 	      *ptr = 0;
 	      for (j = 0; j < _number_of_tissues; j++) {
-	        if (_output.GetValue(j) > max) {
-	          max  = _output.GetValue(j);
+	        if (_output.GetValue(j) > max_val) {
+	          max_val  = _output.GetValue(j);
 	          *ptr = j;
 	          //*ptr = j+1;
 	          if ( (j+1) == _number_of_tissues && _has_background) *ptr=0;
@@ -720,11 +720,11 @@ void irtkEMClassification2ndOrderMRF::RefineSegmentation(int bg = -1)
 		    x = index % _input.GetX();
 		    y = index / _input.GetX();
 
-			int lx = fmax(x-1,0);
+			int lx = max(x-1,0);
 			int rx = min(x+1, _input.GetX()-1 );
-			int ly = fmax(y-1,0);
+			int ly = max(y-1,0);
 			int ry = min(y+1, _input.GetY()-1 );
-			int lz = fmax(z-1,0);
+			int lz = max(z-1,0);
 			int rz = min(z+1, _input.GetZ()-1 );
 
 			int label = segmentation.Get(x,y,z);
