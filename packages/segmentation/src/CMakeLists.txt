@@ -26,7 +26,8 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkImageGraphCut.h
 ../include/irtkSegmentationFunction.h
 ../include/irtkPatchBasedSegmentation.h
-../include/irtkEMClassification2ndOrderMRF.h)
+../include/irtkEMClassification2ndOrderMRF.h
+../include/irtkBiasCorrectionMask.h)
 
 SET(SEGMENTATION_SRCS
 irtkBiasCorrection.cc
@@ -53,7 +54,8 @@ irtkImageGraphCut.cc
 irtkMultiImageGraphCut.cc
 irtkPatchBasedSegmentation.cc
 irtkSegmentationFunction.cc
-irtkEMClassification2ndOrderMRF.cc)
+irtkEMClassification2ndOrderMRF.cc
+irtkBiasCorrectionMask.cc)
 
 ADD_LIBRARY(segmentation++ ${SEGMENTATION_INCLUDES} ${SEGMENTATION_SRCS})
 INSTALL_FILES(/include FILES ${SEGMENTATION_INCLUDES})
