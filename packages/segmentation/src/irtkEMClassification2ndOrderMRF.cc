@@ -16,13 +16,11 @@
 #include <irtkImage.h>
 #include <vector>
 #include <utility>
-#include <irtkEMClassification2ndOrderMRF.h>
+
 #include <set>
 
-#include <irtkConvolutionWithGaussianDerivative2.h>
-#include <irtkConvolutionWithGaussianDerivative.h>
+#include <irtkEMClassification2ndOrderMRF.h>
 #include <irtkGaussianBlurring.h>
-#include <irtkAnisoLabelDiffusion.h>
 
 
 // Default constructor
@@ -131,7 +129,7 @@ void irtkEMClassification2ndOrderMRF::removePVclasses(double threshold )
 	irtkRealPixel *ptr = _input.GetPointerToVoxels();
 	_output.First();
 
-	double tempResult[_number_of_tissues];
+	double* tempResult = new double[_number_of_tissues];
 
 	for( int i = 0; i < _input.GetNumberOfVoxels(); ++i )
 	{
@@ -191,6 +189,7 @@ void irtkEMClassification2ndOrderMRF::removePVclasses(double threshold )
 		ptr++;
 		pm++;
 	}
+	delete[] tempResult;
 }
 
 void irtkEMClassification2ndOrderMRF::RStep_2nd_order()
@@ -209,7 +208,8 @@ void irtkEMClassification2ndOrderMRF::RStep_2nd_order()
 	// do not do spatial smoothing !!!
 	st = 0.0;
 
-	double numerator[_number_of_tissues];
+	double* numerator = new double[_number_of_tissues];
+	double* cumulated_probs = new double[_number_of_tissues];
 
 	irtkRealPixel *pm = _mask.GetPointerToVoxels();
 	int per = 0;
@@ -247,7 +247,6 @@ void irtkEMClassification2ndOrderMRF::RStep_2nd_order()
 
 			for( int tissue = 0; tissue < _number_of_tissues; ++tissue )
 			{
-				double cumulated_probs[_number_of_tissues];
 				vector< pair< pair<int,int>, double > > vec = _connectivity_2nd_order[tissue];
 				vector< pair< pair<int,int>, double > >::iterator iter = vec.begin();
 				if( iter == vec.end() )
@@ -309,6 +308,8 @@ void irtkEMClassification2ndOrderMRF::RStep_2nd_order()
 		}
 		pm++;
 	}
+	delete[] numerator;
+	delete[] cumulated_probs;
 }
 
 // Relaxation according to Cardoso in MICCAI 2011
@@ -729,7 +730,7 @@ void irtkEMClassification2ndOrderMRF::RefineSegmentation(int bg = -1)
 			int label = segmentation.Get(x,y,z);
 			int same_label = 0;
 
-			int cumulated_segs[_number_of_tissues];
+			int* cumulated_segs = new int[_number_of_tissues];
 			memset(cumulated_segs, 0, sizeof(cumulated_segs));
 
 			cumulated_segs[(int) segmentation.Get(lx,y,z)]++;
@@ -779,6 +780,7 @@ void irtkEMClassification2ndOrderMRF::RefineSegmentation(int bg = -1)
 				_output.SetValue(x,y,z,max_label, 0.5 * val_label + _output.GetValue(x,y,z,max_label));
 				_output.SetValue(x,y,z,label, 0.5 * val_label );
 			}
+			delete[] cumulated_segs;
 	  }
 }
 
@@ -920,7 +922,7 @@ double irtkEMClassification2ndOrderMRF::getMRFenergy_2nd_order(int index, int ti
 
 	double weight_2nd = 0.0;
 
-	double cumulated_probs[_number_of_tissues];
+	double* cumulated_probs = new double[_number_of_tissues];
 
 	for( int k = 0; k < _number_of_tissues; k++)
 	{
@@ -944,6 +946,8 @@ double irtkEMClassification2ndOrderMRF::getMRFenergy_2nd_order(int index, int ti
 
 		weight_2nd += w * cumulated_probs[neighborA] * cumulated_probs[neighborB];
 	}
+
+	delete[] cumulated_probs;
 
 	double expo = -1.0 * weight_2nd;
 	return exp(expo);
@@ -1067,7 +1071,8 @@ void irtkEMClassification2ndOrderMRF::EStepMRF_2nd_order()
 				hp = log( exp(x)+0.5 ) - x;
 				hm = x - log( (exp(x) - 0.5) > 0 ? exp(x) - 0.5 : exp(x) );
 		  }
-	      double MRFenergies[_number_of_tissues];
+	      double* MRFenergies = new double[_number_of_tissues];
+
 	      double denominatorMRF = .0;
 
 	      for (k = 0; k < _number_of_tissues; k++) {
@@ -1090,6 +1095,8 @@ void irtkEMClassification2ndOrderMRF::EStepMRF_2nd_order()
 	        numerator[k] = temp;
 	        denominator += temp;
 	      }
+	      delete[] MRFenergies;
+
 	      for (k = 0; k < _number_of_tissues; k++) {
 	        if (denominator != 0) {
 	          double value = numerator[k]/denominator;
@@ -1164,7 +1171,7 @@ void irtkEMClassification2ndOrderMRF::EStepMRF()
 				hp = log( exp(x)+0.5 ) - x;
 				hm = x - log( (exp(x) - 0.5) > 0 ? exp(x) - 0.5 : exp(x) );
 		  }
-	      double MRFenergies[_number_of_tissues];
+	      double* MRFenergies = new double[_number_of_tissues];
 	      double denominatorMRF = .0;
 
 	      for (k = 0; k < _number_of_tissues; k++) {
@@ -1188,6 +1195,8 @@ void irtkEMClassification2ndOrderMRF::EStepMRF()
 	        numerator[k] = temp;
 	        denominator += temp;
 	      }
+	      delete[] MRFenergies;
+
 	      for (k = 0; k < _number_of_tissues; k++) {
 	        if (denominator != 0) {
 	          double value = numerator[k]/denominator;
