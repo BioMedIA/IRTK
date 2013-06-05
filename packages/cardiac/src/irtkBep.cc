@@ -70,7 +70,7 @@ void irtkBep::EvaluateInfarction (irtkRealImage *threshold, irtkRealImage **inpu
     classification->GetProbMap(1,*tmpatest[1]);
 
     //add weights for graph cut
-    irtkImageGraphCut<float> graphcut;
+    irtkImageGraphCut<double> graphcut;
     graphcut.SetInput(number,input,2,tmpatest);
     graphcut.SetOutput(threshold);
     graphcut.SetMode(cutmode);
