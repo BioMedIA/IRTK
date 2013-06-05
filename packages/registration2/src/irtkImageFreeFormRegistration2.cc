@@ -958,9 +958,9 @@ void irtkImageFreeFormRegistration2::NormalizeGradient(double *gradient)
                 //normalize
                 if(norm > 0){
                     norm = sqrt(norm);
-                    gradient[index1] = gradient[index1]/pow((norm + _Epsilon*spacingnorm + 1e-5),_Lambda3);
-                    gradient[index2] = gradient[index2]/pow((norm + _Epsilon*spacingnorm + 1e-5),_Lambda3);
-                    gradient[index3] = gradient[index3]/pow((norm + _Epsilon*spacingnorm + 1e-5),_Lambda3);
+                    gradient[index1] = gradient[index1]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                    gradient[index2] = gradient[index2]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                    gradient[index3] = gradient[index3]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
                 }
             }
         }
