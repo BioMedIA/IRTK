@@ -22,6 +22,7 @@ void usage()
   cerr << "Usage: dof2image [image] [dof] [dx] [dy] [dz] <options>\n" << endl;
   cerr << "where <options> is one or more of the following:\n" << endl;
   cerr << "<-invert>                  Store the inverted displacement field" << endl;
+  cerr << "<-periodic>                The transformation is periodic TFFD" << endl;
   cerr << "<-image>                   Store the displacement field in terms of image coordinate" << endl;
   cerr << "<-total image>             Store the total displacement in image" << endl;
   cerr << "<-scale factor>            Scale displacement by a factor" << endl;
@@ -37,7 +38,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-  int x, y, z, t, ok, invert, imaged;
+  int x, y, z, t, ok, invert, imaged, periodic;
   int x1, y1, z1, t1, x2, y2, z2, t2;
   irtkGreyPixel padding;
   double p1[3], p2[3], scale;
@@ -84,6 +85,7 @@ int main(int argc, char **argv)
   padding = MIN_GREY;
   invert  = false;
   imaged   = false;
+  periodic = false;
 
   // Parse arguments
   while (argc > 1) {
@@ -116,6 +118,12 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       invert = true;
+      ok = true;
+    }
+	if ((ok == false) && (strcmp(argv[1], "-periodic") == 0)) {
+      argc--;
+      argv++;
+      periodic = true;
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-image") == 0)) {
@@ -210,6 +218,9 @@ int main(int argc, char **argv)
   // Initialize point structure with transformed point positions
   for (t = 0; t < image.GetT(); t++) {
     double time = image.ImageToTime(t);
+	if(periodic){
+		time = double(t)/double(image.GetT());
+	}
     for (z = 0; z < image.GetZ(); z++) {
       for (y = 0; y < image.GetY(); y++) {
         for (x = 0; x < image.GetX(); x++) {

@@ -29,17 +29,19 @@ void usage()
 {
   cerr << "Usage: ptransformation [input] [output] <options>\n"
        << endl;
-  cerr << "<-dofin file>      Transformation" << endl;
-  cerr << "<-invert>          Invert transformation" << endl;
-  cerr << "<-source image>    reference source image" << endl;
-  cerr << "<-target image>    reference target image" << endl;
-  cerr << "<-partial number>  Transform 0-number points copy rest"<<endl;
+  cerr << "<-dofin file>                Transformation" << endl;
+  cerr << "<-invert>                    Invert transformation" << endl;
+  cerr << "<-source image>              reference source image" << endl;
+  cerr << "<-target image>              reference target image" << endl;
+  cerr << "<-time> [frame time]         Transformation is 4D use time"    << endl;
+  cerr << "<-partial number>            Transform 0-number points copy rest"<<endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
   int ok, invert,sourceGiven,targetGiven, noOfPointsToTransform;
+  float time;
   irtkPointSet output, input;
   irtkTransformation *transformation;
   irtkGreyImage target,source;
@@ -51,6 +53,7 @@ int main(int argc, char **argv)
 
   // Setting this to zero actually defaults to transforming all the points in the input file.
   noOfPointsToTransform = 0;
+  time = -1;
 
 
   // Parse input and output point lists
@@ -101,6 +104,15 @@ int main(int argc, char **argv)
 		argc--;
 		argv++;
     }
+	if ((ok == false) && (strcmp(argv[1], "-time") == 0)) {
+		argc--;
+		argv++;
+		time = atof(argv[1]);
+		argc--;
+		argv++;
+		cout << "evaluation for time: " << time << endl;
+		ok = true;
+	}
 	if ((ok == false) && (strcmp(argv[1], "-partial") == 0)) {
 		argc--;
 		argv++;
@@ -144,7 +156,12 @@ int main(int argc, char **argv)
     if(i < noOfPointsToTransform || noOfPointsToTransform == 0){
 
       if (invert == false) {
-        transformation->Transform(p[0],p[1],p[2]);
+		  if(time >= 0){
+				//TFFD with time
+				transformation->Transform(p[0],p[1],p[2],time);
+			}else{
+				transformation->Transform(p[0],p[1],p[2]);
+			}
       } else {
         transformation->Inverse(p[0],p[1],p[2]);
       }

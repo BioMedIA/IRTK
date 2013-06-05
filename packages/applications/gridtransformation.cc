@@ -121,14 +121,14 @@ int main(int argc, char **argv)
         argv++;
     }
 	if ((ok == false) && (strcmp(argv[1], "-time") == 0)) {
-            argc--;
-            argv++;
-            time = atof(argv[1]);
-            argc--;
-            argv++;
-            cout << "evaluation for time: " << time << endl;
-            ok = true;
-        }
+		argc--;
+		argv++;
+		time = atof(argv[1]);
+		argc--;
+		argv++;
+		cout << "evaluation for time: " << time << endl;
+		ok = true;
+	}
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
