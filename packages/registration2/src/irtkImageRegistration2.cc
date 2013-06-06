@@ -907,7 +907,7 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
     ok = true;
   }
   if (strstr(buffer1, "Source padding value") != NULL) {
-      this->_SourcePadding = atoi(buffer2);
+      this->_SourcePadding = atof(buffer2);
       ok = true;
   }
   if (strstr(buffer1, "Similarity measure") != NULL) {
