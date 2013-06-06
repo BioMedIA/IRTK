@@ -13,7 +13,7 @@ ENDMACRO(ADD_IRTK_EXECUTABLE name)
 
 MACRO(ADD_CONDOR_EXECUTABLE name)
   ADD_EXECUTABLE(${name}.condor ${name}.cc ${ARGN})
-  INSTALL_TARGETS(/bin ${name})
+  INSTALL_TARGETS(/bin ${name}.condor)
 ENDMACRO(ADD_CONDOR_EXECUTABLE name)
 
 
