@@ -10,7 +10,7 @@ Changes   : $Author$
 
 =========================================================================*/
 
-#include<irtkPatchMatch.h>
+#include <irtkSegmentationFunction.h>
 
 irtkPatchMatch::irtkPatchMatch(irtkGreyImage *target, irtkGreyImage **source, int radius, int nimages, int nneighbour, int slevels){
 
@@ -36,8 +36,37 @@ irtkPatchMatch::irtkPatchMatch(irtkGreyImage *target, irtkGreyImage **source, in
 	this->votevalues = new double[target->GetNumberOfVoxels()];
 	this->voteweights = new double[target->GetNumberOfVoxels()];
 
+	//calculate gradient image
+	cout << "calculating atlas gradient image" << endl;
+
+	irtkGradientImageFilter<short> gradient(irtkGradientImageFilter<short>::GRADIENT_VECTOR);
+
+	targetgradient = new irtkGreyImage();
+
+	sourcesgradient = new irtkGreyImage*[nimages];
+	search = new irtkGreyImage*[nimages];
+	for(int n = 0; n < nimages; n++){
+		sourcesgradient[n] = new irtkGreyImage();
+		irtkGreyImage tmp = *sources[n];
+		gradient.SetInput (&tmp);
+		gradient.SetOutput(sourcesgradient[n]);
+		gradient.SetPadding(-1);
+		gradient.Run();
+
+		search[n] = new irtkGreyImage(*source[n]);
+
+	}
+
+	this->createsearchimages();
+
+	cout << "done" << endl;
+
+	this->initialguess();
+}
+
+void irtkPatchMatch::initialguess(){
 	//populate NNF field with initial guess
-	cout << "populating NNF field with initial guess" << endl;
+	cout << "populating NNF field with spatial initial guess" << endl;
 	// initialize random seed
 	srand ( time(NULL) );
 	int index = 0;
@@ -74,31 +103,6 @@ irtkPatchMatch::irtkPatchMatch(irtkGreyImage *target, irtkGreyImage **source, in
 		}
 
 	}
-	cout << "done" << endl;
-
-	//calculate gradient image
-	cout << "calculating atlas gradient image" << endl;
-
-	irtkGradientImageFilter<short> gradient(irtkGradientImageFilter<short>::GRADIENT_VECTOR);
-
-	targetgradient = new irtkGreyImage();
-
-	sourcesgradient = new irtkGreyImage*[nimages];
-	search = new irtkGreyImage*[nimages];
-	for(int n = 0; n < nimages; n++){
-		sourcesgradient[n] = new irtkGreyImage();
-		irtkGreyImage tmp = *sources[n];
-		gradient.SetInput (&tmp);
-		gradient.SetOutput(sourcesgradient[n]);
-		gradient.SetPadding(-1);
-		gradient.Run();
-
-		search[n] = new irtkGreyImage(*source[n]);
-
-	}
-
-	this->createsearchimages();
-
 	cout << "done" << endl;
 }
 
@@ -141,7 +145,9 @@ void irtkPatchMatch::runEMIteration(int maxiterations){
 
 	//debug tmpflow
 	if(debug == true){
-		irtkRealImage *flowtmp = new irtkRealImage(target->GetX(),target->GetY(),target->GetZ(),5);
+		irtkImageAttributes atr = target->GetImageAttributes();
+		atr._t = 5;
+		irtkRealImage *flowtmp = new irtkRealImage(atr);
 
 		int index = 0;
 		for(int k = 0; k < target->GetZ(); k++){
@@ -163,7 +169,7 @@ void irtkPatchMatch::runEMIteration(int maxiterations){
 		delete flowtmp;
 	}
 
-	while(((previousweight-localweight)>0.0001 || iteration == 0) && iteration < maxiterations){
+	while((iteration == 0 || (previousweight-localweight)>0.0001 ) && iteration < maxiterations){
 		cout << "iteration: " << iteration << " ";
 		previousweight = localweight;
 		localweight = this->minimizeflow();
@@ -195,6 +201,7 @@ double irtkPatchMatch::initialize(){
 	gradient.Run();
 
 	if(debug == true){
+		target->Write("targetincode.nii.gz");
 		targetgradient->Write("targetgradient.nii.gz");
 	}
 
@@ -390,29 +397,17 @@ void irtkPatchMatch::votepatch(int xt, int yt, int zt, int xs, int ys, int zs, i
 }
 /// vote label
 void irtkPatchMatch::votelabel(int xt, int yt, int zt, int xs, int ys, int zs, int n, double weight){
-	int index1;
-	for(int k = - radius; k <= radius; k++){
-		for(int j = - radius; j <= radius; j++){
-			for(int i = - radius; i <= radius; i++){
 
-				if(xt + i < 0 || xt + i > target->GetX() - 1
-					|| xs + i < 0 || xs + i > labels[n]->GetX() - 1
-					|| yt + j < 0 || yt + j > target->GetY() - 1
-					|| ys + j < 0 || ys + j > labels[n]->GetY() - 1
-					|| zt + k < 0 || zt + k > target->GetZ() - 1
-					|| zs + k < 0 || zs + k > labels[n]->GetZ() - 1){
+	if( xs < 0 || xs > labels[n]->GetX() - 1
+		|| ys < 0 || ys > labels[n]->GetY() - 1
+		|| zs < 0 || zs > labels[n]->GetZ() - 1){
 
-						// do nothing
+			// do nothing
 
-				}else{
+	}else{
 
-					index1 = target->VoxelToIndex(xt+i,yt+j,zt+k);
+		votelabels[labels[n]->Get(xs,ys,zs) - minlabel] += weight;
 
-					votelabels[index1][labels[n]->Get(xs+i,ys+j,zs+k) - minlabel] += weight;
-
-				}
-			}
-		}
 	}
 }
 
@@ -471,7 +466,7 @@ void irtkPatchMatch::EMstep(){
 
 void irtkPatchMatch::generateLabels(irtkGreyImage *label, irtkGreyImage **labels){
 	/// Expectation create the vote matrix
-	int index = 0, x, y, z, n, o,NumberOfLabels;
+	int index,x, y, z, n, o,NumberOfLabels;
 	double weight;
 	this->labels = labels;
 
@@ -480,55 +475,62 @@ void irtkPatchMatch::generateLabels(irtkGreyImage *label, irtkGreyImage **labels
 	//initialization
 	labels[0]->GetMinMax(&minlabel,&maxlabel);
 	NumberOfLabels = maxlabel - minlabel + 1;
-	votelabels = new double*[label->GetNumberOfVoxels()];
-	for(int i = 0; i < label->GetNumberOfVoxels(); i++){
-		votelabels[i] = new double[NumberOfLabels];
-		for(int j = 0; j < NumberOfLabels; j++){
-			votelabels[i][j] = 0;
-		}
-	}
+	votelabels = new double[NumberOfLabels];
 
 	for(int k = 0; k < label->GetZ(); k++){
 		for(int j = 0; j < label->GetY(); j++){
 			for(int i = 0; i < label->GetX(); i++){
-				for(int o = 0; o < nneighbour; o++){
-					x = nnfs[index][o].x;
-					y = nnfs[index][o].y;
-					z = nnfs[index][o].z;
-					n = nnfs[index][o].n;
-					weight = nnfs[index][o].weight;
 
-					weight = 16/(weight + 1);
-					if(weight > 1)
-						weight = 1;
-					else
-						weight = weight * weight;
-
-					this->votelabel(i,j,k,x,y,z,n,weight);
-				}
-				index++;
-			}
-		}
-	}
-
-	/// Maximization non local mean fusion
-	index = 0;
-	for(int k = 0; k < label->GetZ(); k++){
-		for(int j = 0; j < label->GetY(); j++){
-			for(int i = 0; i < label->GetX(); i++){
+				//find maxium label
 				double maxiumweight = 0;
 				short maxiumproblabel = minlabel;
-				for(int t = 0; t < NumberOfLabels; t++){
-					if(votelabels[index][t] > maxiumweight){
-						maxiumweight = votelabels[index][t];
-						maxiumproblabel = minlabel + t;
+				if(target->Get(i,j,k) > -1){
+
+					// initialize labels
+					for(int l = 0; l < NumberOfLabels; l++){
+						votelabels[l] = 0;
+					}
+
+					//vote labels with neighbours
+					for(int offsetz = -radius; offsetz <= radius; offsetz++){
+						for(int offsety = -radius; offsety <= radius; offsety++){
+							for(int offsetx = -radius; offsetx <= radius; offsetx++){
+								if(k+offsetz < 0 || k+offsetz >= label->GetZ()
+									|| j+offsety < 0 || j+offsety >= label->GetY()
+									|| i+offsetx < 0 || i+offsetx >= label->GetX()){
+								}else{
+									index = label->VoxelToIndex(i+offsetx,j+offsety,k+offsetz);
+									for(int o = 0; o < nneighbour; o++){
+										x = nnfs[index][o].x - offsetx;
+										y = nnfs[index][o].y - offsety;
+										z = nnfs[index][o].z - offsetz;
+										n = nnfs[index][o].n;
+										weight = nnfs[index][o].weight;
+
+										weight = exp(-(weight/maxdistance*32));
+
+										this->votelabel(i,j,k,x,y,z,n,weight);
+									}
+								}
+							}
+						}
+					}
+
+					for(int t = 0; t < NumberOfLabels; t++){
+						if(votelabels[t] > maxiumweight){
+							maxiumweight = votelabels[t];
+							maxiumproblabel = minlabel + t;
+						}
 					}
 				}
+
+				//put label
 				label->PutAsDouble(i,j,k,maxiumproblabel);
-				index++;
 			}
 		}
 	}
+
+	delete []votelabels;
 }
 
 /// find minum flow
@@ -610,21 +612,21 @@ double irtkPatchMatch::minimizeflow(){
 		for(int j = target->GetY() - 1; j >= 0; j--){
 			for(int i = target->GetX() - 1; i >=0 ; i--){
 				count = 0;
-				//propergate from x - 1
+				//propergate from x + 1
 				if(i < target->GetX() - 1){
 					x = i + 1;
 					y = j;
 					z = k;
 					count += this->propergate(x,y,z,i,j,k,-1,0,0,index1,index);
 				}
-				//propergate from y - 1
+				//propergate from y + 1
 				if(j < target->GetY() - 1){
 					x = i;
 					y = j + 1;
 					z = k;
 					count += this->propergate(x,y,z,i,j,k,0,-1,0,index2,index);
 				}
-				//propergate from z - 1
+				//propergate from z + 1
 				if(k < target->GetZ() - 1){
 					x = i;
 					y = j;
@@ -652,7 +654,9 @@ double irtkPatchMatch::minimizeflow(){
 					if(this->randomlink(i,j,k,o,index) > 0){
 						rcount++;
 					}
-					sumweight += this->nnfs[index][o].weight;
+					if(this->nnfs[index][o].weight < maxdistance - 1){
+						sumweight += this->nnfs[index][o].weight;
+					}
 				}
 				index++;
 			}
@@ -663,7 +667,9 @@ double irtkPatchMatch::minimizeflow(){
 
 	if(debug == true){
 		/// Debug write flow to a image using the dynamicid
-		irtkRealImage *flowtmp = new irtkRealImage(target->GetX(),target->GetY(),target->GetZ(),5);
+		irtkImageAttributes atr = target->GetImageAttributes();
+		atr._t = 5;
+		irtkRealImage *flowtmp = new irtkRealImage(atr);
 
 		index = 0;
 		for(int k = 0; k < target->GetZ(); k++){
@@ -686,6 +692,30 @@ double irtkPatchMatch::minimizeflow(){
 	}
 
 	return log(sumweight);
+}
+
+void irtkPatchMatch::outputmap(char* name){
+	/// Debug write flow to a image using the dynamicid
+	irtkImageAttributes atr = target->GetImageAttributes();
+	atr._t = 5;
+	irtkRealImage *flowtmp = new irtkRealImage(atr);
+
+	int index = 0;
+	for(int k = 0; k < target->GetZ(); k++){
+		for(int j = 0; j < target->GetY(); j++){
+			for(int i = 0; i < target->GetX(); i++){
+				flowtmp->Put(i,j,k,0,this->nnfs[index][0].x);
+				flowtmp->Put(i,j,k,1,this->nnfs[index][0].y);
+				flowtmp->Put(i,j,k,2,this->nnfs[index][0].z);
+				flowtmp->Put(i,j,k,3,this->nnfs[index][0].n);
+				flowtmp->Put(i,j,k,4,this->nnfs[index][0].weight);
+				index++;
+			}
+		}
+	}
+
+	flowtmp->Write(name);
+	delete flowtmp;
 }
 
 /// propergate from one to another using the offsets
@@ -735,7 +765,14 @@ int irtkPatchMatch::propergate(int x, int y, int z, int i, int j, int k, int off
 	return count;
 }
 
+//wenzhe question for cuda impelementation
+//1. how to include and check if cuda is on //ifdef HAS_CUDA?
+//2. how to design this, host memory includes target, targetgradient, atlases, atlasesgradient, the mapping and weighting
+//3. how to return the result double
 /// calculate distance between patches
+
+
+
 double irtkPatchMatch::distance(int x1, int y1, int z1, int x2, int y2, int z2, int n){
 	int i,j,k,i1,j1,k1,i2,j2,k2,t,count,g,tmpradius,increase;
 	double dif = 0, tmp;
@@ -750,6 +787,10 @@ double irtkPatchMatch::distance(int x1, int y1, int z1, int x2, int y2, int z2, 
 		|| z2 < 0 || z2 > sources[n]->GetZ() - 1
 		|| search[n]->Get(x2,y2,z2) < 1)
 		return maxdistance;
+
+	if(target->Get(x1,y1,z1) < 0){
+		return maxdistance - 1;
+	}
 
 	for(t = 0; t < slevels; t++){
 		for(k = - tmpradius; k <= tmpradius; k+=increase){
@@ -827,7 +868,7 @@ double irtkPatchMatch::distance(int x1, int y1, int z1, int x2, int y2, int z2, 
 		tmpradius = tmpradius * 2;
 	}
 
-	if(count == 0)
+	if(count < 1)
 		return maxdistance - 1;
 	else
 		return dif/count;

@@ -14,13 +14,14 @@ Changes   : $Author$
 
 void usage()
 {
-	cerr << "Usage: patchmatch [N] [atlasfile] [image] [patchradius] [outputimage]" << endl;
+	cerr << "Usage: patchmatchSegmentation [N] [atlasfile] [image] [patchradius] [outputimage]" << endl;
 	cerr << "-labels               [labelfile] [outputlabel]" << endl;
-	cerr << "-LDimage              [image] reference low resolution image" << endl;
+	cerr << "-labeldistances       [targetlabeldistanceimage] [atlaslabeldistancefile]" << endl;
 	cerr << "-searchradius         [0-1] random search radius in the image, 1 means whole image" << endl;
 	cerr << "-nnfiterations        [N] number of iterations of the multi-atlas patchmatch" << endl;
 	cerr << "-emiterations         [N] number of iterations of EM algorithm" << endl;
 	cerr << "-output               [filename] output final mapping to the file" << endl;
+	cerr << "-distanceweight       [weight] weight for the label distances" << endl;
 	cerr << "-debug                open debug mode, output intermedia results" << endl;
 	exit(1);
 
@@ -39,11 +40,13 @@ int main(int argc, char **argv){
 	irtkGreyImage ** atlases = NULL;
 	irtkGreyImage * ld_image = NULL;
 	irtkGreyImage ** labels = NULL;
+	irtkRealImage * targetdistance = NULL;
+	irtkRealImage ** atlasdistances = NULL;
 	char *output_name = NULL;
-	double xsize,ysize,zsize;
 	int em_iterations = 1;
 	int nnf_iterations = 40;
 	double searchradius = 0.1;
+	double weight = 1;
 	int debug = false;
 
 	atlases = new irtkGreyImage*[nAtlases];
@@ -115,6 +118,34 @@ int main(int argc, char **argv){
 			argv++;
 			ok = true;
 		}
+		if ((ok == false) && (strcmp(argv[1], "-labeldistances") == 0)){
+			argv++;
+			argc--;
+			targetdistance = new irtkRealImage(argv[1]);
+			argv++;
+			argc--;
+			atlasdistances = new irtkRealImage*[nAtlases];
+
+			line = "";
+			infile.open (argv[1]);
+
+			argv++;
+			argc--;
+
+			for(int i = 0; i < nAtlases; i++){
+				if(!infile.eof()){
+					getline(infile,line);
+					cout << "Reading label distance images" << line << endl;
+					atlasdistances[i] = new irtkRealImage((char*)line.c_str());
+				}else{
+					cout << "Not enough label distance images, should be " << nAtlases << " actually " << i+1 << endl;
+					break;
+				}
+			}
+
+			infile.close();
+			ok = true;
+		}
 		if ((ok == false) && (strcmp(argv[1], "-LDimage") == 0)){
 			argv++;
 			argc--;
@@ -155,6 +186,14 @@ int main(int argc, char **argv){
 			argc--;
 			ok = true;
 		}
+		if ((ok == false) && (strcmp(argv[1], "-distanceweight") == 0)){
+			argv++;
+			argc--;
+			weight = atof(argv[1]);
+			argv++;
+			argc--;
+			ok = true;
+		}
 		if ((ok == false) && (strcmp(argv[1], "-debug") == 0)){
 			argv++;
 			argc--;
@@ -167,26 +206,28 @@ int main(int argc, char **argv){
 		}
 	}
 
-	cout << "Creating patchmatch..."<<endl;
-
-	irtkPatchMatch *patchmatch = new irtkPatchMatch(&image, atlases, patchSize, nAtlases, 1, 1);
+	irtkPatchMatchSegmentation * patchmatchesegmentation = 
+		new irtkPatchMatchSegmentation(&image,atlases,targetdistance,atlasdistances,patchSize,nAtlases);
 
 	if(ld_image != NULL){
-		patchmatch->setDecimatedImage(ld_image);
+		patchmatchesegmentation->setDecimatedImage(ld_image);
 		em_iterations++;
 	}
 
-	patchmatch->setDebug(debug);
+	patchmatchesegmentation->setDebug(debug);
 
 	cout << "Creating patchmatch done"<<endl;
 
 	cout << "Start optimization..."<<endl;
 
-	patchmatch->setRandomrate(searchradius);
+
+	patchmatchesegmentation->setRandomrate(searchradius);
+
+	patchmatchesegmentation->setWeight(weight);
 
 	for(int j = 0; j < em_iterations; j++){
 
-		patchmatch->runEMIteration(nnf_iterations);
+		patchmatchesegmentation->runEMIteration(nnf_iterations);
 
 	}
 
@@ -198,12 +239,15 @@ int main(int argc, char **argv){
 	///write label segmentation;
 	if(outLabelName != NULL){
 		irtkGreyImage label;
-		patchmatch->generateLabels(&label, labels);
+		patchmatchesegmentation->generateLabels(&label, labels);
 		label.Write(outLabelName);
 	}
 
 	if(output_name != NULL){
-		patchmatch->outputmap(output_name);
+		patchmatchesegmentation->outputmap(output_name);
 	}
 
 }
+
+
+

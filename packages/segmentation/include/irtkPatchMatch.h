@@ -13,9 +13,6 @@ Changes   : $Author$
 #ifndef IRTKPATCHMATCH_H_
 #define IRTKPATCHMATCH_H_
 
-#include <irtkRegistration.h>
-#include <irtkGradientImageFilter.h>
-
 struct NearstNeighbor{
 	int x;
 	int y;
@@ -26,7 +23,7 @@ struct NearstNeighbor{
 
 class irtkPatchMatch{
 
-private:
+protected:
 
 	/// target image
 	irtkGreyImage *target;
@@ -57,7 +54,7 @@ private:
 	/// vote
 	double *voteweights;
 	/// vote label
-	double **votelabels;
+	double *votelabels;
 	/// Random rate
 	double randomrate;
 	/// Min Max labels
@@ -75,11 +72,13 @@ private:
 	/// Number of neighborhoods
 	int nneighbour;
 	/// initialize field's weight
-	double initialize();
+	virtual double initialize();
+	/// initial guess of the mapping
+	virtual void initialguess();
 	/// find minum flow
 	double minimizeflow();
 	/// calculate distance between patches
-	double distance(int x1, int y1, int z1, int x2, int y2, int z2, int n);
+	virtual double distance(int x1, int y1, int z1, int x2, int y2, int z2, int n);
 	/// random search the space to find a better link
 	int randomlink(int i, int j, int k, int n, int index = -1);
 	/// createsearchimage
@@ -93,12 +92,12 @@ private:
 	/// vote label from one patch to another
 	void votelabel(int i, int j, int k, int x, int y, int z, int n, double weight);
 	/// expectation maximization
-	void EMstep();
+	virtual void EMstep();
 public:
 	/// constructor
 	irtkPatchMatch(irtkGreyImage *target, irtkGreyImage **source, int radius = 2, int nimages = 1, int nneighbour = 1, int slevels = 1);
 	/// destructor
-	~irtkPatchMatch();
+	virtual ~irtkPatchMatch();
 	/// get nnf
 	NearstNeighbor** getNearstNeighbor();
 	/// upsample NNF to refrence image
@@ -121,6 +120,8 @@ public:
 	void generateLabels(irtkGreyImage *label, irtkGreyImage **labels);
 	/// Use the nearest neighbor to create label images
 	void generateImage();
+	/// Generate the output image and output it
+	void outputmap(char* name);
 };
 
 inline irtkGreyImage * irtkPatchMatch::getTarget()

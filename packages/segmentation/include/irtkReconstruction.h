@@ -27,7 +27,7 @@ Reconstruction of volume from 2D slices
 
 */
 
-struct POINT
+struct POINT3D
 {
     short x;
     short y;
@@ -35,7 +35,7 @@ struct POINT
     double value;
 };
 
-typedef std::vector<POINT> VOXELCOEFFS; 
+typedef std::vector<POINT3D> VOXELCOEFFS; 
 typedef std::vector<std::vector<VOXELCOEFFS> > SLICECOEFFS;
 
 class irtkReconstruction : public irtkObject

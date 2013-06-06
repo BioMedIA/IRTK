@@ -652,7 +652,7 @@ void irtkSegmentationFunction::EvaluateGraphCut (irtkRealImage **threshold, irtk
   }
 
   //add weights for graph cut
-  irtkMultiImageGraphCut<float> graphcut;
+  irtkMultiImageGraphCut<double> graphcut;
   graphcut.SetInput(numberofinput,input,numberofatlas+1,datacost);
   graphcut.SetOutput(threshold);
   graphcut.Setdt(timeweight);

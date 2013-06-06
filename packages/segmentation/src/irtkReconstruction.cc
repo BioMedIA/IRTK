@@ -542,7 +542,7 @@ void irtkReconstruction::ScaleVolume()
   unsigned int inputIndex;
   int i, j, k, n;
   irtkRealImage slice, w, sim;
-  POINT p;
+  POINT3D p;
   double weight;
 
   if (_debug)
@@ -612,7 +612,7 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
   unsigned int inputIndex;
   int i, j, k, n;
   irtkRealImage slice, sim;
-  POINT p;
+  POINT3D p;
   double weight;
   
   int z, current_stack;
@@ -1057,7 +1057,7 @@ public:
             slice = reconstructor->_slices[inputIndex];
 
             //prepare structures for storage
-            POINT p;
+            POINT3D p;
             VOXELCOEFFS empty;
             SLICECOEFFS slicecoeffs(slice.GetX(), vector < VOXELCOEFFS > (slice.GetY(), empty));
 
@@ -1195,12 +1195,12 @@ public:
                                     for (kk = 0; kk < dim; kk++)
                                         tPSF(ii, jj, kk) = 0;
 
-                            //for each point of the PSF
+                            //for each POINT3D of the PSF
                             for (ii = 0; ii < xDim; ii++)
                                 for (jj = 0; jj < yDim; jj++)
                                     for (kk = 0; kk < zDim; kk++)
                                         {
-                                            //Calculate the position of the point of PSF centered over current slice voxel
+                                            //Calculate the position of the POINT3D of PSF centered over current slice voxel
                                             //This is a bit complicated because slices can be oriented in any direction
 
                                             //PSF image coordinates
@@ -1357,7 +1357,7 @@ void irtkReconstruction::CoeffInit()
 	_volume_weights = 0;
 
         int inputIndex, i, j, n, k;
-        POINT p;
+        POINT3D p;
         for ( inputIndex = 0; inputIndex < _slices.size(); ++inputIndex) {
             for ( i = 0; i < _slices[inputIndex].GetX(); i++)
                 for ( j = 0; j < _slices[inputIndex].GetY(); j++) {
@@ -1408,7 +1408,7 @@ void irtkReconstruction::GaussianReconstruction()
 	int i, j, k, n;
 	irtkRealImage slice, addon, b;
 	double scale;
-	POINT p;
+	POINT3D p;
 	vector<int> voxel_num;	
 	int slice_vox_num;
 
@@ -1581,7 +1581,7 @@ void irtkReconstruction::InitializeRobustStatistics()
 	int i, j, k, n;
 	bool slice_inside, inside;
 	irtkRealImage slice,sim;
-	POINT p;
+	POINT3D p;
 	double weight;
 
 	double sigma = 0;
@@ -1671,7 +1671,7 @@ void irtkReconstruction::EStep()
 	int i, j, k, n;
 	irtkRealImage slice, w, b, sim;
 	double scale;
-	POINT p;
+	POINT3D p;
 	int num = 0;
 	vector<double> slice_potential;
 	double g, m;
@@ -1958,7 +1958,7 @@ void irtkReconstruction::Scale()
 	unsigned int inputIndex;
 	int i, j, k, n;
 	irtkRealImage slice, w, b, sim;
-	POINT p;
+	POINT3D p;
 	double weight;
 
 	double eb;
@@ -2045,7 +2045,7 @@ void irtkReconstruction::Bias()
 	unsigned int inputIndex;
 	int i, j, k, n;
 	irtkRealImage slice, w, b, sim, wb, deltab, wresidual;
-	POINT p;
+	POINT3D p;
 	double eb, sum, num;
 	double scale;
 	double weight;
@@ -2163,7 +2163,7 @@ void irtkReconstruction::Superresolution(int iter)
 	unsigned int inputIndex;
 	int i, j, k, n;
 	irtkRealImage slice, addon, w, b, original,sim;
-	POINT p;
+	POINT3D p;
 	double scale;
 	double weight;
 	char buffer[256];
@@ -2282,7 +2282,7 @@ void irtkReconstruction::MStep(int iter)
 	unsigned int inputIndex;
 	int i, j, k, n;
 	irtkRealImage slice, w, b,sim;
-	POINT p;
+	POINT3D p;
 	double sigma = 0, mix = 0, num = 0, scale;
 	double min = 0, max = 0;
 	double weight;
@@ -2925,7 +2925,7 @@ void irtkReconstruction::NormaliseBias(int iter)
 	int i, j, k, n;
 	irtkRealImage slice, addon, b, bias;
 	double scale;
-	POINT p;
+	POINT3D p;
 	irtkRealPixel *pi, *pb;
 	char buffer[256];
 
