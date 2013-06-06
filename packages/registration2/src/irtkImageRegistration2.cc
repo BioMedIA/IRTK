@@ -201,8 +201,49 @@ void irtkImageRegistration2::Initialize(int level)
     cout << "done" << endl;
   }
 
-  _target->GetMinMaxAsDouble(&_target_min, &_target_max);
-  _source->GetMinMaxAsDouble(&_source_min, &_source_max);
+  // Find out the min and max values in target image, ignoring padding
+  _target_max = MIN_GREY;
+  _target_min = MAX_GREY;
+  for (t = 0; t < _target->GetT(); t++) {
+    for (k = 0; k < _target->GetZ(); k++) {
+      for (j = 0; j < _target->GetY(); j++) {
+        for (i = 0; i < _target->GetX(); i++) {
+          if (_target->Get(i, j, k, t) > _TargetPadding) {
+            if (_target->Get(i, j, k, t) > _target_max)
+              _target_max = _target->Get(i, j, k, t);
+            if (_target->Get(i, j, k, t) < _target_min)
+              _target_min = _target->Get(i, j, k, t);
+          }
+        }
+      }
+    }
+  }
+  if(_target_max == MIN_GREY && _target_min == MAX_GREY){
+      _target_max = _TargetPadding;
+      _target_min = _TargetPadding;
+  }
+
+  // Find out the min and max values in source image, ignoring padding
+  _source_max = MIN_GREY;
+  _source_min = MAX_GREY;
+  for (t = 0; t < _source->GetT(); t++) {
+    for (k = 0; k < _source->GetZ(); k++) {
+      for (j = 0; j < _source->GetY(); j++) {
+        for (i = 0; i < _source->GetX(); i++) {
+          if (_source->Get(i, j, k, t) > _SourcePadding) {
+            if (_source->Get(i, j, k, t) > _source_max)
+              _source_max = _source->Get(i, j, k, t);
+            if (_source->Get(i, j, k, t) < _source_min)
+              _source_min = _source->Get(i, j, k, t);
+          }
+        }
+      }
+    }
+  }
+  if(_source_max == MIN_GREY && _source_min == MAX_GREY){
+      _source_max = _SourcePadding;
+      _source_min = _SourcePadding;
+  }
 
   // Compute the maximum possible difference across target and source
   _maxDiff = (_target_min - _source_max) * (_target_min - _source_max) > (_target_max - _source_min) * (_target_max - _source_min) ?
@@ -213,6 +254,10 @@ void irtkImageRegistration2::Initialize(int level)
 
   //Compute distance mask image if necessary
   irtkPadding(*_target, _TargetPadding, &_distanceMask);
+
+  if (_SourcePadding > MIN_GREY) {
+    cout << "Source padding is " << _SourcePadding << endl;
+  }
 
   // Allocate memory for histogram if necessary
   switch (_SimilarityMeasure) {
