@@ -12,6 +12,11 @@
 
 #include <irtkImage.h>
 
+#ifdef WIN32
+	#include <math.h>
+	#define isnan(x) _isnan(x)
+#endif
+
 void usage()
 {
   cerr << "Usage: makesequence [input 1 ... input n] [output] <options>\n" << endl;
