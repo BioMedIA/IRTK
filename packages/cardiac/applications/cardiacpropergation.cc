@@ -34,7 +34,7 @@ void usage()
 int main( int argc, char** argv )
 {
 	int ok,i,j,k,t,oldt,esphase,frames,debug;
-	short cine_max,cine_min,cinedis;
+	double cine_max,cine_min,cinedis;
 	double *similarity,*smoothsimilarity,dif;
 	// Check command line
 	if (argc < 5) {
@@ -81,20 +81,20 @@ int main( int argc, char** argv )
 
 	/// First identify ED and ES
 	// Create images
-	irtkGreyImage cine(cine_name);
+	irtkRealImage cine(cine_name);
 	irtkGreyImage segmentation_ed(seg_ED_name);
 	irtkGreyImage segmentation_es(seg_ES_name);
-	irtkGreyImage output(cine.GetImageAttributes());
+	irtkRealImage output(cine.GetImageAttributes());
 	irtkGreyImage propergated_segmentation_ed(segmentation_ed.GetImageAttributes());
 	irtkGreyImage propergated_segmentation_es(segmentation_es.GetImageAttributes());
 	irtkGreyImage tmp_segmentation(segmentation_ed.GetImageAttributes());
 	irtkRealImage propergated_image_ed(segmentation_ed.GetImageAttributes());
 	irtkRealImage propergated_image_es(segmentation_es.GetImageAttributes());
 	irtkRealImage tmp_image(segmentation_ed.GetImageAttributes());
-	irtkGreyImage blured;
+	irtkRealImage blured;
 	blured.Initialize(cine.GetImageAttributes());
 
-	irtkGaussianBlurring<irtkGreyPixel> gaussianBlurring(1);
+	irtkGaussianBlurring<irtkRealPixel> gaussianBlurring(1);
 	gaussianBlurring.SetInput (&cine);
 	gaussianBlurring.SetOutput(&blured);
 	gaussianBlurring.Run();
@@ -105,8 +105,8 @@ int main( int argc, char** argv )
 	frames = atr._t;
 	atr._t = 1;
 
-	irtkGreyImage out_ED(atr);
-	irtkGreyImage out_ES(atr);
+	irtkRealImage out_ED(atr);
+	irtkRealImage out_ES(atr);
 	out_ED = cine.GetFrame(0);
 	// Create similarity
 	blured.GetMinMax(&cine_min,&cine_max);
@@ -162,8 +162,8 @@ int main( int argc, char** argv )
 		// Combine images
 		irtkImageAttributes attr = cine.GetImageAttributes();
 		attr._t = 1;
-		irtkGreyImage *target = new irtkGreyImage(attr);
-		irtkGreyImage *source = new irtkGreyImage(attr);
+		irtkRealImage *target = new irtkRealImage(attr);
+		irtkRealImage *source = new irtkRealImage(attr);
 		for (z = 0; z < target->GetZ(); z++) {
 			for (y = 0; y < target->GetY(); y++) {
 				for (x = 0; x < target->GetX(); x++) {
@@ -221,8 +221,8 @@ int main( int argc, char** argv )
 		// Combine images
 		irtkImageAttributes attr = cine.GetImageAttributes();
 		attr._t = 1;
-		irtkGreyImage *target = new irtkGreyImage(attr);
-		irtkGreyImage *source = new irtkGreyImage(attr);
+		irtkRealImage *target = new irtkRealImage(attr);
+		irtkRealImage *source = new irtkRealImage(attr);
 		for (z = 0; z < target->GetZ(); z++) {
 			for (y = 0; y < target->GetY(); y++) {
 				for (x = 0; x < target->GetX(); x++) {
@@ -299,8 +299,8 @@ int main( int argc, char** argv )
 		// Combine images
 		irtkImageAttributes attr = cine.GetImageAttributes();
 		attr._t = 1;
-		irtkGreyImage *target = new irtkGreyImage(attr);
-		irtkGreyImage *source = new irtkGreyImage(attr);
+		irtkRealImage *target = new irtkRealImage(attr);
+		irtkRealImage *source = new irtkRealImage(attr);
 		for (z = 0; z < target->GetZ(); z++) {
 			for (y = 0; y < target->GetY(); y++) {
 				for (x = 0; x < target->GetX(); x++) {
@@ -358,8 +358,8 @@ int main( int argc, char** argv )
 		// Combine images
 		irtkImageAttributes attr = cine.GetImageAttributes();
 		attr._t = 1;
-		irtkGreyImage *target = new irtkGreyImage(attr);
-		irtkGreyImage *source = new irtkGreyImage(attr);
+		irtkRealImage *target = new irtkRealImage(attr);
+		irtkRealImage *source = new irtkRealImage(attr);
 		for (z = 0; z < target->GetZ(); z++) {
 			for (y = 0; y < target->GetY(); y++) {
 				for (x = 0; x < target->GetX(); x++) {

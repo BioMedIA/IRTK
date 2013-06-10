@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	// Read input
 	input.Read(input_name);
 
-	float min,max;
+	double min,max;
 	int count,labelcount = 0;
 
 	input.GetMinMax(&min,&max);

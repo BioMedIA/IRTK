@@ -1,4 +1,4 @@
-LINK_LIBRARIES(cardiac++ registration++ segmentation++ transformation++ contrib++ image++ geometry++ common++ contrib++ image++ geometry++ common++) 
+LINK_LIBRARIES(cardiac++ registration++ segmentation++ transformation++ contrib++ image++ geometry++ common++) 
 IF (USE_VXL)
   LINK_LIBRARIES(irtkvnl irtkvcl irtkvnl_algo irtknetlib)
 ELSE (USE_VXL)
