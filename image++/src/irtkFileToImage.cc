@@ -192,6 +192,15 @@ irtkImage *irtkFileToImage::GetOutput()
     }
     break;
 
+  case IRTK_VOXEL_UNSIGNED_INT: {
+		  // Allocate image
+		  output = new irtkGenericImage<unsigned int>(_attr);
+
+		  // Read data
+		  this->ReadAsUInt((unsigned int *)output->GetScalarPointer(), output->GetNumberOfVoxels(), _start);
+  	  }
+  	  break;
+  	  
   case IRTK_VOXEL_FLOAT: {
 
       // Allocate image
