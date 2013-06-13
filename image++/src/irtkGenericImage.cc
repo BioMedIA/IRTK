@@ -210,12 +210,14 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Read(const char *fi
     
   case IRTK_VOXEL_INT: { *this = *(dynamic_cast<irtkGenericImage<int> *>(image)); } break;
 
+  case IRTK_VOXEL_UNSIGNED_INT: { *this = *(dynamic_cast<irtkGenericImage<unsigned int> *>(image)); } break;
+
   case IRTK_VOXEL_FLOAT: { *this = *(dynamic_cast<irtkGenericImage<float> *>(image)); } break;
 
   case IRTK_VOXEL_DOUBLE: { *this = *(dynamic_cast<irtkGenericImage<double> *>(image)); } break;
 
   default:
-      cout << "irtkFileToImage::GetOutput: Unknown voxel type" << endl;
+      cout << "irtkGenericImage::GetOutput: Unknown voxel type" << endl;
   }
 
   if (reader->GetSlope() != 0) {
