@@ -20,6 +20,17 @@ irtkProbabilisticAtlas::irtkProbabilisticAtlas()
   _number_of_tissues=0;
 }
 
+void irtkProbabilisticAtlas::ReplaceImage(int a, irtkRealImage image)
+{
+	if( a < 0 || a >= _number_of_tissues )
+	{
+		cerr << "cannot replace image, index out of bounds!" << endl;
+		return;
+	}
+	_images[a] = image;
+	_pointers[a] = _images[a].GetPointerToVoxels();
+}
+
 void irtkProbabilisticAtlas::SwapImages(int a, int b)
 {
 	if( a < 0 || b < 0 || a >= _number_of_tissues || b >= _number_of_tissues )

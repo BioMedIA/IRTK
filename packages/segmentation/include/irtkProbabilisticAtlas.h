@@ -50,6 +50,9 @@ public:
   /// Constructor
   irtkProbabilisticAtlas();
 
+  /// replaces image a with image
+  void ReplaceImage(int, irtkRealImage);
+
   /// swaps images within the prob atlas
   void SwapImages(int, int);
 
