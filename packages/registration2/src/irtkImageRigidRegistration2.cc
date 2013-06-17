@@ -120,10 +120,7 @@ void irtkImageRigidRegistration2::UpdateSource()
   double *ptr2result;
   short  *ptr2mask;
 
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
+  IRTK_START_TIMING();
 
   // Create iterator
   irtkHomogeneousTransformationIterator
@@ -183,6 +180,7 @@ void irtkImageRigidRegistration2::UpdateSource()
           i          += (*ptr2mask) + 1;
           ptr2result += (*ptr2mask) + 1;
           ptr2target += (*ptr2mask) + 1;
+          ptr2mask   += (*ptr2mask) + 1;
         }
         ptr2target++;
         ptr2result++;
@@ -230,9 +228,11 @@ void irtkImageRigidRegistration2::UpdateSource()
             i          += (*ptr2mask) + 1;
             ptr2result += (*ptr2mask) + 1;
             ptr2target += (*ptr2mask) + 1;
+            ptr2mask   += (*ptr2mask) + 1;
           }
           ptr2target++;
           ptr2result++;
+          ptr2mask++;
         }
         iterator.NextY();
       }
@@ -240,10 +240,7 @@ void irtkImageRigidRegistration2::UpdateSource()
     }
   }
 
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //cout << "CPU time for irtkImageRigidRegistration2::Update() = " << cpu_time_used << endl;
+  IRTK_END_TIMING("irtkImageRigidRegistration2::UpdateSource()");
 }
 
 void irtkImageRigidRegistration2::UpdateSourceAndGradient()
@@ -252,7 +249,6 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
-  double *ptr2target;
   double *ptr2source;
   double *ptr2result;
   double *ptr2gradX;
@@ -261,10 +257,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
   double *ptr;
   short  *ptr2mask;
 
-  // Start timing
-  clock_t start, end;
-  double cpu_time_used;
-  start = clock();
+  IRTK_START_TIMING();
 
   // Create iterator
   irtkHomogeneousTransformationIterator
@@ -274,7 +267,6 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
   _transformedSource = *_target;
 
   // Pointer to voxels in images
-  ptr2target = _target->GetPointerToVoxels();
   ptr2result = _transformedSource.GetPointerToVoxels();
   ptr2mask   = _distanceMask.GetPointerToVoxels();
   ptr2gradX  = _transformedSourceGradient.GetPointerToVoxels(0, 0, 0, 0);
@@ -337,9 +329,8 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
           ptr2result += (*ptr2mask) + 1;
           ptr2gradX  += (*ptr2mask) + 1;
           ptr2gradY  += (*ptr2mask) + 1;
-          ptr2target += (*ptr2mask) + 1;
+          ptr2mask   += (*ptr2mask) + 1;
         }
-        ptr2target++;
         ptr2result++;
         ptr2gradX++;
         ptr2gradY++;
@@ -411,9 +402,8 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
             ptr2gradX  += (*ptr2mask) + 1;
             ptr2gradY  += (*ptr2mask) + 1;
             ptr2gradZ  += (*ptr2mask) + 1;
-            ptr2target += (*ptr2mask) + 1;
+            ptr2mask   += (*ptr2mask) + 1;
           }
-          ptr2target++;
           ptr2result++;
           ptr2gradX++;
           ptr2gradY++;
@@ -426,10 +416,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
     }
   }
 
-  // Stop timing
-  end = clock();
-  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-  //cout << "CPU time for irtkImageRigidRegistration2::Update() = " << cpu_time_used << endl;
+  IRTK_END_TIMING("irtkImageRigidRegistration2::UpdateSourceAndGradient()");
 }
 
 double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
@@ -439,9 +426,8 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   static double *g = NULL, *h = NULL, gg, dgg, gamma;
 
   // Pointer to reference data
-  double *ptr2target;
   short  *ptr2mask;
-  double *ptr2result, *ptr2gradX, *ptr2gradY, *ptr2gradZ;
+  double *ptr2gradX, *ptr2gradY, *ptr2gradZ;
 
   // Compute gradient with respect to displacements
   this->irtkImageRegistration2::EvaluateGradient(gradient);
@@ -454,8 +440,6 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   }
 
   // Pointer to voxels in images
-  ptr2target = _target->GetPointerToVoxels();
-  ptr2result = _transformedSource.GetPointerToVoxels();
   ptr2mask   = _distanceMask.GetPointerToVoxels();
   ptr2gradX  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 0);
   ptr2gradY  = _similarityGradient.GetPointerToVoxels(0, 0, 0, 1);
@@ -485,8 +469,6 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
         ptr2gradX++;
         ptr2gradY++;
         ptr2gradZ++;
-        ptr2target++;
-        ptr2result++;
         ptr2mask++;
       }
     }
