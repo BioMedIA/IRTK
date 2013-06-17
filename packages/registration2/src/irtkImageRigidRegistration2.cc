@@ -169,7 +169,7 @@ void irtkImageRigidRegistration2::UpdateSource()
             ptr2source  = _source->GetPointerToVoxels(a, b, 0);
             *ptr2result = t1 * (u2 * ptr2source[offset2] + u1 * ptr2source[offset4]) + t2 * (u2 * ptr2source[offset1] + u1 * ptr2source[offset3]);
           } else {
-            *ptr2result = 0;
+            *ptr2result = _SourcePadding;
           }
           iterator.NextX();
         } else {
@@ -215,7 +215,7 @@ void irtkImageRigidRegistration2::UpdateSource()
                              t2 * (u2 * (v2 * ptr2source[offset1] + v1 * ptr2source[offset5]) +
                                    u1 * (v2 * ptr2source[offset3] + v1 * ptr2source[offset7])));
             } else {
-              *ptr2result = 0;
+              *ptr2result = _SourcePadding;
             }
             iterator.NextX();
           } else {
@@ -311,7 +311,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
             *ptr2gradY = t1 * (u2 * ptr[offset2] + u1 * ptr[offset4]) + t2 * (u2 * ptr[offset1] + u1 * ptr[offset3]);
 
           } else {
-            *ptr2result = 0;
+            *ptr2result = _SourcePadding;
             *ptr2gradX  = 0;
             *ptr2gradY  = 0;
           }
@@ -382,7 +382,7 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
                                   u1 * (v2 * ptr[offset3] + v1 * ptr[offset7])));
 
             } else {
-              *ptr2result = 0;
+              *ptr2result = _SourcePadding;
               *ptr2gradX  = 0;
               *ptr2gradY  = 0;
               *ptr2gradZ  = 0;
