@@ -115,7 +115,6 @@ void irtkImageRigidRegistration2::UpdateSource()
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
-  double *ptr2target;
   double *ptr2source;
   double *ptr2result;
   short  *ptr2mask;
@@ -130,7 +129,6 @@ void irtkImageRigidRegistration2::UpdateSource()
   _transformedSource = *_target;
 
   // Pointer to voxels in images
-  ptr2target = _target->GetPointerToVoxels();
   ptr2result = _transformedSource.GetPointerToVoxels();
   ptr2mask   = _distanceMask.GetPointerToVoxels();
 
@@ -179,10 +177,8 @@ void irtkImageRigidRegistration2::UpdateSource()
           iterator.NextX(*ptr2mask);
           i          += (*ptr2mask) + 1;
           ptr2result += (*ptr2mask) + 1;
-          ptr2target += (*ptr2mask) + 1;
           ptr2mask   += (*ptr2mask) + 1;
         }
-        ptr2target++;
         ptr2result++;
         ptr2mask++;
       }
@@ -227,10 +223,8 @@ void irtkImageRigidRegistration2::UpdateSource()
             iterator.NextX(*ptr2mask);
             i          += (*ptr2mask) + 1;
             ptr2result += (*ptr2mask) + 1;
-            ptr2target += (*ptr2mask) + 1;
             ptr2mask   += (*ptr2mask) + 1;
           }
-          ptr2target++;
           ptr2result++;
           ptr2mask++;
         }
