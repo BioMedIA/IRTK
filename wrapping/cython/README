@@ -1,5 +1,20 @@
 This is a Python interface to IRTK using Cython.
 
+*** Prerequisites: ***
+
+You will need the following Python module, which can be automatically installed from PyPI:
+cython
+
+mkdir ~/Python
+
+In your .cshrc, add the following line:
+setenv PYTHONPATH ~/Python
+
+or the this one if you already have a PYTHONPATH defined
+setenv PYTHONPATH ~/Python:$PYTHONPATH
+
+Then:
+easy_install --install-dir ~/Python cython
 
 *** Basic installation: ***
 Check out a fresh version of IRTK from SVN:
@@ -62,7 +77,8 @@ extra_link_args = [ "-lpython"+python_version,
 ##########
 
 
-Note:
+*** Notes: ***
+
 You can get:
  - OpenCV from http://opencv.org/
  - TBB from http://threadingbuildingblocks.org/
@@ -78,3 +94,8 @@ Python tips:
 
 And never forget: Python will do fast what he is meant to do fast.
 For the rest, you have C++ easily accessible through Cython (http://www.cython.org/).
+
+External sources:
+ - scikit.image: http://scikit-image.org/
+ - Graphcut: http://pub.ist.ac.at/~vnk/software.html
+ - SLIC: http://ivrg.epfl.ch/research/superpixels
