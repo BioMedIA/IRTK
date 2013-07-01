@@ -17,16 +17,18 @@ Changes   : $Author$
 
 
 
-char *input_name = NULL, *output_name = NULL;
+char *input_name = NULL, *output_name = NULL, *array_name = "WallThickness";
 
 void usage(){
 	cerr << "Usage: vtk2txt [input] [output] " << endl;
+	cerr << "Options:" << endl;
+	cerr << "  -arrayname <name>      Array name of the input ply format." << endl;
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int i;
+	int i, ok;
 	double point[3];
 
 	if (argc < 3) {
@@ -40,6 +42,22 @@ int main(int argc, char **argv)
 	output_name = argv[1];
 	argv++;
 	argc--;
+
+	while (argc > 1) {
+		ok = false;
+		if ((ok == false) && (strcmp(argv[1], "-arrayname") == 0)) {
+			argc--;
+			argv++;
+			ok = true;
+			array_name = argv[1];
+			argc--;
+			argv++;
+		}
+		if (ok == false) {
+			cerr << "Can not parse argument " << argv[1] << endl;
+			usage();
+		}
+	}
 
 	// Read model
 	vtkPolyDataReader *reader = vtkPolyDataReader::New();
@@ -56,6 +74,8 @@ int main(int argc, char **argv)
 		array = (vtkDoubleArray *)model->GetPointData()->GetArray("DistanceProfile");
 	}else if(model->GetPointData()->HasArray("WallThickness")){
 		array = (vtkDoubleArray *)model->GetPointData()->GetArray("WallThickness");
+	}else if(model->GetPointData()->HasArray(array_name)){
+		array = (vtkDoubleArray *)model->GetPointData()->GetArray(array_name);
 	}
 	ofstream fout(output_name,ios::app);
 
