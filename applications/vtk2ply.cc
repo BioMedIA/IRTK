@@ -12,9 +12,11 @@ Changes   : $Author$
 
 #include <irtkImage.h>
 #include <irtkImageFunction.h>
-#include <vtkPLYWriter.h>
+
 
 #ifdef HAS_VTK
+
+#include <vtkPLYWriter.h>
 
 char *input_name = NULL, *output_name = NULL;
 
@@ -58,8 +60,6 @@ int main(int argc, char **argv)
 }
 
 #else
-
-#include <irtkImage.h>
 
 int main( int argc, char *argv[] )
 {
