@@ -14,7 +14,7 @@
 
 #define _IRTKMLSIMILARITYMETRIC_H
 
-#include <irtkEMClassificationTemplateBiasCorrection.h>
+#include <irtkEMClassification.h>
 
 /**
  * Class for voxel similarity measures based on maximum likelihood.
