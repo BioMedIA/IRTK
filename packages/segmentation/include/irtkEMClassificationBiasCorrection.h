@@ -20,13 +20,11 @@
 
 #include <irtkEMClassification.h>
 
-#include <irtkBiasField.h>
-
-#include <irtkBiasCorrection.h>
+#include <irtkGaussianBlurring.h>
 
 /*
 
-EM maximisation algorithm with bias field estimation
+EM maximisation algorithm with bias field estimation using Gaussian blurring and equal variance
 
 */
 
@@ -38,47 +36,49 @@ protected:
   irtkRealImage _uncorrected;
 
   /// Bias field
-  irtkBiasField *_biasfield;
+  irtkRealImage _bias;
+  
+  /// Gaussian filter
+  irtkGaussianBlurring<irtkRealPixel>* _gb;
 
-  /// Bias field correction filter
-  irtkBiasCorrection _biascorrection;
 
+ 
 public:
 
   /// Estimates bias field
   virtual void BStep();
 
+  /// Estimates bias field
+  virtual void WStep();
+
 public:
 
   /// Constructor
-  irtkEMClassificationBiasCorrection(int noTissues, irtkRealImage **atlas);
+  irtkEMClassificationBiasCorrection(int noTissues, irtkRealImage **atlas, double sigma);
 
   /// Constructor
-  irtkEMClassificationBiasCorrection();
+  irtkEMClassificationBiasCorrection(double sigma);
 
   /// Constructor
-  irtkEMClassificationBiasCorrection(int noTissues, irtkRealImage **atlas, irtkRealImage *background);
+  irtkEMClassificationBiasCorrection(int noTissues, irtkRealImage **atlas, irtkRealImage *background, double sigma);
+
+  /// Destructor
+  ~irtkEMClassificationBiasCorrection() ;
 
   /// Set image
   virtual void SetInput(const irtkRealImage &);
 
-  /// Set bias field
-  virtual void SetBiasField(irtkBiasField *);
-
-  /// Execute one iteration and return log likelihood
+   /// Execute one iteration and return log likelihood
   virtual double Iterate(int iteration);
 
   /// Execute one iteration and return log likelihood for GMM
-  virtual double IterateGMM(int iteration, bool equal_var, bool uniform_prior);
+  virtual double IterateGMM(int iteration,bool equal_var, bool uniform_prior);
 
-  /// Compute the bias corrected image
-  virtual void ConstructBiasCorrectedImage(irtkRealImage &);
+  /// Apply the bias 
+  virtual void ApplyBias();
 
-  /// Apply the bias to an image
+  /// Apply the bias to an image 
   virtual void ApplyBias(irtkRealImage &);
-
-  /// Apply the bias to Grey image icluding logarithmic transform
-  virtual void ApplyBias(irtkGreyImage &);
 
   /// Write resulting bias field
   void WriteBias(char* biasname);
@@ -87,7 +87,7 @@ public:
 
 inline void irtkEMClassificationBiasCorrection::WriteBias(char* biasname)
 {
-  _biasfield->Write(biasname);
+  _bias.Write(biasname);
 }
 
 #endif

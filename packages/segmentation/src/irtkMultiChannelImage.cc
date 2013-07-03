@@ -24,6 +24,7 @@ void irtkMultiChannelImage::AddImage(const irtkRealImage &image)
   else
     if (_number_of_voxels != image.GetNumberOfVoxels()) {
       cerr << "Image sizes mismatch" << endl;
+      cerr<<_number_of_voxels<<" "<<image.GetNumberOfVoxels()<<endl;
       exit(1);
     }
 
@@ -42,6 +43,12 @@ void irtkMultiChannelImage::SetImage(int channel, irtkRealImage &image)
     exit(1);
   }
 }
+
+void irtkMultiChannelImage::SetMask(irtkRealImage &mask)
+{
+    _mask=mask;
+}
+
 
 irtkRealImage& irtkMultiChannelImage::GetImage(int channel)
 {
@@ -168,7 +175,7 @@ irtkRealImage irtkMultiChannelImage::Average()
   return res;
 }
 
-irtkRealImage irtkMultiChannelImage::Add()
+irtkRealImage irtkMultiChannelImage::Add(bool quiet)
 {
   int i,j;
   irtkRealPixel *ptr;
@@ -176,7 +183,8 @@ irtkRealImage irtkMultiChannelImage::Add()
   double temp;
   bool ok;
 
-  cerr << "Adding" << "...";
+  if (!quiet)
+     cerr << "Adding" << "...";
 
   ptr = res.GetPointerToVoxels();
   First();
@@ -193,19 +201,21 @@ irtkRealImage irtkMultiChannelImage::Add()
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet)
+    cerr << "done." << endl;
   return res;
 }
 
 
-irtkRealImage irtkMultiChannelImage::Multiply()
+irtkRealImage irtkMultiChannelImage::Multiply(bool quiet)
 {
   int i,j;
   irtkRealPixel *ptr;
   irtkRealImage res(_images[0]);
   double temp;
 
-  cerr << "Multiplying" << "...";
+  if (!quiet)
+    cerr << "Multiplying" << "...";
 
   ptr = res.GetPointerToVoxels();
   First();
@@ -221,7 +231,8 @@ irtkRealImage irtkMultiChannelImage::Multiply()
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet)
+    cerr << "done." << endl;
   return res;
 }
 
@@ -251,14 +262,15 @@ double irtkMultiChannelImage::ComputeVolume(int channel, int label)
   return volume*voxel;
 }
 
-irtkRealImage irtkMultiChannelImage::Subtract()
+irtkRealImage irtkMultiChannelImage::Subtract(bool quiet)
 {
   int i,j;
   irtkRealPixel *ptr;
   irtkRealImage res(_images[0]);
   double temp;
 
-  cerr << "Subtracting" << "...";
+  if (!quiet)
+    cerr << "Subtracting" << "...";
 
   ptr = res.GetPointerToVoxels();
   First();
@@ -274,18 +286,20 @@ irtkRealImage irtkMultiChannelImage::Subtract()
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet)
+    cerr << "done." << endl;
   return res;
 }
 
-irtkRealImage irtkMultiChannelImage::Divide(double scale)
+irtkRealImage irtkMultiChannelImage::Divide(double scale, bool quiet)
 {
   int i,j;
   irtkRealPixel *ptr;
   irtkRealImage res(_images[0]);
   double temp;
-
-  cerr << "Dividing" << "...";
+  
+  if (!quiet)
+    cerr << "Dividing" << "...";
 
   ptr = res.GetPointerToVoxels();
   First();
@@ -302,15 +316,17 @@ irtkRealImage irtkMultiChannelImage::Divide(double scale)
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet)
+   cerr << "done." << endl;
   return res;
 }
 
-void irtkMultiChannelImage::Log(int channel, double scale)
+void irtkMultiChannelImage::Log(int channel, double scale, bool quiet)
 {
   int i;
 
-  cerr << "Log" << "...";
+  if (!quiet)
+    cerr << "Log" << "...";
 
   First();
   for (i=0; i < _number_of_voxels; i++) {
@@ -319,14 +335,16 @@ void irtkMultiChannelImage::Log(int channel, double scale)
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet)
+    cerr << "done." << endl;
 }
 
-void irtkMultiChannelImage::Exp(int channel, double scale)
+void irtkMultiChannelImage::Exp(int channel, double scale, bool quiet)
 {
   int i;
 
-  cerr << "Exp" << "...";
+  if (!quiet)
+    cerr << "Exp" << "...";
 
   First();
   for (i=0; i < _number_of_voxels; i++) {
@@ -334,7 +352,8 @@ void irtkMultiChannelImage::Exp(int channel, double scale)
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet)
+    cerr << "done." << endl;
 }
 
 irtkRealImage irtkMultiChannelImage::Max()
@@ -386,13 +405,37 @@ irtkRealImage irtkMultiChannelImage::CreateMask()
   return _mask;
 }
 
-void irtkMultiChannelImage::Brainmask()
+irtkRealImage irtkMultiChannelImage::ExtractLabel(int channel, int label)
+{
+  int i,j;
+  irtkRealPixel *ptr;
+  irtkRealImage labels;
+  double temp;
+
+  cerr << "Extracting label "<<label << " ...";
+  labels = _images[channel];
+  ptr = labels.GetPointerToVoxels();
+ // First();
+  for (i=0; i < _number_of_voxels; i++) {
+    temp=0;
+    if (*ptr == label) temp = 1;
+    *ptr = temp;
+    ptr++;
+    //Next();
+  }
+
+  cerr << "done." << endl;
+  return labels;
+}
+
+void irtkMultiChannelImage::Brainmask(bool quiet)
 {
   int i,j;
   irtkRealPixel *ptr;
   double temp;
 
-  cerr << "brainmasking all images" << "...";
+  if (!quiet) 
+    cerr << "brainmasking all images" << "...";
   ptr = _mask.GetPointerToVoxels();
   First();
 
@@ -403,9 +446,36 @@ void irtkMultiChannelImage::Brainmask()
     Next();
   }
 
-  cerr << "done." << endl;
+  if (!quiet) 
+    cerr << "done." << endl;
 
 }
+
+irtkRealImage irtkMultiChannelImage::Brainmask(int channel)
+{
+  int i,j;
+  irtkRealPixel *ptr;
+  double temp;
+
+  //if (!quiet) 
+    cout << "brainmasking" << "...";
+  ptr = _mask.GetPointerToVoxels();
+  First();
+
+  for (i=0; i < _number_of_voxels; i++) {
+    temp = 1;
+    if (*ptr == 0) SetValue(channel,_padding);
+    ptr++;
+    Next();
+  }
+
+  //if (!quiet) 
+    cout << "done." << endl;
+  return _images[channel];
+
+}
+
+
 
 void irtkMultiChannelImage::SetPadding(int padding)
 {
@@ -596,3 +666,83 @@ void irtkMultiChannelImage::AdjustMean(int tchannel, int rchannel)
   }
 
 }
+
+
+double irtkMultiChannelImage::Average(int channel, bool quiet)
+{
+  int n=GetNumberOfVoxels();
+  int i;
+  double sum=0;
+  int count=0;
+
+  if (!quiet)
+    cerr<<"Calculating intensity average."<<endl;
+  First();
+  for (i=0; i<n; i++) {
+    if ( GetValue(channel)!=_padding ) 
+    {
+      sum += GetValue(channel);
+      count++;
+    }
+    Next();
+  }
+
+  double mean = sum/count;
+  //cerr<<"Sum: "<<sum<<endl;
+  //cerr<<"Count: "<<count<<endl;
+  
+  if (!quiet)
+    cerr<<"Average: "<<mean<<endl;
+
+  return mean;
+}
+
+
+double irtkMultiChannelImage::StDev(int channel, bool quiet)
+{
+  int n=GetNumberOfVoxels();
+  int i;
+  double sum=0;
+  int count=0;
+  double mean = Average(channel,true);
+  
+  if (!quiet)
+    cerr<<"Calculating intensity variance."<<endl;
+  First();
+  for (i=0; i<n; i++) {
+    if ( GetValue(channel)!=_padding ) 
+    {
+      sum += (GetValue(channel)-mean)*(GetValue(channel)-mean);
+      count++;
+    }
+    Next();
+  }
+
+  double stdev = sqrt(sum/count);
+  //cerr<<"Sum: "<<sum<<endl;
+  //cerr<<"Count: "<<count<<endl;
+  
+  if (!quiet)
+    cerr<<"StDev: "<<stdev<<endl;
+
+  return stdev;
+}
+
+void irtkMultiChannelImage::Sqrt(int channel)
+{
+  int i;
+
+  cerr << "Log" << "...";
+
+  First();
+  for (i=0; i < _number_of_voxels; i++) {
+    if ((GetValue(channel)>0)&&(GetValue(channel)!=_padding)) SetValue(channel, sqrt(GetValue(channel)));
+    else SetValue(channel, _padding);
+    Next();
+  }
+
+  cerr << "done." << endl;
+}
+
+
+

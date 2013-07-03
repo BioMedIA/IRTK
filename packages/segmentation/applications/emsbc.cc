@@ -16,19 +16,19 @@
 
 #include <irtkEMClassificationBiasCorrection.h>
 
-#include <irtkGaussian.h>
-
-char *output_segmentation, *output_biascorrection, *output_biasfield;
+char *output_segmentation, *output_bias, *output_corrected;
 
 void usage()
 {
-  cerr << "Usage: emsbc [image] [n] [atlas 1 ... atlas n] [segmented image] [corrected image] <options>" << endl;
+  cerr << "Usage: emsbc [image] [n] [atlas 1 ... atlas n] [segmented image] [corrected image] <-sigma>" << endl;
   exit(1);
 }
 
 int main(int argc, char **argv)
 {
   int i, n, ok, padding, iterations;
+  bool nobg=false;
+  double sigma;
 
   if (argc < 4) {
     usage();
@@ -38,6 +38,7 @@ int main(int argc, char **argv)
   // Input image
   irtkRealImage image;
   image.Read(argv[1]);
+  cerr<<"Input image: "<<argv[1]<<endl;
   argc--;
   argv++;
 
@@ -45,6 +46,7 @@ int main(int argc, char **argv)
   n = atoi(argv[1]);
   argc--;
   argv++;
+  cerr<<"Number of structures: "<<atoi(argv[1])<<endl;
 
   // Probabilistic atlas
   irtkRealImage **atlas = new irtkRealImage*[n];
@@ -54,23 +56,27 @@ int main(int argc, char **argv)
   for (i = 0; i < n; i++) {
     atlas[i] = new irtkRealImage;
     atlas[i]->Read(argv[1]);
+    cerr<<"Prior "<<i<<": "<<argv[1]<<endl;
     argc--;
     argv++;
   }
 
   // File name for segmentation
   output_segmentation = argv[1];
+  cerr<<"Output: "<<argv[1]<<endl;
   argc--;
   argv++;
 
   // File name for bias corrected image
-  output_biascorrection = argv[1];
+  output_corrected = argv[1];
+  cerr<<"Corrected: "<<argv[1]<<endl;
   argc--;
   argv++;
 
   // Default parameters
   iterations = 50;
   padding    = MIN_GREY;
+  sigma = 60;
 
   // Parse remaining parameters
   while (argc > 1) {
@@ -91,10 +97,10 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-biasfield") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-bias") == 0)) {
       argc--;
       argv++;
-      output_biasfield = argv[1];
+      output_bias = argv[1];
       argc--;
       argv++;
       ok = true;
@@ -109,6 +115,22 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-sigma") == 0)) {
+      argc--;
+      argv++;
+      sigma = atof(argv[1]);
+      cerr << "sigma  = " << sigma <<endl;
+      argc--;
+      argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-nobg") == 0)) {
+      argc--;
+      argv++;
+      nobg=true;
+      cerr << "Not adding background tissue."<<endl;
+      ok = true;
+    }
 
     if (ok == false) {
       cerr << "Can not parse argument " << argv[1] << endl;
@@ -117,16 +139,19 @@ int main(int argc, char **argv)
 
   }
 
-  // Create bias field
-  //irtkBSplineBiasField *biasfield = new irtkBSplineBiasField(image, 40, 40, 40);
-  irtkBSplineBiasField *biasfield = new irtkBSplineBiasField(image, 3, 3, 3);
+   // Create classification object
+  irtkEMClassificationBiasCorrection *classification;
+  if (nobg) classification= new irtkEMClassificationBiasCorrection(n, atlas, sigma);
+  else classification= new irtkEMClassificationBiasCorrection(n, atlas, background,sigma);
+  classification->SetInput(image);
+  classification->SetPadding(padding);
+  classification->CreateMask();
 
-  // Create classification object
-  irtkEMClassificationBiasCorrection classification(n, atlas, background);
-  classification.SetInput(image);
-  classification.SetPadding(padding);
-  classification.SetBiasField(biasfield);
-  classification.Initialise();
+  classification->MStep();
+  classification->Print();
+  //classification.EStep();
+  //classification.WStep();
+  //classification.BStep();
   /*
     for (i = 0; i < iterations; i++){
       cout << "Iteration = " << i+1 << " / " << iterations << endl;
@@ -137,55 +162,70 @@ int main(int argc, char **argv)
   i=0;
   do {
     cout << "Iteration = " << i+1 << " / " << iterations << endl;
-    rel_diff = classification.Iterate(i);
+    rel_diff = classification->Iterate(i);
     i++;
-  } while ((rel_diff>0.001)&&(i<iterations));
+  } while ((rel_diff>0.001)&&(i<iterations));  //(i<iterations); 
 
 
   // Bias corrected image
-  classification.ConstructBiasCorrectedImage(image);
-  image.Write(output_biascorrection);
+  //classification.ConstructBiasCorrectedImage(image);
+  //image.Write(output_biascorrection);
 
   // Save segmentation
-  classification.ConstructSegmentation(image);
+  classification->ConstructSegmentation(image);
   image.Write(output_segmentation);
 
   // Save bias field
-  if (output_biasfield != NULL) {
-    biasfield->Write(output_biasfield);
-  }
+  //if (output_biasfield != NULL) {
+    //biasfield->Write(output_biasfield);
+  //}
 
+  if (n==12) {
+    classification->WriteProbMap(0,"csf.nii.gz");
+    classification->WriteProbMap(1,"gray.nii.gz");
+    classification->WriteProbMap(2,"caudate.nii.gz");
+    classification->WriteProbMap(3,"putamen.nii.gz");
+    classification->WriteProbMap(4,"nigra.nii.gz");
+    classification->WriteProbMap(5,"cerebellum.nii.gz");
+    classification->WriteProbMap(6,"thalamus.nii.gz");
+    classification->WriteProbMap(7,"pallidum.nii.gz");
+    classification->WriteProbMap(8,"brainstem.nii.gz");
+    classification->WriteProbMap(9,"wm.nii.gz");
+    classification->WriteProbMap(10,"callosum.nii.gz");
+    classification->WriteProbMap(11,"cerebellum-white.nii.gz");
+    classification->WriteProbMap(12,"other.nii.gz");
+  }
   if (n==11) {
-    classification.WriteProbMap(0,"csf.hdr");
-    classification.WriteProbMap(1,"gray.hdr");
-    classification.WriteProbMap(2,"caudate.hdr");
-    classification.WriteProbMap(3,"putamen.hdr");
-    classification.WriteProbMap(4,"nigra.hdr");
-    classification.WriteProbMap(5,"cerebellum.hdr");
-    classification.WriteProbMap(6,"thalamus.hdr");
-    classification.WriteProbMap(7,"pallidum.hdr");
-    classification.WriteProbMap(8,"brainstem.hdr");
-    classification.WriteProbMap(9,"white.hdr");
-    classification.WriteProbMap(10,"cerebellum-white.hdr");
-    classification.WriteProbMap(11,"other.hdr");
+    classification->WriteProbMap(0,"csf.nii.gz");
+    classification->WriteProbMap(1,"gray.nii.gz");
+    classification->WriteProbMap(2,"caudate.nii.gz");
+    classification->WriteProbMap(3,"putamen.nii.gz");
+    classification->WriteProbMap(4,"nigra.nii.gz");
+    classification->WriteProbMap(5,"cerebellum.nii.gz");
+    classification->WriteProbMap(6,"thalamus.nii.gz");
+    classification->WriteProbMap(7,"pallidum.nii.gz");
+    classification->WriteProbMap(8,"brainstem.nii.gz");
+    classification->WriteProbMap(9,"wm.nii.gz");
+    classification->WriteProbMap(10,"cerebellum-white.nii.gz");
+    classification->WriteProbMap(11,"other.nii.gz");
   }
   if (n==7) {
-    classification.WriteProbMap(0,"csf.hdr");
-    classification.WriteProbMap(1,"gray.hdr");
-    classification.WriteProbMap(2,"caudate.hdr");
-    classification.WriteProbMap(3,"putamen.hdr");
-    classification.WriteProbMap(4,"thalamus.hdr");
-    classification.WriteProbMap(5,"pallidum.hdr");
-    classification.WriteProbMap(6,"white.hdr");
-    classification.WriteProbMap(7,"other.hdr");
+    classification->WriteProbMap(0,"csf.nii.gz");
+    classification->WriteProbMap(1,"gray.nii.gz");
+    classification->WriteProbMap(2,"caudate.nii.gz");
+    classification->WriteProbMap(3,"putamen.nii.gz");
+    classification->WriteProbMap(4,"thalamus.nii.gz");
+    classification->WriteProbMap(5,"pallidum.nii.gz");
+    classification->WriteProbMap(6,"white.nii.gz");
+    classification->WriteProbMap(7,"other.nii.gz");
   }
   if (n==3) {
-    classification.WriteProbMap(0,"csf.hdr");
-    classification.WriteProbMap(1,"gray.hdr");
-    classification.WriteProbMap(2,"white.hdr");
+    classification->WriteProbMap(0,"csf.nii.gz");
+    classification->WriteProbMap(1,"gray.nii.gz");
+    classification->WriteProbMap(2,"white.nii.gz");
   }
 
-  classification.WriteGaussianParameters("parameters.txt");
+  classification->WriteGaussianParameters("parameters.txt");
 
 }
 

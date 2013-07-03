@@ -20,7 +20,7 @@
 
 using namespace std;
 
-/**
+/*
 
 Atlas probability map class
 
@@ -89,21 +89,27 @@ public:
   ///Retuns average of all images
   irtkRealImage Average();
   ///Retuns sum of all images
-  irtkRealImage Add();
+  irtkRealImage Add(bool quiet=false);
   /// Returns the product of all images
-  irtkRealImage Multiply();
+  irtkRealImage Multiply(bool quiet=false);
   double ComputeVolume(int channel, int label = 1);
-  irtkRealImage Subtract();
-  irtkRealImage Divide(double scale);
-  void Log(int channel, double scale=1000);
-  void Exp(int channel, double scale=1000);
+  irtkRealImage Subtract(bool quiet=false);
+  irtkRealImage Divide(double scale=1, bool quiet=false);
+  void Log(int channel, double scale=1000, bool quiet=false);
+  void Exp(int channel, double scale=1000, bool quiet=false);
+  void Sqrt(int channel);
   irtkRealImage Max();
   irtkRealImage CreateMask();
-  void Brainmask();
+  irtkRealImage ExtractLabel(int channel, int label);
+  void Brainmask(bool quiet=false);
+  irtkRealImage Brainmask(int channel);
   void SetPadding(int);
   void HistogramMatching(int tchannel, int rchannel, double sigma=0);
   void HistogramEqualization(int channel);
   void AdjustMean(int tchannel, int rchannel);
+  double Average(int channel,bool quiet=false);
+  double StDev(int channel,bool quiet=false);
+  void SetMask(irtkRealImage &image);
 };
 
 #endif
