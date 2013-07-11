@@ -45,7 +45,7 @@ irtkImageFreeFormRegistration2::irtkImageFreeFormRegistration2()
 void irtkImageFreeFormRegistration2::GuessParameter()
 {
     int i;
-    double xsize, ysize, zsize, spacing;
+    double xsize, ysize, zsize;
 
     if ((_target == NULL) || (_source == NULL)) {
         cerr << "irtkImageFreeFormRegistration2::GuessParameter: Target and source image not found" << endl;
@@ -131,17 +131,6 @@ void irtkImageFreeFormRegistration2::GuessParameter()
         (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
         (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
             _TargetPadding = _target->Get(0, 0, 0);
-    }
-
-    _SourcePadding = MIN_GREY;
-    if ((_source->Get(_source->GetX()-1, 0, 0)                                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(0, _source->GetY()-1, 0)                                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(0, 0, _source->GetZ()-1)                                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(_source->GetX()-1, _source->GetY()-1, 0)                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(0, _source->GetY()-1, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(_source->GetX()-1, 0, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
-        (_source->Get(_source->GetX()-1, _source->GetY()-1, _source->GetZ()-1) == _source->Get(0, 0, 0))) {
-            _SourcePadding = _source->Get(0, 0, 0);
     }
 }
 
@@ -819,7 +808,7 @@ double irtkImageFreeFormRegistration2::Evaluate()
 
 void irtkImageFreeFormRegistration2::EvaluateGradient2D(double *gradient)
 {
-    double basis, pos[3], offset;
+    double basis, pos[3];
     int i, j, i1, i2, j1, j2, k1, k2, x, y, index, index2;
 
     // Initialize gradient to zero
@@ -933,8 +922,8 @@ void irtkImageFreeFormRegistration2::EvaluateGradient3D(double *gradient)
 
 void irtkImageFreeFormRegistration2::NormalizeGradient(double *gradient)
 {
-    int x,y,z,index1,index2,index3,offset;
-    double norm,spacingnorm;
+    int x, y, z, index1, index2, index3, offset;
+    double norm, spacingnorm;
 
     // Compute normalization factor
     if (_affd->GetZ() == 1) {
@@ -948,19 +937,19 @@ void irtkImageFreeFormRegistration2::NormalizeGradient(double *gradient)
     for (z = 0; z < _affd->GetZ(); z++) {
         for (y = 0; y < _affd->GetY(); y++) {
             for (x = 0; x < _affd->GetX(); x++) {
-                index1 = _affd->LatticeToIndex(x,y,z);
+                index1 = _affd->LatticeToIndex(x, y, z);
                 index2 = index1 + offset;
                 index3 = index2 + offset;
-                norm = pow(gradient[index1],2.0)
-                    + pow(gradient[index2],2.0)
-                    + pow(gradient[index3],2.0);
+                norm = pow(gradient[index1], 2.0)
+                     + pow(gradient[index2], 2.0)
+                     + pow(gradient[index3], 2.0);
 
                 //normalize
                 if(norm > 0){
                     norm = sqrt(norm);
-                    gradient[index1] = gradient[index1]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
-                    gradient[index2] = gradient[index2]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
-                    gradient[index3] = gradient[index3]/pow((norm + _Epsilon*spacingnorm),_Lambda3);
+                    gradient[index1] /= pow(norm + 0.0001*spacingnorm, _Lambda3);
+                    gradient[index2] /= pow(norm + 0.0001*spacingnorm, _Lambda3);
+                    gradient[index3] /= pow(norm + 0.0001*spacingnorm, _Lambda3);
                 }
             }
         }
@@ -1041,7 +1030,7 @@ double irtkImageFreeFormRegistration2::EvaluateGradient(double *gradient)
     for (i = 0; i < _affd->NumberOfDOFs(); i++) {
         if (_affd->irtkTransformation::GetStatus(i) == _Passive) {
             gradient[i] = 0;
-            _affd->Put(i,0);
+            //_affd->Put(i,0);
         }
     }
 
@@ -1134,7 +1123,6 @@ void irtkImageFreeFormRegistration2::Run()
                 attr._dy = _affd->GetYSpacing();
                 attr._dz = _affd->GetZSpacing();
                 irtkGenericImage<double> g(attr);
-                int idx = 0;
                 for (int k = 0; k < g.GetZ(); k++) {
                   for (int j = 0; j < g.GetY(); j++) {
                     for (int i = 0; i < g.GetX(); i++) {

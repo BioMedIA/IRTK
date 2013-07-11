@@ -12,7 +12,7 @@
 
 #include <irtkRegistration2.h>
 
-#include <irtkResampling.h>
+#include <irtkIterativeResampling.h>
 
 #include <irtkGaussianBlurring.h>
 
@@ -165,7 +165,7 @@ void irtkImageRegistration2::Initialize(int level)
   if (level > 0 || temp > 0.000001) {
     cout << "Resampling target ... "; cout.flush();
     // Create resampling filter
-    irtkResampling<irtkRealPixel> resample(_TargetResolution[level][0],
+    irtkIterativeResampling<irtkRealPixel> resample(_TargetResolution[level][0],
         _TargetResolution[level][1],
         _TargetResolution[level][2]);
     resample.SetInput (_target);
@@ -187,7 +187,7 @@ void irtkImageRegistration2::Initialize(int level)
   if (level > 0 || temp > 0.000001) {
     cout << "Resampling source ... "; cout.flush();
     // Create resampling filter
-    irtkResampling<irtkRealPixel> resample(_SourceResolution[level][0],
+    irtkIterativeResampling<irtkRealPixel> resample(_SourceResolution[level][0],
         _SourceResolution[level][1],
         _SourceResolution[level][2]);
     resample.SetInput (_source);

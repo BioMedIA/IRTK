@@ -56,6 +56,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkImageToImage2.h
 ../include/irtkImageToOpenCv.h
 ../include/irtkInterpolateImageFunction.h
+../include/irtkIterativeResampling.h
 ../include/irtkLargestConnectedComponent.h
 ../include/irtkLargestConnectedComponentIterative.h
 ../include/irtkLinearInterpolateImageFunction2D.h
@@ -140,6 +141,7 @@ irtkImageToImage.cc
 irtkImageToImage2.cc
 irtkImageToOpenCv.cc
 irtkInterpolateImageFunction.cc
+irtkIterativeResampling.cc
 irtkLargestConnectedComponent.cc
 irtkLargestConnectedComponentIterative.cc
 irtkLinearInterpolateImageFunction.cc

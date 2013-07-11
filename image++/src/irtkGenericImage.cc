@@ -422,7 +422,7 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::GetMinMaxPad(VoxelT
 
   if (n > 0) {
     for (i = 0; i < n; i++) {
-      if (ptr[i]!=pad) {
+      if (ptr[i]>pad) {
         if (first) {
           first=false;
           *min = ptr[i];
