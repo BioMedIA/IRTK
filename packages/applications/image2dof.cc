@@ -100,7 +100,6 @@ int main(int argc, char **argv)
   if (bspline) {
 	int no = dx.GetX() * dx.GetY() * dx.GetZ();
 	int index;
-	double dispX, dispY, dispZ, point2X, point2Y, point2Z;
 	double *pointsX = new double[no];
 	double *pointsY = new double[no];
 	double *pointsZ = new double[no];
@@ -123,18 +122,9 @@ int main(int argc, char **argv)
 		  pointsY[index] = y;
 		  pointsZ[index] = z;
 
-		  point2X = i + dx.Get(i, j, k);
-		  point2Y = j + dy.Get(i, j, k);
-		  point2Z = k + dz.Get(i, j, k);
-		  image.ImageToWorld(point2X, point2Y, point2Z);
-
-		  dispX = point2X - x;
-		  dispY = point2Y - y;
-		  dispZ = point2Z - z;
-
-		  displacementsX[index] = dispX;
-		  displacementsY[index] = dispY;
-		  displacementsZ[index] = dispZ;
+		  displacementsX[index] = dx.Get(i, j, k);
+		  displacementsY[index] = dy.Get(i, j, k);
+		  displacementsZ[index] = dz.Get(i, j, k);
 
 		  index++;
 		}
