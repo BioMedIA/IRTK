@@ -40,6 +40,7 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(patchmatchSegmentation patchmatchSegmentation.cc)
     ADD_EXECUTABLE(seg_uncertainty seg_uncertainty.cc)
     ADD_EXECUTABLE(reconstruction reconstruction.cc)
+    ADD_EXECUTABLE(reconstructionb0 reconstructionb0.cc)
     ADD_EXECUTABLE(emSeg2ndOrderMRF emSeg2ndOrderMRF.cc)
 
   ENDIF (BUILD_MPI_EXE)

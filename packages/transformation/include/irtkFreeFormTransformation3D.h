@@ -106,6 +106,9 @@ public:
 
   /// Get the control point spacing (in mm)
   virtual void GetSpacing(double &, double &, double &) const;
+  
+  /// Put origin of free-form deformation
+  virtual void  PutOrigin(double , double , double );
 
   /// Put orientation of free-form deformation
   virtual void  PutOrientation(double *, double *, double *);
@@ -332,6 +335,15 @@ inline void irtkFreeFormTransformation3D::GetSpacing(double &dx, double &dy, dou
   dx = _dx;
   dy = _dy;
   dz = _dz;
+}
+
+inline void irtkFreeFormTransformation3D::PutOrigin(double x, double y, double z)
+{
+  _origin._x = x;
+  _origin._y = y;
+  _origin._z = z;
+
+  this->UpdateMatrix();
 }
 
 inline void irtkFreeFormTransformation3D::PutOrientation(double *xaxis, double *yaxis, double *zaxis)

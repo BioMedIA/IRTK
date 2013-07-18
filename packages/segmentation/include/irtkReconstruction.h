@@ -178,6 +178,8 @@ public:
                                     vector<irtkRigidTransformation>& slice_transformations,
                                     vector<int>& stack_ids,
                                     vector<double>& thickness );
+  ///Update slices if stacks have changed
+  void UpdateSlices(vector<irtkRealImage>& stacks, vector<double>& thickness);
   ///Invert all stack transformation
   void InvertStackTransformations(vector<irtkRigidTransformation>& stack_transformations);
   ///Match stack intensities

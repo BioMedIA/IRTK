@@ -14,6 +14,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkPatchMatch.h
 ../include/irtkPatchMatchSegmentation.h
 ../include/irtkReconstruction.h
+../include/irtkReconstructionb0.h
 ../include/irtkRician.h
 ../include/irtkSubcorticalSegmentation_4D.h
 ../include/block.h
@@ -46,6 +47,7 @@ irtkPatchMatch.cc
 irtkPatchMatchSegmentation.cc
 irtkRician.cc
 irtkReconstruction.cc
+irtkReconstructionb0.cc
 irtkSubcorticalSegmentation_4D.cc
 graph.cpp
 GCoptimization.cpp

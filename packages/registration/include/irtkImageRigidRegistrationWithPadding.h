@@ -55,6 +55,9 @@ public:
   virtual void GuessParameterSliceToVolume();
   /// Guess parameters volumes with thick slices
   virtual void GuessParameterThickSlices();
+  /// Guess parameters for distortion correction
+  virtual void GuessParameterDistortion(double res);
+
 };
 
 inline void irtkImageRigidRegistrationWithPadding::SetOutput(irtkTransformation *transformation)

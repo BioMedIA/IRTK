@@ -854,6 +854,31 @@ void irtkReconstruction::SetSlicesAndTransformations( vector<irtkRealImage>& sli
     }
 }
 
+void irtkReconstruction::UpdateSlices(vector<irtkRealImage>& stacks, vector<double>& thickness)
+{
+        _slices.clear();
+	//for each stack
+	for (unsigned int i = 0; i < stacks.size(); i++)
+	{
+		//image attributes contain image and voxel size
+		irtkImageAttributes attr = stacks[i].GetImageAttributes();
+
+		//attr._z is number of slices in the stack
+		for (int j = 0; j < attr._z; j++)
+		{
+			//create slice by selecting the appropreate region of the stack
+			irtkRealImage slice = stacks[i].GetRegion(0, 0, j, attr._x, attr._y, j + 1);
+			//set correct voxel size in the stack. Z size is equal to slice thickness.
+			slice.PutPixelSize(attr._dx, attr._dy, thickness[i]);
+			//remember the slice
+			_slices.push_back(slice);
+		}
+	}
+	cout << "Number of slices: " << _slices.size() << endl;
+
+}
+
+
 void irtkReconstruction::MaskSlices()
 {
 	cout << "Masking slices ... ";

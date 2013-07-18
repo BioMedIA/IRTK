@@ -12,12 +12,14 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkHistogramSimilarityMetric.h
 ../include/irtkImageAffineRegistration2D.h
 ../include/irtkImageAffineRegistration.h
+../include/irtkImageAffineRegistrationWithPadding.h
 ../include/irtkImageEigenFreeFormRegistration2D.h
 ../include/irtkImageEigenFreeFormRegistration.h
 ../include/irtkImageFluidRegistration2D.h
 ../include/irtkImageFluidRegistration.h
 ../include/irtkImageFreeFormRegistration2D.h
 ../include/irtkImageFreeFormRegistration.h
+../include/irtkImageFreeFormRegistrationWithPadding.h
 ../include/irtkImageRegistration.h
 ../include/irtkImageRegistrationWithPadding.h
 ../include/irtkImageRigidRegistration2D.h
@@ -70,10 +72,12 @@ irtkConjugateGradientDescentOptimizer.cc
 irtkDemonsRegistration.cc
 irtkDownhillDescentOptimizer.cc
 irtkImageAffineRegistration.cc
+irtkImageAffineRegistrationWithPadding.cc
 irtkImageAffineRegistration2D.cc
 irtkImageEigenFreeFormRegistration.cc
 irtkImageEigenFreeFormRegistration2D.cc
 irtkImageFreeFormRegistration.cc
+irtkImageFreeFormRegistrationWithPadding.cc
 irtkImageFreeFormRegistration2D.cc
 irtkImageFluidRegistration.cc
 irtkImageFluidRegistration2D.cc

@@ -99,6 +99,11 @@ void irtkImageRigidRegistrationWithPadding::GuessParameter()
       (_source->Get(_source->GetX()-1, _source->GetY()-1, _source->GetZ()-1) == _source->Get(0, 0, 0))) {
     _SourcePadding = _source->Get(0, 0, 0);
   }
+  cerr<<endl<<endl;
+  cerr<<"GuessParameter:"<<endl;
+  cerr<<"Target padding is "<<_TargetPadding<<endl;
+  cerr<<"Source padding is "<<_SourcePadding<<endl;
+  cerr<<endl<<endl;
 
 }
 
@@ -296,6 +301,115 @@ void irtkImageRigidRegistrationWithPadding::GuessParameterSliceToVolume()
     _SourcePadding = _source->Get(0, 0, 0);
   }
 }
+
+void irtkImageRigidRegistrationWithPadding::GuessParameterDistortion(double res)
+{
+  int i;
+  double xsize, ysize, zsize, size;
+
+  if ((_target == NULL) || (_source == NULL)) {
+    cerr << "irtkImageRigidRegistrationWithPadding::GuessParameter: Target and source image not found" << endl;
+    exit(1);
+  }
+
+  // Default parameters for registration
+  _NumberOfLevels     = 1;
+  _NumberOfBins       = 64;
+
+  // Default parameters for optimization
+  _SimilarityMeasure  = CC;
+  _OptimizationMethod = GradientDescent;
+  _Epsilon            = 0.0001;
+
+  // Read target pixel size
+  _target->GetPixelSize(&xsize, &ysize, &zsize);
+  
+  if(res<=0)
+  {
+    if (ysize<xsize)
+      size = ysize;
+    else
+      size = xsize;
+  }
+  else size = res;
+
+  // Default target parameters
+  _TargetBlurring[0]      = 0;//size / 2.0;
+  _TargetResolution[0][0] = size;
+  _TargetResolution[0][1] = size;
+  _TargetResolution[0][2] = zsize;
+
+  for (i = 1; i < _NumberOfLevels; i++) {
+    _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
+    _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
+    _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
+    _TargetResolution[i][2] = _TargetResolution[i-1][2];
+  }
+
+  // Read source pixel size
+  _source->GetPixelSize(&xsize, &ysize, &zsize);
+  
+  if(res<=0)
+  {
+    if (ysize<xsize)
+      size = ysize;
+    else
+      size = xsize;
+  }
+  else size = res;
+
+  // Default source parameters
+  _SourceBlurring[0]      = 0; //size / 2.0;
+  _SourceResolution[0][0] = size;
+  _SourceResolution[0][1] = size;
+  _SourceResolution[0][2] = zsize;
+
+  for (i = 1; i < _NumberOfLevels; i++) {
+    _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
+    _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
+    _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
+    _SourceResolution[i][2] = _SourceResolution[i-1][2];
+  }
+
+  // Remaining parameters
+  for (i = 0; i < _NumberOfLevels; i++) {
+    _NumberOfIterations[i] = 20;
+    _NumberOfSteps[i]      = 4;
+    _LengthOfSteps[i]      = 2 * pow(2.0, i);
+  }
+
+  // Try to guess padding by looking at voxel values in all eight corners of the volume:
+  // If all values are the same we assume that they correspond to the padding value
+  _TargetPadding = MIN_GREY;
+  if ((_target->Get(_target->GetX()-1, 0, 0)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, _target->GetY()-1, 0)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, 0, _target->GetZ()-1)                                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, _target->GetY()-1, 0)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(0, _target->GetY()-1, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, 0, _target->GetZ()-1)                 == _target->Get(0, 0, 0)) &&
+      (_target->Get(_target->GetX()-1, _target->GetY()-1, _target->GetZ()-1) == _target->Get(0, 0, 0))) {
+    _TargetPadding = _target->Get(0, 0, 0);
+  }
+
+  _SourcePadding = MIN_GREY;
+  if ((_source->Get(_source->GetX()-1, 0, 0)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, _source->GetY()-1, 0)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, 0, _source->GetZ()-1)                                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, _source->GetY()-1, 0)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(0, _source->GetY()-1, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, 0, _source->GetZ()-1)                 == _source->Get(0, 0, 0)) &&
+      (_source->Get(_source->GetX()-1, _source->GetY()-1, _source->GetZ()-1) == _source->Get(0, 0, 0))) {
+    _SourcePadding = _source->Get(0, 0, 0);
+  }
+  cerr<<endl<<endl;
+  cerr<<"GuessParameterDistortion:"<<endl;
+  cerr<<"Target padding is "<<_TargetPadding<<endl;
+  cerr<<"Source padding is "<<_SourcePadding<<endl;
+  cerr<<endl<<endl;
+}
+
+
+
 
 /*
 void irtkImageRigidRegistrationWithPadding::Initialize()
