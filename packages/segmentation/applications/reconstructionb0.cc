@@ -694,6 +694,7 @@ int main(int argc, char **argv)
   reconstruction.SetT2Template(alignedT2);
 
   
+  iterations = 7;
   //registration iterations
   for (iter=0;iter<(iterations);iter++)
   {
@@ -703,7 +704,7 @@ int main(int argc, char **argv)
     cout.flush();
     
     //distortion
-    if((iter>=(iterations*(levels-1)/levels+1))||(iterations==1))
+    if((iter>=5)||(iterations==1))
     {
       //redirect output to files
       cerr.rdbuf(filed_e.rdbuf());
@@ -716,7 +717,7 @@ int main(int argc, char **argv)
       for(i=0;i<stacks.size();i++)
         corrected_stacks.push_back(stacks[i]);
       reconstruction.Shim(corrected_stacks,iter);
-      if((iter>(iterations*(levels-1)/levels +1))||(iterations==1)||(iter==(iterations-1)))
+      if((iter>5)||(iterations==1)||(iter==(iterations-1)))
         reconstruction.FieldMap(corrected_stacks,iter);
       for (i=0;i<corrected_stacks.size();i++)
       {
@@ -740,7 +741,7 @@ int main(int argc, char **argv)
       cout.rdbuf (file.rdbuf());
       cout<<"Iteration "<<iter<<": "<<endl;
       
-      if((packages.size()>0)&&(iter<=iterations*(levels-1)/levels)&&(iter<(iterations-1)))
+      if((packages.size()>0)&&(iter<=5)&&(iter<(iterations-1)))
       {
 	if(iter==1)
           reconstruction.PackageToVolume(stacks,packages);
