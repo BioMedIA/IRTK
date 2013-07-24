@@ -132,7 +132,7 @@ using namespace tbb;
   }
 
   template <class Range, class Body>
-  void parallel_reduce(const Range &range, const Body &body) {
+  void parallel_reduce(const Range &range, Body &body) {
     body(range);
   }
 #endif
