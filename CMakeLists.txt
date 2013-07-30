@@ -18,6 +18,8 @@ ELSE (USE_VXL)
   SUBDIRS(recipes/src)
 ENDIF (USE_VXL)
 
+OPTION(BUILD_WITH_TBB "Use TBB library for multithreading support" OFF)
+
 OPTION(BUILD_GPU_SUPPORT_WITH_CUDA "Use a preliminary GPU accelerated version of IRTK" OFF)
 IF (BUILD_GPU_SUPPORT_WITH_CUDA)
   add_subdirectory(cudaCommon++)

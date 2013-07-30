@@ -24,10 +24,9 @@ IF (BUILD_WITH_OPENCV)
 ENDIF (BUILD_WITH_OPENCV)
 
 # Option to produce multi-threaded executables using TBB
-OPTION(BUILD_TBB_EXE "Build multi-threaded executables using TBB" OFF)
-MARK_AS_ADVANCED(BUILD_TBB_EXE)
+OPTION(BUILD_WITH_TBB "Build multi-threaded executables using TBB" OFF)
 
-IF (BUILD_TBB_EXE)
+IF (BUILD_WITH_TBB)
   FIND_PACKAGE(TBB REQUIRED)
   IF (TBB_FOUND)
     # Attention: DO NOT define TBB_DEPRECATED by default or before including the
@@ -41,7 +40,7 @@ IF (BUILD_TBB_EXE)
     LINK_DIRECTORIES(${TBB_LIBRARY_DIRS})
     LINK_LIBRARIES(${TBB_LIBRARIES})
   ENDIF (TBB_FOUND)
-ENDIF(BUILD_TBB_EXE)
+ENDIF(BUILD_WITH_TBB)
 
 INCLUDE(${CMAKE_ROOT}/Modules/FindZLIB.cmake)
 
