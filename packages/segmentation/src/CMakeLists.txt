@@ -23,6 +23,12 @@ SET(SEGMENTATION_INCLUDES
 ../include/GCoptimization.h
 ../include/LinkedBlockList.h
 ../include/instances.inc
+crf/src/crf_block.h
+crf/src/crf_energy.h
+crf/src/crf_GCoptimization.h
+crf/src/crf_graph.h
+crf/src/crf_LinkedBlockList.h
+crf/crf.h
 ../include/irtkGraphCutSegmentation_4D.h
 ../include/irtkImageGraphCut.h
 ../include/irtkSegmentationFunction.h
@@ -52,6 +58,11 @@ irtkSubcorticalSegmentation_4D.cc
 graph.cpp
 GCoptimization.cpp
 LinkedBlockList.cpp
+crf/crf.cc
+crf/src/crf_graph.cpp
+crf/src/crf_GCoptimization.cpp
+crf/src/crf_LinkedBlockList.cpp
+crf/src/crf_maxflow.cpp
 irtkGraphCutSegmentation_4D.cc
 irtkImageGraphCut.cc
 irtkMultiImageGraphCut.cc

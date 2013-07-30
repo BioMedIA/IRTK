@@ -68,10 +68,6 @@ void usage()
 
 int main(int argc, char **argv)
 {
-
-    // turn off the synchronization of iostream objects and cstdio streams
-    // for increased speed
-    std::ios_base::sync_with_stdio(false);
   
   //utility variables
   int i, ok;
@@ -508,10 +504,7 @@ int main(int argc, char **argv)
       cerr.rdbuf (strm_buffer_e);
   }
   
-  //Volumetric registrations are stack-to-template while slice-to-volume 
-  //registrations are actually performed as volume-to-slice (reasons: technicalities of implementation)
-  //Need to invert stack transformations now.  
-  reconstruction.InvertStackTransformations(stack_transformations);
+
   average = reconstruction.CreateAverage(stacks,stack_transformations);
   if (debug)
     average.Write("average1.nii.gz");
@@ -536,7 +529,6 @@ int main(int argc, char **argv)
   }
   
   //Repeat volumetric registrations with cropped stacks
-  reconstruction.InvertStackTransformations(stack_transformations);
   //redirect output to files
   if ( ! no_log ) {
       cerr.rdbuf(file_e.rdbuf());
@@ -551,7 +543,6 @@ int main(int argc, char **argv)
       cout.rdbuf (strm_buffer);
       cerr.rdbuf (strm_buffer_e);
   }
-  reconstruction.InvertStackTransformations(stack_transformations);
   
   //Rescale intensities of the stacks to have the same average
   if (intensity_matching)
@@ -679,7 +670,10 @@ int main(int argc, char **argv)
     
     //Initialize reconstructed image with Gaussian weighted reconstruction
     reconstruction.GaussianReconstruction();
-    
+
+    //Simulate slices (needs to be done after Gaussian reconstruction)
+    reconstruction.SimulateSlices();
+        
     //Initialize robust statistics parameters
     reconstruction.InitializeRobustStatistics();
     
@@ -713,6 +707,11 @@ int main(int argc, char **argv)
       reconstruction.Superresolution(i+1);
       if((sigma>0)&&(!global_bias_correction))
         reconstruction.NormaliseBias(i);
+
+      // Simulate slices (needs to be done
+      // after the update of the reconstructed volume)
+      reconstruction.SimulateSlices();
+            
       reconstruction.MStep(i+1);
       
       //E-step

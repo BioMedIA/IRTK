@@ -40,12 +40,14 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(patchmatchSegmentation patchmatchSegmentation.cc)
     ADD_EXECUTABLE(seg_uncertainty seg_uncertainty.cc)
     ADD_EXECUTABLE(reconstruction reconstruction.cc)
+    ADD_EXECUTABLE(reconstructionMasking reconstructionMasking.cc)
     ADD_EXECUTABLE(reconstructionb0 reconstructionb0.cc)
     ADD_EXECUTABLE(emSeg2ndOrderMRF emSeg2ndOrderMRF.cc)
 
   ENDIF (BUILD_MPI_EXE)
 
 INSTALL_TARGETS(/bin emSeg2ndOrderMRF atrophy_graphcut4D biasfield biascorrect createsamples detect ems emsbc emsmc graphcut multiimage_graphcut patchBasedSegmentation patchBasedSegmentation_native patchmatch patchmatchSegmentation seg_uncertainty)
+INSTALL_TARGETS(/bin reconstruction reconstructionMasking reconstructionb0)
 
 ENDIF (BUILD_CONDOR_EXE)
 
