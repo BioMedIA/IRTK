@@ -131,6 +131,7 @@ irtkTransformation *irtkTransformation::New(char *name)
     transformation->Read(name);
     return transformation;
   case IRTKTRANSFORMATION_BSPLINE_FFD:
+  case IRTKTRANSFORMATION_BSPLINE_FFD_EXT1:
     transformation = new irtkBSplineFreeFormTransformation;
     transformation->Read(name);
     return transformation;
@@ -157,6 +158,18 @@ irtkTransformation *irtkTransformation::New(char *name)
     return transformation;
   case IRTKTRANSFORMATION_PERIODIC:
 	transformation = new irtkBSplineFreeFormTransformationPeriodic;
+	transformation->Read(name);
+	return transformation;
+  case IRTKTRANSFORMATION_HOMO_TEMPORAL:
+	transformation = new irtkTemporalHomogeneousTransformation;
+	transformation->Read(name);
+	return transformation;
+  case IRTKTRANSFORMATION_RIGID_TEMPORAL:
+	transformation = new irtkTemporalRigidTransformation;
+	transformation->Read(name);
+	return transformation;
+  case IRTKTRANSFORMATION_AFFINE_TEMPORAL:
+	transformation = new irtkTemporalAffineTransformation;
 	transformation->Read(name);
 	return transformation;
 #ifdef HAS_SUBDIVISION

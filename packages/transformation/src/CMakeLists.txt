@@ -20,6 +20,10 @@ SET(TRANSFORMATION_INCLUDES
 ../include/irtkQuaternionTransformation.h
 ../include/irtkRigidTransformation.h
 ../include/irtkTransformation.h
+../include/irtkImageAffineRigidTransformation.h
+../include/irtkTemporalHomogeneousTransformation.h
+../include/irtkTemporalRigidTransformation.h
+../include/irtkTemporalAffineTransformation.h
 ../include/newt2.h
 )
 
@@ -44,6 +48,10 @@ irtkMultiLevelFreeFormTransformation.cc
 irtkQuaternionTransformation.cc
 irtkRigidTransformation.cc
 irtkTransformation.cc
+irtkImageAffineRigidTransformation.cc
+irtkTemporalHomogeneousTransformation.cc
+irtkTemporalRigidTransformation.cc
+irtkTemporalAffineTransformation.cc
 newt2.cc
 )
 

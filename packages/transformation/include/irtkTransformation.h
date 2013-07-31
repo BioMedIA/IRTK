@@ -38,6 +38,9 @@ typedef enum { _Active, _Passive, _Unknown } _Status;
 #define IRTKTRANSFORMATION_LINEAR_FFD_EXT1  13
 #define IRTKTRANSFORMATION_BSPLINE_FFD_4D   14
 #define IRTKTRANSFORMATION_PERIODIC         20
+#define IRTKTRANSFORMATION_HOMO_TEMPORAL    30
+#define IRTKTRANSFORMATION_RIGID_TEMPORAL   31
+#define IRTKTRANSFORMATION_AFFINE_TEMPORAL  32
 
 #define FFDLOOKUPTABLESIZE 1000
 
@@ -363,6 +366,11 @@ inline ostream& irtkTransformation::Export(ostream &)
 #include <irtkImageTransformation.h>
 #include <irtkImageTransformation2.h>
 #include <irtkImageHomogeneousTransformation.h>
+
+// Temporal homogeneous transformation classes
+#include <irtkTemporalHomogeneousTransformation.h>
+#include <irtkTemporalRigidTransformation.h>
+#include <irtkTemporalAffineTransformation.h>
 
 // Typedefs for backwards compatibility
 typedef class irtkBSplineFreeFormTransformation3D irtkBSplineFreeFormTransformation;
