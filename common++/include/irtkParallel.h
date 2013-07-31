@@ -135,6 +135,8 @@ using namespace tbb;
   void parallel_reduce(const Range &range, Body &body) {
     body(range);
   }
+
+  struct split {};
 #endif
 
 /// Preprocessor flag to over all remove timing code from binary must be
