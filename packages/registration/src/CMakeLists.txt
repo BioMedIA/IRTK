@@ -54,6 +54,7 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkPointFreeFormRegistration.h
 ../include/irtkPointRegistration.h
 ../include/irtkPointRigidRegistration.h
+../include/irtkWeightedPointRigidRegistration.h
 ../include/irtkRegistration.h
 ../include/irtkSimilarityMetric.h
 ../include/irtkSSDSimilarityMetric.h
@@ -65,7 +66,8 @@ SET(REGISTRATION_INCLUDES
 ../include/irtkSymmetricImageRegistration.h
 ../include/irtkSymmetricImageFreeFormRegistration.h
 ../include/irtkUtil.h
-../include/vtkKDTreePointLocator.h)
+../include/vtkKDTreePointLocator.h
+)
 
 SET(REGISTRATION_SRCS 
 irtkConjugateGradientDescentOptimizer.cc
@@ -113,6 +115,7 @@ irtkPointAffineRegistration.cc
 irtkPointFreeFormRegistration.cc
 irtkPointRegistration.cc
 irtkPointRigidRegistration.cc
+irtkWeightedPointRigidRegistration.cc
 irtkSteepestGradientDescentOptimizer.cc
 irtkSurfaceAffineRegistration.cc
 irtkSurfaceFreeFormRegistration.cc
@@ -121,7 +124,8 @@ irtkSurfaceRigidRegistration.cc
 irtkSymmetricImageRegistration.cc
 irtkSymmetricImageFreeFormRegistration.cc
 irtkUtil.cc
-vtkKDTreePointLocator.cxx)
+vtkKDTreePointLocator.cxx
+)
 
 ADD_LIBRARY(registration++ ${REGISTRATION_INCLUDES} ${REGISTRATION_SRCS})
 
