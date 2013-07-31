@@ -811,12 +811,30 @@ void irtkMatrix::SVD(irtkMatrix &u, irtkVector &w, irtkMatrix &v)
 {
   int i;
 
-  this->Eigenvalues(u, w, v);
+  double **NR_u, **NR_v, *NR_w;
 
-  // eigenvalues are not in square root
-  for (i = 0; i < _rows; i++) {
-    w(i) = sqrt(w(i));
-  }
+  NR_w = dvector(1, _cols);
+  NR_u = dmatrix(1, _rows, 1, _cols);
+  NR_v = dmatrix(1, _cols, 1, _cols);
+
+  // Convert matrix to NR
+  this->Matrix2NR(NR_u);
+
+  // SVD
+  svdcmp(NR_u, _rows, _cols, NR_w, NR_v);
+
+  // Convert matrix to NR
+  u = irtkMatrix(_rows, _cols);
+  u.NR2Matrix(NR_u);
+  v = irtkMatrix(_cols, _cols);
+  v.NR2Matrix(NR_v);
+  w = irtkVector(_cols);
+  w.NR2Vector(NR_w);
+
+  // Free memory
+  free_dvector(NR_w, 1, _cols);
+  free_dmatrix(NR_u, 1, _rows, 1, _cols);
+  free_dmatrix(NR_v, 1, _cols, 1, _cols);
 }
 
 void irtkMatrix::LeastSquaresFit(const irtkVector &y, irtkVector &x)
