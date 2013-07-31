@@ -143,6 +143,9 @@ public:
   /// Subdivide FFD in 4D
   virtual void Subdivide4D();
 
+  /// Subdivide FFD in time
+  virtual void SubdivideT();
+
   /// Calculates the FFD (for a point in FFD coordinates) with checks
   virtual void FFD1(double &, double &, double &, double) const;
 
@@ -181,6 +184,9 @@ public:
 
   /// Calculate the Jacobian of the global transformation
   virtual void GlobalJacobian(irtkMatrix &, double, double, double, double = 0);
+
+  /// Calculate the Jacobian of the local transformation
+  virtual void JacobianDetDerivative(irtkMatrix *, int, int, int);
 
   /// Calculate total bending energy
   virtual double Bending();

@@ -840,6 +840,84 @@ void irtkBSplineFreeFormTransformationPeriodic::LocalJacobian(irtkMatrix &jac, d
     jac(2, 2) += 1;
 }
 
+void irtkBSplineFreeFormTransformationPeriodic::JacobianDetDerivative(irtkMatrix *detdev, int x, int y, int z)
+{
+  int i;
+  double x_b,y_b,z_b,x_f,y_f,z_f,b_i,b_j,b_k;
+
+  switch(x) {
+  case -1:
+    x_b=(1.0/6.0);
+    x_f=(0.5);
+    break;
+  case 0:
+    x_b=(2.0/3.0);
+    x_f=(0.0);
+    break;
+  case 1:
+    x_b=(1.0/6.0);
+    x_f=(-0.5);
+    break;
+  default:
+    x_b=0.0;
+    x_f=0.0;
+    break;
+  }
+
+  switch(y) {
+  case -1:
+    y_b=(1.0/6.0);
+    y_f=(0.5);
+    break;
+  case 0:
+    y_b=(2.0/3.0);
+    y_f=(0.0);
+    break;
+  case 1:
+    y_b=(1.0/6.0);
+    y_f=(-0.5);
+    break;
+  default:
+    y_b=0.0;
+    y_f=0.0;
+    break;
+  }
+
+  switch(z) {
+  case -1:
+    z_b=(1.0/6.0);
+    z_f=(0.5);
+    break;
+  case 0:
+    z_b=(2.0/3.0);
+    z_f=(0.0);
+    break;
+  case 1:
+    z_b=(1.0/6.0);
+    z_f=(-0.5);
+    break;
+  default:
+    z_b=0.0;
+    z_f=0.0;
+    break;
+  }
+
+  for(i = 0; i < 3; i++) {
+    detdev[i].Initialize(3,3);
+  }
+
+  b_i = x_f*y_b*z_b;
+  b_j = x_b*y_f*z_b;
+  b_k = x_b*y_b*z_f;
+
+  for(i = 0; i < 3; i++) {
+    // with respect to ui
+    detdev[i](i,0) = b_i; detdev[i](i,1) = b_j; detdev[i](i,2) = b_k;
+    detdev[i] = detdev[i] * _matW2L(0, 0, 3, 3);
+  }
+
+}
+
 double irtkBSplineFreeFormTransformationPeriodic::Bending(double, double, double, double)
 {
     cerr << "irtkBSplineFreeFormTransformationPeriodic::Bending: Not implemented yet" << endl;
@@ -1573,6 +1651,88 @@ void irtkBSplineFreeFormTransformationPeriodic::Subdivide4D()
     _dy /= 2.0;
     _dz /= 2.0;
     _dt /= 2.0;
+
+    // Update transformation matrix
+    this->UpdateMatrix();
+
+    // Initialize memory for control point status
+    _status = new _Status[3*_x*_y*_z*_t];
+    for (i = 0; i < 3*_x*_y*_z*_t; i++) {
+        _status[i] = _Active;
+    }
+}
+
+void irtkBSplineFreeFormTransformationPeriodic::SubdivideT()
+{
+    int i, j, k, l, l1, l2, lp;
+
+    // Weights for subdivision
+    double w[2][3];
+    w[1][0] = 0;
+    w[1][1] = 1.0/2.0;
+    w[1][2] = 1.0/2.0;
+    w[0][0] = 1.0/8.0;
+    w[0][1] = 6.0/8.0;
+    w[0][2] = 1.0/8.0;
+
+    // Allocate memory for new control points
+    double ****x = NULL;
+    double ****y = NULL;
+    double ****z = NULL;
+    x = this->Allocate(x, _x, _y, _z, 2*_t-1);
+    y = this->Allocate(y, _x, _y, _z, 2*_t-1);
+    z = this->Allocate(z, _x, _y, _z, 2*_t-1);
+
+    for (i = 0; i < _x; i++) {
+        for (j = 0; j < _y; j++) {
+            for (k = 0; k < _z; k++) {
+                for (l = 0; l < _t; l++) {
+                	for (l1 = 0; l1 < 2; l1++) {
+						x[2*l+l1][k][j][i] = 0;
+						y[2*l+l1][k][j][i] = 0;
+						z[2*l+l1][k][j][i] = 0;
+						for (l2 = 0; l2 < 3; l2++) {
+                            // periodic model (time)
+                            lp = l+l2-1;
+                            if (_periodic) {
+                                if (lp < 0)
+                                    lp += _t-1;
+                                if (lp >= _t-1)
+                                    lp -= _t-1;
+                            }
+
+							x[2*l+l1][k][j][i] += w[l1][l2] * _xdata[lp][k][j][i];
+							y[2*l+l1][k][j][i] += w[l1][l2] * _ydata[lp][k][j][i];
+							z[2*l+l1][k][j][i] += w[l1][l2] * _zdata[lp][k][j][i];
+						}
+                    }
+                }
+            }
+        }
+    }
+
+    // Deallocate points
+    this->Deallocate(_xdata, _x, _y, _z, _t);
+    this->Deallocate(_ydata, _x, _y, _z, _t);
+    this->Deallocate(_zdata, _x, _y, _z, _t);
+    delete []_status;
+
+    // Update pointers to control points
+    _xdata = x;
+    _ydata = y;
+    _zdata = z;
+
+    // Increase number of control points
+    _x = _x;
+    _y = _y;
+    _z = _z;
+    _t = 2*_t - 1;
+
+    // Recalculate control point spacing
+    _dx  = _dx;
+    _dy  = _dy;
+    _dz  = _dz;
+    _dt /= 2;
 
     // Update transformation matrix
     this->UpdateMatrix();
