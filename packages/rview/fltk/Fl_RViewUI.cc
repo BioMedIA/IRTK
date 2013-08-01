@@ -582,7 +582,7 @@ void Fl_RViewUI::InitializeMainWindow()
     o->end();
   }
   {
-    Fl_Value_Slider* o = zoom = new Fl_Value_Slider(80, 61, 280, 20);
+    Fl_Value_Slider* o = zoom = new Fl_Value_Slider(40, 61, 280, 20);
     o->type(5);
     o->box(FL_EMBOSSED_BOX);
     o->maximum(10);
@@ -592,7 +592,7 @@ void Fl_RViewUI::InitializeMainWindow()
     o->when(FL_WHEN_RELEASE);
   }
   {
-	Fl_Value_Slider* o = lineThickness = new Fl_Value_Slider(460, 61, 100, 20, "line width: ");
+	Fl_Value_Slider* o = lineThickness = new Fl_Value_Slider(378, 61, 80, 20, "width: ");
     o->type(5);
     o->box(FL_EMBOSSED_BOX);
 	o->align(FL_ALIGN_LEFT);
@@ -602,6 +602,17 @@ void Fl_RViewUI::InitializeMainWindow()
     o->callback((Fl_Callback*)cb_lineThickness);
 	o->when(FL_WHEN_RELEASE);
   }
+  {
+	Fl_Value_Slider* o = speed = new Fl_Value_Slider(520, 61, 100, 20, "speed: ");
+    o->type(5);
+    o->box(FL_EMBOSSED_BOX);
+	o->align(FL_ALIGN_LEFT);
+	o->range(-10,10);
+    o->step(0.5);
+    o->value(1);
+    o->callback((Fl_Callback*)cb_speed);
+	o->when(FL_WHEN_RELEASE);
+  }  
   {
     Fl_Roller *o = sliceX = new Fl_Roller(230, 700, 200, 20);
     o->step(1);

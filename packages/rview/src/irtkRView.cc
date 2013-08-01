@@ -87,6 +87,9 @@ irtkRView::irtkRView(int x, int y)
   // Default: Line Thickness
   _LineThickness = 2;
 
+  // Default: Speed
+  _Speed = 1;
+
   // Default: No ROI
   _DisplayROI = false;
 

@@ -49,6 +49,9 @@ Fl_Value_Slider *sourceFrame;
 /// Widget for source image frame
 Fl_Value_Slider *lineThickness;
 
+/// Widget for movie speed
+Fl_Value_Slider *speed;
+
 /// Widget for target interpolation
 Fl_Choice *targetInterpolationMode;
 
@@ -124,6 +127,7 @@ static void cb_sourceMinMax(Fl_Value_Slider*, void*);
 static void cb_targetFrame(Fl_Value_Slider*, void*);
 static void cb_sourceFrame(Fl_Value_Slider*, void*);
 static void cb_lineThickness(Fl_Value_Slider*, void*);
+static void cb_speed(Fl_Value_Slider*, void*);
 static void cb_TargetIsolines(Fl_Check_Button*, void*);
 static void cb_SourceIsolines(Fl_Check_Button*, void*);
 static void cb_flipCoordinates(Fl_Check_Button*, void*);

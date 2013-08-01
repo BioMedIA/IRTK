@@ -153,26 +153,30 @@ void Fl_RViewUI::cb_saveSource(Fl_Button *, void *)
 
 void Fl_RViewUI::cb_movieStart(Fl_Button *, void *)
 {
-  if (!Fl::has_idle(cb_playback)) Fl::add_idle(cb_playback);
+    Fl::add_timeout(rview->GetTarget()->GetTSize() / rview->GetSpeed(), cb_playback);
 }
 
 void Fl_RViewUI::cb_movieStop(Fl_Button *, void *)
 {
-  if (Fl::has_idle(cb_playback)) Fl::remove_idle(cb_playback);
+    Fl::remove_timeout(cb_playback);  	
 }
 
 void Fl_RViewUI::cb_playback(void *)
 {
-  int t;
-
-  t = rview->GetTargetFrame()+1;
+  //http://seriss.com/people/erco/fltk/#AnimateDrawing
+  // http://www.fltk.org/doc-1.3/classFl.html#ae5373d1d50c2b0ba38280d78bb6d2628
+  int t = rview->GetTargetFrame()+1;
+    
   if (t < 0) t = rview->GetTarget()->GetT()-1;
   if (t >= rview->GetTarget()->GetT()) t = 0;
-  rview->SetTargetFrame(round(t));
-  rview->SetSourceFrame(round(t));
+  
+  rview->SetTargetFrame(t);
+  rview->SetSourceFrame(t);
   rview->Update();
   viewer->redraw();
   rviewUI->update();
+  
+  Fl::repeat_timeout(rview->GetTarget()->GetTSize() / rview->GetSpeed(), cb_playback);
 }
 
 void Fl_RViewUI::cb_savePlayback(Fl_Button *, void *)
@@ -240,6 +244,13 @@ void Fl_RViewUI::cb_TargetIsolines(Fl_Check_Button* o, void*)
 void Fl_RViewUI::cb_lineThickness(Fl_Value_Slider* o, void*)
 {
   rview->SetLineThickness(o->value());
+  rview->Update();
+  viewer->redraw();
+}
+
+void Fl_RViewUI::cb_speed(Fl_Value_Slider* o, void*)
+{
+  rview->SetSpeed(o->value());
   rview->Update();
   viewer->redraw();
 }
