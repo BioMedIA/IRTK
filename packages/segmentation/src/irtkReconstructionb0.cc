@@ -366,7 +366,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   vector<irtkRealImage> simulated;
   vector<irtkRealImage> stacks2;
   
-  uint ind;
+  int ind;
   int i,j,k;
   char buffer[256];
   irtkRealImage image;
@@ -421,7 +421,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
     
     irtkRealImage st(templateStack),sim(templateStack);
     //resample all on the same grid
-    for(uint ind=0; ind<stacknum.size(); ind++)
+    for(int ind=0; ind<stacknum.size(); ind++)
     {
       imagetransformation->SetInput(&stacks[stacknum[ind]], &id);
       imagetransformation->SetOutput(&st);
@@ -483,7 +483,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
     
      imagetransformation->PutInterpolator(interpolatorLin);
     
-    for(uint ind=0; ind<stacknum.size(); ind++)
+    for(int ind=0; ind<stacknum.size(); ind++)
     {
       //sprintf(buffer,"s1-%i.nii.gz",stacknum[ind]);
       //stacks[stacknum[ind]].Write(buffer);
@@ -518,7 +518,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
   vector<irtkRealImage> simulated;
   vector<irtkRealImage> stacks2;
   
-  uint ind;
+  int ind;
   int i,j,k;
   char buffer[256];
   irtkRealImage image;
@@ -560,7 +560,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
     
   irtkRealImage st(templateStack),sim(templateStack);
   //resample all on the same grid
-  for(uint ind=0; ind<stacks.size(); ind++)
+  for(int ind=0; ind<stacks.size(); ind++)
   {
     imagetransformation->SetInput(&stacks[ind], &id);
     imagetransformation->SetOutput(&st);
@@ -603,7 +603,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
     
   //Corect the stacks
   imagetransformation->PutInterpolator(interpolatorLin); 
-  for(uint ind=0; ind<stacks.size(); ind++)
+  for(int ind=0; ind<stacks.size(); ind++)
   {
     cout<<"Correcting stack "<<ind<<endl;
     imagetransformation->SetInput(&stacks2[ind], &dist);
@@ -694,7 +694,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
   irtkRigidTransformation id;
   irtkRealImage st(templateStack);
   //resample all on the same grid
-  for(uint ind=0; ind<stacks.size(); ind++)
+  for(int ind=0; ind<stacks.size(); ind++)
   {
     imagetransformation->SetInput(&stacks[ind], &id);
     imagetransformation->SetOutput(&st);
@@ -719,7 +719,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
 void irtkReconstructionb0::CreateSimulated(vector<irtkRealImage> &stacks)
 {
   _simulated.clear();
-  for (uint i=0;i<stacks.size();i++)
+  for (int i=0;i<stacks.size();i++)
   {
     _simulated.push_back(stacks[i]);
     _simulated[i]=0;
@@ -730,7 +730,7 @@ void irtkReconstructionb0::CreateSimulated(vector<irtkRealImage> &stacks)
 void irtkReconstructionb0::WriteSimulated()
 {
   char buffer[256];
-  for(uint i=0;i<_simulated.size();i++)
+  for(int i=0;i<_simulated.size();i++)
   {
     sprintf(buffer,"simulated%i.nii.gz",i);
     _simulated[i].Write(buffer);
