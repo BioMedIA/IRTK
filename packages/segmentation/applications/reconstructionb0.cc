@@ -419,11 +419,11 @@ int main(int argc, char **argv)
        cout.flush();
        
        bool group_exists;
-      for (uint i=0;i<stack_group.size();i++)
+      for (int i=0;i<stack_group.size();i++)
       {
         //check whether we already have this group
         group_exists=false;
-        for (uint j=0;j<groups.size();j++)
+        for (int j=0;j<groups.size();j++)
 	  if(stack_group[i]==groups[j])
 	    group_exists=true;
         if (!group_exists)
@@ -432,7 +432,7 @@ int main(int argc, char **argv)
       //sort the group numbers
       sort(groups.begin(),groups.end());
       cout<<"We have "<<groups.size()<<" groups:";
-      for (uint j=0;j<groups.size();j++) cout<<" "<<groups[j];
+      for (int j=0;j<groups.size();j++) cout<<" "<<groups[j];
       cout<<endl;
     
       ok = true;
