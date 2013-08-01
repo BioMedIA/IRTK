@@ -28,8 +28,8 @@ void irtkImageToFilePNG::Initialize()
   // Initialize base class
   this->irtkImageToFile::Initialize();
 
-  if (this->_input->GetZ() != 3) {
-    cerr << this->NameOfClass() << " supports only images with (z = 3, e.g. R-G-B)" << endl;
+  if ( (this->_input->GetZ() != 1) && (this->_input->GetZ() != 3)) {
+    cerr << this->NameOfClass() << " supports only images with z = 1 (grey) or z = 3 (RGB)" << endl;
     exit(1);
   }
   
@@ -75,31 +75,56 @@ void irtkImageToFilePNG::Run()
   png_init_io(png_ptr, fp);
 
   // Initialize header
-  png_set_IHDR(png_ptr, info_ptr, _input->GetX(), _input->GetY(),
-               8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-               PNG_COMPRESSION_TYPE_DEFAULT,
-               PNG_FILTER_TYPE_DEFAULT);
+  if (_input->GetZ() == 1) {
+      png_set_IHDR(png_ptr, info_ptr, _input->GetX(), _input->GetY(),
+                   8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+                   PNG_COMPRESSION_TYPE_DEFAULT,
+                   PNG_FILTER_TYPE_DEFAULT); 
+  }
+  else { // Z == 3
+      png_set_IHDR(png_ptr, info_ptr, _input->GetX(), _input->GetY(),
+                   8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                   PNG_COMPRESSION_TYPE_DEFAULT,
+                   PNG_FILTER_TYPE_DEFAULT);
+  }
 
   // Write header
   png_write_info(png_ptr, info_ptr);
 
   // Copy image
-  png_byte *data = new png_byte  [3*_input->GetX()*_input->GetY()];
+  png_byte *data;
   png_byte **ptr = new png_byte *[  _input->GetY()];
-  png_byte *ptr2data = data;
+  png_byte *ptr2data;
 
   image = dynamic_cast<irtkGenericImage<unsigned char> *>(_input);
-  for (y = 0; y < image->GetY(); y++) {
-    for (x = 0; x < image->GetX(); x++) {
-      *ptr2data = image->Get(x, y, 0, 0);
-      ptr2data++;
-      *ptr2data = image->Get(x, y, 1, 0);
-      ptr2data++;
-      *ptr2data = image->Get(x, y, 2, 0);
-      ptr2data++;
-    }
-    ptr[_input->GetY() - y - 1] = &(data[_input->GetX()*y*3]);
+  if (_input->GetZ() == 1) {
+      data = new png_byte  [_input->GetX()*_input->GetY()];
+      ptr2data = data;
+      for (y = 0; y < image->GetY(); y++) {
+          for (x = 0; x < image->GetX(); x++) {
+              *ptr2data = image->Get(x, y, 0, 0);
+              ptr2data++;
+          }
+          ptr[y] = &(data[_input->GetX()*y]);
+      }       
   }
+  else { // Z == 3
+      data = new png_byte  [3*_input->GetX()*_input->GetY()];
+      ptr2data = data;
+      
+      for (y = 0; y < image->GetY(); y++) {
+          for (x = 0; x < image->GetX(); x++) {
+              *ptr2data = image->Get(x, y, 0, 0);
+              ptr2data++;
+              *ptr2data = image->Get(x, y, 1, 0);
+              ptr2data++;
+              *ptr2data = image->Get(x, y, 2, 0);
+              ptr2data++;
+          }
+          ptr[y] = &(data[_input->GetX()*y*3]);
+      }
+  }
+   
   png_write_image(png_ptr, ptr);
   png_write_end(png_ptr, info_ptr);
 
