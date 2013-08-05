@@ -252,6 +252,12 @@ class irtkReconstruction : public irtkObject
                                 double averageValue,
                                 bool together=false);
  
+    ///Match stack intensities with masking
+    void MatchStackIntensitiesWithMasking (vector<irtkRealImage>& stacks,
+                                vector<irtkRigidTransformation>& stack_transformations,
+                                double averageValue,
+                                bool together=false);
+ 
     ///Mask all slices
     void MaskSlices();
   

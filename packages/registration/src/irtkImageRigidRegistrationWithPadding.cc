@@ -133,20 +133,20 @@ void irtkImageRigidRegistrationWithPadding::GuessParameterThickSlices()
     size = ysize;
   else
     size = xsize;
-  if (zsize<size)
-    size = zsize;  
+  //if (zsize<size)
+    //size = zsize;  
 
   // Default target parameters
   _TargetBlurring[0]      = size / 2.0;
   _TargetResolution[0][0] = size;
   _TargetResolution[0][1] = size;
-  _TargetResolution[0][2] = size;
+  _TargetResolution[0][2] = zsize;
 
   for (i = 1; i < _NumberOfLevels; i++) {
     _TargetBlurring[i]      = _TargetBlurring[i-1] * 2;
     _TargetResolution[i][0] = _TargetResolution[i-1][0] * 2;
     _TargetResolution[i][1] = _TargetResolution[i-1][1] * 2;
-    _TargetResolution[i][2] = _TargetResolution[i-1][2] * 2;
+    _TargetResolution[i][2] = _TargetResolution[i-1][2]; //* 2;
   }
 
   // Read source pixel size
@@ -156,20 +156,20 @@ void irtkImageRigidRegistrationWithPadding::GuessParameterThickSlices()
     size = ysize;
   else
     size = xsize;
-  if (zsize<size)
-    size = zsize;
+  //if (zsize<size)
+    //size = zsize;
 
   // Default source parameters
   _SourceBlurring[0]      = size / 2.0;
   _SourceResolution[0][0] = size;
   _SourceResolution[0][1] = size;
-  _SourceResolution[0][2] = size;
+  _SourceResolution[0][2] = zsize;
 
   for (i = 1; i < _NumberOfLevels; i++) {
     _SourceBlurring[i]      = _SourceBlurring[i-1] * 2;
     _SourceResolution[i][0] = _SourceResolution[i-1][0] * 2;
     _SourceResolution[i][1] = _SourceResolution[i-1][1] * 2;
-    _SourceResolution[i][2] = _SourceResolution[i-1][2] * 2;
+    _SourceResolution[i][2] = _SourceResolution[i-1][2]; //* 2;
   }
 
   // Remaining parameters

@@ -546,9 +546,9 @@ int main(int argc, char **argv)
   
   //Rescale intensities of the stacks to have the same average
   if (intensity_matching)
-    reconstruction.MatchStackIntensities(stacks,stack_transformations,averageValue);
+    reconstruction.MatchStackIntensitiesWithMasking(stacks,stack_transformations,averageValue);
   else
-    reconstruction.MatchStackIntensities(stacks,stack_transformations,averageValue,true);
+    reconstruction.MatchStackIntensitiesWithMasking(stacks,stack_transformations,averageValue,true);
   average = reconstruction.CreateAverage(stacks,stack_transformations);
   if (debug)
     average.Write("average2.nii.gz");
@@ -559,7 +559,7 @@ int main(int argc, char **argv)
   
   //Mask all the slices
   reconstruction.MaskSlices();
-   
+  
   //Set sigma for the bias field smoothing
   if (sigma>0)
     reconstruction.SetSigma(sigma);
