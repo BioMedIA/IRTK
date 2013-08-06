@@ -14,6 +14,8 @@
 
 #define _IRTKCIFSTREAM_H
 
+#include "irtkException.h"
+
 /**
  * Class for reading compressed file streams.
  *
@@ -109,8 +111,12 @@ inline void irtkCifstream::Open(const char *filename)
 
   // Check whether file was opened successful
   if (_file == NULL) {
-    cerr << "cifstream::Open: Can't open file " << filename << endl;
-    exit(1);
+      stringstream msg;
+      msg << "cifstream::Open: Can't open file " << filename << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
 #ifdef ENABLE_UNIX_COMPRESS

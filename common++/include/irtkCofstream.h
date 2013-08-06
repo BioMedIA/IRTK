@@ -22,6 +22,8 @@
  * supported.
  */
 
+#include "irtkException.h"
+
 class irtkCofstream : public irtkObject
 {
 
@@ -123,8 +125,12 @@ inline void irtkCofstream::Open(const char *filename)
 
     // Check whether file was opened successful
     if (_uncompressedFile == NULL) {
-      cerr << "cofstream::Open: Can't open file " << filename << endl;
-      exit(1);
+        stringstream msg;
+        msg << "cofstream::Open: Can't open file " << filename << endl;
+        cerr << msg.str();
+        throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
     }
   } else {
 #ifdef HAS_ZLIB
@@ -133,12 +139,20 @@ inline void irtkCofstream::Open(const char *filename)
 
     // Check whether file was opened successful
     if (_compressedFile == NULL) {
-      cerr << "cofstream::Open: Can't open file " << filename << endl;
-      exit(1);
+        stringstream msg;
+        msg << "cofstream::Open: Can't open file " << filename << endl;
+        cerr << msg.str();
+        throw irtkException( msg.str(),
+                             __FILE__,
+                             __LINE__ );
     }
 #else
-    cerr << "cofstream::Open: Can't write compressed file without zlib" << endl;
-    exit(1);
+    stringstream msg;
+    msg << "cofstream::Open: Can't write compressed file without zlib" << endl;
+    cerr << msg.str();
+    throw irtkException( msg.str(),
+                         __FILE__,
+                         __LINE__ );
 #endif
   }
 }

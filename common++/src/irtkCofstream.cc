@@ -40,8 +40,12 @@ void irtkCofstream::Write(char *data, long offset, long length)
 #ifdef HAS_ZLIB
     if (offset != -1) {
       if (gztell(_compressedFile) > offset) {
-        cerr << "Warning, writing compressed files only supports forward seek" << gztell(_compressedFile) << " " << offset << endl;
-        exit(1);
+          stringstream msg;
+          msg << "Warning, writing compressed files only supports forward seek" << gztell(_compressedFile) << " " << offset << endl;
+          cerr << msg.str();
+          throw irtkException( msg.str(),
+                               __FILE__,
+                               __LINE__ );
       }
       gzseek(_compressedFile, offset, SEEK_SET);
     }
