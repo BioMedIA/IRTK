@@ -13,6 +13,9 @@
 import numpy as np
 cimport numpy as np
 
+from libcpp.vector cimport vector
+from libcpp cimport bool
+
 np.import_array()
 
 ctypedef unsigned char uchar
@@ -58,7 +61,14 @@ cdef extern from "irtk2cython.h":
                        int* dim,
                        double* pts,
                        size_t n )
-    
+    void _orientation( double* pixelSize,
+                       double* xAxis,
+                       double* yAxis,
+                       double* zAxis,
+                       double* origin,
+                       int* dim,
+                       int &i, int &j, int &k)
+
 def get_header( bytes py_string ):
     cdef char* c_string = py_string
 
@@ -88,9 +98,13 @@ def get_header( bytes py_string ):
                                   <double*> origin.data,
                                   <int*> dim.data )
 
+    if dtype < 0:
+        return None, None
+        
     header = dict()
     header['pixelSize'] = pixelSize
-    header['orientation'] = (xAxis, yAxis, zAxis)
+    header['orientation'] = np.array( [xAxis, yAxis, zAxis],
+                                      dtype="float64" )
     header['origin'] = origin
     header['dim'] = dim
 
@@ -181,7 +195,36 @@ def points_to_image( np.ndarray[double, ndim=2,  mode="c"] pts,
                        n )
 
     return img
+
+def orientation( header ):
+    cdef np.ndarray[double, ndim=1,  mode="c"] pixelSize = header['pixelSize']
+    cdef np.ndarray[double, ndim=1,  mode="c"] xAxis = header['orientation'][0]
+    cdef np.ndarray[double, ndim=1,  mode="c"] yAxis = header['orientation'][1]
+    cdef np.ndarray[double, ndim=1,  mode="c"] zAxis = header['orientation'][2]
+    cdef np.ndarray[double, ndim=1,  mode="c"] origin = header['origin']
+    cdef np.ndarray[int, ndim=1,  mode="c"] dim =  header['dim']
+
+    orientation_code = { 1: "L2R", # Left to Right
+                         2: "R2L", # Right to Left         
+                         3: "P2A", # Posterior to Anterior
+                         4: "A2P", # Anterior to Posterior
+                         5: "I2S", # Inferior to Superior
+                         6: "S2I " # Superior to Inferior
+                         }
     
+    cdef int i, j, k
+    _orientation( <double*> pixelSize.data,
+                   <double*> xAxis.data,
+                   <double*> yAxis.data,
+                   <double*> zAxis.data,
+                   <double*> origin.data,
+                   <int*> dim.data,
+                   i, j, k )
+    
+    return ( orientation_code[i],
+             orientation_code[j],
+             orientation_code[k] )
+
 ########## Registration ##########
 
 cdef extern from "registration.h":
@@ -376,13 +419,19 @@ cdef extern from "voxellise.h":
                      int npoints,
                      int* triangles,
                      int ntriangles,
-                     short* img,
+                     uchar* img,
                      double* pixelSize,
                      double* xAxis,
                      double* yAxis,
                      double* zAxis,
                      double* origin,
                      int* dim )
+    void _shrinkDisk( uchar* img,
+                  int shape0,
+                  int shape1,
+                  double* center,
+                  double radius,
+                  int steps )
 
 def voxellise( np.ndarray[double, ndim=2,  mode="c"] points,
                np.ndarray[int, ndim=2,  mode="c"] triangles,
@@ -394,17 +443,17 @@ def voxellise( np.ndarray[double, ndim=2,  mode="c"] points,
     cdef np.ndarray[double, ndim=1,  mode="c"] origin = header['origin']
     cdef np.ndarray[int, ndim=1,  mode="c"] dim =  header['dim']
 
-    cdef np.ndarray[short, ndim=4,  mode="c"] img = np.zeros( (dim[3],
+    cdef np.ndarray[uchar, ndim=4,  mode="c"] img = np.zeros( (dim[3],
                                                                dim[2],
                                                                dim[1],
                                                                dim[0]),
-                                                              dtype='int16' )
+                                                              dtype='uint8' )
 
     _voxellise( <double*> points.data,
                  points.shape[0],
                  <int*> triangles.data,
                  triangles.shape[0],
-                 <short*> img.data,
+                 <uchar*> img.data,
                  <double*> pixelSize.data,
                  <double*> xAxis.data,
                  <double*> yAxis.data,
@@ -413,6 +462,19 @@ def voxellise( np.ndarray[double, ndim=2,  mode="c"] points,
                  <int*> dim.data )
 
     return img
+
+def shrinkDisk( np.ndarray[uchar, ndim=2,  mode="c"] img,
+               np.ndarray[double, ndim=1,  mode="c"] center,
+               double radius,
+                int steps ):
+    _shrinkDisk( <uchar*> img.data,
+                  img.shape[0],
+                  img.shape[1],
+                  <double*> center.data,
+                  radius,
+                  steps )
+    return img
+
 
 ########## Functions on list of images ##########
 
@@ -593,3 +655,43 @@ def drawSphere( np.ndarray[unsigned char, ndim=3,  mode="c"] img,
                   rx, ry, rz )
     print "MAX:", np.max(img)
     return img
+
+#### Points ####
+
+cdef extern from "irtk2cython.h":
+    void _read_points( char *filename,
+                       vector[ vector[double] ] &points )
+    void _write_points( char *filename,
+                        vector[ vector[double] ] &points )
+
+def read_points( bytes py_string ):
+    cdef char* c_string = py_string
+    cdef vector[vector[double]] v
+    _read_points( c_string, v )
+    return v
+
+cdef extern from "registration.h":
+    double _registration_rigid_points( double* source_points,
+                                       double* target_points,
+                                       int n,
+                                       double &tx,
+                                       double &ty,
+                                       double &tz,
+                                       double &rx,
+                                       double &ry,
+                                       double &rz )
+
+def registration_rigid_points( np.ndarray[double, ndim=2,  mode="c"] source,
+                               np.ndarray[double, ndim=2,  mode="c"] target ):
+    cdef double tx
+    cdef double ty
+    cdef double tz
+    cdef double rx
+    cdef double ry
+    cdef double rz
+    cdef double RMS = _registration_rigid_points( <double*> source.data,
+                                                   <double*> target.data,
+                                                   source.shape[0],
+                                                   tx, ty, tz,
+                                                   rx, ry,rz )
+    return ( ( tx, ty, tz, rx, ry, rz ), RMS )

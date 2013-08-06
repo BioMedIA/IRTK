@@ -5,6 +5,10 @@ This is a Python interface to IRTK using Cython.
 You will need the following Python module, which can be automatically installed from PyPI:
 cython
 
+Using pip (preferred solution):
+pip install --upgrade --user cython
+
+Using easy_install:
 mkdir ~/Python
 
 In your .cshrc, add the following line:
@@ -28,8 +32,6 @@ Then:
         cd build
         cmake -D WRAP_CYTHON=ON ..
         make -j 3 VERBOSE=1
-        cd ../wrapping/cython
-        make
 
 Now you need to update your PYTHONPATH:
 get the full path of full_path/irtk/build/lib
@@ -40,42 +42,11 @@ for tcsh, add to your ~/.cshrc
 
 You are now ready to go!
 
-If you do not have OpenCV or VTK installed, the library will still be usable,
-but some functionalities will be missing.
 
+*** Building optional modules: ***
 
-
-*** Advanced installation: ***
-
-If you compiled IRTK with TBB or VTK, you will need to
-create a file local.py in irtk/wrapping/cython
-
-This file should not be checked into SVN as it is installation specific.
-It should contain the following code (update the values to your system):
-
-##########
-
-__all__ = [ "has_vtk","has_tbb",
-            "VTK_libdir","VTK_include_dir",
-            "TBB_libdir", "TBB_include_dir",
-            "extra_link_args" ]
-
-has_vtk = True
-has_tbb = True
-
-VTK_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib/vtk-5.8"
-VTK_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include/vtk-5.8"
-TBB_libdir = "/vol/vipdata/users/kpk09/LOCAL/lib"
-TBB_include_dir = "/vol/vipdata/users/kpk09/LOCAL/include"
-
-# useful for debugging compilation/linking issues
-import sys
-python_version = sys.version[:3]
-extra_link_args = [ "-lpython"+python_version,
-                    "-Wl,-no-undefined" ]
-
-##########
-
+    cd irtk/wrapping/cython/ext
+    make
 
 *** Notes: ***
 

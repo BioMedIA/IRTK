@@ -336,3 +336,69 @@ void _registration_rigid( short* source_img,
     
 }
 
+void py2pointSet( irtkPointSet &irtk_points,
+                  double* data,
+                  int n ) {
+    for (int i = 0; i < n; i++) {
+        irtk_points.Add( irtkPoint( data[3*i],
+                                    data[3*i+1],
+                                    data[3*i+2] ) );
+  }
+}
+
+void pointSet2py( irtkPointSet &irtk_points,
+                  double* data,
+                  int n ) {
+    for (int i = 0; i < n; i++) {
+        irtkPoint point = irtk_points(i);
+        double p[3];
+        data[3*i] = point._x;
+        data[3*i+1] = point._y;
+        data[3*i+2] = point._z;
+  }
+}
+
+double _registration_rigid_points( double* source_points,
+                                   double* target_points,
+                                   int n,
+                                   double &tx,
+                                   double &ty,
+                                   double &tz,
+                                   double &rx,
+                                   double &ry,
+                                   double &rz ) {
+    double error;
+    irtkPointSet target, source;
+
+    py2pointSet( source, source_points, n );
+    py2pointSet( target, target_points, n );
+    
+    // Create registration filter
+    irtkPointRigidRegistration registration;
+
+    // Create transformation
+    irtkRigidTransformation transformation;
+  
+    registration.SetInput( &source, &target );
+    registration.SetOutput( &transformation );
+
+    // Run registration filter
+    registration.Run();
+
+    rigid2py( transformation,
+              tx,ty,tz,
+              rx ,ry, rz );
+    
+    // Calculate residual error
+    transformation.irtkTransformation::Transform( source );
+
+    error = 0;
+    for ( int i = 0; i < target.Size(); i++ ) {
+        irtkPoint p1 = target(i);
+        irtkPoint p2 = source(i);
+        error += sqrt(pow(double(p1._x - p2._x), 2.0) +
+                      pow(double(p1._y - p2._y), 2.0) +
+                      pow(double(p1._z - p2._z), 2.0));
+    }
+    return error/target.Size(); // RMS in mm
+}

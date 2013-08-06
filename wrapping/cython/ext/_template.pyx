@@ -1,4 +1,6 @@
 """
+adapted from the 2D version in http://scikit-image.org/
+
 Template matching using normalized cross-correlation.
 
 We use fast normalized cross-correlation algorithm (see [1]_ and [2]_) to

@@ -103,4 +103,14 @@ void _registration_rigid( short* source_img,
                           double &ry,
                           double &rz );
 
+double _registration_rigid_points( double* source_points,
+                                   double* target_points,
+                                   int n,
+                                   double &tx,
+                                   double &ty,
+                                   double &tz,
+                                   double &rx,
+                                   double &ry,
+                                   double &rz );
+
 #endif

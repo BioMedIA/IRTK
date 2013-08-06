@@ -1,4 +1,5 @@
-__all__ = [ "voxellise" ]
+__all__ = [ "voxellise",
+            "shrinkDisk" ]
 
 import image
 import _irtk
@@ -27,3 +28,19 @@ def voxellise( points, triangles, header=None, pixelSize=[1,1,1,1] ):
     img = _irtk.voxellise( points, triangles, header )
 
     return image.Image( img, header )
+
+
+def shrinkDisk( img,
+                center=None,
+                radius=None,
+                steps=50 ):
+    if center is None:
+        center = np.array([float(img.shape[0])/2,
+                           float(img.shape[1])/2],
+                          dtype='float64')
+    if radius is None:
+        radius = float(img.shape[0])/2
+    img = img.astype('uint8').copy()
+    center = np.array( center, dtype='float64' ).copy()
+    return _irtk.shrinkDisk(img, center, radius, steps )
+    

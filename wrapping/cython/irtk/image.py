@@ -20,6 +20,7 @@ ipython qtconsole --pylab=inline
 __all__ = [ "Image",
             "imread",
             "imwrite",
+            "imshow",
             "zeros",
             "ones",
             "rview",
@@ -27,7 +28,8 @@ __all__ = [ "Image",
             "new_header",
             "PointsToImage",
             "drawSphere",
-            "sphere" ]
+            "sphere",
+            "fix_orientation" ]
 
 import numpy as np
 import pprint
@@ -40,38 +42,20 @@ import _irtk
 import registration
 import utils
 
-# A temporary directory is created when the module is imported
-# and is deleted when the module is exited.
-# This is the directory used to save NIFTI files for rview, display and show
+import IPython.core.display
+
 import tempfile
-import shutil
 import os
-tmp_dir_location = "/tmp/irtk.Image/"
-if not os.path.exists( tmp_dir_location ):
-    os.makedirs( tmp_dir_location )
 
-try:
-    tmp_dir = tempfile.mkdtemp(dir=tmp_dir_location)
-except Exception:
-    tmp_dir = tempfile.mkdtemp(dir="./")
-
+garbage = []
 import atexit
 def _cleanup():
-    shutil.rmtree(tmp_dir)
+    for f in garbage:
+        os.remove(f)
 atexit.register(_cleanup)
 
-# function to check if ipython is running
-def run_from_ipython():
-    try:
-        __IPYTHON__
-        return True
-    except NameError:
-        return False
-
 def new_header( pixelSize=[1,1,1,1],
-                orientation=(np.array([1,0,0],dtype='float64'),
-                             np.array([0,1,0],dtype='float64'),
-                             np.array([0,0,1],dtype='float64')),
+                orientation=np.eye( 3, dtype='float64'),
                 origin=[0,0,0,0],
                 dim=None ):
     if dim is None:
@@ -95,13 +79,10 @@ class Image(np.ndarray):
         if header is None:
             dim = img.shape
             if len(dim) < 4:
-                dim = list(dim) + [1]*(4-len(dim))
+                dim = list(dim)[::-1] + [1]*(4-len(dim))
             header = {
                 'pixelSize' : np.ones(4,dtype='float64'),
-                'orientation' : (
-                    np.array([1,0,0],dtype='float64'),
-                    np.array([0,1,0],dtype='float64'),
-                    np.array([0,0,1],dtype='float64')),
+                'orientation' : np.eye(3,dtype='float64'),                   
                 'origin' : np.zeros(4,dtype='float64'),
                 'dim' : np.array(dim,dtype='int32')
                 }
@@ -280,7 +261,7 @@ class Image(np.ndarray):
                               (img.shape[1]-1)/2,
                               (img.shape[0]-1)/2] )
         """
-        tmp_pt = np.array( pt, dtype='float64', copy=True )
+        tmp_pt = np.array( pt, dtype='float64' ).copy()
         if len(tmp_pt.shape) == 1:
             tmp_pt = np.hstack((tmp_pt,[1])).astype('float64')
             return np.dot( self.I2W, tmp_pt )[:3]
@@ -296,7 +277,7 @@ class Image(np.ndarray):
         """
         Returns integers
         """
-        tmp_pt = np.array( pt, dtype='float64', copy=True )
+        tmp_pt = np.array( pt, dtype='float64' ).copy()
         if len(tmp_pt.shape) == 1:
             tmp_pt = np.hstack((tmp_pt,[1])).astype('float64')
             return np.rint( np.dot( self.W2I, tmp_pt )[:3] ).astype('int32')
@@ -309,7 +290,9 @@ class Image(np.ndarray):
                  
     def get_header(self):
         return copy.deepcopy(self.header)
-    
+    def set_header( self, new_header ):
+        self.header = copy.deepcopy(new_header)
+        self.__updateMatrix()
     def get_data(self, dtype=None, purpose="python" ):
         if dtype is None:
             dtype = self.dtype
@@ -346,8 +329,13 @@ class Image(np.ndarray):
         data = data * (max - min) + min
         return Image( data, self.header )
 
-    def resample( self, pixelSize=[1,1,1], interpolation='linear', gaussian_parameter=1.0 ):
-        if not isinstance(pixelSize,tuple) and not isinstance(pixelSize,list):
+    def resample( self,
+                  pixelSize=[1,1,1],
+                  interpolation='linear',
+                  gaussian_parameter=1.0 ):
+        if isinstance(pixelSize,tuple):
+            pixelSize = list(pixelSize)
+        if not isinstance(pixelSize,list):
             pixelSize = [pixelSize]*3
         pixelSize = np.asarray(pixelSize, dtype='float64')
         new_img, new_header = _irtk.resample( self.get_data('float32', 'cython'),
@@ -357,6 +345,48 @@ class Image(np.ndarray):
                                               gaussian_parameter )
         return Image( new_img, new_header )
 
+    def resample2D( self,
+                    pixelSize=[1,1],
+                    interpolation='linear',
+                    gaussian_parameter=1.0 ):
+        # FIXME: do this in C++
+        if isinstance(pixelSize,tuple):
+            pixelSize = list(pixelSize)
+        if not isinstance(pixelSize, list):
+            pixelSize = [pixelSize]
+        if len(pixelSize) == 1:
+            pixelSize = pixelSize*2
+        if len(pixelSize) > 2:
+            raise ValueError( "this function is for XY resampling only" )
+        pixelSize += [1]
+        
+        header = self.get_header()
+        # Determine the new dimensions of the image
+        dim = header['dim']
+        new_x = int(float(dim[0]) * header['pixelSize'][0] / pixelSize[0])
+        new_y = int(float(dim[1]) * header['pixelSize'][1] / pixelSize[1])
+        header['pixelSize'][0] = pixelSize[0]
+        header['pixelSize'][1] = pixelSize[1]
+        header['dim'][0] = new_x
+        header['dim'][1] = new_y
+        res = zeros( header, dtype='float32' )
+        if len(res.shape) == 4:
+            for t in xrange(self.shape[0]):
+                for z in xrange(self.shape[1]):
+                    res[t,z] = self[t,z].resample( pixelSize,
+                                                    interpolation=interpolation,
+                                                    gaussian_parameter=gaussian_parameter)
+        elif len(res.shape) == 3:
+            for z in xrange(self.shape[0]):
+                res[z] = self[z].resample( pixelSize,
+                                            interpolation=interpolation,
+                                            gaussian_parameter=gaussian_parameter)
+        else:
+            res = self.resample( pixelSize,
+                                  interpolation=interpolation,
+                                  gaussian_parameter=gaussian_parameter)
+        return res    
+    
     def register( self, target, transformation=None ):
         return registration.registration_rigid( self, target, transformation )
 
@@ -427,7 +457,7 @@ class Image(np.ndarray):
                                        op ], axis=2 )
                 img = op * data  + opacity*rgb_overlay
 
-            return img
+            return img.astype('uint8')
         
         elif len(img.shape) == 3:
             if not unroll:
@@ -464,7 +494,7 @@ class Image(np.ndarray):
                 output[offset1:offset1+img.shape[0],
                        offset2:offset2+img.shape[1]] = tmp_img
 
-                return output
+                return output.astype('uint8')
             else: # unroll is True
                 if seg is None:
                     output = np.ones( ( self.shape[1],
@@ -482,7 +512,7 @@ class Image(np.ndarray):
                         tmp_img = Image(img[k,:,:]).thumbnail( seg[k,:,:], colors=colors, opacity=opacity )
                     output[:,
                         k*self.shape[2]+2*k:(k+1)*self.shape[2]+2*k] = tmp_img
-                return output
+                return output.astype('uint8')
         else:
             raise "Wrong number of dimensions for thumbnail: " + str(len(self.shape)) 
 
@@ -506,8 +536,13 @@ class Image(np.ndarray):
     #     return output
 
 
-    def bbox( self, crop=False ):
-        pts = np.transpose(np.nonzero(self))
+    def bbox( self, crop=False, world=False ):
+        pts = np.transpose(np.nonzero(self>0))
+        if world:
+            pts = self.ImageToWorld( pts[:,::-1] )
+            x_min, y_min, z_min = pts.min(axis=0)
+            x_max, y_max, z_max = pts.max(axis=0)
+            return (x_min, y_min, z_min, x_max, y_max, z_max )
         if len(self.shape) == 2:
             y_min, x_min = pts.min(axis=0)
             y_max, x_max = pts.max(axis=0)
@@ -525,6 +560,29 @@ class Image(np.ndarray):
                 return self[z_min:z_max+1,
                             y_min:y_max+1,
                             x_min:x_max+1]
+        if len(self.shape) == 4:
+            t_min, z_min, y_min, x_min = pts.min(axis=0)
+            t_max, z_max, y_max, x_max = pts.max(axis=0)
+            if not crop:
+                return (x_min, y_min, z_min, t_min, x_max, y_max, z_max, t_max )
+            else:
+                return self[t_min:t_max+1,
+                            z_min:z_max+1,
+                            y_min:y_max+1,
+                            x_min:x_max+1]            
+
+    def order( self ):
+          if np.linalg.det(self.I2W[:3,:3]) < 0:
+              return "radiological"
+          else:
+              return "neurological"
+    def neurological( self ):
+        return self.order() == "neurological"
+    def radiological( self ):
+        return self.order() == "radiological"
+    def orientation( self ):
+        return _irtk.orientation( self.get_header() )
+
 
 
     
@@ -541,12 +599,19 @@ def imread( filename, dtype=None ):
         }
 
     header, original_dtype = _irtk.get_header( filename )
+    if header is None:
+        return False
     if dtype is None:
         dtype = original_dtype
     img = reader[dtype]( filename, header )
-    return Image(img,header)
+    if img is False:
+        return False
+    else:
+        return Image(img,header)
 
 def imwrite( filename, img ):
+    if not isinstance(img,Image):
+        img = Image(img)
     if img.dtype.name == "bool":
         img = img.astype("uint8")
     writer = {
@@ -562,8 +627,8 @@ def imwrite( filename, img ):
 
     shape = img.header['dim'][::-1]
     data = np.reshape( img.view(np.ndarray), shape ).copy('C')
-    writer[img.dtype.name]( filename, data, img.header )
-    return
+    success = writer[img.dtype.name]( filename, data, img.header )
+    return success
 
 def zeros( header, dtype='float32' ):
     return Image( np.zeros( header['dim'][::-1], dtype=dtype ), header )
@@ -673,3 +738,93 @@ def _ImageReconstruct( data, header ):
     information stored in a pickle.
     """
     return Image( data, header )
+
+def fix_orientation( img1, img2, verbose=False ):
+    order1 = img1.order()
+    order2 = img2.order()
+    if verbose:
+        print "Image1 is in " + order1 + " order"
+        print "Image2 is in " + order2 + " order"
+    if order1 == order2:
+        if verbose:
+            print "nothing to fix"
+        return img2
+    i1, j1, k1 = img1.orientation()
+    i2, j2, k2 = img2.orientation()
+
+    header = img2.get_header()
+    data = img2.get_data()
+
+    if i1 != i2:
+        data = data[:,:,::-1]
+        header['orientation'][0] *= -1
+        if verbose:
+            print "flipping X axis"
+
+    if j1 != j2:
+        data = data[:,::-1,:]
+        header['orientation'][1] *= -1
+        if verbose:
+            print "flipping Y axis"
+
+    if k1 != k2:
+        data = data[::-1,:,:]
+        header['orientation'][2] *= -1
+        if verbose:
+            print "flipping Z axis"
+
+    return Image( data.copy(), header )
+
+# function to check if ipython is running
+def run_from_ipython():
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
+
+def rgb(img):
+    new_img = np.zeros((3,img.shape[0],img.shape[1]),dtype="uint8")
+    for i in xrange(3):
+        new_img[i] = img[:,:,i]
+    return new_img
+
+def imshow( img,
+            seg=None,
+            overlay=None,
+            colors=None,
+            opacity=0.5,
+            filename=None,
+            unroll=False ):
+    """
+    Display a 2D image
+    """
+    if len(img.shape) not in [2,3]:
+        print "Invalid image shape: ", img.shape
+        return
+    
+    if filename is None:
+        handle,filename = tempfile.mkstemp(suffix=".png")
+        garbage.append(filename)
+        write_only = False
+    else:
+        write_only = True
+
+    img = img.rescale()
+    img = img.thumbnail( seg=seg,
+                         overlay=overlay,
+                         colors=colors,
+                         opacity=opacity,
+                         unroll=unroll ).astype("uint8")
+
+    if len(img.shape) == 3 and img.shape[2] == 3:
+        img = rgb(img)
+
+    if write_only:
+        return imwrite(filename, img )
+
+    elif run_from_ipython():
+        if imwrite(filename, img ):
+            return IPython.core.display.Image(filename=filename)
+
+    return False

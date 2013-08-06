@@ -1,6 +1,13 @@
+"""
+You want to match the source to the target.
+
+"""
+
 from __future__ import division
 
-__all__ = [ "RigidTransformation" ]
+__all__ = [ "RigidTransformation",
+            "read_points",
+            "point_registration" ]
 
 import numpy as np
 from math import cos, sin, pi, asin, atan2
@@ -118,8 +125,32 @@ class RigidTransformation:
                 # return np.transpose( np.dot( self.matrix(),
                 #                              np.transpose(tmp_pt) ) )[:,:3]
         
+        # if target_header is None:
+        #     target_header = img.get_header()
         if target_header is None:
-            target_header = img.get_header()
+            (x_min, y_min, z_min, x_max, y_max, z_max ) = img.bbox(world=True)
+            corners = [[x_min, y_min, z_min],
+                       [x_max, y_min, z_min],
+                       [x_min, y_max, z_min],
+                       [x_min, y_min, z_max],
+                       [x_max, y_max, z_min],
+                       [x_min, y_max, z_max],
+                       [x_max, y_min, z_max],
+                       [x_max, y_max, z_max]]
+            corners = self.apply( corners )
+            x_min, y_min, z_min = corners.min(axis=0)
+            x_max, y_max, z_max = corners.max(axis=0)
+            res = img.header['pixelSize'][0]
+            pixelSize = [res, res, res, 1]
+            origin = [ x_min + (x_max+1 - x_min)/2,
+                       y_min + (y_max+1 - y_min)/2,
+                       z_min + (z_max+1 - z_min)/2,
+                       img.header['origin'][3] ]
+            dim = [ (x_max+1 - x_min)/res,
+                    (y_max+1 - y_min)/res,
+                    (z_max+1 - z_min)/res,
+                    1 ]
+            target_header = irtk.new_header( pixelSize=pixelSize, origin=origin, dim=dim)
         if isinstance( target_header, irtk.Image ):
             target_header = target_header.get_header()
         data = img.get_data('float32','cython')
@@ -159,3 +190,21 @@ def registration_rigid( source, target, transformation=None ):
     return RigidTransformation( tx=tx, ty=ty, tz=tz,
                                 rx=rx, ry=ry, rz=rz )
                                                        
+def read_points( filename ):
+    return np.array( _irtk.read_points(filename),
+                     dtype="float64" )
+
+def registration_rigid_points( source, target, rms=False ):
+    source = np.array( source, dtype="float64" )
+    target = np.array( target, dtype="float64" )
+    ( tx, ty, tz, rx, ry, rz ), RMS = _irtk.registration_rigid_points( source,
+                                                                       target )
+    t = RigidTransformation( tx=tx, ty=ty, tz=tz,
+                             rx=rx, ry=ry, rz=rz )
+
+    if rms:
+        return t, RMS
+    else:
+        return t
+
+point_registration = registration_rigid_points

@@ -27,11 +27,14 @@
 #include <vtkCellArray.h>
 #include <vtkTriangle.h>
 
+#include <vtkRegularPolygonSource.h>
+#include <vtkSmoothPolyDataFilter.h>
+
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkPolyDataWriter.h>
 
 void voxellise( vtkPolyData *poly, // input mesh (must be closed)
-                irtkGreyImage &image,
+                irtkGenericImage<uchar> &image,
                 double value=1 );
 
 void create_polydata( double* points,
@@ -46,11 +49,19 @@ void _voxellise( double* points,
                  int npoints,
                  int* triangles,
                  int ntriangles,
-                 short* img, // irtkGreyImage
+                 uchar* img,
                  double* pixelSize,
                  double* xAxis,
                  double* yAxis,
                  double* zAxis,
                  double* origin,
                  int* dim );
+
+void _shrinkDisk( uchar* img,
+                  int shape0,
+                  int shape1,
+                  double* center,
+                  double radius,
+                  int steps );
+
 #endif

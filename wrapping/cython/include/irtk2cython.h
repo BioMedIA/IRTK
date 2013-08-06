@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <irtkImage.h>
+#include <irtkCommon.h>
 #include <irtkFileToImage.h>
 #include <irtkImageFunction.h>
 #include <irtkResampling.h>
@@ -67,6 +68,15 @@ void get_attributes( irtkImageAttributes &attr,
                      int* dim );
 
 template <class dtype>
+void py2irtk_buffer( irtkGenericImage<dtype>& irtk_image,
+                     dtype* img ) {
+    int n   = irtk_image.GetNumberOfVoxels();
+    dtype* ptr = irtk_image.GetPointerToVoxels();
+    for ( int i = 0; i < n; i++)
+        ptr[i] = img[i];
+}
+
+template <class dtype>
 void py2irtk( irtkGenericImage<dtype>& irtk_image,
               dtype* img,
               double* pixelSize,
@@ -88,12 +98,18 @@ void py2irtk( irtkGenericImage<dtype>& irtk_image,
         
     irtk_image.Initialize(attr);
 
+    py2irtk_buffer<dtype>( irtk_image, img );
+
+    return;
+}
+
+template <class dtype>
+void irtk2py_buffer( irtkGenericImage<dtype>& irtk_image,
+                     dtype* img ) {
     int n   = irtk_image.GetNumberOfVoxels();
     dtype* ptr = irtk_image.GetPointerToVoxels();
     for ( int i = 0; i < n; i++)
-        ptr[i] = img[i];
-
-    return;
+        img[i] = ptr[i];
 }
 
 template <class dtype>
@@ -126,10 +142,7 @@ void irtk2py( irtkGenericImage<dtype>& irtk_image,
     /*     exit(1); */
     /* } */
 
-    int n   = irtk_image.GetNumberOfVoxels();
-    dtype* ptr = irtk_image.GetPointerToVoxels();
-    for ( int i = 0; i < n; i++)
-        img[i] = ptr[i];
+    irtk2py_buffer<dtype>( irtk_image, img );
 
     return;
 }
@@ -237,5 +250,18 @@ void _points_to_image( unsigned char* img,
                        int* dim,
                        double* pts,
                        size_t n );
-    
+
+void _read_points( char *filename,
+                   vector< vector<double> > &points );
+void _write_points( char *filename,
+                    vector< vector<double> > &points );
+
+void _orientation( double* pixelSize,
+                   double* xAxis,
+                   double* yAxis,
+                   double* zAxis,
+                   double* origin,
+                   int* dim,
+                   int &i, int &j, int &k);
+
 #endif

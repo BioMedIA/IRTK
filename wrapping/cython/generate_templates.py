@@ -2,7 +2,12 @@
 
 import sys
 
+# FIXME:
+# update using
+# from string import Template
+
 output_folder = sys.argv[1]
+source_folder = sys.argv[2]
 
 #define IRTK_VOXEL_UNKNOWN  				0
 #define IRTK_VOXEL_CHAR     				1
@@ -27,9 +32,9 @@ types = {
     }
 
 header_cpp = {
-"""void _imread_%s( char* filename, %s* img );""" : 2,
+"""bool _imread_%s( char* filename, %s* img );""" : 2,
 """
-void _imwrite_%s( char* filename,
+bool _imwrite_%s( char* filename,
                   %s* img,
                   double* pixelSize,
                   double* xAxis,
@@ -42,18 +47,24 @@ void _imwrite_%s( char* filename,
 
 templates_cpp = {
 """
-void _imread_%s( char* filename,
+bool _imread_%s( char* filename,
                   %s* img ) {
-    irtkGenericImage<%s> image(filename);
-    int n   = image.GetNumberOfVoxels();
-    %s* ptr = image.GetPointerToVoxels();
-    for ( int i = 0; i < n; i++)
-        img[i] = ptr[i];
+    try {
+        irtkGenericImage<%s> image(filename);
+        int n   = image.GetNumberOfVoxels();
+        %s* ptr = image.GetPointerToVoxels();
+        for ( int i = 0; i < n; i++)
+            img[i] = ptr[i];
+        return true;
+    }
+    catch (irtkException &e) {
+        return false;
+   }
 }
 """ : 4,
 
 """
-void _imwrite_%s( char* filename,
+bool _imwrite_%s( char* filename,
                   %s* img,
                   double* pixelSize,
                   double* xAxis,
@@ -61,24 +72,30 @@ void _imwrite_%s( char* filename,
                   double* zAxis,
                   double* origin,
                   int* dim ) {
-    irtkGenericImage<%s> irtk_image;
-    py2irtk<%s>( irtk_image,
-                 img,
-                 pixelSize,
-                 xAxis,
-                 yAxis,
-                 zAxis,
-                 origin,
-                 dim );
-    irtk_image.Write( filename );
+    try {
+        irtkGenericImage<%s> irtk_image;
+        py2irtk<%s>( irtk_image,
+                     img,
+                     pixelSize,
+                     xAxis,
+                     yAxis,
+                     zAxis,
+                     origin,
+                     dim );
+        irtk_image.Write( filename );
+        return true;
+    }
+    catch (irtkException &e) {
+        return false;
+   }
 }
 """ : 4,
 
 }
 
 header_py = {
-"""void _imread_%s( char* filename, %s* img )""" : 2,
-"""void _imwrite_%s( char* filename,
+"""bool _imread_%s( char* filename, %s* img )""" : 2,
+"""bool _imwrite_%s( char* filename,
                   %s* img,
                   double* pixelSize,
                   double* xAxis,
@@ -97,8 +114,11 @@ def imread_%s( bytes py_string, header ):
                                                             header['dim'][2],
                                                             header['dim'][1],
                                                             header['dim'][0]), dtype="%s" )
-    _imread_%s( c_string, <%s*>img.data )
-    return img
+    cdef bool success = _imread_%s( c_string, <%s*>img.data )
+    if not success:
+        return False
+    else:
+        return img
 """ : (0,0,1,0,0),
 
 """
@@ -111,14 +131,15 @@ def imwrite_%s( bytes py_string, np.ndarray[%s, ndim=4,  mode="c"] img, header )
     cdef np.ndarray[int, ndim=1,  mode="c"] dim =  header['dim']
 
     cdef char* c_string = py_string
-    _imwrite_%s( c_string,
-                <%s*>img.data,
-                <double*> pixelSize.data,
-                <double*> xAxis.data,
-                <double*> yAxis.data,
-                <double*> zAxis.data,
-                <double*> origin.data,
-                <int*> dim.data )
+    cdef bool success = _imwrite_%s( c_string,
+                                     <%s*>img.data,
+                                     <double*> pixelSize.data,
+                                     <double*> xAxis.data,
+                                     <double*> yAxis.data,
+                                     <double*> zAxis.data,
+                                     <double*> origin.data,
+                                     <int*> dim.data )
+    return success
 """ : (0,0,0,0),
 }
 
@@ -165,3 +186,14 @@ for t,n in templates_py.iteritems():
         f.write( t % tuple(n2) )
         
 f.close()
+
+
+# http://docs.python.org/2/distutils/apiref.html
+
+# Concatenate automatically generated files
+import fileinput
+with open(output_folder + "/_irtk.pyx", 'w') as fout:
+    for line in fileinput.input([source_folder + "src/_irtk.pyx",
+                                 output_folder + "/templates.pyx"]):
+        fout.write(line)
+    fout.close()

@@ -13,32 +13,28 @@ int _get_header( char* filename,
                   double* zAxis,
                   double* origin,
                   int* dim ) {
-    // irtkGreyImage image(filename);
-    // image.GetPixelSize(&pixelSize[0], &pixelSize[1], &pixelSize[2]);
-    // image.GetOrientation(xAxis, yAxis, zAxis);
-    // image.GetOrigin(origin[0], origin[1], origin[2]);
-    // dim[0] = image.GetX();
-    // dim[1] = image.GetY();
-    // dim[2] = image.GetZ();
-    // dim[3] = image.GetT();
+    try {
+        irtkBaseImage *image;
+        irtkFileToImage *reader = irtkFileToImage::New(filename);
+        image = reader->GetOutput();
+        image->GetPixelSize(&pixelSize[0], &pixelSize[1], &pixelSize[2], &pixelSize[3]);
+        image->GetOrientation(xAxis, yAxis, zAxis);
+        image->GetOrigin(origin[0], origin[1], origin[2], origin[3]);
+        dim[0] = image->GetX();
+        dim[1] = image->GetY();
+        dim[2] = image->GetZ();
+        dim[3] = image->GetT();
 
-    irtkBaseImage *image;
-    irtkFileToImage *reader = irtkFileToImage::New(filename);
-    image = reader->GetOutput();
-    image->GetPixelSize(&pixelSize[0], &pixelSize[1], &pixelSize[2], &pixelSize[3]);
-    image->GetOrientation(xAxis, yAxis, zAxis);
-    image->GetOrigin(origin[0], origin[1], origin[2], origin[3]);
-    dim[0] = image->GetX();
-    dim[1] = image->GetY();
-    dim[2] = image->GetZ();
-    dim[3] = image->GetT();
+        int dtype = reader->GetDataType();
+        
+        delete reader;
+        delete image;
 
-    int dtype = reader->GetDataType();
-
-    delete reader;
-    delete image;
-
-    return dtype;
+        return dtype;
+    }
+    catch ( irtkException &e ) {
+        return -1;
+    }
 }
 
 void put_attributes( irtkImageAttributes &attr,
@@ -321,4 +317,52 @@ void _points_to_image( unsigned char* img,
                     zAxis,
                     origin,
                     dim );    
+}
+
+void _read_points( char *filename,
+                   std::vector< std::vector<double> > &points ) {
+    irtkPointSet irtk_points;
+    irtk_points.ReadVTK( filename );
+    for ( int i = 0; i < irtk_points.Size(); i++ ) {
+        irtkPoint p;
+        p = irtk_points(i);
+        std::vector<double> pt(3);
+        pt[0] = p._x; pt[1] = p._y; pt[2] = p._z;
+        points.push_back( pt );
+    }
+}
+
+void _write_points( char *filename,
+                    std::vector< std::vector<double> > &points ) {
+    irtkPointSet irtk_points;
+    for ( int i = 0; i < irtk_points.Size(); i++ ) {
+        irtk_points.Add( irtkPoint( points[i][0],
+                                    points[i][1],
+                                    points[i][2] ) );
+    }
+    irtk_points.WriteVTK( filename );
+}
+
+void _orientation( double* pixelSize,
+                   double* xAxis,
+                   double* yAxis,
+                   double* zAxis,
+                   double* origin,
+                   int* dim,
+                   int &i, int &j, int &k) {
+
+    irtkGenericImage<uchar> irtk_image;
+    irtkImageAttributes attr;
+
+    put_attributes( attr,
+                    pixelSize,
+                    xAxis,
+                    yAxis,
+                    zAxis,
+                    origin,
+                    dim );
+        
+    irtk_image.Initialize(attr);
+
+    irtk_image.Orientation( i, j, k );
 }
