@@ -112,8 +112,12 @@ void irtkImageToFileNIFTI::Initialize()
         break;
       }
     default:
-      cerr << "irtkImageToFileNIFTI::Run(): Unknown voxel type" << endl;
-      exit(1);
+        stringstream msg;
+        msg << "irtkImageToFileNIFTI::Run(): Unknown voxel type" << endl;
+        cerr << msg.str();
+        throw irtkException( msg.str(),
+                             __FILE__,
+                             __LINE__ );
   }
 }
 

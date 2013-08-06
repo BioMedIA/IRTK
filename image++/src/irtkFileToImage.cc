@@ -93,9 +93,13 @@ irtkFileToImage *irtkFileToImage::New(const char *imagename)
 
   // Check for error
   if (reader == NULL) {
-    cerr << "irtkFileToImage::New: Unknown file format " << imagename
-    << endl;
-    exit(1);
+      stringstream msg;
+      msg << "irtkFileToImage::New: Unknown file format " << imagename
+          << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   return reader;

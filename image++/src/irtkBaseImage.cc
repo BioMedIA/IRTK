@@ -67,8 +67,12 @@ irtkBaseImage *irtkBaseImage::New(const irtkBaseImage *image)
   } else if (dynamic_cast<const irtkGenericImage<double> *>(image) != NULL) {
     return new irtkGenericImage<double>(*(dynamic_cast<const irtkGenericImage<double> *>(image)));
   } else {
-  	cerr << "irtkBaseImage::New: Cannot allocate image of unknown type" << endl;
-  	exit(1);
+      stringstream msg;
+      msg << "irtkBaseImage::New: Cannot allocate image of unknown type" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 }
 
@@ -171,10 +175,12 @@ void irtkBaseImage::Orientation(int &i, int &j, int &k) const
   nifti_mat44_to_orientation(mat_44, &i, &j, &k);
 
 #else
-
-  cerr << "irtkBaseImage::Orientation: Requires NIFTI support. Please recompile with NIFTI enabled" << endl;
-  exit(1);
-
+  stringstream msg;
+  msg << "irtkBaseImage::Orientation: Requires NIFTI support. Please recompile with NIFTI enabled" << endl;
+  cerr << msg.str();
+  throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
 #endif
 }
 

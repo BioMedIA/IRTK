@@ -29,13 +29,21 @@ void irtkImageToFilePNG::Initialize()
   this->irtkImageToFile::Initialize();
 
   if ( (this->_input->GetZ() != 1) && (this->_input->GetZ() != 3)) {
-    cerr << this->NameOfClass() << " supports only images with z = 1 (grey) or z = 3 (RGB)" << endl;
-    exit(1);
+      stringstream msg;
+      msg << this->NameOfClass() << " supports only images with z = 1 (grey) or z = 3 (RGB)" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
   
   if (dynamic_cast<irtkGenericImage<unsigned char> *>(_input) == NULL){
-    cerr << this->NameOfClass() << " supports only images of voxel type unsigned char" << endl;
-    exit(1);
+      stringstream msg;
+      msg << this->NameOfClass() << " supports only images of voxel type unsigned char" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 }
 
@@ -51,21 +59,33 @@ void irtkImageToFilePNG::Run()
                         (PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
 
   if (!png_ptr) {
-    cerr << "irtkImageToFilePNG::Run: Unable to write PNG file!" << endl;
-    exit(1);
+      stringstream msg;
+      msg << "irtkImageToFilePNG::Run: Unable to write PNG file!" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr) {
     png_destroy_write_struct(&png_ptr,
                              (png_infopp)NULL);
-    cerr << "irtkImageToFilePNG::Run: Unable to write PNG file!" << endl;;
-    exit(1);
+    stringstream msg;
+    msg << "irtkImageToFilePNG::Run: Unable to write PNG file!" << endl;;
+    cerr << msg.str();
+    throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   if (setjmp(png_jmpbuf(png_ptr))) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
-    exit(1);
+    stringstream msg;
+    cerr << msg.str();
+    throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   // Open file

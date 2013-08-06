@@ -458,8 +458,12 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   double x1, y1, z1, t1, x2, y2, z2, t2;
 
   if ((k < 0) || (k >= _attr._z) || (m < 0) || (m >= _attr._t)) {
-    cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   // Initialize
@@ -503,8 +507,12 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
   int i, j, k;
 
   if ((l < 0) || (l >= _attr._t)) {
-    cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   // Initialize
@@ -532,8 +540,12 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
       (j1 < 0) || (j1 >= j2) ||
       (k1 < 0) || (k1 >= k2) ||
       (i2 > _attr._x) || (j2 > _attr._y) || (k2 > _attr._z)) {
-    cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   // Initialize
@@ -584,8 +596,12 @@ template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelTyp
       (k1 < 0) || (k1 >= k2) ||
       (l1 < 0) || (l1 >= l2) ||
       (i2 > _attr._x) || (j2 > _attr._y) || (k2 > _attr._z) || (l2 > _attr._t)) {
-    cerr << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::GetRegion: Parameter out of range\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   // Initialize
@@ -666,10 +682,14 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   VoxelType *ptr1, *ptr2;
 
   if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
-    cerr << "irtkGenericImage<VoxelType>::operator+=: Size mismatch in images\n";
-    this->GetImageAttributes().Print();
-    image.GetImageAttributes().Print();
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::operator+=: Size mismatch in images\n";
+      cerr << msg.str();
+      this->GetImageAttributes().Print();
+      image.GetImageAttributes().Print();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   n    = this->GetNumberOfVoxels();
@@ -692,8 +712,12 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   VoxelType *ptr1, *ptr2;
 
   if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
-    cerr << "irtkGenericImage<VoxelType>::operator-=: Size mismatch in images\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::operator-=: Size mismatch in images\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   n    = this->GetNumberOfVoxels();
@@ -716,8 +740,12 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   VoxelType *ptr1, *ptr2;
 
   if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
-    cerr << "irtkGenericImage<VoxelType>::operator*=: Size mismatch in images\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::operator*=: Size mismatch in images\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   n    = this->GetNumberOfVoxels();
@@ -740,8 +768,12 @@ template <class VoxelType> irtkGenericImage<VoxelType>& irtkGenericImage<VoxelTy
   VoxelType *ptr1, *ptr2;
 
   if (!(this->GetImageAttributes() == image.GetImageAttributes())) {
-    cerr << "irtkGenericImage<VoxelType>::operator/=: Size mismatch in images\n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkGenericImage<VoxelType>::operator/=: Size mismatch in images\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   n    = this->GetNumberOfVoxels();

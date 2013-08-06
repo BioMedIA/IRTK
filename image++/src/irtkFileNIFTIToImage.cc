@@ -117,8 +117,12 @@ void irtkFileNIFTIToImage::SetInput(const char *filename)
 
         // Check if compressed file exists
         if (stat(imagename, &buf) != 0) {
-          cerr << this->NameOfClass() << ": Can't open file " << imagename << endl;
-          exit(1);
+            stringstream msg;
+            msg << this->NameOfClass() << ": Can't open file " << imagename << endl;
+            cerr << msg.str();
+            throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
         }
       } else {
         length = strlen(filename);
@@ -141,15 +145,23 @@ void irtkFileNIFTIToImage::SetInput(const char *filename)
             imagename[length-2] = 'm';
             imagename[length-3] = 'i';
             if (stat(imagename, &buf) != 0) {
-              cerr << this->NameOfClass() << ": Can't open file " << imagename << endl;
-              exit(1);
+                stringstream msg;
+                msg << this->NameOfClass() << ": Can't open file " << imagename << endl;
+                cerr << msg.str();
+                throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
             }
           }
         }
       }
     } else {
-      cerr << "irtkFileNIFTIToImage::SetInput: File format is not NIFTI" << endl;
-      exit(1);
+        stringstream msg;
+        msg << "irtkFileNIFTIToImage::SetInput: File format is not NIFTI" << endl;
+        cerr << msg.str();
+        throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
     }
   }
   this->irtkFileToImage::SetInput(imagename);
@@ -171,20 +183,33 @@ void irtkFileNIFTIToImage::ReadHeader()
 
   // Check dimension
   if (hdr.nim->dim[0] > 5) {
-    cerr << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions > 5 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions > 5 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
   if ((hdr.nim->dim[0] == 5) && (hdr.nim->dim[4] != 1)) {
-    cerr << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions == 5 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
-    exit(1);
+      stringstream msg;
+      msg << "irtkFileNIFTIToImage::ReadHeader: Number of dimensions == 5 (Number of dimensions = " << hdr.nim->dim[0] << ") \n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
+
   }
 
   // Check intent code
   /*
   if (hdr.nim->intent_code != 0) {
-    cerr << "irtkFileNIFTIToImage::ReadHeader: Unknown intent_code = " <<
+    stringstream msg;
+    msg << "irtkFileNIFTIToImage::ReadHeader: Unknown intent_code = " <<
          hdr.nim->intent_code << endl;
-    exit(1);
+    cerr << msg.str();
+    throw irtkException( msg.str(),
+                         __FILE__,
+                         __LINE__ );         
   }
   */
 

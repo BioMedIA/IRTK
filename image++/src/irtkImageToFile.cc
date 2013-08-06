@@ -97,8 +97,12 @@ void irtkImageToFile::SetInput(irtkImage *image)
   if (image != NULL) {
     _input = image;
   } else {
-    cerr << this->NameOfClass() << "::SetInput: Output is not an image\n";
-    exit(1);
+      stringstream msg;
+      msg << this->NameOfClass() << "::SetInput: Output is not an image\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 }
 
@@ -107,8 +111,12 @@ void irtkImageToFile::SetOutput(const char *name)
   if (name != NULL) {
     _output = name;
   } else {
-    cerr << this->NameOfClass() << "::SetInput: Output is not a filename\n";
-    exit(1);
+      stringstream msg;
+      msg << this->NameOfClass() << "::SetInput: Output is not a filename\n";
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 }
 
@@ -116,12 +124,20 @@ void irtkImageToFile::Initialize()
 {
   // Check inputs and outputs
   if (_input == NULL) {
-    cerr << this->NameOfClass() << "::Run: Filter has no input" << endl;
-    exit(1);
+      stringstream msg;
+      msg << this->NameOfClass() << "::Run: Filter has no input" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
   if (_output == NULL) {
-    cerr << this->NameOfClass() << "::Run: Filter has no output" << endl;
-    exit(1);
+      stringstream msg;
+      msg << this->NameOfClass() << "::Run: Filter has no output" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
 
   // Open file for writing
@@ -176,8 +192,12 @@ void irtkImageToFile::Run()
       break;
     }
   default:
-  	cerr << "irtkImageToFile::Run(): Unknown voxel type" << endl;
-  	exit(1);
+      stringstream msg;
+      msg << "irtkImageToFile::Run(): Unknown voxel type" << endl;
+      cerr << msg.str();
+      throw irtkException( msg.str(),
+                           __FILE__,
+                           __LINE__ );
   }
   
   // Finalize filter
