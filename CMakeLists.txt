@@ -25,7 +25,7 @@ IF (BUILD_GPU_SUPPORT_WITH_CUDA)
   add_subdirectory(cudaCommon++)
 ENDIF(BUILD_GPU_SUPPORT_WITH_CUDA)
 
-SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation)
+SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation wrapping)
 
 INCLUDE(${IRTK_SOURCE_DIR}/config/IRTKInclude.cmake)
 
@@ -37,10 +37,6 @@ SET(LIBRARY_OUTPUT_PATH ${IRTK_BINARY_DIR}/lib CACHE STRING
 IF (BUILD_WITH_NIFTI)
    SUBDIRS(nifti)
 ENDIF (BUILD_WITH_NIFTI)
-
-IF (ENABLE_WRAPPING)
-  SUBDIRS(wrapping)
-ENDIF (ENABLE_WRAPPING)
 
 CONFIGURE_FILE(${IRTK_SOURCE_DIR}/config/IRTKInclude.cmake
                ${IRTK_BINARY_DIR}/lib/IRTKInclude.cmake)	
