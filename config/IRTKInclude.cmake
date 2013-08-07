@@ -142,6 +142,7 @@ INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/transformation/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/registration/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/registration2/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/packages/segmentation/include)
+INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/external/gco-v3.0)
 
 LINK_DIRECTORIES(${IRTK_BINARY_DIR}/lib) 
 
