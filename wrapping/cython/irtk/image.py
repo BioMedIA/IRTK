@@ -29,7 +29,8 @@ __all__ = [ "Image",
             "PointsToImage",
             "drawSphere",
             "sphere",
-            "fix_orientation" ]
+            "fix_orientation",
+            "crf" ]
 
 import numpy as np
 import pprint
@@ -828,3 +829,15 @@ def imshow( img,
             return IPython.core.display.Image(filename=filename)
 
     return False
+
+def crf( img, labels, proba, l=1.0 ):
+    if not isinstance(img,Image): img = Image(img)
+    if not isinstance(labels,Image): labels = Image(labels)
+    if not isinstance(proba,Image): proba = Image(proba)
+    header = img.get_header()
+    new_labels = _irtk.crf( img.get_data('float64','cython'),
+                            header,
+                            labels.get_data('int16','cython'),
+                            proba.get_data('float64','cython'),
+                            l )
+    return Image(new_labels, header)

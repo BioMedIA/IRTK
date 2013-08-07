@@ -10,10 +10,7 @@ import argparse
 
 #from irtk.ext.patches import extract_oriented_patches2D as extract_patches2D
 from irtk.ext.patches import extract_patches2D
-from irtk.ext.crf import crf
 from lib.BundledSIFT import get_OFD
-
-from irtk.ext.opencv import sift_patches
 
 from sklearn.externals import joblib
 from joblib import Parallel, delayed
@@ -159,18 +156,16 @@ def mask_image( file_img, file_mask, ga, r, neigh, output_dir ):
         x_min, y_min, x_max, y_max = mask[z].bbox()
         cropped_img = img[z,
                           y_min:y_max+1,
-                          x_min:x_max+1].view(np.ndarray).astype("float32").copy()
+                          x_min:x_max+1]
         cropped_proba = res[z,
                             y_min:y_max+1,
-                            x_min:x_max+1].view(np.ndarray).astype("float64").copy()
-        cropped_labels = (cropped_proba > 0.5).astype("int32").copy()
+                            x_min:x_max+1]
+        cropped_labels = cropped_proba > 0.5
     
-        cropped_labels = crf( cropped_img,
-                              cropped_labels,
-                              cropped_proba,
-                              l=1.0,
-                          #degree=1
-                              )
+        cropped_labels = irtk.crf( cropped_img,
+                                   cropped_labels,
+                                   cropped_proba,
+                                   l=1.0 )
         res2[z,
              y_min:y_max+1,
              x_min:x_max+1] = cropped_labels

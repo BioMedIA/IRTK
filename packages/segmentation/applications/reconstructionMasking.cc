@@ -19,25 +19,6 @@ using namespace std;
 
 //Application to perform reconstruction of volumetric MRI from thick slices.
 
-/* Auxiliary functions */
-
-void rescale( irtkRealImage &img, double max)
-{
-    int i, n;
-    double *ptr, min_val, max_val;
-
-    // Get lower and upper bound
-    img.GetMinMax(&min_val, &max_val);
-
-    n   = img.GetNumberOfVoxels();
-    ptr = img.GetPointerToVoxels();
-    for (i = 0; i < n; i++)
-        if ( ptr[i] > 0 )
-            ptr[i] = double(ptr[i]) / double(max_val) * max;
-}
-
-/* end Auxiliary functions */
-
 void usage()
 {
     cerr << "Usage: reconstruction [reconstructed] [N] [stack_1] .. [stack_N] [dof_1] .. [dof_N] <options>\n" << endl;
@@ -152,6 +133,10 @@ int main(int argc, char **argv)
     //forced exclusion of slices
     int number_of_force_excluded_slices = 0;
     vector<int> force_excluded;
+
+    //Create reconstruction object
+    irtkReconstruction reconstruction;
+    
     //if not enough arguments print help
     if (argc < 5)
         usage();
@@ -171,7 +156,7 @@ int main(int argc, char **argv)
     // Read stacks 
     for (i=0;i<nStacks;i++) {
         stack.Read(argv[1]);
-        rescale(stack,1000);
+        reconstruction.Rescale(stack,1000);
         cout<<"Reading stack ... "<<argv[1]<<endl;
         argc--;
         argv++;
@@ -242,7 +227,7 @@ int main(int argc, char **argv)
             cout<< "Package number is ";
             for (i=0;i<nStacks;i++) {
                 stack.Read(argv[1]);
-                rescale(stack,1000);
+                reconstruction.Rescale(stack,1000);
                 cout<<"Reading second stack ... "<<argv[1]<<endl;
                 argc--;
                 argv++;
@@ -506,9 +491,6 @@ int main(int argc, char **argv)
         cout<<"."<<endl;
     }
   
-    //Create reconstruction object
-    irtkReconstruction reconstruction;
-  
     //Output volume
     irtkRealImage reconstructed;
 
@@ -725,7 +707,9 @@ int main(int argc, char **argv)
         
             if ( (iter >= iterations-3) && (probability_maps.size() > 0) ) {
                 reconstruction.UpdateProbabilityMap();
-                reconstruction.SaveProbabilityMap(iter);            
+                reconstruction.SaveProbabilityMap(iter);
+                reconstruction.CoeffInit();
+                reconstruction.GaussianReconstruction();
                 reconstruction.crf3DMask( smooth_mask, threshold_mask );                    
             }
             reconstruction.MaskSlices();

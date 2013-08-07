@@ -219,7 +219,10 @@ class irtkReconstruction : public irtkObject
     void TransformMask( irtkRealImage& image,
                         irtkRealImage& mask,
                         irtkRigidTransformation& transformation );
-  
+
+    /// Rescale image ignoring negative values
+    void Rescale( irtkRealImage &img, double max);
+    
     ///Calculate initial registrations
     void StackRegistrations( vector<irtkRealImage>& stacks,
                              vector<irtkRigidTransformation>& stack_transformations,
@@ -422,6 +425,7 @@ class irtkReconstruction : public irtkObject
     friend class ParallelNormaliseBias;
     friend class ParallelSimulateSlices;
     friend class ParallelAverage;
+    friend class ParallelSliceAverage;
     friend class ParallelAdaptiveRegularization1;
     friend class ParallelAdaptiveRegularization2;
 };

@@ -57,6 +57,7 @@ set( CPP_SRCS
   "src/irtk2cython.cc"
   "src/voxellise.cc"
   "src/drawing.cc"
+  "src/crf.cc"
   )
 
 include_directories(${PYTHON_INCLUDE_PATH})

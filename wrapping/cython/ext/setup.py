@@ -38,18 +38,6 @@ setup(
                                + [ "CLAHE/" ]
                   ),
 
-        Extension("crf", [ "crf/crf.pyx",
-                           "crf/_crf.cc",
-                           "crf/src/graph.cpp",
-                           "crf/src/GCoptimization.cpp",
-                           "crf/src/LinkedBlockList.cpp",
-                           "crf/src/maxflow.cpp" ],
-                  language="c++",
-                  include_dirs = get_numpy_include_dirs()
-                               + [ "crf/",
-                                   "crf/src" ]
-                  ),
-
         Extension("_patches", [ "patches/_patches.pyx",
                                "patches/patches.cc" ],
                   language = "c++",

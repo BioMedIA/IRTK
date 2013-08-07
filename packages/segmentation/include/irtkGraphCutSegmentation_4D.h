@@ -5,8 +5,9 @@
 #include <irtkProbabilisticAtlas.h>
 #include <irtkGaussian.h>
 #include <irtkImage.h>
-#include <graph.h>
 #include <string>
+
+#include "graph.h"
 
 #ifndef MOG_H_
 #define MOG_H_

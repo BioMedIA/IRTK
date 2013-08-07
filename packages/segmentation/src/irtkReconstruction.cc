@@ -17,8 +17,7 @@
 #include <irtkImageRigidRegistrationWithPadding.h>
 #include <irtkTransformation.h>
 #include <irtkMeanShift.h>
-
-#include "crf/crf.h"
+#include <irtkCRF.h>
 
 /* Auxiliary functions (not reconstruction specific) */
 
@@ -319,6 +318,76 @@ public:
     }    
 };
 
+class ParallelSliceAverage{
+    irtkReconstruction* reconstructor;
+    vector<irtkRealImage> &slices;
+    vector<irtkRigidTransformation> &slice_transformations;
+    irtkRealImage &average;
+    irtkRealImage &weights;
+    
+public:
+    
+    void operator()( const blocked_range<size_t>& r ) const {
+        for ( int k0 = r.begin(); k0 < r.end(); k0++) {
+            for ( int j0 = 0; j0 < average.GetY(); j0++) {
+                for ( int i0 = 0; i0 < average.GetX(); i0++) {
+                        double x0 = i0;
+                        double y0 = j0;
+                        double z0 = k0;
+                        // Transform point into world coordinates
+                        average.ImageToWorld(x0, y0, z0);
+                        for (int inputIndex = 0; inputIndex < slices.size(); inputIndex++ ) {
+                            double x = x0;
+                            double y = y0;
+                            double z = z0;
+                            // Transform point
+                            slice_transformations[inputIndex].Transform(x, y, z);
+                            // Transform point into image coordinates
+                            slices[inputIndex].WorldToImage(x, y, z);
+                            int i = round(x);
+                            int j = round(y);
+                            int k = round(z);
+                            // Check whether transformed point is in FOV of input
+                            if ( (i >=  0) && (i < slices[inputIndex].GetX()) &&
+                                 (j >= 0) && (j <  slices[inputIndex].GetY()) &&
+                                 (k >= 0) && (k < slices[inputIndex].GetZ()) ) {
+                                if (slices[inputIndex](i,j,k) > 0) {
+                                    average.PutAsDouble( i0, j0, k0, 0, average( i0, j0, k0 ) + slices[inputIndex](i,j,k) );
+                                    weights.PutAsDouble( i0, j0, k0, 0, weights( i0, j0, k0 ) + 1 );
+                                }
+                            }
+                        }
+                }
+            }
+        }
+    }
+              
+    ParallelSliceAverage( irtkReconstruction *reconstructor,
+                          vector<irtkRealImage>& _slices,
+                          vector<irtkRigidTransformation>& _slice_transformations,
+                          irtkRealImage &_average,
+                          irtkRealImage &_weights ) :
+        reconstructor(reconstructor),
+        slices(_slices),
+        slice_transformations(_slice_transformations),
+        average(_average),
+        weights(_weights)
+    {
+        average.Initialize( reconstructor->_reconstructed.GetImageAttributes() );
+        average = 0;
+        weights.Initialize( reconstructor->_reconstructed.GetImageAttributes() );
+        weights = 0;
+    }
+
+    // execute
+    void operator() () const {
+        task_scheduler_init init(tbb_no_threads);
+        parallel_for( blocked_range<size_t>(0,average.GetZ()),
+                      *this );
+        init.terminate();
+    }    
+};
+
 irtkRealImage irtkReconstruction::CreateAverage(vector<irtkRealImage>& stacks,
                                                 vector<irtkRigidTransformation>& stack_transformations)
 {
@@ -516,12 +585,25 @@ void irtkReconstruction::CreateMaskFromAllMasks( vector<irtkRealImage>& stacks,
     // FIXME: use a faster way when summing all slices (for each voxel of final
     // volume, go through each slice)
     InvertStackTransformations(stack_transformations);
-    ParallelAverage parallelAverage( this,
-                                     stacks,
-                                     stack_transformations,
-                                     voxel_limits<irtkRealPixel>::min(), -1, -1 ); // target/source/background
-    parallelAverage();
-    irtkRealImage weights = parallelAverage.weights;
+    irtkRealImage weights;
+
+    if (stacks[0].GetZ() > 1) {
+        ParallelAverage parallelAverage( this,
+                                         stacks,
+                                         stack_transformations,
+                                         voxel_limits<irtkRealPixel>::min(), -1, -1 ); // target/source/background
+        parallelAverage();
+        weights = parallelAverage.weights;
+    }
+    else {
+        irtkRealImage average;
+        ParallelSliceAverage parallelSliceAverage( this,
+                                                   stacks,
+                                                   stack_transformations,
+                                                   average,
+                                                   weights ); 
+        parallelSliceAverage();
+    }
     InvertStackTransformations(stack_transformations);
     
     irtkGaussianBlurring<irtkRealPixel> gb(smooth_mask);
@@ -531,6 +613,7 @@ void irtkReconstruction::CreateMaskFromAllMasks( vector<irtkRealImage>& stacks,
 
     weights.PutMinMax(0,1);
     weights.Write("weights4mask.nii");
+    // FIXME threshold_mask ???
     irtkGreyImage mask = (weights < threshold_mask) != threshold_mask;
     //Calculate LCC of the mask to remove disconected structures
     irtkMeanShift msh2(mask, 0, 256);
@@ -557,16 +640,26 @@ void irtkReconstruction::UpdateProbabilityMap()
 
     _brain_probability.Initialize( _reconstructed.GetImageAttributes() );
     _brain_probability = 0;
+    
     InvertStackTransformations(_transformations);
-    ParallelAverage parallelAverage( this,
-                                     _probability_maps,
-                                     _transformations,
-                                     voxel_limits<irtkRealPixel>::min(), 0, 0 ); // target/source/background
-    parallelAverage();
+    // ParallelAverage parallelAverage( this,
+    //                                  _probability_maps,
+    //                                  _transformations,
+    //                                  voxel_limits<irtkRealPixel>::min(), 0, 0 ); // target/source/background
+    // parallelAverage();
+
+    irtkRealImage average;
+    irtkRealImage weights;
+    ParallelSliceAverage parallelSliceAverage( this,
+                                               _probability_maps,
+                                               _transformations,
+                                               average,
+                                               weights ); 
+    parallelSliceAverage();
     InvertStackTransformations(_transformations);
-    _brain_probability = parallelAverage.average;
-    irtkRealImage weights = parallelAverage.weights;
-    _brain_probability /= weights;
+    //    _brain_probability = parallelAverage.average;
+    //irtkRealImage weights = parallelAverage.weights;
+    _brain_probability = average / weights;
     
     irtkRealPixel *pr = _brain_probability.GetPointerToVoxels();
     irtkRealPixel *pm = _mask.GetPointerToVoxels();
@@ -600,12 +693,14 @@ void irtkReconstruction::crf3DMask( double smooth_mask,
     }
 
     cout << "starting crf...\n";
-    crf( _reconstructed.GetPointerToVoxels(),
-         _reconstructed.GetZ(), _reconstructed.GetY(), _reconstructed.GetX(),
-         _reconstructed.GetSD(1),
-         labels.GetPointerToVoxels(),
-         _brain_probability.GetPointerToVoxels(),
-         1.0 );
+    irtkCRF crf( _reconstructed, labels, _brain_probability );
+    crf.Run();
+    // crf( _reconstructed.GetPointerToVoxels(),
+    //      _reconstructed.GetZ(), _reconstructed.GetY(), _reconstructed.GetX(),
+    //      _reconstructed.GetSD(1),
+    //      labels.GetPointerToVoxels(),
+    //      _brain_probability.GetPointerToVoxels(),
+    //      1.0 );
 
     labels.Write("maskCRF.nii");
 
@@ -615,6 +710,9 @@ void irtkReconstruction::crf3DMask( double smooth_mask,
     msh2.Lcc(1);
     irtkRealImage m = labels;
     SetMask(&m, smooth_mask, threshold_mask );//smooth_mask
+
+    bboxCrop( _mask );
+    _reconstructed = _mask;
 
     _mask.Write("maskafterCRF.nii");
 }
@@ -2841,8 +2939,8 @@ public:
         sigma = 0;
         mix = 0;
         num = 0;
-        min = 0;
-        max = 0;
+        min = voxel_limits<irtkRealPixel>::max();
+        max = voxel_limits<irtkRealPixel>::min();
     }
 
     // execute
@@ -3178,6 +3276,7 @@ public:
             if(reconstructor->_debug) {
                 cout<<inputIndex<<" ";
             }
+            
             // alias the current slice
             irtkRealImage& slice = reconstructor->_slices[inputIndex];
                 
@@ -3190,7 +3289,7 @@ public:
             irtkRealPixel *pi = slice.GetPointerToVoxels();
             irtkRealPixel *pb = b.GetPointerToVoxels();
             for(int i = 0; i<slice.GetNumberOfVoxels(); i++) {
-                if(*pi>-1)
+                if((*pi>-1)&&(scale>0))
                     *pb -= log(scale);
                 pb++;
                 pi++;
@@ -3804,4 +3903,19 @@ void irtkReconstruction::MaskImage(irtkRealImage& image, double padding)
     }
 }
 
+/// Like PutMinMax but ignoring negative values (mask)
+void irtkReconstruction::Rescale( irtkRealImage &img, double max)
+{
+    int i, n;
+    double *ptr, min_val, max_val;
+
+    // Get lower and upper bound
+    img.GetMinMax(&min_val, &max_val);
+
+    n   = img.GetNumberOfVoxels();
+    ptr = img.GetPointerToVoxels();
+    for (i = 0; i < n; i++)
+        if ( ptr[i] > 0 )
+            ptr[i] = double(ptr[i]) / double(max_val) * max;
+}
 /* end Utility functions */

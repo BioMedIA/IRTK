@@ -8,9 +8,7 @@
 #include <string>
 #include <sstream>
 #include <irtkGradientImage.h>
-#include <nr.h>
-#include <graph.h>
- 
+#include <nr.h> 
 
 irtkGraphCutSegmentation_4D::irtkGraphCutSegmentation_4D(int numTissues, irtkRealImage foregroundAtlas)
 {

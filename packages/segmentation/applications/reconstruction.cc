@@ -121,6 +121,10 @@ int main(int argc, char **argv)
   //forced exclusion of slices
   int number_of_force_excluded_slices = 0;
   vector<int> force_excluded;
+
+  //Create reconstruction object
+  irtkReconstruction reconstruction;
+    
   //if not enough arguments print help
   if (argc < 5)
     usage();
@@ -143,6 +147,7 @@ int main(int argc, char **argv)
       //if ( i == 0 )
           //log_id = argv[1];
     stack.Read(argv[1]);
+    reconstruction.Rescale(stack,1000);
     cout<<"Reading stack ... "<<argv[1]<<endl;
     argc--;
     argv++;
@@ -410,9 +415,6 @@ int main(int argc, char **argv)
     cout<<"."<<endl;
   }
 
-  //Create reconstruction object
-  irtkReconstruction reconstruction;
-  
   //Output volume
   irtkRealImage reconstructed;
 

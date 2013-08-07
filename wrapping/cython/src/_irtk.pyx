@@ -695,3 +695,47 @@ def registration_rigid_points( np.ndarray[double, ndim=2,  mode="c"] source,
                                                    tx, ty, tz,
                                                    rx, ry,rz )
     return ( ( tx, ty, tz, rx, ry, rz ), RMS )
+
+### CRF ###
+
+ctypedef double pixel_t
+
+ctypedef short LabelID
+ctypedef long long EnergyType
+
+cdef extern from "crf.h":
+    void _crf( pixel_t* img,
+               double* pixelSize,
+               double* xAxis,
+               double* yAxis,
+               double* zAxis,
+               double* origin,
+               int* dim,
+               LabelID* labels,
+               double* proba,
+               double l )
+  
+def crf( np.ndarray[pixel_t, ndim=4, mode="c"] img,
+           header,
+           np.ndarray[LabelID, ndim=4, mode="c"] labels,
+           np.ndarray[double, ndim=4, mode="c"] proba,
+           double l=1.0 ):
+    cdef np.ndarray[double, ndim=1,  mode="c"] pixelSize = header['pixelSize']
+    cdef np.ndarray[double, ndim=1,  mode="c"] xAxis = header['orientation'][0]
+    cdef np.ndarray[double, ndim=1,  mode="c"] yAxis = header['orientation'][1]
+    cdef np.ndarray[double, ndim=1,  mode="c"] zAxis = header['orientation'][2]
+    cdef np.ndarray[double, ndim=1,  mode="c"] origin = header['origin']
+    cdef np.ndarray[int, ndim=1,  mode="c"] dim =  header['dim']    
+    print "starting crf..."                                                                 
+    _crf( <pixel_t*> img.data,
+           <double*> pixelSize.data,
+           <double*> xAxis.data,
+           <double*> yAxis.data,
+           <double*> zAxis.data,
+           <double*> origin.data,
+           <int*> dim.data,
+           <LabelID*> labels.data,
+           <double*> proba.data,
+           l )
+    
+    return labels
