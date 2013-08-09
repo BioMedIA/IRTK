@@ -38,7 +38,7 @@ protected:
   /// Name of structure
   char *_label;
 
-  /// Transparancy
+  /// Transparency
   double _trans;
 
   /// Visibility flag
@@ -66,7 +66,7 @@ public:
   /// Set label
   void setLabel(char*);
 
-  /// Set transperancy
+  /// Set transparency
   void setTrans(double);
 
   /// Set to visible
@@ -78,7 +78,7 @@ public:
   /// Return color in hex
   void getHex(char *) const;
 
-  /// Return transperancy
+  /// Return transparency
   double getTrans() const;
 
   /// Return label

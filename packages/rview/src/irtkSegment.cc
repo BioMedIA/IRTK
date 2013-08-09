@@ -23,7 +23,7 @@ irtkSegment::irtkSegment()
   // Colour
   setColor(0, 0, 0);
 
-  // Transparancy
+  // Transparency
   _trans = 0.0;
 }
 
@@ -38,7 +38,7 @@ irtkSegment::irtkSegment(char* label, unsigned char cr, unsigned char cg, unsign
   // Colour
   setColor(cr, cg, cb);
 
-  // Transparancy
+  // Transparency
   _trans = t;
 }
 
