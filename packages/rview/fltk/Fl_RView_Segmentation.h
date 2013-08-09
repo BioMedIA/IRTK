@@ -57,7 +57,7 @@ Fl_Button *editSegmentColor;
 Fl_Input *editSegmentLabel;
 
 /// Widget for transperancy
-Fl_Slider *editSegmentTransperancy;
+Fl_Slider *editSegmentTransparancy;
 
 /// Widget for visibility
 Fl_Check_Button *editSegmentVisibility;
@@ -98,7 +98,7 @@ static void cb_loadSegmentTableConfig(Fl_Button*, void*);
 static void cb_saveSegmentTableConfig(Fl_Button*, void*);
 static void cb_resetSegmentTableConfig(Fl_Button*, void*);
 static void cb_editSegmentLabel(Fl_Input*, void*);
-static void cb_editSegmentTransperancy(Fl_Slider*, void*);
+static void cb_editSegmentTransparancy(Fl_Slider*, void*);
 static void cb_editSegmentVisibility(Fl_Check_Button*, void*);
 static void cb_editSegmentPickColor(Fl_Button*, void*);
 static void cb_showHistogram(Fl_Button* o, void* v);

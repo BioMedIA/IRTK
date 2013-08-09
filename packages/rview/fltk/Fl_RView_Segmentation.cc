@@ -191,7 +191,7 @@ void Fl_RViewUI::AddSegment(int label)
   rviewUI->_vis   = true;
 
   rviewUI->editSegmentLabel->value(rviewUI->_label);
-  rviewUI->editSegmentTransperancy->value(rviewUI->_trans);
+  rviewUI->editSegmentTransparancy->value(rviewUI->_trans);
   rviewUI->editSegmentVisibility->value(rviewUI->_vis);
   rviewUI->editSegmentColor->color(fl_rgb_color(rviewUI->_red, rviewUI->_green, rviewUI->_blue));
   rview->GetSegmentTable()->Set(rviewUI->_id, rviewUI->_label, rviewUI->_red, rviewUI->_green, rviewUI->_blue, rviewUI->_trans, rviewUI->_vis);
@@ -254,7 +254,7 @@ void Fl_RViewUI::cb_displaySegmentContours(Fl_Check_Button *o, void *)
 void Fl_RViewUI::cb_selectAll(Fl_Check_Button *, void *)
 {
   //if (o->value() == 1){
-  for (int j=0; j<100; j++)
+  for (int j=0; j<rview->GetSegmentTable()->Size(); j++)
     if ( rview->GetSegmentTable()->IsValid(j) == true) {
       rview->GetSegmentTable()->SetVisibility(j,1);
     }
@@ -268,7 +268,7 @@ void Fl_RViewUI::cb_selectAll(Fl_Check_Button *, void *)
 
 void Fl_RViewUI::cb_deselectAll(Fl_Check_Button *, void *)
 {
-  for (int j=0; j<100; j++) {
+  for (int j=0; j<rview->GetSegmentTable()->Size(); j++) {
     if (rview->GetSegmentTable()->IsValid(j) == true) {
       rview->GetSegmentTable()->SetVisibility(j, 0);
     }
@@ -326,7 +326,7 @@ void Fl_RViewUI::cb_editSegmentPickColor(Fl_Button *, void *)
   viewer->redraw();
 }
 
-void Fl_RViewUI::cb_editSegmentTransperancy(Fl_Slider* o, void *)
+void Fl_RViewUI::cb_editSegmentTransparancy(Fl_Slider* o, void *)
 {
   rviewUI->_trans = o->value();
 
@@ -449,8 +449,8 @@ void Fl_RViewUI::UpdateSegmentationControlWindow()
   if (rviewUI->_id == -1) {
     rviewUI->editSegmentColor->color(fl_rgb_color(255, 255, 255));
     rviewUI->editSegmentColor->deactivate();
-    rviewUI->editSegmentTransperancy->value(1);
-    rviewUI->editSegmentTransperancy->deactivate();
+    rviewUI->editSegmentTransparancy->value(1);
+    rviewUI->editSegmentTransparancy->deactivate();
     rviewUI->editSegmentVisibility->value(1);
     rviewUI->editSegmentVisibility->deactivate();
     rviewUI->editSegmentLabel->value("");
@@ -458,8 +458,8 @@ void Fl_RViewUI::UpdateSegmentationControlWindow()
   } else {
     rviewUI->editSegmentColor->color(fl_rgb_color(rviewUI->_red, rviewUI->_green, rviewUI->_blue));
     rviewUI->editSegmentColor->activate();
-    rviewUI->editSegmentTransperancy->value(rviewUI->_trans);
-    rviewUI->editSegmentTransperancy->activate();
+    rviewUI->editSegmentTransparancy->value(rviewUI->_trans);
+    rviewUI->editSegmentTransparancy->activate();
     rviewUI->editSegmentVisibility->value(rviewUI->_vis);
     rviewUI->editSegmentVisibility->activate();
     rviewUI->editSegmentLabel->value(rviewUI->_label);
@@ -565,12 +565,12 @@ void Fl_RViewUI::InitializeSegmentationControlWindow()
         o->callback((Fl_Callback*)cb_editSegmentLabel);
       }
       {
-        Fl_Slider *o = editSegmentTransperancy = new Fl_Value_Slider(10, 345, 370, 20, "Transperancy");
+        Fl_Slider *o = editSegmentTransparancy = new Fl_Value_Slider(10, 345, 370, 20, "Transparancy");
         o->minimum(0);
         o->maximum(1);
         o->box(FL_EMBOSSED_BOX);
         o->type(5);
-        o->callback((Fl_Callback*)cb_editSegmentTransperancy);
+        o->callback((Fl_Callback*)cb_editSegmentTransparancy);
         o->align(FL_ALIGN_TOP_LEFT);
       }
       {
