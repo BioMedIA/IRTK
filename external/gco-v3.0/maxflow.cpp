@@ -733,4 +733,4 @@ template <typename captype, typename tcaptype, typename flowtype>
 }
 
 // instantiate templates
-template double Graph<double,double,double>::maxflow(bool , Block<node_id>* );
+#include "instances.inc"

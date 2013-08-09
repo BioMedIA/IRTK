@@ -111,6 +111,3 @@ template <typename captype, typename tcaptype, typename flowtype>
 		}
 	}
 }
-
-// instantiate templates
-#include "instances.inc"
