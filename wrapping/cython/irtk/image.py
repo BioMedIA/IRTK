@@ -1,21 +1,17 @@
 from __future__ import division
 
-"""
-This module is a wrapper around IRTK (http://www.doc.ic.ac.uk/~dr/software/)
-written using Cython and some automated scripts to simulate templated code.
+# iPython tricks:
+# # automatically reload modified modules:
+# %load_ext autoreload
+# %autoreload 2
 
-iPython tricks:
-# automatically reload modified modules:
-%load_ext autoreload
-%autoreload 2
+# Using Notebook:
+# ipython notebook --pylab inline
 
-Using Notebook:
-ipython notebook --pylab inline
+# Using Qtconsole:
+# ipython qtconsole --pylab=inline
 
-Using Qtconsole:
-ipython qtconsole --pylab=inline
 
-"""
 
 __all__ = [ "Image",
             "imread",
@@ -56,9 +52,14 @@ def _cleanup():
 atexit.register(_cleanup)
 
 def new_header( pixelSize=[1,1,1,1],
-                orientation=np.eye( 3, dtype='float64'),
+                orientation=None,
                 origin=[0,0,0,0],
                 dim=None ):
+    """
+    Create new header.
+    """
+    if orientation is None:
+        orientation = np.eye( 3, dtype='float64' )
     if dim is None:
         raise ValueError( "at least dim must be specified" )
     return { 'pixelSize' : np.array( pixelSize, dtype='float64'),
@@ -67,11 +68,16 @@ def new_header( pixelSize=[1,1,1,1],
              'dim' : np.array( dim, dtype='int32') }
 
 class Image(np.ndarray):
-
+    """
+    A subclass of numpy.ndarray holding the information from the NIFTI headers.
+    """
     def __new__(cls,
                 img=None,
                 header=None,
                 copy=True):
+        """
+        constructor
+        """
         if img is None:
             img = np.zeros(1)
         # else:
@@ -248,9 +254,15 @@ class Image(np.ndarray):
         self.W2I = np.dot(tmp1, np.dot(tmp2, np.dot(self.W2I, tmp3)))
 
     def origin(self):
+        """
+        Return origin as a 3D point.
+        """
         return self.header['origin'][:3]
 
     def nb_pixels(self):
+        """
+        Return number of pixels.
+        """
         dim = self.header['dim']
         return dim[0]*dim[1]*dim[2]*dim[3]
     
@@ -258,9 +270,10 @@ class Image(np.ndarray):
         """
         BEWARE: images are indexed as img[t,z,y,x],
         so for instance:
-        tx,ty,tz = img.ImageToWorld( [(img.shape[2]-1)/2,
-                              (img.shape[1]-1)/2,
-                              (img.shape[0]-1)/2] )
+
+        Examples
+        --------
+        >>> tx,ty,tz = img.ImageToWorld( [(img.shape[2]-1)/2,(img.shape[1]-1)/2,(img.shape[0]-1)/2] )
         """
         tmp_pt = np.array( pt, dtype='float64' ).copy()
         if len(tmp_pt.shape) == 1:
@@ -290,11 +303,20 @@ class Image(np.ndarray):
             #return np.array( map( self.WorldToImage, pt) )
                  
     def get_header(self):
+        """
+        Safe copy of the headers.
+        """
         return copy.deepcopy(self.header)
     def set_header( self, new_header ):
+        """
+        Set the headers from a new dict.
+        """
         self.header = copy.deepcopy(new_header)
         self.__updateMatrix()
     def get_data(self, dtype=None, purpose="python" ):
+        """
+        Return pixel data.
+        """
         if dtype is None:
             dtype = self.dtype
         if purpose == "cython":
@@ -308,10 +330,13 @@ class Image(np.ndarray):
             
         return data
 
-    def copy( self, dtype=None ):
+    def copy( self, dtype=None ):       
         return Image( self.get_data(dtype), self.get_header() )
 
     def saturate( self, q0=0.01, q1=0.99 ):
+        """
+        Saturate pixel intensities.
+        """
         data = self.get_data('float32')
         if q0 is None:
             q0 = 0
@@ -323,7 +348,7 @@ class Image(np.ndarray):
         return Image( data, self.header )
     
     def rescale( self, min=0, max=255 ):
-        """ Stretch contrast """
+        """ Stretch contrast."""
         data = self.get_data('float32')
         data -= data.min()
         data /= data.max()
@@ -334,6 +359,9 @@ class Image(np.ndarray):
                   pixelSize=[1,1,1],
                   interpolation='linear',
                   gaussian_parameter=1.0 ):
+        """
+        Resample.
+        """
         if isinstance(pixelSize,tuple):
             pixelSize = list(pixelSize)
         if not isinstance(pixelSize,list):
@@ -350,6 +378,9 @@ class Image(np.ndarray):
                     pixelSize=[1,1],
                     interpolation='linear',
                     gaussian_parameter=1.0 ):
+        """
+        Resample 2D slices.
+        """
         # FIXME: do this in C++
         if isinstance(pixelSize,tuple):
             pixelSize = list(pixelSize)
@@ -389,19 +420,30 @@ class Image(np.ndarray):
         return res    
     
     def register( self, target, transformation=None ):
+        """
+        Perform image registration.
+        """
         return registration.registration_rigid( self, target, transformation )
 
     def transform( self,
-                   transformation=registration.RigidTransformation(),
+                   transformation=None,
                    target=None,
                    interpolation='linear',
                    gaussian_parameter=1.0):
+        """
+        Transform image.
+        """
+        if transformation is None:
+            transformation = registration.RigidTransformation()
         return transformation.apply( self,
                                      target,
                                      interpolation,
                                      gaussian_parameter )
 
     def mask( self, mask, threshold=0  ):
+        """
+        Mask image (after transforming the mask if necessary).
+        """
         # transform mask to current image coordinate system
         tmp_mask = mask.transform( target=self )
         new_img = self.copy()
@@ -409,6 +451,9 @@ class Image(np.ndarray):
         return new_img
 
     def reset_header( self, header=None ):
+        """
+        Reset header.
+        """
         return Image( self.view(np.ndarray), header )
 
     def thumbnail( self,
@@ -418,6 +463,9 @@ class Image(np.ndarray):
                    opacity=0.5,
                    step=2,
                    unroll=False ):
+        """
+        Create a thumbnail.
+        """
         img = self.copy('int')
         if overlay is not None and seg is not None:
             print "You cannot specify both seg and overlay"
@@ -538,6 +586,9 @@ class Image(np.ndarray):
 
 
     def bbox( self, crop=False, world=False ):
+        """
+        Bounding box.
+        """
         pts = np.transpose(np.nonzero(self>0))
         if world:
             pts = self.ImageToWorld( pts[:,::-1] )
@@ -573,21 +624,77 @@ class Image(np.ndarray):
                             x_min:x_max+1]            
 
     def order( self ):
-          if np.linalg.det(self.I2W[:3,:3]) < 0:
-              return "radiological"
-          else:
-              return "neurological"
+        """
+        Return either "radiological" or "neurological".
+        """
+        if np.linalg.det(self.I2W[:3,:3]) < 0:
+            return "radiological"
+        else:
+            return "neurological"
     def neurological( self ):
+        """
+        Return True if neurological order.
+        """
         return self.order() == "neurological"
     def radiological( self ):
+        """
+        Return True if radiological order.
+        """
         return self.order() == "radiological"
     def orientation( self ):
+        """
+        Return orientation.
+        """
         return _irtk.orientation( self.get_header() )
 
 
 
     
 def imread( filename, dtype=None ):
+    """
+    Reads an image in a format understandable by IRTK.
+
+    Parameters
+    ----------
+    filename : str
+        Name of the file to read.
+    dtype : str, optional (default: None)
+        Pixel type of the output image. If dtype is None, then the pixel type
+        that has been used to write the file to disk is selected. Note that for the
+        slope/intercept information to be taken into account in NIFTI files.
+        If an integer type is requested and slope is not 1 or intercept not 0,
+        then the following message will be printed on stderr:
+
+        ``irtkGenericImage<float>::Read: Ignore slope and intercept, use irtkGenericImage<float> or
+        irtkGenericImage<double> instead``
+
+        
+    Returns
+    -------
+    img : irtk.Image
+        A subclass of numpy.ndarray holding the information from the NIFTI headers.
+
+    Examples
+    --------
+    >>> img = irtk.imread( "input.nii", dtype="float32" )
+    >>> print img[0:2,0:2,0:2]
+    Image data:
+    array([[[ 455.95440674,  452.3605957 ],
+            [ 424.96868896,  419.69546509]],
+    <BLANKLINE>
+           [[ 462.80618286,  477.69018555],
+            [ 433.81433105,  455.43170166]]], dtype=float32)
+    <BLANKLINE>
+    Image shape: (2, 2, 2)
+    <BLANKLINE>
+    Header:
+    {   'dim': array([2, 2, 2, 1], dtype=int32),
+        'orientation': array([[ 0.18479464, -0.98071011,  0.06370761],
+                              [ 0.34170858,  0.12489687,  0.93146984],
+                              [ 0.92145872,  0.15036121, -0.35819733]]),
+        'origin': array([  6.61570985,  35.65394667, -74.69886408,   0.        ]),
+        'pixelSize': array([ 0.75,  0.75,  0.75,  1.  ])}
+    """
     reader = {
         "int8" : _irtk.imread_char,
         "uint8" : _irtk.imread_uchar,
@@ -611,6 +718,9 @@ def imread( filename, dtype=None ):
         return Image(img,header)
 
 def imwrite( filename, img ):
+    """
+    Write image.
+    """
     if not isinstance(img,Image):
         img = Image(img)
     if img.dtype.name == "bool":
@@ -632,12 +742,21 @@ def imwrite( filename, img ):
     return success
 
 def zeros( header, dtype='float32' ):
+    """
+    Similar to numpy.zeros, but with given headers.
+    """
     return Image( np.zeros( header['dim'][::-1], dtype=dtype ), header )
 
 def ones( header, dtype='float32' ):
+    """
+    Similar to numpy.ones, but with given headers.
+    """
     return Image( np.ones( header['dim'][::-1], dtype=dtype ), header )
 
 def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
+    """
+    Launches rview.
+    """
     if isinstance( img, Image ):
         if overlay is not None and seg is not None:
             print "You cannot specify both seg and overlay"
@@ -659,12 +778,15 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
         if seg is not None and not isinstance(seg, Image):
             seg = Image( seg, img.get_header() )
     
-        filename = tmp_dir + "/rview.nii"
+        handle,filename = tempfile.mkstemp(suffix=".nii")
+        garbage.append(filename)
         imwrite( filename, img.astype('int16') ) # rview reads in "short" anyway
         args = [ binary, filename ]
         if seg is not None:
-            seg_filename = tmp_dir + "/rview_seg.nii"
-            colors_filename = tmp_dir + "/rview_colors.txt"
+            handle,seg_filename = tempfile.mkstemp(suffix=".nii")
+            garbage.append(seg_filename)
+            handle,colors_filename = tempfile.mkstemp(suffix=".txt")
+            garbage.append(colors_filename)
             imwrite( seg_filename, seg.astype('int16') )
             args.extend( ["-seg", seg_filename])
             utils.colormap( colors, colors_filename )
@@ -676,6 +798,9 @@ def rview( img, seg=None, overlay=None, colors=None, binary="rview" ):
     subprocess.Popen( args )
 
 def display( img, seg=None, overlay=None, colors=None ):
+    """
+    Launches display.
+    """
     rview(img, seg, overlay, colors, binary="display")
 
 
@@ -711,6 +836,9 @@ def write_list( img_list ):
     _irtk.write_list( pixelData, pixelSize, xAxis, yAxis, zAxis, origin, dim, n )
 
 def PointsToImage( pts, header ):
+    """
+    Create an image from a set of 3D points.
+    """
     if isinstance(header,Image):
         header = header.get_header()
     pts = np.array(pts, dtype="float64")
@@ -718,6 +846,9 @@ def PointsToImage( pts, header ):
     return Image( img, header )
 
 def drawSphere( img, (x,y,z), rx, ry=None, rz=None ):
+    """
+    Draw a sphere in a given image.
+    """
     if ry is None:
         ry = rx
     if rz is None:
@@ -725,6 +856,9 @@ def drawSphere( img, (x,y,z), rx, ry=None, rz=None ):
     _irtk.drawSphere( img, x, y, z, rx, ry, rz )
 
 def sphere( (x, y, z), r, header ):
+    """
+    Create an image with a filled sphere.
+    """
     img = zeros( header, dtype='uint8' )
     x0, y0, z0 = img.WorldToImage( (x, y, z) )
     rx = int(round( r / header['pixelSize'][0] ))
@@ -831,6 +965,9 @@ def imshow( img,
     return False
 
 def crf( img, labels, proba, l=1.0 ):
+    """
+    Conditional Random Field.
+    """
     if not isinstance(img,Image): img = Image(img)
     if not isinstance(labels,Image): labels = Image(labels)
     if not isinstance(proba,Image): proba = Image(proba)

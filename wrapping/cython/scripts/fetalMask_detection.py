@@ -10,9 +10,25 @@ from glob import glob
 from lib.BundledSIFT import *
 import scipy.ndimage as nd
 
-filename = sys.argv[1]
-ga = float(sys.argv[2])
-output_mask = sys.argv[3]
+import argparse
+
+# filename = sys.argv[1]
+# ga = float(sys.argv[2])
+# output_mask = sys.argv[3]
+
+parser = argparse.ArgumentParser(
+    description='Slice-by-slice detection of fetal brain MRI (3D).' )
+parser.add_argument( "filename", type=str )
+parser.add_argument( "ga", type=float )
+parser.add_argument( "output_mask", type=str )
+parser.add_argument( '--debug', action="store_true", default=False )
+args = parser.parse_args()
+print args
+
+filename = args.filename
+ga = args.ga
+output_mask = args.output_mask
+DEBUG = args.debug
 
 output_dir = os.path.dirname( output_mask )
 if output_dir != '' and not os.path.exists(output_dir):

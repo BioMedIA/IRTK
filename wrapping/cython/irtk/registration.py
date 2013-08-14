@@ -16,6 +16,9 @@ import _irtk
 import irtk
 
 class RigidTransformation:
+    """
+    Rigid transformation class.
+    """
     def __init__( self, filename=None, matrix=None,
                   tx=0, ty=0, tz=0,
                   rx=0, ry=0, rz=0 ):
@@ -32,6 +35,9 @@ class RigidTransformation:
                                                rx, ry, rz ) )
 
     def get_parameters( self ):
+        """
+        Return parameters.
+        """
         return ( self.tx, self.ty, self.tz,
                  self.rx, self.ry, self.rz )
 
@@ -45,6 +51,9 @@ class RigidTransformation:
         return txt
 
     def matrix( self ):
+        """
+        Return matrix.
+        """
         cosrx = cos(self.rx*(pi/180.0))
         cosry = cos(self.ry*(pi/180.0))
         cosrz = cos(self.rz*(pi/180.0))
@@ -106,12 +115,18 @@ class RigidTransformation:
                  rx, ry, rz )
 
     def write( self, filename ):
+        """
+        Save to disk.
+        """
         _irtk.write_rigid( filename,
                            self.tx, self.ty, self.tz,
                            self.rx, self.ry, self.rz )
 
     def apply( self, img, target_header=None,
                interpolation='linear', gaussian_parameter=1.0 ):
+        """
+        Apply.
+        """
         if not isinstance( img, irtk.Image ):
             # point transformation
             pt = np.array(img, dtype='float64', copy=True)
@@ -164,6 +179,9 @@ class RigidTransformation:
         return irtk.Image( new_data, target_header )
 
     def invert( self ):
+        """
+        Invert.
+        """
         return RigidTransformation( matrix=np.linalg.inv(self.matrix()) )
 
     def __mul__(self, other):
@@ -191,10 +209,16 @@ def registration_rigid( source, target, transformation=None ):
                                 rx=rx, ry=ry, rz=rz )
                                                        
 def read_points( filename ):
+    """
+    Read points from file.
+    """
     return np.array( _irtk.read_points(filename),
                      dtype="float64" )
 
 def registration_rigid_points( source, target, rms=False ):
+    """
+    Point registration.
+    """
     source = np.array( source, dtype="float64" )
     target = np.array( target, dtype="float64" )
     ( tx, ty, tz, rx, ry, rz ), RMS = _irtk.registration_rigid_points( source,

@@ -1,3 +1,8 @@
+"""
+This module is a wrapper around IRTK (http://www.doc.ic.ac.uk/~dr/software/)
+written using Cython and a script to simulate templated code.
+"""
+
 import sys
 
 if "matplotlib" not in sys.modules.keys():

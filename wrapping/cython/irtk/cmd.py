@@ -5,6 +5,9 @@ import image
 import tempfile
 
 class Cmd(object):
+    """
+    Generic wrapper for command line applications using medical images.
+    """
     def __init__( self, program, *args, **kwargs ):
         self.program = program
         self.arguments = list(args) # list
