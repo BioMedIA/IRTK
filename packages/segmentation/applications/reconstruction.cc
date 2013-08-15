@@ -147,7 +147,7 @@ int main(int argc, char **argv)
       //if ( i == 0 )
           //log_id = argv[1];
     stack.Read(argv[1]);
-    reconstruction.Rescale(stack,1000);
+    //reconstruction.Rescale(stack,1000);
     cout<<"Reading stack ... "<<argv[1]<<endl;
     argc--;
     argv++;
@@ -177,6 +177,7 @@ int main(int argc, char **argv)
     stack_transformations.push_back(*rigidTransf);
     delete rigidTransf;
   }
+  reconstruction.InvertStackTransformations(stack_transformations);
 
   // Parse options.
   while (argc > 1){
@@ -604,6 +605,7 @@ int main(int argc, char **argv)
         }
       cout<<"Iteration "<<iter<<": "<<endl;
       
+      //if((packages.size()>0)&&(iter<(iterations-1)))
       if((packages.size()>0)&&(iter<=iterations*(levels-1)/levels)&&(iter<(iterations-1)))
       {
 	if(iter==1)
@@ -734,13 +736,13 @@ int main(int argc, char **argv)
     reconstruction.MaskVolume();
 
     //Save reconstructed image
-    if (debug)
-    {
+    //if (debug)
+    //{
       reconstructed=reconstruction.GetReconstructed();
       sprintf(buffer,"image%i.nii.gz",iter);
       reconstructed.Write(buffer);
       //reconstruction.SaveConfidenceMap();
-    }
+    //}
 
    //Evaluate - write number of included/excluded/outside/zero slices in each iteration in the file
     if ( ! no_log ) {
