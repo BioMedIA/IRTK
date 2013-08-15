@@ -452,6 +452,42 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::PutMinMax(VoxelType
   }
 }
 
+template <class VoxelType> void irtkGenericImage<VoxelType>::Saturate( double q0, double q1 )
+{
+  if ((q0==0) && (q1==1))
+    return;
+  if ((q0<0) || (q1>1)) {
+    stringstream msg;
+    msg << "irtkGenericImage<VoxelType>::Saturate: Parameter out of range 0.0 - 1.0\n";
+    cerr << msg.str();
+    throw irtkException( msg.str(),
+                         __FILE__,
+                         __LINE__ );
+  }
+  
+  int i, n;
+  VoxelType *ptr, q0_val, q1_val;
+  
+  // find quantiles
+  n   = this->GetNumberOfVoxels();
+  ptr = this->GetPointerToVoxels();  
+  vector<VoxelType> voxel_tmp(n);
+  for (i=0;i<n;i++)
+    voxel_tmp[i] = ptr[i];
+
+  sort(voxel_tmp.begin(),voxel_tmp.end());
+
+  q0_val = voxel_tmp[round((voxel_tmp.size()-1)*q0)];
+  q1_val = voxel_tmp[round((voxel_tmp.size()-1)*q1)];
+
+  for (i = 0; i < n; i++) {
+    if (ptr[i] < q0_val)
+      ptr[i] = q0_val;
+    if (ptr[i] > q1_val)
+      ptr[i] = q1_val;
+  }
+}
+
 template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelType>::GetRegion(int k, int m) const
 {
   int i, j;

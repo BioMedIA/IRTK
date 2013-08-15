@@ -20,6 +20,8 @@
 
 #endif
 
+#include <vector>
+
 /**
  * Generic class for 2D or 3D images
  *
@@ -96,6 +98,9 @@ public:
   /// Minimum and maximum pixel values put accessor
   void PutMinMax(VoxelType, VoxelType);
 
+  /// Saturation
+  void Saturate( double q0=0.01, double q1=0.99 );
+  
   /// Function for pixel access via pointers
   VoxelType *GetPointerToVoxels(int = 0, int = 0, int = 0, int = 0) const;
 

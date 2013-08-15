@@ -20,6 +20,7 @@ void usage()
   cerr << "where <options> can be one or more of the following:\n";
   cerr << "<-char|uchar|short|ushort|float|double>    \t Output voxel type\n";
   cerr << "<-minmax value value>                      \t Output min and max intensity\n";
+  cerr << "<-saturate q0 q1>                      \t Saturate the image (typical usage: q0=0.01, q1=0.99)\n";  
   cerr << "Please note that IRTK will flip Analyze in the y-direction when the image \n";
   cerr << "is read and written (for historical reasons). This means that the coordinate \n";
   cerr << "system which IRTK uses for Analyze images is different from that used by other \n";
@@ -32,7 +33,8 @@ void usage()
 int main(int argc, char **argv)
 {
   double min, max;
-  int ok, minmax, image_type;
+  double q0, q1;
+  int ok, minmax, saturate, image_type;
 
   if (argc < 3) {
     usage();
@@ -95,6 +97,17 @@ int main(int argc, char **argv)
           argv++;
           minmax = true;
           ok = true;
+      } else if (strcmp(argv[1], "-saturate") == 0) {
+          argc--;
+          argv++;
+          q0 = atof(argv[1]);
+          argc--;
+          argv++;
+          q1 = atof(argv[1]);
+          argc--;
+          argv++;
+          saturate = true;
+          ok = true;          
       } else if (!ok) {
           cerr << "Invalid option : " << argv[1] << endl;
           exit(1);
@@ -103,6 +116,10 @@ int main(int argc, char **argv)
 
   // Read image
   irtkGenericImage<float> image(input_name);
+
+  // Saturate
+  if (saturate)
+    image.Saturate(q0,q1);
 
   // Scale image
   if (minmax) {
