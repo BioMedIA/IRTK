@@ -2928,6 +2928,8 @@ void irtkRView::DrawOffscreen(char *filename)
     ptr[i+2*n] = buffer[index++];
   }
 
+  image.ReflectY();
+  
   // Write file
   image.Write(filename);
 
