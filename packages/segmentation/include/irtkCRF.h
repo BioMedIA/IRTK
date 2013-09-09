@@ -1,3 +1,16 @@
+/*=========================================================================
+
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2011 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
+
+=========================================================================*/
+
+
 #include <stdio.h>
 #include <iostream>
 #include <cmath>
@@ -6,7 +19,7 @@
 
 #include "GCoptimization.h"
 
-typedef double pixel_t;
+typedef irtkRealPixel pixel_t;
 
 typedef short LabelID;
 typedef int SiteID;
@@ -18,7 +31,7 @@ class irtkCRF : public irtkObject
 private:
     irtkGenericImage<pixel_t> &_img;
     irtkGenericImage<LabelID> &_labels;
-    irtkGenericImage<double> &_proba;
+    irtkGenericImage<irtkRealPixel> &_proba;
     double _lambda;
 
     size_t index( size_t i, size_t j, size_t k );
@@ -28,7 +41,7 @@ public:
     /// Constructor
     irtkCRF( irtkGenericImage<pixel_t> &img,
              irtkGenericImage<LabelID> &labels,
-             irtkGenericImage<double> &proba );
+             irtkGenericImage<irtkRealPixel> &proba );
 
     /// Destructor
     ~irtkCRF();
