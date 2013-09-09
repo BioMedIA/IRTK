@@ -1,9 +1,15 @@
-/*
- * irtkEMClassification2ndOrderMRF.h
- *
- *  Created on: 3 Jun 2013
- *      Author: cl6311
- */
+/*=========================================================================
+
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2011 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
+
+=========================================================================*/
+
 
 /*
  * 	This class implements the Paper:

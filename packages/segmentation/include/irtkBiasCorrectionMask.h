@@ -1,9 +1,16 @@
 /*=========================================================================
 
-  date:		20.12.2011
-  Changes   : $Author: cl6311 $
+  Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
+  Copyright : Imperial College, Department of Computing
+              Visual Information Processing (VIP), 2011 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
+
+
 
 #ifndef _IRTKBIASCORRECTIONMASK_H
 

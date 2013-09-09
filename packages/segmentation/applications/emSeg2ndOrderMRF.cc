@@ -1,12 +1,16 @@
 /*=========================================================================
-  emSeg2ndOrderMRF.cc
 
   Library   : Image Registration Toolkit (IRTK)
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
-              Visual Information Processing (VIP), 2008 onwards
-  Date      : $Date: 3 Jun 2013 $
-  Changes   : $Author: cl6311 $
+              Visual Information Processing (VIP), 2011 onwards
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
+
 =========================================================================*/
+
+
 
 /*
  * 	This class implements the Paper:
