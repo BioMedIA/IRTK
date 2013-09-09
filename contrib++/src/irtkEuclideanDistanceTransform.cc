@@ -307,7 +307,7 @@ template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVor
 } /* edtVornoiEDT */
 
 
-template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVornoiEDT_anisotropic(double *f, long n, double w)
+template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVornoiEDT_anisotropic(irtkRealPixel *f, long n, double w)
 /*
  * This is Procedure edtVornoiEDT() in tPAMI paper.
  */
@@ -417,7 +417,7 @@ template <class VoxelType> int irtkEuclideanDistanceTransform<VoxelType>::edtVor
   return (1);
 } /* edtVornoiEDT_anisotropic */
 
-template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_2D_anisotropic(double *img, double *edt, long nX, long nY, double wX, double wY)
+template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_2D_anisotropic(irtkRealPixel *img, irtkRealPixel *edt, long nX, long nY, double wX, double wY)
 /*
  * This procedure computes the squared EDT of a 2D binary image with anisotropic
  * voxels. See notes for edtComputeEDT_2D. The difference relative to edtComputeEDT_2D
@@ -425,9 +425,9 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
  * additional parameters for the image voxel dimensions wX and wY.
  */
 {
-  double *c;
+  irtkRealPixel *c;
   long i, j, nXY;
-  double d, *p, *q, *f;
+  irtkRealPixel d, *p, *q, *f;
 
   /* nXY is number of voxels in 2D image */
   nXY = nX * nY;
@@ -490,7 +490,7 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
 
   /* compute D_2 = squared EDT */
   /* solve 1D problem for each column (y direction) */
-  f = (double *)malloc(nY * sizeof(double));
+  f = (irtkRealPixel *)malloc(nY * sizeof(irtkRealPixel));
   if (f == NULL) {
     fprintf(stderr, "Error in edtComputeEDT_2D()\n");
     fprintf(stderr, "Cannot malloc f\n");
@@ -522,11 +522,11 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
  * voxels. See notes for edtComputeEDT_2D_anisotropic.
  */
 
-template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_3D_anisotropic(double *img, double *edt, long nX, long nY, long nZ, double wX, double wY, double wZ)
+template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtComputeEDT_3D_anisotropic(irtkRealPixel *img, irtkRealPixel *edt, long nX, long nY, long nZ, double wX, double wY, double wZ)
 {
-  double *c;
+  irtkRealPixel *c;
   long i, k, nXY, nXYZ;
-  double *p, *q, *f;
+  irtkRealPixel *p, *q, *f;
 
   /* nXY is number of voxels in each plane (xy) */
   /* nXYZ is number of voxels in 3D image */
@@ -552,7 +552,7 @@ template <class VoxelType> void irtkEuclideanDistanceTransform<VoxelType>::edtCo
 
   /* compute D_3 */
   /* solve 1D problem for each column (z direction) */
-  f = (double *)malloc(nZ * sizeof(double));
+  f = (irtkRealPixel *)malloc(nZ * sizeof(irtkRealPixel));
   if (f == NULL) {
     fprintf(stderr, "Error in edtComputeEDT_3D()\n");
     fprintf(stderr, "Cannot malloc f\n");
