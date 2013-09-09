@@ -37,8 +37,8 @@ template <class VoxelType> VoxelType irtkConvolutionWithPadding_2D<VoxelType>::G
 
 template <class VoxelType> double irtkConvolutionWithPadding_2D<VoxelType>::Run(int x, int y, int z, int t)
 {
-  double *ptr2;
-  double val, sum;
+  irtkRealPixel *ptr2;
+  irtkRealPixel val, sum;
   int x1, x2, y1, y2;
 
   if (this->_input->Get(x, y, z, t) <= this->_padding) return this->_padding;

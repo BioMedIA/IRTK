@@ -41,8 +41,8 @@ template <class VoxelType> void irtkConvolution_3D<VoxelType>::SetInput2(irtkGen
 
 template <class VoxelType> double irtkConvolution_3D<VoxelType>::Run(int x, int y, int z, int t)
 {
-  double *ptr2;
-  double val, sum;
+  irtkRealPixel *ptr2;
+  irtkRealPixel val, sum;
   int x1, x2, y1, y2, z1, z2;
 
   // Initialize

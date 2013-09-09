@@ -164,7 +164,7 @@ void irtkImageFreeFormRegistration2::Initialize(int level)
 {
     int i, j, k;
     double x, y, z, *ptr2latt, *ptr2disp;
-    short *ptr2mask;
+    irtkGreyPixel *ptr2mask;
 
     // Print debugging information
     this->Debug("irtkImageFreeFormRegistration2::Initialize(int)");
@@ -437,8 +437,8 @@ void irtkImageFreeFormRegistration2::UpdateSource()
 
 void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
 {
-    double *ptr1;
-    double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
+	irtkRealPixel *ptr1, *ptr2;
+	double x, y, z, t1, t2, u1, u2, v1, v2;
     int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
     IRTK_START_TIMING();
@@ -487,7 +487,7 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                                 u2 = 1 - u1;
 
                                 // Linear interpolation in source image
-                                ptr1 = (double *)_source->GetScalarPointer(a, b, 0);
+                                ptr1 = (irtkRealPixel *)_source->GetScalarPointer(a, b, 0);
                                 _transformedSource(i, j, 0) = t1 * (u2 * ptr1[offset2] + u1 * ptr1[offset4]) + t2 * (u2 * ptr1[offset1] + u1 * ptr1[offset3]);
 
                                 // Linear interpolation in gradient image
@@ -552,7 +552,7 @@ void irtkImageFreeFormRegistration2::UpdateSourceAndGradient()
                                     v2 = 1 - v1;
 
                                     // Linear interpolation in source image
-                                    ptr1 = (double *)_source->GetScalarPointer(a, b, c);
+                                    ptr1 = (irtkRealPixel *)_source->GetScalarPointer(a, b, c);
                                     _transformedSource(i, j, k) = (t1 * (u2 * (v2 * ptr1[offset2] + v1 * ptr1[offset6]) +
                                         u1 * (v2 * ptr1[offset4] + v1 * ptr1[offset8])) +
                                         t2 * (u2 * (v2 * ptr1[offset1] + v1 * ptr1[offset5]) +

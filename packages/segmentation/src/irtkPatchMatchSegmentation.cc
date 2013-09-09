@@ -71,8 +71,11 @@ irtkPatchMatchSegmentation::~irtkPatchMatchSegmentation()
 void irtkPatchMatchSegmentation::normalizedistances(){
 	distancenorm = new double[targetlabeldistance->GetT()];
 	double min,max;
+	irtkRealPixel min_tmp, max_tmp;
 	for(int t = 0; t < targetlabeldistance->GetT(); t++){
-		targetlabeldistance->GetMinMax(&max,&min);
+		targetlabeldistance->GetMinMax(&max_tmp,&min_tmp);
+		min = static_cast<double>(min_tmp);
+		max = static_cast<double>(max_tmp);
 		for(int k = 0; k < targetlabeldistance->GetZ(); k++){
 			for(int j = 0; j < targetlabeldistance->GetY(); j++){
 				for(int i = 0; i < targetlabeldistance->GetX(); i++){

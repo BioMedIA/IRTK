@@ -2,7 +2,7 @@
 
 irtkCRF::irtkCRF( irtkGenericImage<pixel_t> &img,
                   irtkGenericImage<LabelID> &labels,
-                  irtkGenericImage<double> &proba )
+                  irtkGenericImage<irtkRealPixel> &proba )
  : _img(img), _labels(labels), _proba(proba)
 {
     _lambda = 1.0;
@@ -72,8 +72,8 @@ void irtkCRF::Run()
                                     double dist = sqrt( pow(double(a),2.0) +
                                                         pow(double(b),2.0) +
                                                         pow(double(c),2.0) );
-                                    double w = exp( -pow( _img(x,y,z) -
-                                                          _img(x0,y0,z0), 2.0)
+                                    double w = exp( -pow( double(_img(x,y,z) -
+                                                          _img(x0,y0,z0)), 2.0)
                                                     / std2 )
                                         / dist;
                                     graph.setNeighbors( id, id0, w*1000 );

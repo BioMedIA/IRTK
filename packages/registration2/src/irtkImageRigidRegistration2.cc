@@ -115,9 +115,9 @@ void irtkImageRigidRegistration2::UpdateSource()
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
-  double *ptr2source;
-  double *ptr2result;
-  short  *ptr2mask;
+  irtkRealPixel *ptr2source;
+  irtkRealPixel *ptr2result;
+  irtkGreyPixel  *ptr2mask;
 
   IRTK_START_TIMING();
 
@@ -243,13 +243,13 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
   int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
   // Pointer to reference data
-  double *ptr2source;
-  double *ptr2result;
-  double *ptr2gradX;
-  double *ptr2gradY;
-  double *ptr2gradZ;
-  double *ptr;
-  short  *ptr2mask;
+  irtkRealPixel *ptr2source;
+  irtkRealPixel *ptr2result;
+  irtkRealPixel *ptr2gradX;
+  irtkRealPixel *ptr2gradY;
+  irtkRealPixel *ptr2gradZ;
+  irtkRealPixel *ptr;
+  irtkGreyPixel  *ptr2mask;
 
   IRTK_START_TIMING();
 
@@ -420,8 +420,8 @@ double irtkImageRigidRegistration2::EvaluateGradient(double *gradient)
   static double *g = NULL, *h = NULL, gg, dgg, gamma;
 
   // Pointer to reference data
-  short  *ptr2mask;
-  double *ptr2gradX, *ptr2gradY, *ptr2gradZ;
+  irtkGreyPixel  *ptr2mask;
+  irtkRealPixel *ptr2gradX, *ptr2gradY, *ptr2gradZ;
 
   // Compute gradient with respect to displacements
   this->irtkImageRegistration2::EvaluateGradient(gradient);

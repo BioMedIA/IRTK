@@ -278,8 +278,8 @@ void irtkImageRegistration2::Initialize(int level)
   }
 
   // Compute spatial gradient of source image
-  irtkGradientImageFilter<double> gradient(irtkGradientImageFilter<double>::GRADIENT_VECTOR);
-  irtkGenericImage<double> tmp = *_source;
+  irtkGradientImageFilter<irtkRealPixel> gradient(irtkGradientImageFilter<irtkRealPixel>::GRADIENT_VECTOR);
+  irtkGenericImage<irtkRealPixel> tmp = *_source;
   gradient.SetInput (&tmp);
   gradient.SetOutput(&_sourceGradient);
   gradient.SetPadding(_SourcePadding);
@@ -488,9 +488,9 @@ double irtkImageRegistration2::EvaluateSSD()
   this->Debug("irtkImageRegistration2::EvaluateSSD");
 
   // Pointer to voxels in images
-  double *ptr2target  = _target->GetPointerToVoxels();
-  double *ptr2source  = _transformedSource.GetPointerToVoxels();
-  short  *ptr2mask    = _distanceMask.GetPointerToVoxels();
+  irtkRealPixel *ptr2target  = _target->GetPointerToVoxels();
+  irtkRealPixel *ptr2source  = _transformedSource.GetPointerToVoxels();
+  irtkGreyPixel  *ptr2mask    = _distanceMask.GetPointerToVoxels();
 
   // Initialize metric
   n = 0;
@@ -527,9 +527,9 @@ double irtkImageRegistration2::EvaluateNMI()
   this->Debug("irtkImageRegistration2::EvaluateNMI");
 
   // Pointer to voxels in images
-  double *ptr2target = _target->GetPointerToVoxels();
-  double *ptr2source = _transformedSource.GetPointerToVoxels();
-  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
+  irtkRealPixel *ptr2target = _target->GetPointerToVoxels();
+  irtkRealPixel *ptr2source = _transformedSource.GetPointerToVoxels();
+  irtkGreyPixel  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Initialize metric
   _histogram->Reset();
@@ -586,9 +586,9 @@ void irtkImageRegistration2::EvaluateGradientSSD()
   this->Debug("irtkImageRegistration2::EvaluateGradient");
 
   // Pointer to voxels in images
-  double *ptr2target = _target->GetPointerToVoxels();
-  double *ptr2source = _transformedSource.GetPointerToVoxels();
-  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
+  irtkRealPixel *ptr2target = _target->GetPointerToVoxels();
+  irtkRealPixel *ptr2source = _transformedSource.GetPointerToVoxels();
+  irtkGreyPixel  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Compute gradient
   for (k = 0; k < _target->GetZ(); k++) {
@@ -652,9 +652,9 @@ void irtkImageRegistration2::EvaluateGradientNMI()
   logMarginalYHistogram.Log();
 
   // Pointer to voxels in images
-  double *ptr2target = _target->GetPointerToVoxels();
-  double *ptr2source = _transformedSource.GetPointerToVoxels();
-  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
+  irtkRealPixel *ptr2target = _target->GetPointerToVoxels();
+  irtkRealPixel *ptr2source = _transformedSource.GetPointerToVoxels();
+  irtkGreyPixel  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Loop over images
   for (k = 0; k < _target->GetZ(); k++) {
@@ -741,8 +741,8 @@ double irtkImageRegistration2::EvaluateGradient(double *)
   irtkMatrix m = _source->GetImageToWorldMatrix();
 
   // Pointer to voxels in mask
-  double *ptr2source = _transformedSource.GetPointerToVoxels();
-  short  *ptr2mask   = _distanceMask.GetPointerToVoxels();
+  irtkRealPixel *ptr2source = _transformedSource.GetPointerToVoxels();
+  irtkGreyPixel  *ptr2mask   = _distanceMask.GetPointerToVoxels();
 
   // Reorient gradient
   for (k = 0; k < _target->GetZ(); k++) {

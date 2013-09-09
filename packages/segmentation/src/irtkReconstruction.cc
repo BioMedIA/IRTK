@@ -3907,7 +3907,7 @@ void irtkReconstruction::MaskImage(irtkRealImage& image, double padding)
 void irtkReconstruction::Rescale( irtkRealImage &img, double max)
 {
     int i, n;
-    double *ptr, min_val, max_val;
+    irtkRealPixel *ptr, min_val, max_val;
 
     // Get lower and upper bound
     img.GetMinMax(&min_val, &max_val);

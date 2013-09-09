@@ -40,34 +40,34 @@ protected:
   /** First input image. This image is denoted as target image and its
    *  coordinate system defines the frame of reference for the registration.
    */
-  irtkGenericImage<double> *_target;
+  irtkGenericImage<irtkRealPixel> *_target;
 
   /** Second input image. This image is denoted as source image. The goal of
    *  the registration is to find the transformation which maps the source
    *  image into the coordinate system of the target image.
    */
-  irtkGenericImage<double> *_source;
+  irtkGenericImage<irtkRealPixel> *_source;
 
-  irtkGenericImage<double> *tmp_target;
-  irtkGenericImage<double> *tmp_source;
+  irtkGenericImage<irtkRealPixel> *tmp_target;
+  irtkGenericImage<irtkRealPixel> *tmp_source;
 
   //Distance image for masking used/unused voxels and determine the distance to the closest one
-  irtkGenericImage<short> _distanceMask;
+  irtkGenericImage<irtkGreyPixel> _distanceMask;
 
   /** Current estimate of the source image transformed back into the target
    *  coordinate system. This is updated every time the Update function is
    *  called.
    */
-  irtkGenericImage<double> _transformedSource;
+  irtkGenericImage<irtkRealPixel> _transformedSource;
 
   /// Gradient of the original source
-  irtkGenericImage<double> _sourceGradient;
+  irtkGenericImage<irtkRealPixel> _sourceGradient;
 
   /// Gradient of the transformed source
-  irtkGenericImage<double> _transformedSourceGradient;
+  irtkGenericImage<irtkRealPixel> _transformedSourceGradient;
 
   /// Gradient of the similarity metric
-  irtkGenericImage<double> _similarityGradient;
+  irtkGenericImage<irtkRealPixel> _similarityGradient;
 
   /// Transformation
   irtkTransformation *_transformation;

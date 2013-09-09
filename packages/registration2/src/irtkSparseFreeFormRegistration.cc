@@ -1135,7 +1135,8 @@ void irtkSparseFreeFormRegistration::UpdateSource()
 void irtkSparseFreeFormRegistration::UpdateSourceAndGradient()
 {
     short *ptr1;
-    double x, y, z, t1, t2, u1, u2, v1, v2, *ptr2;
+    irtkRealPixel *ptr2;
+    double x, y, z, t1, t2, u1, u2, v1, v2;
     int a, b, c, i, j, k, offset1, offset2, offset3, offset4, offset5, offset6, offset7, offset8;
 
     IRTK_START_TIMING();

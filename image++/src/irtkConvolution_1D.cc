@@ -42,9 +42,9 @@ template <class VoxelType> void irtkConvolution_1D<VoxelType>::SetInput2(irtkGen
 template <class VoxelType> double irtkConvolution_1D<VoxelType>::Run(int x, int y, int z, int t)
 {
   int x1, x2;
-  double *ptr2;
+  irtkRealPixel *ptr2;
   VoxelType *ptr;
-  double val, sum;
+  irtkRealPixel val, sum;
 
   // Initialize
   val = 0;
