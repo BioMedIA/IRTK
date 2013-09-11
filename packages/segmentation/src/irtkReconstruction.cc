@@ -1102,6 +1102,8 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
 
 
     for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++) {
+      
+	
         // read the current slice
         irtkRealImage& slice = _slices[inputIndex];
 
@@ -1109,7 +1111,10 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
         sim.Initialize( slice.GetImageAttributes() );
         sim = 0;
 
-        for (i = 0; i < slice.GetX(); i++)
+	//do not simulate excluded slice
+        if(_slice_weight[inputIndex]>0.5)
+	{
+          for (i = 0; i < slice.GetX(); i++)
             for (j = 0; j < slice.GetY(); j++)
                 if (slice(i, j, 0) != -1) {
                     weight=0;
@@ -1122,6 +1127,7 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
                     if(weight>0)
                         sim(i,j,0)/=weight;
                 }
+	}
 
         if (_stack_index[inputIndex]==current_stack)
             z++;

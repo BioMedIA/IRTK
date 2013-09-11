@@ -709,8 +709,12 @@ int main(int argc, char **argv)
       
       //MStep and update reconstructed volume
       reconstruction.Superresolution(i+1);
-      if((sigma>0)&&(!global_bias_correction))
-        reconstruction.NormaliseBias(i);
+      
+      if (intensity_matching)
+      {
+        if((sigma>0)&&(!global_bias_correction))
+          reconstruction.NormaliseBias(i);
+      }
 
       // Simulate slices (needs to be done
       // after the update of the reconstructed volume)

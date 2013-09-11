@@ -123,7 +123,7 @@ void irtkReconstructionb0::SetT2Template(irtkRealImage T2)
   imagetransformation->Run();
   
   _reconstructed = t2template;
-  _reconstructed.Write("t2template.nii.gz");
+  //_reconstructed.Write("t2template.nii.gz");
 
 }
 
@@ -159,7 +159,8 @@ irtkRealImage irtkReconstructionb0::AlignT2Template(irtkRealImage T2, double sig
   m=m*mo;
   tr.PutMatrix(m);
   
-  tr.irtkTransformation::Write("tr.dof");
+  if (_debug)
+    tr.irtkTransformation::Write("T2-to-b0.dof");
   
   //transform T2
   irtkRealImage t2template = _reconstructed;
@@ -175,6 +176,35 @@ irtkRealImage irtkReconstructionb0::AlignT2Template(irtkRealImage T2, double sig
   imagetransformation->PutSourcePaddingValue(0);
   imagetransformation->PutInterpolator(interpolator);
   imagetransformation->Run();
+  //t2template.Write("at2.nii.gz");
+  
+  irtkRealImage mask = T2, alignedmask = _reconstructed;
+  irtkRealPixel *pm,*pt;
+  pm = mask.GetPointerToVoxels();
+  for (int i=0;i<mask.GetNumberOfVoxels();i++)
+  {
+    if(*pm>0) 
+      *pm=1;
+    pm++;  
+  }
+  //mask.Write("T2mask.nii.gz");
+  imagetransformation->SetInput(&mask, &tr);
+  imagetransformation->SetOutput(&alignedmask);
+  imagetransformation->Run();
+  //alignedmask.Write("alignedT2mask.nii.gz");
+  pm = alignedmask.GetPointerToVoxels();
+  pt = t2template.GetPointerToVoxels();
+  for (int i=0;i<alignedmask.GetNumberOfVoxels();i++)
+  {
+    if(*pm>=0.5)
+      *pt/=*pm;
+    else       
+      *pt=0;
+    pm++;  
+    pt++;  
+  }
+  //t2template.Write("at2masked.nii.gz");
+  
   
   return t2template;
 
@@ -290,7 +320,7 @@ irtkAffineTransformation irtkReconstructionb0::AdjustOrientationTransformation(i
   //create affine transformation
   irtkAffineTransformation tr;
   tr.PutMatrix(orient);
-  tr.irtkTransformation::Write("adjusted-orient.dof");
+  //tr.irtkTransformation::Write("adjusted-orient.dof");
   return tr;
 
 }
@@ -304,9 +334,9 @@ void irtkReconstructionb0::ShimDistortion(irtkRealImage &acquired, irtkRealImage
   sim = AdjustOrientation(simulated,swap);
   
   irtkAffineTransformation orient = AdjustOrientationTransformation(acquired,swap);
-  orient.irtkTransformation::Write("orient.dof");
-  acq.Write("adjusted.nii.gz");
-  sim.Write("simulated.nii.gz");
+  //orient.irtkTransformation::Write("orient.dof");
+  //acq.Write("adjusted.nii.gz");
+  //sim.Write("simulated.nii.gz");
   
   //constrain distortion transformation
   irtkAffineTransformation distortion;
@@ -333,8 +363,9 @@ void irtkReconstructionb0::ShimDistortion(irtkRealImage &acquired, irtkRealImage
   registration.GuessParameterDistortion(xsize);
   registration.SetTargetPadding(0);
   registration.Run();
-  distortion.irtkTransformation::Write("d.dof");
-  registration.Write("par-shim.areg");
+  //distortion.irtkTransformation::Write("d.dof");
+  if(_debug)
+    registration.Write("par-shim.areg");
   
   irtkMatrix mo = orient.GetMatrix();
   irtkMatrix md = distortion.GetMatrix();
@@ -344,7 +375,7 @@ void irtkReconstructionb0::ShimDistortion(irtkRealImage &acquired, irtkRealImage
   distortion.PutMatrix(md);
   shim.PutMatrix(md);
 
-  distortion.irtkTransformation::Write("shim.dof");
+  //distortion.irtkTransformation::Write("shim.dof");
   
   //return distortion;
   //irtkMatrix ms = _shim.GetMatrix();
@@ -379,12 +410,15 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
     stacks2.push_back(stacks[ind]);
   }
   SimulateStacks(simulated);
-  for(ind = 0; ind<stacks.size();ind++)
+  if(_debug)
   {
-    sprintf(buffer,"st%i.nii.gz",ind);
-    stacks[ind].Write(buffer);
-    sprintf(buffer,"sim%i.nii.gz",ind);
-    simulated[ind].Write(buffer);
+    for(ind = 0; ind<stacks.size();ind++)
+    {
+      sprintf(buffer,"st%i.nii.gz",ind);
+      stacks[ind].Write(buffer);
+      sprintf(buffer,"sim%i.nii.gz",ind);
+      simulated[ind].Write(buffer);
+    }
   }
   
   
@@ -401,6 +435,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   cout.flush();
   cout<<"Groups: ";
   cout.flush();
+  _shim.clear();
   for(int g=0; g<_groups.size();g++)
   {
     cout<<g<<" ";
@@ -460,10 +495,13 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
 	  }
     }
     
-    sprintf(buffer,"stacks%i-%i.nii.gz",iter,g);
-    stack.Write(buffer);
-    sprintf(buffer,"sims%i-%i.nii.gz",iter,g);
-    simul.Write(buffer);
+    if(_debug)
+    {
+      sprintf(buffer,"stacks%i-%i.nii.gz",iter,g);
+      stack.Write(buffer);
+      sprintf(buffer,"sims%i-%i.nii.gz",iter,g);
+      simul.Write(buffer);
+    }
     
     //calculate shim
     irtkAffineTransformation shim;
@@ -478,8 +516,12 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
     shim.Invert();
     shim.UpdateParameter();
     shim.Print();
-    sprintf(buffer,"shim%i-%i.dof",iter,g);
-    shim.irtkTransformation::Write(buffer);
+    if(_debug)
+    {
+      sprintf(buffer,"shim%i-%i.dof",iter,g);
+      shim.irtkTransformation::Write(buffer);
+    }
+    _shim.push_back(shim);
     
      imagetransformation->PutInterpolator(interpolatorLin);
     
@@ -531,12 +573,15 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
     stacks2.push_back(stacks[ind]);
   }
   SimulateStacks(simulated);
-  for(ind = 0; ind<stacks.size();ind++)
+  if(_debug)
   {
-    sprintf(buffer,"st%i.nii.gz",ind);
-    stacks[ind].Write(buffer);
-    sprintf(buffer,"sim%i.nii.gz",ind);
-    simulated[ind].Write(buffer);
+    for(ind = 0; ind<stacks.size();ind++)
+    {
+      sprintf(buffer,"st%i.nii.gz",ind);
+      stacks[ind].Write(buffer);
+      sprintf(buffer,"sim%i.nii.gz",ind);
+      simulated[ind].Write(buffer);
+    }
   }
   
   //Resample stacks and simulated to the same geometry and create 4D nifti
@@ -596,17 +641,21 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
   }
     
   //calculate b0 field distortiom
-  irtkMultiLevelFreeFormTransformation dist;
-  FieldMapDistortion(stack,simul,dist,_swap[0]);
-  sprintf(buffer,"fmdist%i.dof",iter);
-  dist.irtkTransformation::Write(buffer);
+  //irtkMultiLevelFreeFormTransformation dist;
+  //FieldMapDistortion(stack,simul,dist,_swap[0]);
+  FieldMapDistortion(stack,simul,_fieldMap,_swap[0]);
+  if(_debug)
+  {
+    sprintf(buffer,"fmdist%i.dof",iter);
+    _fieldMap.irtkTransformation::Write(buffer);
+  }
     
   //Corect the stacks
   imagetransformation->PutInterpolator(interpolatorLin); 
   for(int ind=0; ind<stacks.size(); ind++)
   {
     cout<<"Correcting stack "<<ind<<endl;
-    imagetransformation->SetInput(&stacks2[ind], &dist);
+    imagetransformation->SetInput(&stacks2[ind], &_fieldMap);//&dist);
     imagetransformation->SetOutput(&stacks[ind]);
     imagetransformation->Run();
   }
@@ -628,7 +677,7 @@ void  irtkReconstructionb0::FieldMapDistortion(irtkRealImage &stack,irtkRealImag
     st.Write("st.nii.gz");
   }
   irtkAffineTransformation orient = AdjustOrientationTransformation(simul,false);
-  orient.irtkTransformation::Write("orient.dof");
+  //orient.irtkTransformation::Write("orient.dof");
   
   //register acquired stacks to simulated
   irtkImageFreeFormRegistrationWithPadding registration;
@@ -642,11 +691,12 @@ void  irtkReconstructionb0::FieldMapDistortion(irtkRealImage &stack,irtkRealImag
   s=st;
   registration.SetInput(&t,&s);
   registration.SetOutput(&distortion);
-  registration.GuessParameterDistortion(1,10);
-  registration.irtkImageRegistration::Write("par-dist.nreg");
+  registration.GuessParameterDistortion(1,_fieldMapSpacing);
+  if(_debug)
+    registration.irtkImageRegistration::Write("par-dist.nreg");
   registration.SetTargetPadding(0);
   registration.Run();
-  distortion.irtkTransformation::Write("fmd.dof");
+  //distortion.irtkTransformation::Write("fmd.dof");
   
   //adjust lattice of Bspine transformation according to the original images
   irtkImageAttributes attr = simul.GetImageAttributes();
@@ -669,7 +719,7 @@ void  irtkReconstructionb0::FieldMapDistortion(irtkRealImage &stack,irtkRealImag
       }
     }  
   }
-  distortion.irtkTransformation::Write("fmdist.dof");
+  //distortion.irtkTransformation::Write("fmdist.dof");
 }
 
 
@@ -711,7 +761,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
 	  stack(i,j,k,ind)=0;
 	}
     }
-    stack.Write("4D.nii.gz");
+    //stack.Write("4D.nii.gz");
     return stack;
   
 }
@@ -734,5 +784,24 @@ void irtkReconstructionb0::WriteSimulated()
   {
     sprintf(buffer,"simulated%i.nii.gz",i);
     _simulated[i].Write(buffer);
+  }
+}
+
+void irtkReconstructionb0::SaveDistortionTransformations()
+{
+  char buffer[256];
+  irtkMultiLevelFreeFormTransformation dist(_fieldMap);
+  irtkMatrix m;
+  for(int i=0;i<_shim.size();i++)
+  {
+    m = _shim[i].GetMatrix();
+    dist.PutMatrix(m);
+    if(_shim.size()>1)
+    {
+      sprintf(buffer,"distortion%i.dof",i);
+      dist.irtkTransformation::Write(buffer);
+    }
+    else
+      dist.irtkTransformation::Write("distortion.dof");
   }
 }

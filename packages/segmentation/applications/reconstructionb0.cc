@@ -60,7 +60,8 @@ void usage()
   cerr << "\t-force_exclude [number of slices] [ind1] ... [indN]  Force exclusion of slices with these indices."<<endl;
   cerr << "\t-no_intensity_matching    Switch off intensity matching."<<endl;
   cerr << "\t-group [group1] ... [groupN]  Give group numbers for distortion correction. [Default: all in one group]"<<endl;
-  cerr << "\t-phase axis1] ... [axisG]  For each group give phase encoding axis in image coordinates [x or y]"<<endl;
+  cerr << "\t-phase [axis1] ... [axisG]  For each group give phase encoding axis in image coordinates [x or y]"<<endl;
+  cerr << "\t-fieldMapSpacing [spacing]  B-spline control point spacing for field map"<<endl;
   cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
   cerr << "\t" << endl;
@@ -117,6 +118,7 @@ int main(int argc, char **argv)
   //flag to swich the intensity matching on and off
   bool intensity_matching = true;
   bool alignT2 = false;
+  double fieldMapSpacing = 10;
   
   irtkRealImage average;
 
@@ -251,6 +253,16 @@ int main(int argc, char **argv)
       argv++;
     }
 
+    //Variance of Gaussian kernel to smooth the bias field.
+    if ((ok == false) && (strcmp(argv[1], "-fieldMapSpacing") == 0)){
+      argc--;
+      argv++;
+      fieldMapSpacing=atof(argv[1]);
+      ok = true;
+      argc--;
+      argv++;
+    }
+    
     //Variance of Gaussian kernel to smooth the bias field.
     if ((ok == false) && (strcmp(argv[1], "-sigma") == 0)){
       argc--;
@@ -517,6 +529,9 @@ int main(int argc, char **argv)
   if (debug) reconstruction.DebugOn();
   else reconstruction.DebugOff();
   
+  //Set B-spline control point spacing for field map
+  reconstruction.SetFieldMapSpacing(fieldMapSpacing);
+  
   //Set force excluded slices
   reconstruction.SetForceExcludedSlices(force_excluded);
 
@@ -677,24 +692,35 @@ int main(int argc, char **argv)
     reconstruction.GlobalBiasCorrectionOff();
     
   //if given read slice-to-volume registrations
-  bool coeff_init=false;  
+  //bool coeff_init=false;  
   if (folder!=NULL)
   {
     reconstruction.ReadTransformation(folder);
-    reconstruction.CoeffInit();
-    coeff_init = true;
+    //reconstruction.CoeffInit();
+    //coeff_init = true;
   }
     
   //Initialise data structures for EM
   reconstruction.InitializeEM();
 
   //Create T2 template
-  alignedT2= reconstruction.AlignT2Template(t2,1);
-  alignedT2.Write("alignedT2.nii.gz");
+  alignedT2= reconstruction.AlignT2Template(t2,0);
+  if(debug)
+    alignedT2.Write("alignedT2.nii.gz");
   reconstruction.SetT2Template(alignedT2);
-
   
-  iterations = 7;
+  //Create blurred T2 template for registration
+  irtkRealImage blurredT2 = alignedT2;
+  irtkGaussianBlurringWithPadding<irtkRealPixel> gb(1,0);
+  gb.SetInput(&blurredT2);
+  gb.SetOutput(&blurredT2);
+  gb.Run();
+  if(debug)
+    blurredT2.Write("blurredT2.nii.gz");
+
+
+  if(iterations>1)
+    iterations = 7;
   //registration iterations
   for (iter=0;iter<(iterations);iter++)
   {
@@ -709,9 +735,9 @@ int main(int argc, char **argv)
       //redirect output to files
       cerr.rdbuf(filed_e.rdbuf());
       cout.rdbuf (filed.rdbuf());
-
+      
+      reconstruction.SetT2Template(alignedT2);
       reconstruction.CoeffInit();
-      coeff_init = true;
 
       corrected_stacks.clear();
       for(i=0;i<stacks.size();i++)
@@ -721,7 +747,7 @@ int main(int argc, char **argv)
         reconstruction.FieldMap(corrected_stacks,iter);
       for (i=0;i<corrected_stacks.size();i++)
       {
-         sprintf(buffer,"shimmed%i.nii.gz",i);
+         sprintf(buffer,"corrected%i.nii.gz",i);
          corrected_stacks[i].Write(buffer);
       }
       //set corrected slices
@@ -740,6 +766,8 @@ int main(int argc, char **argv)
       cerr.rdbuf(file_e.rdbuf());
       cout.rdbuf (file.rdbuf());
       cout<<"Iteration "<<iter<<": "<<endl;
+      
+      reconstruction.SetT2Template(blurredT2);
       
       if((packages.size()>0)&&(iter<=5)&&(iter<(iterations-1)))
       {
@@ -802,11 +830,14 @@ int main(int argc, char **argv)
     reconstruction.InitializeEMValues();
     
     //Calculate matrix of transformation between voxels of slices and volume
-    if(!coeff_init)
-      reconstruction.CoeffInit();
+    //if(!coeff_init)
+    reconstruction.CoeffInit();
     
     //Initialize reconstructed image with Gaussian weighted reconstruction
     reconstruction.GaussianReconstruction();
+    
+    //Simulate slices (needs to be done after Gaussian reconstruction)
+    reconstruction.SimulateSlices();
     
     //Initialize robust statistics parameters
     reconstruction.InitializeRobustStatistics();
@@ -840,8 +871,17 @@ int main(int argc, char **argv)
       
       //MStep and update reconstructed volume
       reconstruction.Superresolution(i+1);
-      if((sigma>0)&&(!global_bias_correction))
-        reconstruction.NormaliseBias(i);
+      
+      if (intensity_matching)
+      {
+        if((sigma>0)&&(!global_bias_correction))
+          reconstruction.NormaliseBias(i);
+      }
+
+      // Simulate slices (needs to be done
+      // after the update of the reconstructed volume)
+      reconstruction.SimulateSlices();
+      
       reconstruction.MStep(i+1);
       
       //E-step
@@ -880,6 +920,7 @@ int main(int argc, char **argv)
   //}// end of interleaved registration-reconstruction iterations
 
   //save final result
+  reconstruction.SaveDistortionTransformations();
   reconstruction.RestoreSliceIntensities();
   reconstruction.ScaleVolume();
   reconstructed=reconstruction.GetReconstructed();

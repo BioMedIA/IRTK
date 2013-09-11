@@ -38,6 +38,9 @@ protected:
   vector<bool> _swap;
   vector<int> _stack_group;
   vector<irtkRealImage> _simulated;
+  vector<irtkAffineTransformation> _shim;
+  irtkMultiLevelFreeFormTransformation _fieldMap;
+  double _fieldMapSpacing;
 
   
 public:
@@ -53,10 +56,12 @@ public:
   irtkRealImage AlignT2Template(irtkRealImage T2, double sigma=0);
   void CreateSimulated(vector<irtkRealImage> &stacks);
   void WriteSimulated();
+  void SaveDistortionTransformations();
 
 
   inline void SetGroups(vector<int>& stack_group, vector<int>& groups, vector<bool>& swap); 
   inline void SetReconstructed(irtkRealImage image);
+  inline void SetFieldMapSpacing(double spacing);
 
 };
 
@@ -76,6 +81,11 @@ inline void irtkReconstructionb0::SetGroups(vector<int>& stack_group,vector<int>
   _stack_group = stack_group;  
   _groups = groups;
   _swap = swap;
+}
+
+inline void irtkReconstructionb0::SetFieldMapSpacing(double spacing)
+{
+  _fieldMapSpacing = spacing;
 }
 
 #endif
