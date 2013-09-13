@@ -83,6 +83,10 @@ void irtkImageToFileNIFTI::Initialize()
 
   // Init header
   switch (this->_input->GetScalarType()) {
+	case IRTK_VOXEL_CHAR: {
+		_hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_INT8, i2w, torigin);
+		break;
+	}
     case IRTK_VOXEL_UNSIGNED_CHAR: {
         _hdr.Initialize(x, y, z, t, xsize, ysize, zsize, tsize, NIFTI_TYPE_UINT8, i2w, torigin);
         break;
