@@ -171,17 +171,16 @@ void irtkImageRigidRegistration2::UpdateSource()
           } else {
             *ptr2result = _SourcePadding;
           }
+          iterator.NextX();
+        } else {
+          // Advance iterator by offset
+          iterator.NextX(*ptr2mask);
+          i          += (*ptr2mask) - 1;
+          ptr2result += (*ptr2mask) - 1;
+          ptr2mask   += (*ptr2mask) - 1;
         }
-        iterator.NextX();
         ptr2result++;
         ptr2mask++;
-//        else {
-//          // Advance iterator by offset
-//          iterator.NextX(*ptr2mask);
-//          i          += (*ptr2mask);
-//          ptr2result += (*ptr2mask) + 1;
-//          ptr2mask   += (*ptr2mask) + 1;
-//        }
       }
       iterator.NextY();
     }
@@ -218,17 +217,16 @@ void irtkImageRigidRegistration2::UpdateSource()
             } else {
               *ptr2result = _SourcePadding;
             }
+            iterator.NextX();
+          } else {
+            // Advance iterator by offset
+            iterator.NextX(*ptr2mask);
+            i          += (*ptr2mask) - 1;
+            ptr2result += (*ptr2mask) - 1;
+            ptr2mask   += (*ptr2mask) - 1;
           }
-          iterator.NextX();
           ptr2result++;
           ptr2mask++;
-//          else {
-//            // Advance iterator by offset
-//            iterator.NextX(*ptr2mask);
-//            i          += (*ptr2mask);
-//            ptr2result += (*ptr2mask) + 1;
-//            ptr2mask   += (*ptr2mask) + 1;
-//          }
         }
         iterator.NextY();
       }
@@ -317,22 +315,20 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
             *ptr2gradX  = 0;
             *ptr2gradY  = 0;
           }
+          iterator.NextX();
+        } else {
+          // Advance iterator by offset
+          iterator.NextX(*ptr2mask);
+          i          += (*ptr2mask) - 1;
+          ptr2result += (*ptr2mask) - 1;
+          ptr2gradX  += (*ptr2mask) - 1;
+          ptr2gradY  += (*ptr2mask) - 1;
+          ptr2mask   += (*ptr2mask) - 1;
         }
-        iterator.NextX();
         ptr2result++;
         ptr2gradX++;
         ptr2gradY++;
         ptr2mask++;
-
-//        else {
-//          // Advance iterator by offset
-//          iterator.NextX(*ptr2mask);
-//          i          += (*ptr2mask);
-//          ptr2result += (*ptr2mask) + 1;
-//          ptr2gradX  += (*ptr2mask) + 1;
-//          ptr2gradY  += (*ptr2mask) + 1;
-//          ptr2mask   += (*ptr2mask) + 1;
-//        }
       }
       iterator.NextY();
     }
@@ -391,13 +387,22 @@ void irtkImageRigidRegistration2::UpdateSourceAndGradient()
               *ptr2gradY  = 0;
               *ptr2gradZ  = 0;
             }
+            iterator.NextX();
+          } else {
+            // Advance iterator by offset
+            iterator.NextX(*ptr2mask);
+            i          += (*ptr2mask) - 1;
+            ptr2result += (*ptr2mask) - 1;
+            ptr2gradX  += (*ptr2mask) - 1;
+            ptr2gradY  += (*ptr2mask) - 1;
+            ptr2gradZ  += (*ptr2mask) - 1;
+            ptr2mask   += (*ptr2mask) - 1;
           }
-		iterator.NextX();
-		ptr2result++;
-		ptr2gradX++;
-		ptr2gradY++;
-		ptr2gradZ++;
-		ptr2mask++;
+          ptr2result++;
+          ptr2gradX++;
+          ptr2gradY++;
+          ptr2gradZ++;
+          ptr2mask++;
         }
         iterator.NextY();
       }
