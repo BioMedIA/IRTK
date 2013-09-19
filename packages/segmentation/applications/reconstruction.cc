@@ -58,6 +58,7 @@ void usage()
   cerr << "\t-transformations [folder] Use existing slice-to-volume transformations to initialize the reconstruction."<<endl;
   cerr << "\t-force_exclude [number of slices] [ind1] ... [indN]  Force exclusion of slices with these indices."<<endl;
   cerr << "\t-no_intensity_matching    Switch off intensity matching."<<endl;
+  cerr << "\t-no_robust_statistics     Switch off robust statistics."<<endl;
   cerr << "\t-bspline                  Use multi-level bspline interpolation instead of super-resolution."<<endl;
   cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
@@ -112,6 +113,8 @@ int main(int argc, char **argv)
   bool remove_black_background = false;
   //flag to swich the intensity matching on and off
   bool intensity_matching = true;
+  //flag to swich the robust statistics on and off
+  bool robust_statistics = true;
   //flag to replace super-resolution reconstruction by multilevel B-spline interpolation
   bool bspline = false;
   
@@ -315,6 +318,16 @@ int main(int argc, char **argv)
       intensity_matching=false;
       ok = true;
     }
+    
+    //Switch off robust statistics
+    if ((ok == false) && (strcmp(argv[1], "-no_robust_statistics") == 0)){
+      argc--;
+      argv++;
+      robust_statistics=false;
+      ok = true;
+    }
+    
+    
 
     //Use multilevel B-spline interpolation instead of super-resolution
     if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)){
@@ -699,7 +712,8 @@ int main(int argc, char **argv)
     reconstruction.InitializeRobustStatistics();
     
     //EStep
-    reconstruction.EStep();
+    if(robust_statistics)
+      reconstruction.EStep();
 
     //number of reconstruction iterations
     if ( iter==(iterations-1) ) 
@@ -708,6 +722,9 @@ int main(int argc, char **argv)
     }
     else 
       rec_iterations = 10;
+    
+    if ((bspline)&&(!robust_statistics)&&(!intensity_matching))
+      rec_iterations=0;
         
     //reconstruction iterations
     i=0;
@@ -740,10 +757,12 @@ int main(int argc, char **argv)
       // after the update of the reconstructed volume)
       reconstruction.SimulateSlices();
             
-      reconstruction.MStep(i+1);
+      if(robust_statistics)
+        reconstruction.MStep(i+1);
       
       //E-step
-      reconstruction.EStep();
+      if(robust_statistics)
+        reconstruction.EStep();
       
     //Save intermediate reconstructed image
     if (debug)
