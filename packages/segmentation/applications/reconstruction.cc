@@ -58,6 +58,7 @@ void usage()
   cerr << "\t-transformations [folder] Use existing slice-to-volume transformations to initialize the reconstruction."<<endl;
   cerr << "\t-force_exclude [number of slices] [ind1] ... [indN]  Force exclusion of slices with these indices."<<endl;
   cerr << "\t-no_intensity_matching    Switch off intensity matching."<<endl;
+  cerr << "\t-bspline                  Use multi-level bspline interpolation instead of super-resolution."<<endl;
   cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
   cerr << "\t-no_log                   Do not redirect cout and cerr to log files."<<endl;
@@ -92,7 +93,7 @@ int main(int argc, char **argv)
   // Default values.
   int templateNumber=-1;
   irtkRealImage *mask=NULL;
-  int iterations = 9;
+  int iterations = 7;
   bool debug = false;
   double sigma=20;
   double resolution = 0.75;
@@ -111,6 +112,8 @@ int main(int argc, char **argv)
   bool remove_black_background = false;
   //flag to swich the intensity matching on and off
   bool intensity_matching = true;
+  //flag to replace super-resolution reconstruction by multilevel B-spline interpolation
+  bool bspline = false;
   
   irtkRealImage average;
 
@@ -310,6 +313,14 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       intensity_matching=false;
+      ok = true;
+    }
+
+    //Use multilevel B-spline interpolation instead of super-resolution
+    if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)){
+      argc--;
+      argv++;
+      bspline=true;
       ok = true;
     }
 
@@ -670,10 +681,16 @@ int main(int argc, char **argv)
     reconstruction.InitializeEMValues();
     
     //Calculate matrix of transformation between voxels of slices and volume
-    reconstruction.CoeffInit();
+    if (bspline)
+      reconstruction.CoeffInitBSpline();
+    else
+      reconstruction.CoeffInit();
     
     //Initialize reconstructed image with Gaussian weighted reconstruction
-    reconstruction.GaussianReconstruction();
+    if (bspline)
+      reconstruction.BSplineReconstruction();
+    else
+      reconstruction.GaussianReconstruction();
 
     //Simulate slices (needs to be done after Gaussian reconstruction)
     reconstruction.SimulateSlices();
@@ -707,8 +724,11 @@ int main(int argc, char **argv)
         reconstruction.Scale();
       }
       
-      //MStep and update reconstructed volume
-      reconstruction.Superresolution(i+1);
+      //Update reconstructed volume
+      if (bspline)
+        reconstruction.BSplineReconstruction();
+      else
+        reconstruction.Superresolution(i+1);
       
       if (intensity_matching)
       {
@@ -737,7 +757,8 @@ int main(int argc, char **argv)
     }//end of reconstruction iterations
     
     //Mask reconstructed image to ROI given by the mask
-    reconstruction.MaskVolume();
+    if(!bspline)
+      reconstruction.MaskVolume();
 
     //Save reconstructed image
     //if (debug)

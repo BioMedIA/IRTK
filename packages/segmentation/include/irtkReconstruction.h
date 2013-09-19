@@ -17,7 +17,7 @@
 #include <irtkImage.h>
 #include <irtkTransformation.h>
 #include <irtkGaussianBlurring.h>
-
+#include <irtkBSplineReconstruction.h>
 
 
 #include <vector>
@@ -161,6 +161,9 @@ class irtkReconstruction : public irtkObject
     inline double M(double m);
 
     int _directions[13][3];
+    
+    ///BSpline reconstruction
+    irtkBSplineReconstruction _bSplineReconstruction;
   
  public:
 
@@ -266,9 +269,17 @@ class irtkReconstruction : public irtkObject
   
     ///Calculate transformation matrix between slices and voxels
     void CoeffInit();
+    
+    ///Calculate transformation matrix between slices and voxels for BSpline interpolation
+    void CoeffInitBSpline();
+
   
     ///Reconstruction using weighted Gaussian PSF
     void GaussianReconstruction();
+    
+    ///Reconstruction using multilevel B-spline
+    void BSplineReconstruction();
+
   
     ///Initialise variables and parameters for EM
     void InitializeEM();

@@ -1614,6 +1614,93 @@ void irtkReconstruction::SliceToVolumeRegistration()
     registration();
 }
 
+void irtkReconstruction::CoeffInitBSpline()
+{
+  int i,j,l,m,n,nx,ny,nz;
+  double weight,sum,x,y,z;
+  uint inputIndex;
+  irtkRealImage slice;
+  
+  //clear slice-volume matrix
+  _volcoeffs.clear();
+  _slice_inside.clear();
+
+
+  cout<<"Initialising matrix coefficients...";
+  for (inputIndex = 0; inputIndex < _slices.size(); inputIndex++)
+  {
+  //start of a loop for a slice inputIndex  
+    cout<<inputIndex<<" ";
+    cout.flush();
+    
+    //read the slice
+    slice=_slices[inputIndex];
+
+    //prepare structures for storage  
+    POINT3D p;
+    VOXELCOEFFS empty;
+    SLICECOEFFS slicecoeffs(slice.GetX(),vector<VOXELCOEFFS>(slice.GetY(),empty));
+    
+    _slice_inside.push_back(true);
+    
+    //Find values for slice voxel i,j using linear interpolation
+    for(i=0;i<slice.GetX();i++)
+    {
+      for(j=0;j<slice.GetY();j++)
+      {
+          if (slice(i,j,0)!=-1)
+	  {
+	    //slice voxel in slice image coordinates
+	    x=i;y=j;z=0;
+	    slice.ImageToWorld(x,y,z);
+	    _transformations[inputIndex].Transform(x,y,z);
+	    _reconstructed.WorldToImage(x,y,z);
+	    // x,y,z is now slice voxel in volume image coordinates
+	    // will be linear combination of volume voxels
+	    
+            if ((x > -0.5) && (x < _reconstructed.GetX()-0.5) &&
+                (y > -0.5) && (y < _reconstructed.GetY()-0.5) &&
+                (z > -0.5) && (z < _reconstructed.GetZ()-0.5)) 
+	    {
+	      nx = (int)floor(x);
+              ny = (int)floor(y);
+              nz = (int)floor(z);
+
+	      sum=0;
+	      for (l=nx;l<=nx+1;l++)	
+		if ((l>=0)&&(l<_reconstructed.GetX()))
+	          for (m=ny;m<=ny+1;m++)	    
+		    if ((m>=0)&&(m<_reconstructed.GetY()))
+	              for (n=nz;n<=nz+1;n++)	    
+		        if ((n>=0)&&(n<_reconstructed.GetZ()))
+			{
+			  weight=(1 - fabs(l - x))*(1 - fabs(m - y))*(1 - fabs(n - z));
+			  sum+=weight;
+			}
+	      //remember (up to) 8 volume voxels that affect slice voxel i,j
+	      for (l=nx;l<=nx+1;l++)	
+		if ((l>=0)&&(l<_reconstructed.GetX()))
+	          for (m=ny;m<=ny+1;m++)	    
+		    if ((m>=0)&&(m<_reconstructed.GetY()))
+	              for (n=nz;n<=nz+1;n++)	    
+		        if ((n>=0)&&(n<_reconstructed.GetZ()))
+			{
+			  weight=(1 - fabs(l - x))*(1 - fabs(m - y))*(1 - fabs(n - z));
+			  p.x=l;
+			  p.y=m;
+			  p.z=n;
+			  p.value=weight/sum;
+			  slicecoeffs[i][j].push_back(p);
+			}
+	    }
+	  }
+      }
+    }
+    _volcoeffs.push_back(slicecoeffs);
+  }
+}
+
+
 class ParallelCoeffInit {
 public:
     irtkReconstruction *reconstructor;
@@ -2069,6 +2156,45 @@ void irtkReconstruction::GaussianReconstruction()
         cout<<endl;
     }
 }
+
+void irtkReconstruction::BSplineReconstruction()
+{
+  vector<irtkRealImage> slices;
+  vector<irtkRigidTransformation> transformations;
+  
+  irtkRealImage slice,b;
+  int i,j;
+  
+  double scale;
+  
+  uint inputIndex;
+  for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
+  {
+    //correct and exclude slices  
+    if (_slice_weight[inputIndex]>=0.5)
+    {
+      // read the current slice
+      slice=_slices[inputIndex];
+      //read the current bias image
+      b=_bias[inputIndex];
+      //identify scale factor
+        scale = _scale[inputIndex];
+    
+      //correct the slice      
+      for (i=0;i<slice.GetX();i++)
+        for (j=0;j<slice.GetY();j++)
+          if (slice(i,j,0)!=-1)
+	    slice(i,j,0)*=exp(-b(i,j,0))*scale;
+       //prepare slices for BSpline reconstruction
+       slices.push_back(slice);
+       transformations.push_back(_transformations[inputIndex]);
+    }
+  }
+
+  _bSplineReconstruction.Reconstruct(6,1,_reconstructed,slices,transformations);
+  _reconstructed.Write("reconBSpline.nii.gz");
+}
+
 
 void irtkReconstruction::InitializeEM()
 {
@@ -2725,6 +2851,7 @@ void irtkReconstruction::Bias()
     if (_debug)
         cout << "done. " << endl;
 }
+
 
 class ParallelSuperresolution {
     irtkReconstruction* reconstructor;
