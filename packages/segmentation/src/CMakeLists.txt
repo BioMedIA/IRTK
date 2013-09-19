@@ -2,6 +2,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkBiasCorrection.h
 ../include/irtkBiasField.h
 ../include/irtkBSplineBiasField.h
+../include/irtkBSplineReconstruction.h
 ../include/irtkEMClassification.h
 ../include/irtkEMClassificationBiasCorrection.h
 ../include/irtkEMClassificationMultiComp.h
@@ -35,6 +36,7 @@ SET(SEGMENTATION_SRCS
 irtkBiasCorrection.cc
 irtkBiasField.cc
 irtkBSplineBiasField.cc
+irtkBSplineReconstruction.cc
 irtkEMClassification.cc
 irtkEMClassificationBiasCorrection.cc
 irtkEMClassificationMultiComp.cc
