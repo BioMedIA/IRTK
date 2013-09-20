@@ -116,7 +116,7 @@ void irtkEMClassificationBiasCorrection::BStep()
   mch.Write(0,"logresidualblurredweigted.nii.gz");
 
   //Calculate bias
-  mch.Brainmask();
+  //mch.Brainmask();
   _bias += mch.GetImage(0);
   //_bias = mch.GetImage(0);
   _bias.Write("bias.nii.gz");
@@ -145,10 +145,10 @@ void irtkEMClassificationBiasCorrection::BStep()
   pi=_input.GetPointerToVoxels();
   pm=_mask.GetPointerToVoxels();
   for (i=0; i< _input.GetNumberOfVoxels(); i++) {
-    if ((*pm == 1)&&(*pi != _padding)) {
+    //if ((*pm == 1)&&(*pi != _padding)) {
       *pb-=mean;
       *pd-=mean;
-    } 
+    //} 
     pi++;
     pm++;
     pb++;
@@ -260,6 +260,14 @@ void irtkEMClassificationBiasCorrection::ApplyBias()
 
 void irtkEMClassificationBiasCorrection::ApplyBias(irtkRealImage &image)
 {
+  irtkMultiChannelImage mch;
+  mch.AddImage(image);
+  mch.SetPadding(0);
+  mch.CreateMask();
+  mch.AddImage(_bias);
+  mch.Exp(1,1000);
+  mch.Brainmask();
+  image = mch.Divide();
  
 }
 
