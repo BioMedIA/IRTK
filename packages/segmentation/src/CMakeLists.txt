@@ -5,6 +5,7 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkBSplineReconstruction.h
 ../include/irtkEMClassification.h
 ../include/irtkEMClassificationBiasCorrection.h
+../include/irtkEMClassificationBiasCorrectionfMRI.h
 ../include/irtkEMClassificationMultiComp.h
 ../include/irtkGaussian.h
 ../include/irtkIntensityMatching.h
@@ -39,6 +40,7 @@ irtkBSplineBiasField.cc
 irtkBSplineReconstruction.cc
 irtkEMClassification.cc
 irtkEMClassificationBiasCorrection.cc
+irtkEMClassificationBiasCorrectionfMRI.cc
 irtkEMClassificationMultiComp.cc
 irtkGaussian.cc
 irtkIntensityMatching.cc
