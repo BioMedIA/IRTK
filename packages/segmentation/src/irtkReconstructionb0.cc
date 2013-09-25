@@ -643,7 +643,16 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
   //calculate b0 field distortiom
   //irtkMultiLevelFreeFormTransformation dist;
   //FieldMapDistortion(stack,simul,dist,_swap[0]);
+  
+  //clear fieldmap
+  if(_fieldMap.NumberOfLevels()>0)
+  {
+    irtkFreeFormTransformation *tr = _fieldMap.PopLocalTransformation();
+    delete tr;
+  }
+  _fieldMap.irtkTransformation::Write("fieldMap_clean.dof");
   FieldMapDistortion(stack,simul,_fieldMap,_swap[0]);
+  
   if(_debug)
   {
     sprintf(buffer,"fmdist%i.dof",iter);

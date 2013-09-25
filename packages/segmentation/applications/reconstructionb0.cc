@@ -729,8 +729,12 @@ int main(int argc, char **argv)
     cout<<"Iteration "<<iter<<". "<<endl;
     cout.flush();
     
+    corrected_stacks.clear();
+    for(i=0;i<stacks.size();i++)
+      corrected_stacks.push_back(stacks[i]);
+    
     //distortion
-    if((iter>=5)||(iterations==1))
+    if((iter>=3)||(iterations==1))
     {
       //redirect output to files
       cerr.rdbuf(filed_e.rdbuf());
@@ -739,11 +743,8 @@ int main(int argc, char **argv)
       reconstruction.SetT2Template(alignedT2);
       reconstruction.CoeffInit();
 
-      corrected_stacks.clear();
-      for(i=0;i<stacks.size();i++)
-        corrected_stacks.push_back(stacks[i]);
       reconstruction.Shim(corrected_stacks,iter);
-      if((iter>5)||(iterations==1)||(iter==(iterations-1)))
+      if((iter>4)||(iterations==1)||(iter==(iterations-1)))
         reconstruction.FieldMap(corrected_stacks,iter);
       for (i=0;i<corrected_stacks.size();i++)
       {
@@ -772,19 +773,19 @@ int main(int argc, char **argv)
       if((packages.size()>0)&&(iter<=5)&&(iter<(iterations-1)))
       {
 	if(iter==1)
-          reconstruction.PackageToVolume(stacks,packages);
+          reconstruction.PackageToVolume(corrected_stacks,packages);
 	else
 	{
 	  if(iter==2)
-            reconstruction.PackageToVolume(stacks,packages,true);
+            reconstruction.PackageToVolume(corrected_stacks,packages,true);
 	  else
 	  {
             if(iter==3)
-	      reconstruction.PackageToVolume(stacks,packages,true,true);
+	      reconstruction.PackageToVolume(corrected_stacks,packages,true,true);
 	    else
 	    {
 	      if(iter>=4)
-                reconstruction.PackageToVolume(stacks,packages,true,true,iter-2);
+                reconstruction.PackageToVolume(corrected_stacks,packages,true,true,iter-2);
 	      else
 	        reconstruction.SliceToVolumeRegistration();
 	    }
