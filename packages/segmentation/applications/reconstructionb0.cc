@@ -1,12 +1,12 @@
 /*=========================================================================
 
   Library   : Image Registration Toolkit (IRTK)
-  Module    : $Id: reconstruction.cc 835 2013-05-07 12:54:48Z mm3 $
+  Module    : $Id$
   Copyright : Imperial College, Department of Computing
               Visual Information Processing (VIP), 2011 onwards
-  Date      : $Date: 2013-05-07 13:54:48 +0100 (Tue, 07 May 2013) $
-  Version   : $Revision: 835 $
-  Changes   : $Author: mm3 $
+  Date      : $Date$
+  Version   : $Revision$
+  Changes   : $Author$
 
 =========================================================================*/
 

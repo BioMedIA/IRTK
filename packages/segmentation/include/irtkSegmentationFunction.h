@@ -12,9 +12,11 @@
 
 #include <irtkGradientImageFilter.h>
 
-#include <irtkPatchMatch.h>
+#include <irtkMAPatchMatch.h>
 
-#include <irtkPatchMatchSegmentation.h>
+#include <irtkMAPatchMatchSuperResolution.h>
+
+#include <irtkMAPatchMatchSegmentation.h>
 
 #ifdef HAS_OPENCV
 

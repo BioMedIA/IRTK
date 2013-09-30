@@ -13,8 +13,9 @@ SET(SEGMENTATION_INCLUDES
 ../include/irtkMultiImageGraphCut.h
 ../include/irtkMeanShift.h
 ../include/irtkProbabilisticAtlas.h
-../include/irtkPatchMatch.h
-../include/irtkPatchMatchSegmentation.h
+../include/irtkMAPatchMatch.h
+../include/irtkMAPatchMatchSegmentation.h
+../include/irtkMAPatchMatchSuperResolution.h
 ../include/irtkReconstruction.h
 ../include/irtkReconstructionb0.h
 ../include/irtkRician.h
@@ -47,8 +48,9 @@ irtkIntensityMatching.cc
 irtkMultiChannelImage.cc
 irtkMeanShift.cc
 irtkProbabilisticAtlas.cc
-irtkPatchMatch.cc
-irtkPatchMatchSegmentation.cc
+irtkMAPatchMatch.cc
+irtkMAPatchMatchSegmentation.cc
+irtkMAPatchMatchSuperResolution.cc
 irtkRician.cc
 irtkReconstruction.cc
 irtkReconstructionb0.cc

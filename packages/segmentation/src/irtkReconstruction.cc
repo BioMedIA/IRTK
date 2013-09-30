@@ -1618,7 +1618,7 @@ void irtkReconstruction::CoeffInitBSpline()
 {
   int i,j,l,m,n,nx,ny,nz;
   double weight,sum,x,y,z;
-  uint inputIndex;
+  int inputIndex;
   irtkRealImage slice;
   
   //clear slice-volume matrix
@@ -2167,7 +2167,7 @@ void irtkReconstruction::BSplineReconstruction()
   
   double scale;
   
-  uint inputIndex;
+  int inputIndex;
   for (inputIndex = 0; inputIndex < _slices.size(); ++inputIndex)
   {
     //correct and exclude slices  
