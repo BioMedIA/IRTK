@@ -208,6 +208,8 @@ int main(int argc, char **argv){
 
 	cout << "Optimization done"<<endl;
 
+	patchmatchesegmentation->generateLabels();
+
 	cout << "Writing output" << endl;
 	label.Write(outLabelName);
 	
