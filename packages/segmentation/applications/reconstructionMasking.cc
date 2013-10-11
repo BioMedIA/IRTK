@@ -664,16 +664,16 @@ int main(int argc, char **argv)
       
             if((packages.size()>0)&&(iter<=iterations*(levels-1)/levels)&&(iter<(iterations-1))) {
                 if(iter==1)
-                    reconstruction.PackageToVolume(stacks,packages);
+                    reconstruction.PackageToVolume(stacks,packages,iter);
                 else {
                     if(iter==2)
-                        reconstruction.PackageToVolume(stacks,packages,true);
+                        reconstruction.PackageToVolume(stacks,packages,iter,true);
                     else {
                         if(iter==3)
-                            reconstruction.PackageToVolume(stacks,packages,true,true);
+                            reconstruction.PackageToVolume(stacks,packages,iter,true,true);
                         else {
                             if(iter>=4)
-                                reconstruction.PackageToVolume(stacks,packages,true,true,iter-2);
+                                reconstruction.PackageToVolume(stacks,packages,iter,true,true,iter-2);
                             else
                                 reconstruction.SliceToVolumeRegistration();
                         }

@@ -188,6 +188,9 @@ class irtkReconstruction : public irtkObject
   
     ///Remember volumetric mask and smooth it if necessary
     void SetMask(irtkRealImage * mask, double sigma, double threshold=0.5 );
+
+    ///Remember volumetric mask 
+    void PutMask(irtkRealImage mask);
   
     ///Create mask from black background if the flag is set
     void CreateMaskFromBlackBackground( vector<irtkRealImage>& stacks,
@@ -266,6 +269,9 @@ class irtkReconstruction : public irtkObject
  
     ///Mask all slices
     void MaskSlices();
+ 
+    ///Set reconstructed image
+    void SetTemplate(irtkRealImage tempImage);
   
     ///Calculate transformation matrix between slices and voxels
     void CoeffInit();
@@ -404,6 +410,7 @@ class irtkReconstruction : public irtkObject
     ///Packages to volume registrations
     void PackageToVolume( vector<irtkRealImage>& stacks,
                           vector<int> &pack_num,
+  			   int iter,
                           bool evenodd=false,
                           bool half=false,
                           int half_iter=1);
@@ -460,6 +467,12 @@ inline irtkRealImage irtkReconstruction::GetMask()
 {
     return _mask;
 }
+
+inline void irtkReconstruction::PutMask(irtkRealImage mask)
+{
+    _mask=mask;;
+}
+
 
 inline void irtkReconstruction::DebugOn()
 {

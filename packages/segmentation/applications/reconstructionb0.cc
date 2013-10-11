@@ -98,6 +98,7 @@ int main(int argc, char **argv)
   // Default values.
   int templateNumber=-1;
   irtkRealImage *mask=NULL;
+  irtkRealImage b0_mask,T2_mask;
   int iterations = 9;
   bool debug = false;
   double sigma=20;
@@ -573,6 +574,8 @@ int main(int argc, char **argv)
   
   //Set mask to reconstruction object. 
   reconstruction.SetMask(mask,smooth_mask);   
+  b0_mask=reconstruction.GetMask();
+  b0_mask.Write("b0mask.nii.gz");
 
   //to redirect output from screen to text files
   
@@ -702,12 +705,17 @@ int main(int argc, char **argv)
     
   //Initialise data structures for EM
   reconstruction.InitializeEM();
+  reconstruction.InitializeEMValues();
 
   //Create T2 template
   alignedT2= reconstruction.AlignT2Template(t2,0);
   if(debug)
     alignedT2.Write("alignedT2.nii.gz");
   reconstruction.SetT2Template(alignedT2);
+  T2_mask=reconstruction.CreateMask(alignedT2);
+  if(debug)
+    T2_mask.Write("T2mask.nii.gz");
+
   
   //Create blurred T2 template for registration
   irtkRealImage blurredT2 = alignedT2;
@@ -741,6 +749,7 @@ int main(int argc, char **argv)
       cout.rdbuf (filed.rdbuf());
       
       reconstruction.SetT2Template(alignedT2);
+      reconstruction.PutMask(T2_mask);
       reconstruction.CoeffInit();
 
       reconstruction.Shim(corrected_stacks,iter);
@@ -753,7 +762,16 @@ int main(int argc, char **argv)
       }
       //set corrected slices
       reconstruction.UpdateSlices(corrected_stacks,thickness);
+      cout<<"PutMask b0"<<endl;
+      cout.flush();
+      reconstruction.PutMask(b0_mask);
+      b0_mask.Write("b0mask.nii.gz");
+      cout<<"Mask slices"<<endl;
+      cout.flush();
       reconstruction.MaskSlices();
+      cout<<" done."<<endl;
+      cout.flush();
+      
 
       //redirect output back to screen
       cout.rdbuf (strm_buffer);
@@ -773,19 +791,19 @@ int main(int argc, char **argv)
       if((packages.size()>0)&&(iter<=5)&&(iter<(iterations-1)))
       {
 	if(iter==1)
-          reconstruction.PackageToVolume(corrected_stacks,packages);
+          reconstruction.PackageToVolume(corrected_stacks,packages,iter);
 	else
 	{
 	  if(iter==2)
-            reconstruction.PackageToVolume(corrected_stacks,packages,true);
+            reconstruction.PackageToVolume(corrected_stacks,packages,iter,true);
 	  else
 	  {
             if(iter==3)
-	      reconstruction.PackageToVolume(corrected_stacks,packages,true,true);
+	      reconstruction.PackageToVolume(corrected_stacks,packages,iter,true,true);
 	    else
 	    {
 	      if(iter>=4)
-                reconstruction.PackageToVolume(corrected_stacks,packages,true,true,iter-2);
+                reconstruction.PackageToVolume(corrected_stacks,packages,iter,true,true,iter-2);
 	      else
 	        reconstruction.SliceToVolumeRegistration();
 	    }
@@ -795,6 +813,13 @@ int main(int argc, char **argv)
       else
         reconstruction.SliceToVolumeRegistration();
       
+      reconstruction.BSplineReconstruction();
+      if (debug)
+      {
+        reconstructed=reconstruction.GetReconstructed();
+        sprintf(buffer,"image%i.nii.gz",iter);
+        reconstructed.Write(buffer);
+      }
       cout<<endl;
       cout.flush();
       cerr.rdbuf (strm_buffer_e);
@@ -832,6 +857,7 @@ int main(int argc, char **argv)
     
     //Calculate matrix of transformation between voxels of slices and volume
     //if(!coeff_init)
+    reconstruction.PutMask(b0_mask);
     reconstruction.CoeffInit();
     
     //Initialize reconstructed image with Gaussian weighted reconstruction
@@ -902,14 +928,6 @@ int main(int argc, char **argv)
     //Mask reconstructed image to ROI given by the mask
     reconstruction.MaskVolume();
 
-    //Save reconstructed image
-    if (debug)
-    {
-      reconstructed=reconstruction.GetReconstructed();
-      sprintf(buffer,"image%i.nii.gz",iter);
-      reconstructed.Write(buffer);
-      //reconstruction.SaveConfidenceMap();
-    }
 
    //Evaluate - write number of included/excluded/outside/zero slices in each iteration in the file
    cout.rdbuf (fileEv.rdbuf());

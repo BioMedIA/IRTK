@@ -483,6 +483,27 @@ void irtkReconstruction::CreateMaskFromBlackBackground( vector<irtkRealImage>& s
 	SetMask(&m, smooth_mask);
 }
 
+void irtkReconstruction::SetTemplate(irtkRealImage templateImage)
+{
+  irtkRealImage t2template = _reconstructed;
+  t2template=0;
+  irtkRigidTransformation tr;
+  
+  irtkImageTransformation *imagetransformation = new irtkImageTransformation;
+  irtkImageFunction *interpolator = new irtkLinearInterpolateImageFunction;
+  imagetransformation->SetInput(&templateImage, &tr);
+  imagetransformation->SetOutput(&t2template);
+  //target contains zeros, need padding -1
+  imagetransformation->PutTargetPaddingValue(-1);
+  //need to fill voxels in target where there is no info from source with zeroes
+  imagetransformation->PutSourcePaddingValue(0);
+  imagetransformation->PutInterpolator(interpolator);
+  imagetransformation->Run();
+  
+  _reconstructed = t2template;
+  //_reconstructed.Write("t2template.nii.gz");
+}
+
 double irtkReconstruction::CreateLargeTemplate( vector<irtkRealImage>& stacks,
                                                 vector<irtkRigidTransformation>& stack_transformations,
                                                 double resolution,
@@ -1124,8 +1145,10 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
                         sim(i, j, 0) += p.value * _reconstructed(p.x, p.y, p.z);
                         weight += p.value;
                     }
-                    if(weight>0)
+                    if(weight>0.99)
                         sim(i,j,0)/=weight;
+		    else
+		      sim(i,j,0)=0;
                 }
 	}
 
@@ -3787,13 +3810,15 @@ void irtkReconstruction::HalfImage(irtkRealImage image, vector<irtkRealImage>& s
 }
 
 
-void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, bool evenodd, bool half, int half_iter)
+void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<int> &pack_num, int iter, bool evenodd, bool half, int half_iter)
 {
     irtkImageRigidRegistrationWithPadding rigidregistration;
     irtkGreyImage t,s;
-    //irtkRigidTransformation transformation;
+    irtkRealImage target;
     vector<irtkRealImage> packages;
     char buffer[256];
+    irtkImageAttributes attr, attr2;
+    irtkLinearInterpolateImageFunction interpolator;
   
     int firstSlice = 0;
     cout<<"Package to volume: "<<endl;
@@ -3813,11 +3838,22 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
         for (unsigned int j = 0; j < packages.size(); j++) {
             cout<<"Package "<<j<<" of stack "<<i<<endl;
             if (_debug) {
-                sprintf(buffer,"package%i-%i.nii.gz",i,j);
+                sprintf(buffer,"package%i-%i-%i.nii.gz",iter,i,j);
                 packages[j].Write(buffer);
             }
       
-            t=packages[j];
+            attr2=packages[j].GetImageAttributes();
+	    //packages are not masked at present
+            irtkResampling<irtkRealPixel> resampling(attr._dx,attr._dx, attr2._dz);         
+
+            target=packages[j];
+
+	    resampling.SetInput(&packages[j]);
+            resampling.SetOutput(&target);
+	    resampling.SetInterpolator(&interpolator);
+            resampling.Run();
+
+	    t=target;
             s=_reconstructed;
       
             //find existing transformation
