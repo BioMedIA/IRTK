@@ -128,7 +128,7 @@ void irtkImageFreeFormRegistrationWithPadding::GuessParameter()
   }
 }
 
-void irtkImageFreeFormRegistrationWithPadding::GuessParameterDistortion(double resolution, double CPS)
+void irtkImageFreeFormRegistrationWithPadding::GuessParameterDistortion(double resolution, double CPS, double penalty)
 {
   int i;
   double xsize, ysize, zsize, spacing;
@@ -200,7 +200,7 @@ void irtkImageFreeFormRegistrationWithPadding::GuessParameterDistortion(double r
   }
 
   // Default parameters for non-rigid registration
-  _Lambda1            = 0;
+  _Lambda1            = penalty;
   _Lambda2            = 0;
   _Lambda3            = 0;
   if(CPS<0.1)

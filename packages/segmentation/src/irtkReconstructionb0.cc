@@ -701,7 +701,7 @@ void  irtkReconstructionb0::FieldMapDistortion(irtkRealImage &stack,irtkRealImag
   s=st;
   registration.SetInput(&t,&s);
   registration.SetOutput(&distortion);
-  registration.GuessParameterDistortion(1,_fieldMapSpacing);
+  registration.GuessParameterDistortion(1,_fieldMapSpacing,_smoothnessPenalty);
   if(_debug)
     registration.irtkImageRegistration::Write("par-dist.nreg");
   registration.SetTargetPadding(0);

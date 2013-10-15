@@ -41,6 +41,7 @@ protected:
   vector<irtkAffineTransformation> _shim;
   irtkMultiLevelFreeFormTransformation _fieldMap;
   double _fieldMapSpacing;
+  double _smoothnessPenalty;
 
   
 public:
@@ -63,6 +64,7 @@ public:
   inline void SetGroups(vector<int>& stack_group, vector<int>& groups, vector<bool>& swap); 
   inline void SetReconstructed(irtkRealImage image);
   inline void SetFieldMapSpacing(double spacing);
+  inline void SetSmoothnessPenalty(double penalty);
 
 };
 
@@ -87,6 +89,11 @@ inline void irtkReconstructionb0::SetGroups(vector<int>& stack_group,vector<int>
 inline void irtkReconstructionb0::SetFieldMapSpacing(double spacing)
 {
   _fieldMapSpacing = spacing;
+}
+
+inline void irtkReconstructionb0::SetSmoothnessPenalty(double penalty)
+{
+  _smoothnessPenalty = penalty;
 }
 
 #endif

@@ -62,6 +62,7 @@ void usage()
   cerr << "\t-group [group1] ... [groupN]  Give group numbers for distortion correction. [Default: all in one group]"<<endl;
   cerr << "\t-phase [axis1] ... [axisG]  For each group give phase encoding axis in image coordinates [x or y]"<<endl;
   cerr << "\t-fieldMapSpacing [spacing]  B-spline control point spacing for field map"<<endl;
+  cerr << "\t-smoothnessPenalty [penalty]  smoothness penalty for field map"<<endl;
   cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
   cerr << "\t" << endl;
@@ -119,7 +120,8 @@ int main(int argc, char **argv)
   //flag to swich the intensity matching on and off
   bool intensity_matching = true;
   bool alignT2 = false;
-  double fieldMapSpacing = 10;
+  double fieldMapSpacing = 2.5;
+  double penalty = 0.1;
 
   //Create reconstruction object
   irtkReconstructionb0 reconstruction;
@@ -264,6 +266,16 @@ int main(int argc, char **argv)
       argc--;
       argv++;
       fieldMapSpacing=atof(argv[1]);
+      ok = true;
+      argc--;
+      argv++;
+    }
+    
+    //Variance of Gaussian kernel to smooth the bias field.
+    if ((ok == false) && (strcmp(argv[1], "-smoothnessPenalty") == 0)){
+      argc--;
+      argv++;
+      penalty=atof(argv[1]);
       ok = true;
       argc--;
       argv++;
@@ -535,6 +547,9 @@ int main(int argc, char **argv)
   
   //Set B-spline control point spacing for field map
   reconstruction.SetFieldMapSpacing(fieldMapSpacing);
+  
+  //Set B-spline control point spacing for field map
+  reconstruction.SetSmoothnessPenalty(penalty);
   
   //Set force excluded slices
   reconstruction.SetForceExcludedSlices(force_excluded);

@@ -182,7 +182,7 @@ public:
   virtual void GuessParameter();
 
   /// Guess parameters for distortion correction
-  virtual void GuessParameterDistortion(double resolution = 0, double CPS=0);
+  virtual void GuessParameterDistortion(double resolution = 0, double CPS=0, double penalty = 0);
 
   /// Read single line of registration parameters
   virtual bool Read(char *, char *, int &);
