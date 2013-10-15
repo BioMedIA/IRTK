@@ -844,24 +844,10 @@ int main(int argc, char **argv)
     //Set smoothing parameters 
     //amount of smoothing (given by lambda) is decreased with improving alignment
     //delta (to determine edges) stays constant throughout
-    if(iter==(iterations-1))
-      reconstruction.SetSmoothingParameters(delta,lastIterLambda);
-    else
-    {
-      double l=lambda;
-      for (i=0;i<levels;i++)
-      {
-        if (iter==iterations*(levels-i-1)/levels)
-          reconstruction.SetSmoothingParameters(delta, l);
-        l*=2;
-      }
-    }
+    reconstruction.SetSmoothingParameters(delta,lastIterLambda);
     
     //Use faster reconstruction during iterations and slower for final reconstruction
-    if ( iter<(iterations-1) )
-      reconstruction.SpeedupOn();
-    else 
-      reconstruction.SpeedupOff();
+    reconstruction.SpeedupOff();
     
     //Initialise values of weights, scales and bias fields
     reconstruction.InitializeEMValues();
@@ -884,16 +870,9 @@ int main(int argc, char **argv)
     reconstruction.EStep();
 
     //number of reconstruction iterations
-    if ( iter==(iterations-1) ) 
-    {
-      rec_iterations = 30;      
-    }
-    else 
-      rec_iterations = 10;
+    rec_iterations = 30;      
         
     //reconstruction iterations
-    //rec_iterations=10;
-    reconstruction.SpeedupOff();
     for (i=0;i<rec_iterations;i++)
     {
       cout<<endl<<"  Reconstruction iteration "<<i<<". "<<endl;
