@@ -397,7 +397,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   vector<irtkRealImage> simulated;
   vector<irtkRealImage> stacks2;
   
-  int ind;
+  uint ind;
   int i,j,k;
   char buffer[256];
   irtkRealImage image;
@@ -425,6 +425,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   irtkImageTransformation *imagetransformation = new irtkImageTransformation;
   irtkImageFunction *interpolator = new irtkNearestNeighborInterpolateImageFunction;
   irtkImageFunction *interpolatorLin = new irtkLinearInterpolateImageFunction;
+  irtkImageFunction *interpolatorSinc = new irtkSincInterpolateImageFunction;
   imagetransformation->PutInterpolator(interpolator);
   //target probably has padding 0, need padding -1
   imagetransformation->PutTargetPaddingValue(-1);
@@ -436,7 +437,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   cout<<"Groups: ";
   cout.flush();
   _shim.clear();
-  for(int g=0; g<_groups.size();g++)
+  for(uint g=0; g<_groups.size();g++)
   {
     cout<<g<<" ";
     cout.flush();
@@ -456,7 +457,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
     
     irtkRealImage st(templateStack),sim(templateStack);
     //resample all on the same grid
-    for(int ind=0; ind<stacknum.size(); ind++)
+    for(ind=0; ind<stacknum.size(); ind++)
     {
       imagetransformation->SetInput(&stacks[stacknum[ind]], &id);
       imagetransformation->SetOutput(&st);
@@ -523,9 +524,9 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
     }
     _shim.push_back(shim);
     
-     imagetransformation->PutInterpolator(interpolatorLin);
+     imagetransformation->PutInterpolator(interpolatorSinc);
     
-    for(int ind=0; ind<stacknum.size(); ind++)
+    for(ind=0; ind<stacknum.size(); ind++)
     {
       //sprintf(buffer,"s1-%i.nii.gz",stacknum[ind]);
       //stacks[stacknum[ind]].Write(buffer);
@@ -560,7 +561,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
   vector<irtkRealImage> simulated;
   vector<irtkRealImage> stacks2;
   
-  int ind;
+  uint ind;
   int i,j,k;
   char buffer[256];
   irtkRealImage image;
@@ -605,7 +606,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
     
   irtkRealImage st(templateStack),sim(templateStack);
   //resample all on the same grid
-  for(int ind=0; ind<stacks.size(); ind++)
+  for(ind=0; ind<stacks.size(); ind++)
   {
     imagetransformation->SetInput(&stacks[ind], &id);
     imagetransformation->SetOutput(&st);
@@ -661,7 +662,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
     
   //Corect the stacks
   imagetransformation->PutInterpolator(interpolatorLin); 
-  for(int ind=0; ind<stacks.size(); ind++)
+  for(ind=0; ind<stacks.size(); ind++)
   {
     cout<<"Correcting stack "<<ind<<endl;
     imagetransformation->SetInput(&stacks2[ind], &_fieldMap);//&dist);
@@ -738,7 +739,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
   double val;
   irtkImageTransformation *imagetransformation = new irtkImageTransformation;
   irtkImageFunction *interpolator = new irtkNearestNeighborInterpolateImageFunction;
-  irtkImageFunction *interpolatorLin = new irtkLinearInterpolateImageFunction;
+  //irtkImageFunction *interpolatorLin = new irtkLinearInterpolateImageFunction;
   imagetransformation->PutInterpolator(interpolator);
   //target probably has padding 0, need padding -1
   imagetransformation->PutTargetPaddingValue(-1);
@@ -753,7 +754,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
   irtkRigidTransformation id;
   irtkRealImage st(templateStack);
   //resample all on the same grid
-  for(int ind=0; ind<stacks.size(); ind++)
+  for(uint ind=0; ind<stacks.size(); ind++)
   {
     imagetransformation->SetInput(&stacks[ind], &id);
     imagetransformation->SetOutput(&st);
@@ -778,7 +779,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
 void irtkReconstructionb0::CreateSimulated(vector<irtkRealImage> &stacks)
 {
   _simulated.clear();
-  for (int i=0;i<stacks.size();i++)
+  for (uint i=0;i<stacks.size();i++)
   {
     _simulated.push_back(stacks[i]);
     _simulated[i]=0;
@@ -789,7 +790,7 @@ void irtkReconstructionb0::CreateSimulated(vector<irtkRealImage> &stacks)
 void irtkReconstructionb0::WriteSimulated()
 {
   char buffer[256];
-  for(int i=0;i<_simulated.size();i++)
+  for(uint i=0;i<_simulated.size();i++)
   {
     sprintf(buffer,"simulated%i.nii.gz",i);
     _simulated[i].Write(buffer);
@@ -801,7 +802,7 @@ void irtkReconstructionb0::SaveDistortionTransformations()
   char buffer[256];
   irtkMultiLevelFreeFormTransformation dist(_fieldMap);
   irtkMatrix m;
-  for(int i=0;i<_shim.size();i++)
+  for(uint i=0;i<_shim.size();i++)
   {
     m = _shim[i].GetMatrix();
     dist.PutMatrix(m);
@@ -812,5 +813,64 @@ void irtkReconstructionb0::SaveDistortionTransformations()
     }
     else
       dist.irtkTransformation::Write("distortion.dof");
+  }
+}
+
+void irtkReconstructionb0::CorrectStacks(vector<irtkRealImage> &stacks)
+{
+  char buffer[256];
+  irtkMatrix m;
+  uint ind, i;
+  
+  //make a copy of stacks
+  vector<irtkRealImage> stacks2;
+  for(uint ind = 0; ind<stacks.size();ind++)
+  {
+    stacks2.push_back(stacks[ind]);
+  }
+
+  
+  for(i=0;i<_shim.size();i++)
+  {
+    //compose shim and fieldmap
+    irtkMultiLevelFreeFormTransformation dist(_fieldMap);
+    m = _shim[i].GetMatrix();
+    dist.PutMatrix(m);
+    
+    //apply distortion to relevant stacks
+    irtkImageTransformation *imagetransformation = new irtkImageTransformation;
+    irtkImageFunction *interpolatorLin = new irtkLinearInterpolateImageFunction;
+    irtkImageFunction *interpolatorSinc = new irtkSincInterpolateImageFunction;
+    imagetransformation->PutInterpolator(interpolatorLin);
+    //target probably has padding 0, need padding -1
+    imagetransformation->PutTargetPaddingValue(-1);
+    //need to fill voxels in target where there is no info from source with zeroes
+    imagetransformation->PutSourcePaddingValue(0);
+    
+    for(ind = 0; ind<stacks.size();ind++)
+      if(_stack_group[ind]==_groups[i])
+      {
+	imagetransformation->SetInput(&stacks2[ind], &dist);
+        imagetransformation->SetOutput(&stacks[ind]);
+        imagetransformation->Run();
+        if (_debug)
+        {
+          sprintf(buffer,"cor%i.nii.gz",ind);
+	  stacks[ind].Write(buffer);
+        }
+      }
+
+    
+/*    if(_debug)
+    {
+      if(_shim.size()>1)
+      {
+        sprintf(buffer,"distortion%i.dof",i);
+        dist.irtkTransformation::Write(buffer);
+      }
+      else
+        dist.irtkTransformation::Write("distortion.dof");
+    }
+    */
   }
 }

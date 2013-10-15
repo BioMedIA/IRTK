@@ -120,6 +120,10 @@ int main(int argc, char **argv)
   bool intensity_matching = true;
   bool alignT2 = false;
   double fieldMapSpacing = 10;
+
+  //Create reconstruction object
+  irtkReconstructionb0 reconstruction;
+
   
   irtkRealImage average;
 
@@ -195,6 +199,7 @@ int main(int argc, char **argv)
     stack_transformations.push_back(*rigidTransf);
     delete rigidTransf;
   }
+  reconstruction.InvertStackTransformations(stack_transformations);
 
   // Parse options.
   while (argc > 1){
@@ -514,8 +519,6 @@ int main(int argc, char **argv)
     cout.flush();
   }
 
-  //Create reconstruction object
-  irtkReconstructionb0 reconstruction;
   
   //Output volume
   irtkRealImage reconstructed;
@@ -623,7 +626,7 @@ int main(int argc, char **argv)
   //Volumetric registrations are stack-to-template while slice-to-volume 
   //registrations are actually performed as volume-to-slice (reasons: technicalities of implementation)
   //Need to invert stack transformations now.  
-  reconstruction.InvertStackTransformations(stack_transformations);
+  //reconstruction.InvertStackTransformations(stack_transformations);
   average = reconstruction.CreateAverage(stacks,stack_transformations);
   if (debug)
     average.Write("average1.nii.gz");
@@ -648,7 +651,7 @@ int main(int argc, char **argv)
   }
   
   //Repeat volumetric registrations with cropped stacks
-  reconstruction.InvertStackTransformations(stack_transformations);
+  //reconstruction.InvertStackTransformations(stack_transformations);
   //redirect output to files
   cerr.rdbuf(file_e.rdbuf());
   cout.rdbuf (file.rdbuf());
@@ -659,7 +662,7 @@ int main(int argc, char **argv)
   //redirect output back to screen
   cout.rdbuf (strm_buffer);
   cerr.rdbuf (strm_buffer_e);
-  reconstruction.InvertStackTransformations(stack_transformations);
+  //reconstruction.InvertStackTransformations(stack_transformations);
   
   //Rescale intensities of the stacks to have the same average
   if (intensity_matching)
@@ -719,7 +722,7 @@ int main(int argc, char **argv)
   
   //Create blurred T2 template for registration
   irtkRealImage blurredT2 = alignedT2;
-  irtkGaussianBlurringWithPadding<irtkRealPixel> gb(1,0);
+  irtkGaussianBlurringWithPadding<irtkRealPixel> gb(0.75,0);
   gb.SetInput(&blurredT2);
   gb.SetOutput(&blurredT2);
   gb.Run();
@@ -760,6 +763,14 @@ int main(int argc, char **argv)
          sprintf(buffer,"corrected%i.nii.gz",i);
          corrected_stacks[i].Write(buffer);
       }
+      
+      //clear corrected stacks
+      corrected_stacks.clear();
+      for(i=0;i<stacks.size();i++)
+        corrected_stacks.push_back(stacks[i]);
+      reconstruction.CorrectStacks(corrected_stacks);
+    
+
       //set corrected slices
       reconstruction.UpdateSlices(corrected_stacks,thickness);
       cout<<"PutMask b0"<<endl;
@@ -881,7 +892,7 @@ int main(int argc, char **argv)
       rec_iterations = 10;
         
     //reconstruction iterations
-    rec_iterations=10;
+    //rec_iterations=10;
     reconstruction.SpeedupOff();
     for (i=0;i<rec_iterations;i++)
     {

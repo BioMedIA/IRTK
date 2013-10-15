@@ -3865,6 +3865,10 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
             int firstSliceIndex = round(z)+firstSlice;
             cout<<"First slice index for package "<<j<<" of stack "<<i<<" is "<<firstSliceIndex<<endl;
             //transformation = _transformations[sliceIndex];
+            if (_debug) {
+                sprintf(buffer,"init%i-%i-%i.dof",iter,i,j);
+                _transformations[firstSliceIndex].irtkTransformation::Write(buffer);
+            }
       
             //put origin in target to zero
             irtkRigidTransformation offset;
@@ -3888,7 +3892,7 @@ void irtkReconstruction::PackageToVolume(vector<irtkRealImage>& stacks, vector<i
             _transformations[firstSliceIndex].PutMatrix(m);
       
             if (_debug) {
-                sprintf(buffer,"transformation%i-%i.dof",i,j);
+                sprintf(buffer,"transformation%i-%i-%i.dof",iter,i,j);
                 _transformations[firstSliceIndex].irtkTransformation::Write(buffer);
             }
 

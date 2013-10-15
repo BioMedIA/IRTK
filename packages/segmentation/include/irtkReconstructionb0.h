@@ -57,6 +57,7 @@ public:
   void CreateSimulated(vector<irtkRealImage> &stacks);
   void WriteSimulated();
   void SaveDistortionTransformations();
+  void CorrectStacks(vector<irtkRealImage> &stacks);
 
 
   inline void SetGroups(vector<int>& stack_group, vector<int>& groups, vector<bool>& swap); 
