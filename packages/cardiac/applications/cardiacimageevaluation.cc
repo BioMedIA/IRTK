@@ -366,7 +366,10 @@ int main(int argc, char **argv)
 
         	val = interpolator->EvaluateInside(p._x, p._y, p._z);
 
-        	histogram.AddSample(target(x, y, z), val);
+			if(val > Tp){
+        		histogram.AddSample(target(x, y, z), val);
+			}
+
         	if (val >  source_max)
         		source_max = val;
         	if (val < source_min)
