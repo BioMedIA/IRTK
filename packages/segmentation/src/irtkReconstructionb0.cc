@@ -802,18 +802,46 @@ void irtkReconstructionb0::SaveDistortionTransformations()
   char buffer[256];
   irtkMultiLevelFreeFormTransformation dist(_fieldMap);
   irtkMatrix m;
-  for(uint i=0;i<_shim.size();i++)
+  irtkRealImage distortion = _reconstructed;
+  double x,y,z;
+  irtkImageAttributes attr = distortion.GetImageAttributes();
+  double res = attr._dx;
+
+  for(uint ind=0;ind<_shim.size();ind++)
   {
-    m = _shim[i].GetMatrix();
+    m = _shim[ind].GetMatrix();
     dist.PutMatrix(m);
+
+    distortion=0;
+    for(int k=0; k<distortion.GetZ();k++)
+    for(int j=0; j<distortion.GetY();j++)
+    for(int i=0; i<distortion.GetX();i++)
+    {
+      x=i;y=j;z=k;
+      distortion.ImageToWorld(x,y,z);
+      dist.Transform(x,y,z);
+      distortion.WorldToImage(x,y,z);
+      if (_swap[ind])
+	distortion(i,j,k)=(y-j)*res;
+      else
+	distortion(i,j,k)=(x-i)*res;
+    }
+      
     if(_shim.size()>1)
     {
-      sprintf(buffer,"distortion%i.dof",i);
+      sprintf(buffer,"distortion%i.dof",ind);
       dist.irtkTransformation::Write(buffer);
+      sprintf(buffer,"distortion%i.nii.gz",ind);
+      distortion.Write(buffer);
     }
     else
+    {
       dist.irtkTransformation::Write("distortion.dof");
+      distortion.Write("distortion.nii.gz");
+    }
   }
+  
+  
 }
 
 void irtkReconstructionb0::CorrectStacks(vector<irtkRealImage> &stacks)
@@ -841,7 +869,7 @@ void irtkReconstructionb0::CorrectStacks(vector<irtkRealImage> &stacks)
     irtkImageTransformation *imagetransformation = new irtkImageTransformation;
     irtkImageFunction *interpolatorLin = new irtkLinearInterpolateImageFunction;
     irtkImageFunction *interpolatorSinc = new irtkSincInterpolateImageFunction;
-    imagetransformation->PutInterpolator(interpolatorLin);
+    imagetransformation->PutInterpolator(interpolatorSinc);
     //target probably has padding 0, need padding -1
     imagetransformation->PutTargetPaddingValue(-1);
     //need to fill voxels in target where there is no info from source with zeroes

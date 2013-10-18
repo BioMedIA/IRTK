@@ -120,8 +120,8 @@ int main(int argc, char **argv)
   //flag to swich the intensity matching on and off
   bool intensity_matching = true;
   bool alignT2 = false;
-  double fieldMapSpacing = 2.5;
-  double penalty = 0.1;
+  double fieldMapSpacing = 5;
+  double penalty = 0;
 
   //Create reconstruction object
   irtkReconstructionb0 reconstruction;
