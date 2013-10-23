@@ -121,7 +121,7 @@ template <class VoxelType> void irtkResampling<VoxelType>::Initialize()
   *this->_output = irtkGenericImage<VoxelType>(new_x, new_y, new_z, this->_input->GetT());
 
   // Set new voxel size
-  this->_output->PutPixelSize(new_xsize, new_ysize, new_zsize);
+  this->_output->PutPixelSize(new_xsize, new_ysize, new_zsize, this->_input->GetTSize());
 
   // Set new orientation
   this->_input ->GetOrientation(xaxis, yaxis, zaxis);
