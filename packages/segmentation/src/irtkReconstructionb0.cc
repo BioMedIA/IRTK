@@ -397,7 +397,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   vector<irtkRealImage> simulated;
   vector<irtkRealImage> stacks2;
   
-  uint ind;
+  unsigned int ind;
   int i,j,k;
   char buffer[256];
   irtkRealImage image;
@@ -437,7 +437,7 @@ void irtkReconstructionb0::Shim(vector<irtkRealImage> &stacks, int iter)
   cout<<"Groups: ";
   cout.flush();
   _shim.clear();
-  for(uint g=0; g<_groups.size();g++)
+  for(unsigned int g=0; g<_groups.size();g++)
   {
     cout<<g<<" ";
     cout.flush();
@@ -561,7 +561,7 @@ void irtkReconstructionb0::FieldMap(vector<irtkRealImage> &stacks, int iter)
   vector<irtkRealImage> simulated;
   vector<irtkRealImage> stacks2;
   
-  uint ind;
+  unsigned int ind;
   int i,j,k;
   char buffer[256];
   irtkRealImage image;
@@ -754,7 +754,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
   irtkRigidTransformation id;
   irtkRealImage st(templateStack);
   //resample all on the same grid
-  for(uint ind=0; ind<stacks.size(); ind++)
+  for(unsigned int ind=0; ind<stacks.size(); ind++)
   {
     imagetransformation->SetInput(&stacks[ind], &id);
     imagetransformation->SetOutput(&st);
@@ -779,7 +779,7 @@ irtkRealImage irtkReconstructionb0::Create4DImage(vector<irtkRealImage> &stacks)
 void irtkReconstructionb0::CreateSimulated(vector<irtkRealImage> &stacks)
 {
   _simulated.clear();
-  for (uint i=0;i<stacks.size();i++)
+  for (unsigned int i=0;i<stacks.size();i++)
   {
     _simulated.push_back(stacks[i]);
     _simulated[i]=0;
@@ -790,7 +790,7 @@ void irtkReconstructionb0::CreateSimulated(vector<irtkRealImage> &stacks)
 void irtkReconstructionb0::WriteSimulated()
 {
   char buffer[256];
-  for(uint i=0;i<_simulated.size();i++)
+  for(unsigned int i=0;i<_simulated.size();i++)
   {
     sprintf(buffer,"simulated%i.nii.gz",i);
     _simulated[i].Write(buffer);
@@ -807,7 +807,7 @@ void irtkReconstructionb0::SaveDistortionTransformations()
   irtkImageAttributes attr = distortion.GetImageAttributes();
   double res = attr._dx;
 
-  for(uint ind=0;ind<_shim.size();ind++)
+  for(unsigned int ind=0;ind<_shim.size();ind++)
   {
     m = _shim[ind].GetMatrix();
     dist.PutMatrix(m);
@@ -848,11 +848,11 @@ void irtkReconstructionb0::CorrectStacks(vector<irtkRealImage> &stacks)
 {
   char buffer[256];
   irtkMatrix m;
-  uint ind, i;
+  unsigned int ind, i;
   
   //make a copy of stacks
   vector<irtkRealImage> stacks2;
-  for(uint ind = 0; ind<stacks.size();ind++)
+  for(unsigned int ind = 0; ind<stacks.size();ind++)
   {
     stacks2.push_back(stacks[ind]);
   }
