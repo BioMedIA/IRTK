@@ -15,7 +15,7 @@
 #include <vtkPolyData.h>
 #include <vtkCellLocator.h>
 #include <vtkPointLocator.h>
-#include <vtkKDTreePointLocator.h>
+#include "vtkKDTreePointLocator.h"
 #include <vtkGenericCell.h>
 #include <irtkImage.h>
 
