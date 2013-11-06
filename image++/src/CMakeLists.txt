@@ -37,6 +37,7 @@ SET(IMAGE_INCLUDES
 ../include/irtkGradientImageX.h
 ../include/irtkGradientImageY.h
 ../include/irtkGradientImageZ.h
+../include/irtkHessianImageFilter.h
 ../include/irtkHistogram_1D.h
 ../include/irtkHistogram_2D.h
 ../include/irtkHistogram.h
@@ -56,7 +57,6 @@ SET(IMAGE_INCLUDES
 ../include/irtkImageToImage2.h
 ../include/irtkImageToOpenCv.h
 ../include/irtkInterpolateImageFunction.h
-../include/irtkIterativeResampling.h
 ../include/irtkLargestConnectedComponent.h
 ../include/irtkLargestConnectedComponentIterative.h
 ../include/irtkLinearInterpolateImageFunction2D.h
@@ -125,6 +125,7 @@ irtkGradientImage.cc
 irtkGradientImageX.cc
 irtkGradientImageY.cc
 irtkGradientImageZ.cc
+irtkHessianImageFilter.cc
 irtkHistogram_1D.cc
 irtkHistogram_2D.cc
 irtkDensity.cc
@@ -141,7 +142,6 @@ irtkImageToImage.cc
 irtkImageToImage2.cc
 irtkImageToOpenCv.cc
 irtkInterpolateImageFunction.cc
-irtkIterativeResampling.cc
 irtkLargestConnectedComponent.cc
 irtkLargestConnectedComponentIterative.cc
 irtkLinearInterpolateImageFunction.cc

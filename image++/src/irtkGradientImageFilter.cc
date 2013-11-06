@@ -115,10 +115,10 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
           if (x1 != x2) {
             if ((this->_input->Get(x2, y, z) > _Padding) && (this->_input->Get(x1, y, z) > _Padding)) {
               dx = (this->_input->Get(x2, y, z) - this->_input->Get(x1, y, z)) / ((x2 - x1)*this->_input->GetXSize());
-            } else if ((this->_input->Get(x2, y, z) > _Padding) && (x != x2)) {
+            /*} else if ((this->_input->Get(x2, y, z) > _Padding) && (x != x2)) {
         	  dx = (this->_input->Get(x2, y, z) - this->_input->Get(x, y, z)) / ((x2 - x)*this->_input->GetXSize());
             } else if ((this->_input->Get(x1, y, z) > _Padding) && (x != x1)) {
-          	  dx = (this->_input->Get(x, y, z) - this->_input->Get(x1, y, z)) / ((x - x1)*this->_input->GetXSize());
+          	  dx = (this->_input->Get(x, y, z) - this->_input->Get(x1, y, z)) / ((x - x1)*this->_input->GetXSize());*/
             } else {
 			  dx = 0;
 			}
@@ -129,10 +129,10 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
 		  if (y1 != y2) {
 			if ((this->_input->Get(x, y2, z) > _Padding) && (this->_input->Get(x, y1, z) > _Padding)) {
 			  dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y1, z)) / ((y2 - y1)*this->_input->GetYSize());
-			} else if ((this->_input->Get(x, y2, z) > _Padding) && (y != y2)) {
+			/*} else if ((this->_input->Get(x, y2, z) > _Padding) && (y != y2)) {
 			  dy = (this->_input->Get(x, y2, z) - this->_input->Get(x, y, z)) / ((y2 - y)*this->_input->GetYSize());
 			} else if ((this->_input->Get(x, y1, z) > _Padding) && (y != y1)) {
-			  dy = (this->_input->Get(x, y, z) - this->_input->Get(x, y1, z)) / ((y - y1)*this->_input->GetYSize());
+			  dy = (this->_input->Get(x, y, z) - this->_input->Get(x, y1, z)) / ((y - y1)*this->_input->GetYSize());*/
 			} else {
 			  dy = 0;
 			}
@@ -143,10 +143,10 @@ template <class VoxelType> void irtkGradientImageFilter<VoxelType>::Run()
 		  if (z1 != z2) {
 			if ((this->_input->Get(x, y, z2) > _Padding) && (this->_input->Get(x, y, z1) > _Padding)) {
 			  dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z1)) / ((z2 - z1)*this->_input->GetZSize());
-			} else if ((this->_input->Get(x, y, z2) > _Padding) && (z != z2)) {
+			/*} else if ((this->_input->Get(x, y, z2) > _Padding) && (z != z2)) {
 			  dz = (this->_input->Get(x, y, z2) - this->_input->Get(x, y, z)) / ((z2 - z)*this->_input->GetZSize());
 			} else if ((this->_input->Get(x, y, z1) > _Padding) && (z != z1)) {
-			  dz = (this->_input->Get(x, y, z) - this->_input->Get(x, y, z1)) / ((z - z1)*this->_input->GetZSize());
+			  dz = (this->_input->Get(x, y, z) - this->_input->Get(x, y, z1)) / ((z - z1)*this->_input->GetZSize());*/
 			} else {
 			  dz = 0;
 			}

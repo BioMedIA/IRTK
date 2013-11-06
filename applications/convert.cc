@@ -115,7 +115,7 @@ int main(int argc, char **argv)
   }
 
   // Read image
-  irtkGenericImage<float> image(input_name);
+  irtkGenericImage<irtkRealPixel> image(input_name);
 
   // Saturate
   if (saturate)

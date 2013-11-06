@@ -346,6 +346,54 @@ template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetSD(int togg
   return sqrt(std);
 }
 
+template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetAveragePad(double padding) const
+{
+  VoxelType average = 0;
+  int i, n, m;
+  VoxelType *ptr;
+
+  // Initialize pixels
+  n = this->GetNumberOfVoxels();
+  ptr = this->GetPointerToVoxels();
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+	  if(*ptr > padding) {
+		  average += (float)((VoxelType)*ptr);
+		  m++;
+	  }
+      ptr++;
+  }
+
+  if (m > 0) average /= double(m);
+
+  return average;
+}
+
+template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetSDPad(double padding) const
+{
+  // Initialize pixels
+  VoxelType average = 0, std = 0;
+  int i, n, m;
+  VoxelType *ptr;
+  n   = this->GetNumberOfVoxels();
+  ptr = this->GetPointerToVoxels();
+  average = this->GetAveragePad(padding);
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+      if(*ptr > padding) {
+        std += pow((double)*ptr - average,2);
+        m++;
+      }
+      ptr++;
+  }
+
+  if (m > 0) std /= double(m);
+
+  return sqrt(std);
+}
+
 template <class VoxelType> void irtkGenericImage<VoxelType>::GetMaxPosition(irtkPoint& p, int ds, int) const
 {
   double i, j, k;

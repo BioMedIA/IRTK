@@ -86,6 +86,12 @@ public:
   /// Standard Deviation of the pixels
   VoxelType GetSD(int = 1) const;
 
+  /// Average pixel values get accessor with padding
+  VoxelType GetAveragePad(double) const;
+
+  /// Standard Deviation of the pixels with padding
+  VoxelType GetSDPad(double) const;
+
   /// Get Max Intensity position around the point
   void GetMaxPosition(irtkPoint &, int = 1, int = 0) const;
 
