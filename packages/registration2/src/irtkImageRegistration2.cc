@@ -12,8 +12,6 @@
 
 #include <irtkRegistration2.h>
 
-#include <irtkIterativeResampling.h>
-
 #include <irtkGaussianBlurring.h>
 
 #include <irtkGradientImageFilter.h>
@@ -140,21 +138,21 @@ void irtkImageRegistration2::Initialize(int level)
 
   // Blur images if necessary
   if (_TargetBlurring[level] > 0) {
-      cout << "Blurring target ... "; cout.flush();
-      irtkGaussianBlurring<irtkRealPixel> blurring(_TargetBlurring[level]);
-      blurring.SetInput (_target);
-      blurring.SetOutput(_target);
-      blurring.Run();
-      cout << "done" << endl;
+    cout << "Blurring target ... "; cout.flush();
+    irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(_TargetBlurring[level], _TargetPadding);
+    blurring.SetInput (_target);
+    blurring.SetOutput(_target);
+    blurring.Run();
+    cout << "done" << endl;
   }
 
   if (_SourceBlurring[level] > 0) {
-      cout << "Blurring source ... "; cout.flush();
-      irtkGaussianBlurring<irtkRealPixel> blurring(_SourceBlurring[level]);
-      blurring.SetInput (_source);
-      blurring.SetOutput(_source);
-      blurring.Run();
-      cout << "done" << endl;
+    cout << "Blurring source ... "; cout.flush();
+    irtkGaussianBlurringWithPadding<irtkRealPixel> blurring(_SourceBlurring[level], _SourcePadding);
+    blurring.SetInput (_source);
+    blurring.SetOutput(_source);
+    blurring.Run();
+    cout << "done" << endl;
   }
 
   _target->GetPixelSize(&dx, &dy, &dz);
@@ -165,9 +163,10 @@ void irtkImageRegistration2::Initialize(int level)
   if (level > 0 || temp > 0.000001) {
     cout << "Resampling target ... "; cout.flush();
     // Create resampling filter
-    irtkIterativeResampling<irtkRealPixel> resample(_TargetResolution[level][0],
+    irtkResamplingWithPadding<irtkRealPixel> resample(_TargetResolution[level][0],
         _TargetResolution[level][1],
-        _TargetResolution[level][2]);
+        _TargetResolution[level][2],
+        _TargetPadding);
     resample.SetInput (_target);
     resample.SetOutput(_target);
     if (_target->GetZ() == 1) {
@@ -187,9 +186,10 @@ void irtkImageRegistration2::Initialize(int level)
   if (level > 0 || temp > 0.000001) {
     cout << "Resampling source ... "; cout.flush();
     // Create resampling filter
-    irtkIterativeResampling<irtkRealPixel> resample(_SourceResolution[level][0],
+    irtkResamplingWithPadding<irtkRealPixel> resample(_SourceResolution[level][0],
         _SourceResolution[level][1],
-        _SourceResolution[level][2]);
+        _SourceResolution[level][2],
+        _SourcePadding);
     resample.SetInput (_source);
     resample.SetOutput(_source);
     if (_source->GetZ() == 1) {
@@ -262,7 +262,6 @@ void irtkImageRegistration2::Initialize(int level)
   // Allocate memory for histogram if necessary
   switch (_SimilarityMeasure) {
     case SSD:
-    case NGD:
     case NGP:
     case NGS:
       break;
@@ -270,6 +269,7 @@ void irtkImageRegistration2::Initialize(int level)
     case MI:
     case NMI:
       //Create histogram
+      cout << "Number of bins is " << _NumberOfBins << endl;
       _histogram = new irtkHistogram_2D<double>(_NumberOfBins, _NumberOfBins);
       break;
     default:
@@ -724,18 +724,23 @@ double irtkImageRegistration2::EvaluateGradient(double *)
 
   IRTK_START_TIMING();
 
+  char buffer[500];
+
   // Allocate memory for metric
   switch (_SimilarityMeasure) {
     case SSD:
       this->EvaluateGradientSSD();
+      sprintf(buffer, "/homes/sp2010/biomedic/debug/similarityGrad_SSD_%d_%d.nii.gz", _CurrentLevel, _CurrentIteration);
       break;
     case NMI:
       this->EvaluateGradientNMI();
+      sprintf(buffer, "/homes/sp2010/biomedic/debug/similarityGrad_NMI_%d_%d.nii.gz", _CurrentLevel, _CurrentIteration);
       break;
     default:
       cerr << this->NameOfClass() << "::Evaluate: No such metric implemented" << endl;
       exit(1);
   }
+
 
   // Extract matrix for reorientation of gradient
   irtkMatrix m = _source->GetImageToWorldMatrix();
@@ -761,6 +766,8 @@ double irtkImageRegistration2::EvaluateGradient(double *)
       }
     }
   }
+
+  //_similarityGradient.Write(buffer);
 
   IRTK_END_TIMING("irtkImageRegistration2::EvaluateGradient()");
 
@@ -907,8 +914,8 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
     ok = true;
   }
   if (strstr(buffer1, "Source padding value") != NULL) {
-      this->_SourcePadding = atof(buffer2);
-      ok = true;
+    this->_SourcePadding = atof(buffer2);
+    ok = true;
   }
   if (strstr(buffer1, "Similarity measure") != NULL) {
     if (strstr(buffer2, "CC") != NULL) {
@@ -951,18 +958,13 @@ bool irtkImageRegistration2::Read(char *buffer1, char *buffer2, int &level)
                         this->_SimilarityMeasure = ML;
                         ok = true;
                       } else {
-                        if (strstr(buffer2, "NGD") != NULL) {
-                          this->_SimilarityMeasure = NGD;
+                        if (strstr(buffer2, "NGP") != NULL) {
+                          this->_SimilarityMeasure = NGP;
                           ok = true;
                         } else {
-                          if (strstr(buffer2, "NGP") != NULL) {
-                            this->_SimilarityMeasure = NGP;
+                          if (strstr(buffer2, "NGS") != NULL) {
+                            this->_SimilarityMeasure = NGS;
                             ok = true;
-                          } else {
-                            if (strstr(buffer2, "NGS") != NULL) {
-                              this->_SimilarityMeasure = NGS;
-                              ok = true;
-                            }
                           }
                         }
                       }
@@ -1057,9 +1059,6 @@ void irtkImageRegistration2::Write(ostream &to)
       break;
     case ML:
       to << "Similarity measure                = ML" << endl;
-      break;
-    case NGD:
-      to << "Similarity measure                = NGD" << endl;
       break;
     case NGP:
       to << "Similarity measure                = NGP" << endl;
