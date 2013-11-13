@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     if ((ok == false) && (strcmp(argv[1], "-y") == 0)){
       argc--;
       argv++;
-      swap=false;
+      swap=true;
       cout<< "Phase endoding direction is y."<<endl;
       cout.flush();
       ok = true;
@@ -283,7 +283,11 @@ int main(int argc, char **argv)
           y = j;
           z = k;
 	  //move it by fieldmap converted to voxels (reconstructed reslution)
-	  y+=resfieldmap(i,j,k)/attr._dy;
+	  if(swap)
+	    y+=resfieldmap(i,j,k)/attr._dy;
+	  else
+	    x+=resfieldmap(i,j,k)/attr._dx;
+	  
 	  if ((x > -0.5) && (x < image.GetX()-0.5) && 
 	      (y > -0.5) && (y < image.GetY()-0.5) &&
               (z > -0.5) && (z < image.GetZ()-0.5))
