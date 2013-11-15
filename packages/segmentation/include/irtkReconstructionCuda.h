@@ -10,16 +10,17 @@
 
   =========================================================================*/
 
-#pragma once
+#ifndef _irtkReconstructionCuda_H
+#define _irtkReconstructionCuda_H
 
 #include <irtkImage.h>
 #include <irtkTransformation.h>
 #include <irtkGaussianBlurring.h>
+#include "reconstruction_cuda.cuh"
 
 #include <vector>
 using namespace std;
 
-#include "reconstruction_cuda.cuh"
 /*
 
   Reconstruction of volume from 2D slices
@@ -515,3 +516,4 @@ inline void irtkReconstructionCuda::SetForceExcludedSlices(vector<int>& force_ex
     _force_excluded = force_excluded;  
 }
 
+#endif
