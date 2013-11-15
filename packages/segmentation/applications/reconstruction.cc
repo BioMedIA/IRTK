@@ -9,12 +9,12 @@
   Changes   : $Author$
 
 =========================================================================*/
-
+#include <vector>
+#include <string>
 #include <irtkImage.h>
 #include <irtkTransformation.h>
 #include <irtkReconstruction.h>
-#include <vector>
-#include <string>
+
 using namespace std;
 
 //Application to perform reconstruction of volumetric MRI from thick slices.

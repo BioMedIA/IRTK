@@ -391,7 +391,7 @@ template <class VoxelType> VoxelType irtkGenericImage<VoxelType>::GetSDPad(doubl
 
   if (m > 0) std /= double(m);
 
-  return sqrt(std);
+  return sqrt((double)std);
 }
 
 template <class VoxelType> void irtkGenericImage<VoxelType>::GetMaxPosition(irtkPoint& p, int ds, int) const

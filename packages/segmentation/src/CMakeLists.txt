@@ -69,5 +69,14 @@ irtkEMClassification2ndOrderMRF.cc
 irtkBiasCorrectionMask.cc
 irtkPolynomialBiasField.cc)
 
+
+IF (BUILD_GPU_SUPPORT_WITH_CUDA)
+#TODO 
+#full integration into the IRTK build environment does not work yet 
+#-> build separately for now
+#add_subdirectory(irtkReconstructionCuda)
+ENDIF(BUILD_GPU_SUPPORT_WITH_CUDA)
+
 ADD_LIBRARY(segmentation++ ${SEGMENTATION_INCLUDES} ${SEGMENTATION_SRCS})
 INSTALL_FILES(/include FILES ${SEGMENTATION_INCLUDES})
+

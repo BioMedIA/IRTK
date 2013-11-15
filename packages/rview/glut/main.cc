@@ -22,7 +22,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #ifdef WIN32
-#include <glut.h>
+#include <GL/glut.h>
 #else
 #include <GL/glut.h>
 #endif
