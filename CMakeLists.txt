@@ -23,6 +23,7 @@ OPTION(BUILD_WITH_TBB "Use TBB library for multithreading support" OFF)
 OPTION(BUILD_GPU_SUPPORT_WITH_CUDA "Use a preliminary GPU accelerated version of IRTK" OFF)
 IF (BUILD_GPU_SUPPORT_WITH_CUDA)
   add_subdirectory(cudaCommon++)
+  add_subdirectory(packages/segmentation/src/irtkReconstructionCuda)
 ENDIF(BUILD_GPU_SUPPORT_WITH_CUDA)
 
 SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation wrapping)
