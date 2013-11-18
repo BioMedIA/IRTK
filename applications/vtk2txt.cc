@@ -12,17 +12,17 @@ Changes   : $Author$
 
 #include <irtkImage.h>
 #include <irtkImageFunction.h>
+#include <irtkVTKFunctions.h>
 
 #ifdef HAS_VTK
 
-
-
-char *input_name = NULL, *output_name = NULL, *array_name = "WallThickness";
+char *input_name = NULL, *output_name = NULL, *array_name = "WallThickness", *connection_name = NULL;
 
 void usage(){
 	cerr << "Usage: vtk2txt [input] [output] " << endl;
 	cerr << "Options:" << endl;
 	cerr << "  -arrayname <name>      Array name of the input ply format." << endl;
+	cerr << "  -connection <output>   Output connection to a txt file." << endl;
 	exit(1);
 }
 
@@ -53,6 +53,14 @@ int main(int argc, char **argv)
 			argc--;
 			argv++;
 		}
+		if ((ok == false) && (strcmp(argv[1], "-connection") == 0)) {
+			argc--;
+			argv++;
+			ok = true;
+			connection_name = argv[1];
+			argc--;
+			argv++;
+		}
 		if (ok == false) {
 			cerr << "Can not parse argument " << argv[1] << endl;
 			usage();
@@ -77,7 +85,9 @@ int main(int argc, char **argv)
 	}else if(model->GetPointData()->HasArray(array_name)){
 		array = (vtkDoubleArray *)model->GetPointData()->GetArray(array_name);
 	}
-	ofstream fout(output_name,ios::app);
+
+	ofstream fout;
+	fout.open(output_name);
 
 	for (i = 0; i < model->GetNumberOfPoints(); i++) {
 		model->GetPoints()->GetPoint (i, point);
@@ -91,6 +101,31 @@ int main(int argc, char **argv)
 	}
 
 	fout.close();
+	fout.clear();
+
+	if(connection_name != NULL){
+		
+		fout.open(connection_name);
+
+		for (i = 0; i < model->GetNumberOfPoints(); i++) {
+			fout << i;
+
+			vtkIdList *dconnectlist = vtkIdList::New();
+			//Find neighbor
+			GetConnectedVertices(model,i,dconnectlist);
+			//Get number of neighbor
+			int n = dconnectlist->GetNumberOfIds();
+			
+			for (int j = 0; j < n; j++){
+				fout << " " << dconnectlist->GetId(j);
+			}
+			dconnectlist->Delete();
+			
+			fout << endl;
+		}
+
+		fout.close();
+	}
 
 }
 

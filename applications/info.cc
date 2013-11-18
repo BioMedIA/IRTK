@@ -14,12 +14,13 @@
 
 #include <irtkFileToImage.h>
 
-char *input_name = NULL, *output_name = NULL;
+char *input_name = NULL, *output_name = NULL, *output_size_name = NULL;
 
 void usage()
 {
   cerr << "Usage: info [image]\n";
   cerr << "<-time> [filename] Output overall time to a file" << endl;
+  cerr << "<-size> [filename] Output image size to a file" << endl;
   exit(1);
 }
 
@@ -47,6 +48,14 @@ int main(int argc, char **argv)
           argv++;
           ok = true;
       }
+	  if ((ok == false) && (strcmp(argv[1], "-size") == 0)) {
+          argc--;
+          argv++;
+          output_size_name = argv[1];
+          argc--;
+          argv++;
+          ok = true;
+      }
       if (ok == false) {
           cerr << "Can not parse argument " << argv[1] << endl;
           usage();
@@ -67,6 +76,12 @@ int main(int argc, char **argv)
   if(output_name){
 	  ofstream fout(output_name,ios::app);
 	  fout << image->GetTSize()*image->GetT() << " ";
+	  fout.close();
+  }
+
+  if(output_size_name){
+	  ofstream fout(output_size_name,ios::app);
+	  fout << image->GetXSize() << " " << image->GetYSize() << " " << image->GetZSize();
 	  fout.close();
   }
 
