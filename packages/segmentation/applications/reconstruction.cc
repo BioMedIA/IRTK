@@ -21,21 +21,21 @@ using namespace std;
 
 void usage()
 {
-  cerr << "Usage: reconstruction [reconstructed] [N] [stack_1] .. [stack_N] [dof_1] .. [dof_N] <options>\n" << endl;
+  cerr << "Usage: reconstruction [reconstructed] [N] [stack_1] .. [stack_N] <options>\n" << endl;
   cerr << endl;
 
   cerr << "\t[reconstructed]         Name for the reconstructed volume. Nifti or Analyze format." << endl;
   cerr << "\t[N]                     Number of stacks." << endl;
   cerr << "\t[stack_1] .. [stack_N]  The input stacks. Nifti or Analyze format." << endl;
-  cerr << "\t[dof_1]   .. [dof_N]    The transformations of the input stack to template" << endl;
+  cerr << "\t" << endl;
+  cerr << "Options:" << endl;
+  cerr << "\t-dofin [dof_1]   .. [dof_N]    The transformations of the input stack to template" << endl;
   cerr << "\t                        in \'dof\' format used in IRTK." <<endl;
   cerr << "\t                        Only rough alignment with correct orienation and " << endl;
   cerr << "\t                        some overlap is needed." << endl;
   cerr << "\t                        Use \'id\' for an identity transformation for at least" << endl;
   cerr << "\t                        one stack. The first stack with \'id\' transformation" << endl;
   cerr << "\t                        will be resampled as template." << endl;
-  cerr << "\t" << endl;
-  cerr << "Options:" << endl;
   cerr << "\t-thickness [th_1] .. [th_N] Give slice thickness.[Default: twice voxel size in z direction]"<<endl;
   cerr << "\t-mask [mask]              Binary mask to define the region od interest. [Default: whole image]"<<endl;
   cerr << "\t-packages [num_1] .. [num_N] Give number of packages used during acquisition for each stack."<<endl;
@@ -83,6 +83,8 @@ int main(int argc, char **argv)
   vector<irtkRealImage> stacks;
   /// Stack transformation
   vector<irtkRigidTransformation> stack_transformations;
+  /// user defined transformations
+  bool have_stack_transformations = false;
   /// Stack thickness
   vector<double > thickness;
   ///number of stacks
@@ -160,35 +162,41 @@ int main(int argc, char **argv)
     stacks.push_back(stack);
   }
   
-  //Read transformation
-  for (i=0;i<nStacks;i++)
-  {
-    irtkTransformation *transformation;
-    cout<<"Reading transformation ... "<<argv[1]<<" ... ";
-    cout.flush();
-    if (strcmp(argv[1], "id") == 0)
-    {
-      transformation = new irtkRigidTransformation;
-      if ( templateNumber < 0) templateNumber = i;
-    }
-    else
-    {
-      transformation = irtkTransformation::New(argv[1]);
-    }
-    cout<<" done."<<endl;
-
-    argc--;
-    argv++;
-    irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
-    stack_transformations.push_back(*rigidTransf);
-    delete rigidTransf;
-  }
-  reconstruction.InvertStackTransformations(stack_transformations);
-
   // Parse options.
   while (argc > 1){
     ok = false;
     
+    //Read stack transformations
+    if ((ok == false) && (strcmp(argv[1], "-dofin") == 0)){
+      argc--;
+      argv++;
+      
+      for (i=0;i<nStacks;i++)
+      {
+        irtkTransformation *transformation;
+        cout<<"Reading transformation ... "<<argv[1]<<" ... ";
+        cout.flush();
+        if (strcmp(argv[1], "id") == 0)
+        {
+          transformation = new irtkRigidTransformation;
+          if ( templateNumber < 0) templateNumber = i;
+        }
+        else
+        {
+          transformation = irtkTransformation::New(argv[1]);
+        }
+        cout<<" done."<<endl;
+
+        argc--;
+        argv++;
+        irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
+        stack_transformations.push_back(*rigidTransf);
+        delete rigidTransf;
+      }
+      reconstruction.InvertStackTransformations(stack_transformations);
+      have_stack_transformations = true;
+    }
+
     //Read slice thickness
     if ((ok == false) && (strcmp(argv[1], "-thickness") == 0)){
       argc--;
@@ -426,6 +434,15 @@ int main(int argc, char **argv)
     }
   }
   
+  //If transformations were not defined by user, set them to identity
+  for (i=0;i<nStacks;i++)
+  {
+    irtkRigidTransformation *rigidTransf = new irtkRigidTransformation;
+    stack_transformations.push_back(*rigidTransf);
+    delete rigidTransf;
+  }
+  templateNumber = 0;  
+
   //Initialise 2*slice thickness if not given by user
   if (thickness.size()==0)
   {

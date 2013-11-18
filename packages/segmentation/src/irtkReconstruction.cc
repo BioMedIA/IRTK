@@ -902,7 +902,6 @@ public:
                 registration.irtkImageRegistration::Write((char *) "parout-volume.rreg");
                 sprintf(buffer, "stack-transformation%i.dof.gz", i);
                 stack_transformations[i].irtkTransformation::Write(buffer);
-                target.Write("target.nii.gz");
                 sprintf(buffer, "stack%i.nii.gz", i);
                 stacks[i].Write(buffer);
             }            
@@ -956,7 +955,12 @@ void irtkReconstruction::StackRegistrations(vector<irtkRealImage>& stacks,
                         target(i, j, k) = 0;
                 }
     }
-
+    
+    if(_debug)
+    {
+      target.Write("target.nii.gz");
+      stacks[0].Write("stack0.nii.gz");
+    }
     irtkRigidTransformation offset;
     ResetOrigin(target,offset);
 
@@ -2979,10 +2983,11 @@ void irtkReconstruction::Superresolution(int iter)
     
     if(_debug) {
         char buffer[256];
-        sprintf(buffer,"confidence-map%i.nii.gz",iter);
-        _confidence_map.Write(buffer);
-        sprintf(buffer,"addon%i.nii.gz",iter);
-        addon.Write(buffer);
+        //sprintf(buffer,"confidence-map%i.nii.gz",iter);
+        //_confidence_map.Write(buffer);
+	_confidence_map.Write("confidence-map.nii.gz");
+        //sprintf(buffer,"addon%i.nii.gz",iter);
+        //addon.Write(buffer);
     }
 
     if (!_adaptive) 
@@ -3523,12 +3528,13 @@ void irtkReconstruction::NormaliseBias(int iter)
     gb.Run();
     bias/=m;
 
+    /*
     if (_debug) {
         char buffer[256];
         sprintf(buffer,"averagebias%i.nii.gz",iter);
         bias.Write(buffer);
     }
-
+    */
     irtkRealPixel *pi, *pb;
     pi = _reconstructed.GetPointerToVoxels();
     pb = bias.GetPointerToVoxels();
