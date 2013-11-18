@@ -162,6 +162,15 @@ int main(int argc, char **argv)
 			ok = true;
 
 			// Set voxel size
+			if(xsize == 0){
+				xsize = image->GetXSize();
+			}
+			if(ysize == 0){
+				ysize = image->GetYSize();
+			}
+			if(zsize == 0){
+				zsize = image->GetZSize();
+			}
 			image->PutPixelSize(xsize, ysize, zsize);
 		}
 		if ((ok == false) && (strcmp(argv[1], "-tsize") == 0)) {
