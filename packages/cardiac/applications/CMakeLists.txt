@@ -24,9 +24,11 @@ ELSE(BUILD_CONDOR_EXE)
     ADD_EXECUTABLE(cardiacpropergation cardiacpropergation.cc)
     ADD_EXECUTABLE(cardiaccurvature cardiaccurvature.cc)
     ADD_EXECUTABLE(cardiacdof2vtk cardiacdof2vtk.cc)
+    ADD_EXECUTABLE(cardiacdof2surface cardiacdof2surface.cc)
     ADD_EXECUTABLE(cardiacdotspacing cardiacdotspacing.cc)
     ADD_EXECUTABLE(cardiacimageevaluation cardiacimageevaluation.cc)
     ADD_EXECUTABLE(cardiacsurfacecompare cardiacsurfacecompare.cc)
+    ADD_EXECUTABLE(cardiacsurfacemap cardiacsurfacemap.cc)
     ADD_EXECUTABLE(cardiacsurfacevolume cardiacsurfacevolume.cc)
     ADD_EXECUTABLE(cardiacvolumecount cardiacvolumecount.cc)
     ADD_EXECUTABLE(cardiacwallthickness cardiacwallthickness.cc)
@@ -44,7 +46,6 @@ ELSE(BUILD_CONDOR_EXE)
 
   ENDIF (BUILD_MPI_EXE)
 
-INSTALL_TARGETS(/bin bep cardiaccrop cardiacphasedetection cardiacpropergation cardiaccurvature cardiacdof2vtk cardiacdotspacing cardiacimageevaluation cardiacsurfacecompare cardiacsurfacevolume cardiacvolumecount cardiacwallthickness cardiacenlargedistance comparebep ejecfrac label2distancemap late motiontrackcardiac miccai2012evaluation spatial_correct  tracktag txt2cardiacvtk Compute3DFFD)
-
+INSTALL_TARGETS(/bin bep cardiaccrop cardiacphasedetection cardiacpropergation cardiaccurvature cardiacdof2vtk cardiacdof2surface cardiacdotspacing cardiacimageevaluation cardiacsurfacecompare cardiacsurfacemap cardiacsurfacevolume cardiacvolumecount cardiacwallthickness cardiacenlargedistance comparebep ejecfrac label2distancemap late motiontrackcardiac miccai2012evaluation spatial_correct tracktag txt2cardiacvtk Compute3DFFD) 
 ENDIF (BUILD_CONDOR_EXE)
 
