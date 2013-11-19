@@ -14,9 +14,9 @@ Changes   : $Author$
 
 void usage()
 {
-	cerr << "Usage: computeTFFD [target] [N] [source] [t_real] <options> \n" << endl;
-	cerr << "takes in a reference image [source] and [N] [target] images with \n" << endl;
-	cerr << "a text file [t_real] containing the time points of the target image\n" << endl;
+	cerr << "Usage: computeTFFD [target] [N] [sources] [t_real] <options> \n" << endl;
+	cerr << "takes in a reference image [target] and [N] [source] images include [target] with \n" << endl;
+	cerr << "a text file [t_real] containing the time points of the source images starting from 0 \n" << endl;
 	cerr << "whith <options> is one or more of the following:\n" << endl;
 	cerr << "<-parin file>        Read parameter from file" << endl;
 	cerr << "<-parout file>       Write parameter to file" << endl;
