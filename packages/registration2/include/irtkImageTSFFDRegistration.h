@@ -59,6 +59,9 @@ protected:
   /// Finest ffd grid spacing
   double _FinestSpacing;
 
+  /// Finest time grid spacing * interval
+  double _FinestTimeSpacing;
+
   /// Marxium similarity
   double _MaxSimilarity;
 

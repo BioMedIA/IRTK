@@ -39,6 +39,7 @@ irtkImageTSFFDRegistration::irtkImageTSFFDRegistration()
     _Lambda3off  = true;
     _LargestSpacing = 512;
     _FinestSpacing = 1;
+	_FinestTimeSpacing = 1;
     _Mode        = RegisterXYZ;
     _mffd = NULL;
     _affd = NULL;
@@ -151,6 +152,7 @@ void irtkImageTSFFDRegistration::GuessParameter()
     _Lambda3            = 0.04;
     _LargestSpacing     = 512;
     _FinestSpacing      = 1;
+	_FinestTimeSpacing  = 1;
 
     // Remaining parameters
     for (i = 0; i < _NumberOfLevels; i++) {
@@ -227,7 +229,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
         dz = dz*_LargestSpacing;
     else
         dz = 1;
-    dt = interval*_LargestSpacing/_FinestSpacing;
+    dt = interval*_LargestSpacing*_FinestTimeSpacing/_FinestSpacing;
 
     _NumberOfModels = 0;
     _NumberOfDofs = 0;
@@ -237,7 +239,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(){
     odt = 0;
     while(dx > _SourceResolution[0][0]*_FinestSpacing && dy > _SourceResolution[0][1]*_FinestSpacing
         &&(dz > _SourceResolution[0][2]*_FinestSpacing || _target->GetZ() == 1)
-        &&(dt > interval)){
+        &&(dt > interval*_FinestTimeSpacing)){
 
             if(dx > _target->GetXSize()*_target->GetX()/3.0){
                 tdx = _target->GetXSize()*_target->GetX()/3.0;
@@ -912,7 +914,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
         dz = dz*_LargestSpacing;
     else
         dz = 1;
-    dt = interval*_LargestSpacing/_FinestSpacing;
+    dt = interval*_LargestSpacing*_FinestTimeSpacing/_FinestSpacing;
 
     _NumberOfModels = 0;
     _NumberOfDofs = 0;
@@ -922,7 +924,7 @@ void irtkImageTSFFDRegistration::InitializeTransformation(int level){
     odt = 0;
     while(dx > _target->GetXSize() && dy > _target->GetYSize()
         &&(dz > _target->GetZSize() || _target->GetZ() == 1)
-        &&(dt > interval) 
+        &&(dt > interval*_FinestTimeSpacing) 
         && _NumberOfModels < _mffd->NumberOfLevels()){
 
             if(dx > _target->GetXSize()*_target->GetX()/3.0){
@@ -1556,6 +1558,12 @@ bool irtkImageTSFFDRegistration::Read(char *buffer1, char *buffer2, int &level)
         ok = true;
     }
 
+	if ((strstr(buffer1, "Finest time spacing") != NULL)){
+		this->_FinestTimeSpacing = atof(buffer2);
+		cout << "Finest time spacing is ... " << this->_FinestTimeSpacing << endl;
+		ok = true;
+	}
+
     if (ok == false) {
         return this->irtkTemporalImageRegistration::Read(buffer1, buffer2, level);
     } else {
@@ -1570,6 +1578,7 @@ void irtkImageTSFFDRegistration::Write(ostream &to)
     to << "Sparsity constrain                  = " << this->_Lambda3 << endl;
     to << "Coarsest spacing                    = " << this->_LargestSpacing << endl;
     to << "Finest spacing                      = " << this->_FinestSpacing << endl;
+	to << "Finest time spacing                 = " << this->_FinestTimeSpacing << endl;
 
     this->irtkTemporalImageRegistration::Write(to);
 }
