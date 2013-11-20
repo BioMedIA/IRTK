@@ -11,6 +11,7 @@ Changes   : $Author$
 =========================================================================*/
 
 #include <irtkSegmentationFunction.h>
+#include <irtkMeanFilter.h>
 
 irtkMAPatchMatchSegmentation::irtkMAPatchMatchSegmentation
 	(irtkGreyImage *target, irtkGreyImage **source, 
@@ -20,10 +21,28 @@ irtkMAPatchMatchSegmentation::irtkMAPatchMatchSegmentation
 	:irtkMAPatchMatch(target,source,radius,nimages,nneighbour)
 {
 	//construct distance
-	targetlabeldistance = targetdistance;
-	sourcelabeldistance = sourcedistance;
+	this->targetlabeldistance = targetdistance;
+	this->sourcelabeldistance = sourcedistance;
 	this->label = label;
 	this->labels = labels;
+
+	this->context_target = new irtkGreyImage(this->target->GetImageAttributes());
+
+	irtkMeanFilter<irtkGreyPixel> *filter = new irtkMeanFilter<irtkGreyPixel>();
+	filter->SetInput(target);
+	filter->SetOutput(context_target);
+	filter->SetkernelRadius(radius);
+	filter->Run();
+
+	this->context_sources = new irtkGreyImage*[nimages];
+	for(int n = 0; n < nimages; n++){
+		context_sources[n] = new irtkGreyImage(this->sources[n]->GetImageAttributes());
+		filter->SetInput(sources[n]);
+		filter->SetOutput(context_sources[n]);
+		filter->Run();
+	}
+
+	delete filter;
 
 	if(label == NULL || labels == NULL){
 		cerr << "labels are empty, please input labels" << endl;
@@ -43,6 +62,44 @@ irtkMAPatchMatchSegmentation::irtkMAPatchMatchSegmentation
 	}
 
 	this->initialguess();
+
+	this->radius_x = round(this->radius / target->GetXSize());
+	this->radius_y = round(this->radius / target->GetYSize());
+	this->radius_z = round(this->radius / target->GetZSize());
+
+	if(this->radius_x < 1) this->radius_x = 1;
+	if(this->radius_y < 1) this->radius_y = 1;
+	if(this->radius_z < 1) this->radius_z = 1;
+
+}
+
+/// check if it is search
+int irtkMAPatchMatchSegmentation::checkissearch(int x2, int y2, int z2, int n){
+	int i,j,k,i2,j2,k2;
+	short values;
+	for(k = - this->radius_z; k <= this->radius_z; k++){
+		k2 = k + z2;
+		for(j = -this->radius_y; j <= this->radius_y; j++){
+			j2 = j + y2;
+			for(i = -this->radius_x; i <= this->radius_x; i++){
+
+				i2 = i + x2;
+
+				if(i2 < 0 || (i2 > sources[n]->GetX() - 1)
+					|| j2 < 0 || (j2 > sources[n]->GetY() - 1)
+					|| k2 < 0 || (k2 > sources[n]->GetZ() - 1)){
+
+				}else{
+					values = sources[n]->Get(i2,j2,k2);
+					if(values < 0){
+						return 0;
+					}
+				}
+			}
+		}	
+	}
+
+	return 1;
 }
 
 irtkMAPatchMatchSegmentation::~irtkMAPatchMatchSegmentation()
@@ -59,6 +116,9 @@ irtkMAPatchMatchSegmentation::~irtkMAPatchMatchSegmentation()
 	}
 	delete []sourcesgradient;
 	delete []search;
+
+	delete context_target;
+	delete []context_sources;
 
 	if(distancenorm != NULL){
 		delete []distancenorm;
@@ -136,9 +196,9 @@ void irtkMAPatchMatchSegmentation::generateLabels(){
 					}
 
 					//vote labels with neighbours
-					for(int offsetz = -radius; offsetz <= radius; offsetz++){
-						for(int offsety = -radius; offsety <= radius; offsety++){
-							for(int offsetx = -radius; offsetx <= radius; offsetx++){
+					for(int offsetz = -radius_z; offsetz <= radius_z; offsetz++){
+						for(int offsety = -radius_y; offsety <= radius_y; offsety++){
+							for(int offsetx = -radius_x; offsetx <= radius_x; offsetx++){
 								if(k+offsetz < 0 || k+offsetz >= label->GetZ()
 									|| j+offsety < 0 || j+offsety >= label->GetY()
 									|| i+offsetx < 0 || i+offsetx >= label->GetX()){
@@ -438,27 +498,41 @@ void irtkMAPatchMatchSegmentation::setWeight(double weight){
 		sweight = weight/targetlabeldistance->GetT();
 }
 
+void irtkMAPatchMatchSegmentation::setDirectionalRadius(double x, double y, double z){
+	this->radius_x = round(x / target->GetXSize());
+	this->radius_y = round(y / target->GetYSize());
+	this->radius_z = round(z / target->GetZSize());
+
+	if(this->radius_x < 1) this->radius_x = 1;
+	if(this->radius_y < 1) this->radius_y = 1;
+	if(this->radius_z < 1) this->radius_z = 1;
+}
+
 /// calculate distance between patches
 double irtkMAPatchMatchSegmentation::distance(int x1, int y1, int z1, int x2, int y2, int z2, int n){
 
-	int i,j,k,i1,j1,k1,i2,j2,k2,t,g,tmpradius,increase;
+	int i,j,k,i1,j1,k1,i2,j2,k2,t,g;
+	int tmpradius_x, tmpradius_y, tmpradius_z;
+	int increase_x, increase_y, increase_z;
 	double dif = 0, tmp, count;
 	short value1, value2, values;
 	count = 0;
-	increase = 1;
-	tmpradius = this->radius;
+	increase_x = increase_y = increase_z = 1;
+	tmpradius_x = radius_x;
+	tmpradius_y = radius_y;
+	tmpradius_z = radius_z;
 
 	if(target->Get(x1,y1,z1) < 0){
 		return maxdistance - 1;
 	}
 
-	for(k = - tmpradius; k <= tmpradius; k+=increase){
+	for(k = - tmpradius_z; k <= tmpradius_z; k+=increase_z){
 		k1 = k + z1;
 		k2 = k + z2;
-		for(j = -tmpradius; j <= tmpradius; j+=increase){
+		for(j = -tmpradius_y; j <= tmpradius_y; j+=increase_y){
 			j1 = j + y1;
 			j2 = j + y2;
-			for(i = -tmpradius; i <= tmpradius; i+=increase){
+			for(i = -tmpradius_x; i <= tmpradius_x; i+=increase_x){
 
 				i1 = i + x1;
 				i2 = i + x2;
@@ -510,6 +584,52 @@ double irtkMAPatchMatchSegmentation::distance(int x1, int y1, int z1, int x2, in
 			}
 		}
 	}
+
+	//now contextual informations
+	//tmpradius_x = radius_x*8;
+	//tmpradius_y = radius_y*8;
+	//tmpradius_z = radius_z*8;
+	//increase_x = radius_x*2;
+	//increase_y = radius_y*2;
+	//increase_z = radius_z*2;
+	//
+	//short mean_value_target, mean_value_source;
+	//mean_value_target = context_target->Get(x1,y1,z1);
+	//mean_value_source = context_sources[n]->Get(x2,y2,z2);
+
+	//for(k = - tmpradius_z; k <= tmpradius_z; k+=increase_z){
+	//	k1 = k + z1;
+	//	k2 = k + z2;
+	//	for(j = -tmpradius_y; j <= tmpradius_y; j+=increase_y){
+	//		j1 = j + y1;
+	//		j2 = j + y2;
+	//		for(i = -tmpradius_x; i <= tmpradius_x; i+=increase_x){
+	//			i1 = i + x1;
+	//			i2 = i + x2;
+	//			if(i1 < 0 || (i1 > target->GetX() - 1) 
+	//				|| j1 < 0 || (j1 > target->GetY() - 1) 
+	//				|| k1 < 0 || (k1 > target->GetZ() - 1) ){
+	//					//do not count
+	//			}else if(i2 < 0 || (i2 > sources[n]->GetX() - 1)
+	//				|| j2 < 0 || (j2 > sources[n]->GetY() - 1)
+	//				|| k2 < 0 || (k2 > sources[n]->GetZ() - 1)){
+	//					dif += maxdistance;
+	//					count += 1;
+	//			}else{
+	//				//distance between resolved image and atlases
+	//				//reconstructed image not just decimated image
+	//				value1 = context_target->Get(i1,j1,k1);
+	//				if(value1 >= 0){		
+	//					value1 -= mean_value_target;
+	//					values = context_sources[n]->Get(i2,j2,k2) - mean_value_source;
+	//					tmp = double(value1 - values);
+	//					dif += sqrt(tmp*tmp);
+	//					count++;
+	//				}
+	//			}	
+	//		}
+	//	}
+	//}
 
 	if(count < 1)
 		return maxdistance - 1;

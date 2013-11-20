@@ -14,13 +14,14 @@ Changes   : $Author$
 
 void usage()
 {
-	cerr << "Usage: mapmSegmentation [N] [atlasfile] [target] [labelfile] [outputlabel] [patchradius]" << endl;
+	cerr << "Usage: mapmSegmentation [N] [atlasfile] [target] [labelfile] [outputlabel] [patchradius in mm]" << endl;
 	cerr << "-labeldistances       [targetlabeldistanceimage] [atlaslabeldistancefile]" << endl;
 	cerr << "-searchradius         [0-1] random search radius in the image, 1 means whole image" << endl;
 	cerr << "-nnfiterations        [N] number of iterations of the multi-atlas patchmatch" << endl;
 	cerr << "-emiterations         [N] number of iterations of EM algorithm" << endl;
 	cerr << "-output               [filename] output final mapping to the file" << endl;
 	cerr << "-distanceweight       [weight] weight for the label distances" << endl;
+	cerr << "-directionalradius    [x y z] radius for each direction in mm" << endl;
 	cerr << "-debug                open debug mode, output intermedia results" << endl;
 	cerr << "where atlasfile, labelfile and atlaslabeldistancefile are the txt file containing the location of the images" << endl;
 	exit(1);
@@ -46,6 +47,9 @@ int main(int argc, char **argv){
 	int nnf_iterations = 40;
 	double searchradius = 0.1;
 	double weight = 1;
+	double radius_x = 0;
+	double radius_y = 0;
+	double radius_z = 0;
 	int debug = false;
 
 	atlases = new irtkGreyImage*[nAtlases];
@@ -168,6 +172,20 @@ int main(int argc, char **argv){
 			argc--;
 			ok = true;
 		}
+		if ((ok == false) && (strcmp(argv[1], "-directionalradius") == 0)){
+			argv++;
+			argc--;
+			radius_x = atof(argv[1]);
+			argv++;
+			argc--;
+			radius_y = atof(argv[1]);
+			argv++;
+			argc--;
+			radius_z = atof(argv[1]);
+			argv++;
+			argc--;
+			ok = true;
+		}
 		if ((ok == false) && (strcmp(argv[1], "-distanceweight") == 0)){
 			argv++;
 			argc--;
@@ -203,6 +221,10 @@ int main(int argc, char **argv){
 	patchmatchesegmentation->setRandomrate(searchradius);
 
 	patchmatchesegmentation->setWeight(weight);
+
+	if(radius_x > 0 && radius_y > 0 && radius_z > 0){
+		patchmatchesegmentation->setDirectionalRadius(radius_x, radius_y, radius_z);
+	}
 
 	patchmatchesegmentation->run(nnf_iterations);
 

@@ -64,7 +64,7 @@ protected:
 	/// createsearchimage
 	void createsearchimages();
 	/// test if it is search
-	int checkissearch(int i, int j, int k, int n);
+	virtual int checkissearch(int i, int j, int k, int n);
 	/// propergate from one to another using the offset
 	int propergate(int x, int y, int z, int i, int j, int k, int offsetx, int offsety, int offestz, int index1 = -1, int index2 = -1);
 	/// vote weight matrix
