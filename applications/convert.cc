@@ -40,6 +40,10 @@ int main(int argc, char **argv)
     usage();
   }
 
+  q0=0.01;
+  q1=0.99;
+  saturate=false;
+
   // Parse filenames
   input_name  = argv[1];
   argc--;
@@ -115,7 +119,7 @@ int main(int argc, char **argv)
   }
 
   // Read image
-  irtkGenericImage<irtkRealPixel> image(input_name);
+  irtkGenericImage<float> image(input_name);
 
   // Saturate
   if (saturate)
