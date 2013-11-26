@@ -87,10 +87,10 @@ template <class VoxelType> void irtkMeanFilter<VoxelType>::Run()
 
 template <class VoxelType> void irtkMeanFilter<VoxelType>::SetkernelRadius(double radius)
 {
-	if(_input != NULL){
-		this->_radius_x = round(radius / _input->GetXSize());
-		this->_radius_y = round(radius / _input->GetYSize());
-		this->_radius_z = round(radius / _input->GetZSize());
+	if(this->_input != NULL){
+		this->_radius_x = round(radius / this->_input->GetXSize());
+		this->_radius_y = round(radius / this->_input->GetYSize());
+		this->_radius_z = round(radius / this->_input->GetZSize());
 	}else{
 		this->_radius_x = radius;
 		this->_radius_y = radius;
