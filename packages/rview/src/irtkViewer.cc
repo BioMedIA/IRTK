@@ -603,12 +603,17 @@ void irtkViewer::DrawCursor(irtkCursorMode mode)
 	}
 }
 
-void irtkViewer::DrawIsolines(irtkGreyImage *image, int value)
+void irtkViewer::DrawIsolines( irtkGreyImage *image,
+                               int value,
+                               irtkColor &color_isolines )
 {
 	int i, j;
 
 	// Set color
-	COLOR_ISOLINES;
+	//COLOR_ISOLINES;
+    glColor3f( float(color_isolines.r) / 255.0,
+               float(color_isolines.g) / 255.0,
+               float(color_isolines.b) / 255.0 );
 	glLineWidth(_rview->GetLineThickness());
 	glBegin (GL_LINES);
 

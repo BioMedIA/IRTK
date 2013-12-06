@@ -44,7 +44,7 @@ public:
   virtual void DrawImage(irtkColor *);
 
   /// Draw isolines in image viewer
-  virtual void DrawIsolines(irtkGreyImage *, int);
+  virtual void DrawIsolines(irtkGreyImage *, int, irtkColor&);
 
   /// Draw segmentation contours in image viewer
   virtual void DrawSegmentationContour(irtkGreyImage *);

@@ -74,21 +74,27 @@ void usage ()
   cerr << "\t<-sub_max value>                 Max. subtraction intensity\n";
   cerr << "\t<-view_target>                   View target (default)\n";
   cerr << "\t<-view_source>                   View source\n";
-  cerr << "\t<-mix>                           Mixed viewport (checkerboard)\n";
+  cerr << "\t<-mix viewMix>                   Mixed viewport (checkerboard)\n";
   cerr << "\t<-tcolor color>                  Target image color\n";
+  cerr << "\t                                  where color is  <red | blue | green | rainbow>\n";
   cerr << "\t<-scolor color>                  Source image color\n";
+  cerr << "\t                                 where color is  <red | blue | green | rainbow>\n";
+  cerr << "\t<-background r g b>              RGB color for background (unsigned char)\n";
+  cerr << "\t<-saturate_target q1 q2>         Quantiles fro saturating target\n";
   cerr << "\t<-line value>                    Line thickness\n";
-  cerr << "\t   where color is  <red | blue | green | rainbow>\n";
   cerr << "\t<-diff>                          Subtraction view\n";
-  cerr << "\t<-tcontour>                      Switch on target contours (see -tmin)\n";
-  cerr << "\t<-scontour>                      Switch on source contours (see -smin)\n";
+  cerr << "\t<-tcontour r g b>                Switch on target contours (see -tmin)\n";
+  cerr << "\t<-scontour r g b>                Switch on source contours (see -smin)\n";
   cerr << "\t<-seg              file.nii.gz>  Labelled segmentation image\n";
   cerr << "\t<-lut              file.seg>     Colour lookup table for labelled segmentation\n\n";
-  cerr << "\t<-labels>                        Display segmentation labels instead of contours\n";
+  cerr << "\t<-labels>                        Display segmentation labels\n";
+  cerr << "\t<-contours>                      Display segmentation contours\n";
+  cerr << "\t<-axis>                          Display axis labels\n";
+  
   cerr << "\tDisplay specific options:\n";
   cerr << "\t<-x value>                       Width\n";
   cerr << "\t<-y value>                       Height\n";
-  cerr << "\t<-offscreen>                     Offscreen rendering\n\n";
+  cerr << "\t<-offscreen offscreen_file>      Offscreen rendering\n\n";
   cerr << "\tMouse events:\n";
   cerr << "\tLeft mouse click :               Reslice\n\n";
   rview->cb_special_info();
@@ -256,18 +262,6 @@ int main(int argc, char** argv)
       argc--;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-target_isolines") == 0)) {
-      argc--;
-      argv++;
-      rview->DisplayTargetContoursOn();
-      ok = true;
-    }
-    if ((ok == false) && (strcmp(argv[1], "-source_isolines") == 0)) {
-      argc--;
-      argv++;
-      rview->DisplaySourceContoursOn();
-      ok = true;
-    }
 #ifdef HAS_VTK
     if ((ok == false) && (strcmp(argv[1], "-object") == 0)) {
       argc--;
@@ -345,10 +339,10 @@ int main(int argc, char** argv)
       rview->Configure(View_XZ_YZ_h);
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-labels") == 0)) {
+    if ((ok == false) && (strcmp(argv[1], "-axis") == 0)) {
       argc--;
       argv++;
-      rview->DisplayAxisLabelsOff();
+      rview->DisplayAxisLabelsOn();
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-cursor") == 0)) {
@@ -493,7 +487,10 @@ int main(int argc, char** argv)
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-mix") == 0)) {
+      argv++;
+      argc--;
       rview->SetViewMode(View_Checkerboard);
+      rview->SetViewMix(atof(argv[1]));
       argv++;
       argc--;
       ok = true;
@@ -505,14 +502,52 @@ int main(int argc, char** argv)
       argc--;
       ok = true;
     }
+
+    if ((ok == false) && (strcmp(argv[1], "-background") == 0)) {
+      argv++;
+      argc--;
+      rview->SetBackgroundColor(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;
+      argv++;
+      argc--;      
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-saturate_target") == 0)) {
+      argv++;
+      argc--;
+      rview->SaturateTarget(atof(argv[1]),atof(argv[2]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;     
+      ok = true;
+    }    
+    
     if ((ok == false) && (strcmp(argv[1], "-tcontour") == 0)){
+      argv++;
+      argc--;
       rview->DisplayTargetContoursOn();
+      rview->SetTargetContourColor(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;
       argv++;
       argc--;
       ok = true;
     }
     if ((ok == false) && (strcmp(argv[1], "-scontour") == 0)){
+      argv++;
+      argc--;
       rview->DisplaySourceContoursOn();
+      rview->SetSourceContourColor(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;
       argv++;
       argc--;
       ok = true;
@@ -529,12 +564,11 @@ int main(int argc, char** argv)
       argv++;
       argc--;
       rview->GetSegmentTable()->Read(argv[1]);
-      rview->SegmentationContoursOn();
       argv++;
       argc--;
       ok = true;
     }
-    if ((ok == false) && (strcmp(argv[1], "-line_thickness") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-line") == 0)){
       argv++;
       argc--;
       double val = atof(argv[1]);
@@ -548,18 +582,17 @@ int main(int argc, char** argv)
     if ((ok == false) && (strcmp(argv[1], "-labels") == 0)){
       argv++;
       argc--;
-      rview->SegmentationContoursOff();
       rview->SegmentationLabelsOn();
       rview->SegmentationUpdateOn();
       ok = true;
     }
-	if ((ok == false) && (strcmp(argv[1], "-line") == 0)) {
-      argc--;
+    if ((ok == false) && (strcmp(argv[1], "-contours") == 0)){
       argv++;
-	  rview->SetLineThickness(atoi(argv[1]));
-	  argc--;
-	  argv++;
-	}
+      argc--;
+      rview->SegmentationContoursOn();
+      rview->SegmentationUpdateOn();
+      ok = true;
+    }
 	if ((ok == false) && (strcmp(argv[1], "-tcolor") == 0)) {
       argc--;
       argv++;

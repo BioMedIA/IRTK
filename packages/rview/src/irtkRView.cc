@@ -35,6 +35,13 @@ irtkRView::irtkRView(int x, int y)
   _screenX = x;
   _screenY = y;
 
+  // Background color
+  _backgroundColor = irtkColor();
+
+  // Contour color
+  _targetContourColor = irtkColor( 255, 255, 0);
+  _sourceContourColor = irtkColor( 255, 255, 0);
+
   // Default: Reslice at origin
   _origin_x = 0;
   _origin_z = 0;
@@ -266,7 +273,7 @@ void irtkRView::Update()
             if (*ptr1 >= 0) {
               *ptr3 = _targetLookupTable->lookupTable[*ptr1];
             } else {
-              *ptr3 = irtkColor();
+              *ptr3 = _backgroundColor;
             }
             ptr1++;
             ptr3++;
@@ -280,7 +287,7 @@ void irtkRView::Update()
             if (*ptr2 >= 0) {
               *ptr3 = _sourceLookupTable->lookupTable[*ptr2];
             } else {
-              *ptr3 = irtkColor();
+              *ptr3 = _backgroundColor;
             }
             ptr2++;
             ptr3++;
@@ -295,13 +302,13 @@ void irtkRView::Update()
               if (*ptr1 >= 0) {
                 *ptr3 = _targetLookupTable->lookupTable[*ptr1];
               } else {
-                *ptr3 = irtkColor();
+                *ptr3 = _backgroundColor;
               }
             } else {
               if (*ptr2 >= _sourceMin) {
                 *ptr3 = _sourceLookupTable->lookupTable[*ptr2];
               } else {
-                *ptr3 = irtkColor();
+                *ptr3 = _backgroundColor;
                 ;
               }
             }
@@ -319,7 +326,7 @@ void irtkRView::Update()
               if (*ptr1 >= 0) {
                 *ptr3 = _targetLookupTable->lookupTable[*ptr1];
               } else {
-                *ptr3 = irtkColor();
+                *ptr3 = _backgroundColor;
               }
               ptr1++;
               ptr2++;
@@ -330,7 +337,7 @@ void irtkRView::Update()
               if (*ptr2 >= 0) {
                 *ptr3 = _sourceLookupTable->lookupTable[*ptr2];
               } else {
-                *ptr3 = irtkColor();
+                *ptr3 = _backgroundColor;
               }
               ptr1++;
               ptr2++;
@@ -346,7 +353,7 @@ void irtkRView::Update()
             if ((*ptr1 >= 0) && (*ptr2 >= 0)) {
               *ptr3 = _subtractionLookupTable->lookupTable[*ptr1 - *ptr2];
             } else {
-              *ptr3 = irtkColor();
+              *ptr3 = _backgroundColor;
             }
             ptr1++;
             ptr2++;
@@ -368,7 +375,7 @@ void irtkRView::Update()
               ptr3->b = int(blendA * _targetLookupTable->lookupTable[*ptr1].b
                             + blendB * _sourceLookupTable->lookupTable[*ptr2].b);
             } else {
-              *ptr3 = irtkColor();
+              *ptr3 = _backgroundColor;
             }
             ptr1++;
             ptr2++;
@@ -394,7 +401,7 @@ void irtkRView::Update()
                                 - _targetLookupTable->lookupTable[*ptr1].a)
                             * _sourceLookupTable->lookupTable[*ptr2].b);
             } else {
-              *ptr3 = irtkColor();
+              *ptr3 = _backgroundColor;
             }
             ptr1++;
             ptr2++;
@@ -420,7 +427,7 @@ void irtkRView::Update()
                             + _sourceLookupTable->lookupTable[*ptr2].a
                             * _sourceLookupTable->lookupTable[*ptr2].b);
             } else {
-              *ptr3 = irtkColor();
+              *ptr3 = _backgroundColor;
             }
             ptr1++;
             ptr2++;
@@ -491,12 +498,14 @@ void irtkRView::Draw()
     // Draw iso-contours in target image if needed
     if (_DisplayTargetContour == true) {
       _viewer[k]->DrawIsolines(_targetImageOutput[k],
-                               _targetLookupTable->GetMinDisplayIntensity());
+                               _targetLookupTable->GetMinDisplayIntensity(),
+                               _targetContourColor );
     }
     // Draw iso-contours in source image if needed
     if (_DisplaySourceContour == true) {
       _viewer[k]->DrawIsolines(_sourceImageOutput[k],
-                               _sourceLookupTable->GetMinDisplayIntensity());
+                               _sourceLookupTable->GetMinDisplayIntensity(),
+                               _sourceContourColor );
     }
     // Draw segmentation if needed
     if (_DisplaySegmentationContours == true) {
@@ -2358,6 +2367,7 @@ void irtkRView::Configure(irtkRViewConfig config[])
     }
     _sourceTransformFilter[i]->PutInterpolator(_sourceInterpolator);
     _sourceTransformFilter[i]->PutSourcePaddingValue(_sourceMin - 1);
+    
     if (_sourceTransformInvert == true) {
       _sourceTransformFilter[i]->InvertOn();
     } else {

@@ -62,11 +62,14 @@ void usage()
   cerr << "\t<-scolor color>                  Source image color\n";
   cerr << "\t   where color is  <red | blue | green | rainbow>\n";
   cerr << "\t<-diff>                          Subtraction view\n";
-  cerr << "\t<-tcontour>                      Switch on target contours (see -tmin)\n";
-  cerr << "\t<-scontour>                      Switch on source contours (see -smin)\n";
+  cerr << "\t<-tcontour r g b>                Switch on target contours (see -tmin)\n";
+  cerr << "\t<-scontour r g b>                Switch on source contours (see -smin)\n";
   cerr << "\t<-seg              file.nii.gz>  Labelled segmentation image\n";
   cerr << "\t<-lut              file.seg>     Colour lookup table for labelled segmentation\n\n";
   cerr << "\t<-labels>                        Display segmentation labels instead of contours\n";
+  cerr << "\t<-background r g b>              RGB color for background (unsigned char)\n";
+
+  
   cerr << "\tMouse events:\n";
   cerr << "\tLeft mouse click :               Reslice\n\n";
   rview->cb_keyboard_info();
@@ -412,17 +415,33 @@ int main(int argc, char **argv)
     }
 
     if ((ok == false) && (strcmp(argv[1], "-tcontour") == 0)){
+      argv++;
+      argc--;
       rview->DisplayTargetContoursOn();
+      rview->SetTargetContourColor(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;
       argv++;
       argc--;
       ok = true;
     }
+
     if ((ok == false) && (strcmp(argv[1], "-scontour") == 0)){
+      argv++;
+      argc--;
       rview->DisplaySourceContoursOn();
+      rview->SetSourceContourColor(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;
       argv++;
       argc--;
       ok = true;
     }
+    
     if ((ok == false) && (strcmp(argv[1], "-seg") == 0)){
       argv++;
       argc--;
@@ -546,6 +565,19 @@ int main(int argc, char **argv)
       argc--;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-background") == 0)) {
+      argv++;
+      argc--;
+      rview->SetBackgroundColor(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+      argv++;
+      argc--;
+      argv++;
+      argc--;
+      argv++;
+      argc--;      
+      ok = true;
+    }
+    
     if (ok == false) {
       cerr << "Unknown argument: " << argv[1] << endl;
       exit(1);

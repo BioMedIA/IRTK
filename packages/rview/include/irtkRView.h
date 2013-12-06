@@ -403,6 +403,13 @@ protected:
   /// Region growing mode
   irtkRegionGrowingMode _regionGrowingMode;
 
+  /// Background color
+  irtkColor _backgroundColor;
+
+  /// Contour color
+  irtkColor _targetContourColor;
+  irtkColor _sourceContourColor;
+
 #ifdef HAS_VTK
   /// Flag for display of object
   int _DisplayObject;
@@ -796,6 +803,23 @@ public:
   /// Return display of landmarks
   int GetDisplayLandmarks();
 
+  /// Background color
+  void SetBackgroundColor( unsigned char r,
+                           unsigned char g,
+                           unsigned char b );
+
+  /// Contour color
+  void SetTargetContourColor( unsigned char r,
+                              unsigned char g,
+                              unsigned char b );  
+  void SetSourceContourColor( unsigned char r,
+                              unsigned char g,
+                              unsigned char b );
+  
+  /// Saturate target
+  void SaturateTarget( double q1,
+                       double q2 );
+
 #ifdef HAS_VTK
   /// Turn display of object on
   void DisplayObjectOn();
@@ -1074,6 +1098,42 @@ inline void irtkRView::SetResolution(double resolution)
 {
   _resolution = resolution;
   this->Initialize();
+}
+
+inline void irtkRView::SetBackgroundColor( unsigned char r,
+                                           unsigned char g,
+                                           unsigned char b )
+{
+    _backgroundColor = irtkColor( r, g, b );
+}
+
+inline void irtkRView::SetTargetContourColor( unsigned char r,
+                                              unsigned char g,
+                                              unsigned char b )
+{
+    _targetContourColor = irtkColor( r, g, b );
+}
+
+inline void irtkRView::SetSourceContourColor( unsigned char r,
+                                              unsigned char g,
+                                              unsigned char b )
+{
+    _sourceContourColor = irtkColor( r, g, b );
+}
+
+inline void irtkRView::SaturateTarget( double q1,
+                                       double q2 )
+{
+    _targetImage->Saturate( q1, q2 );
+    _targetImage->GetMinMaxAsDouble(&_targetMin, &_targetMax);
+    _targetDisplayMin = _targetMin;
+    _targetDisplayMax = _targetMax;
+    _RegionGrowingThresholdMin = _targetMin;
+    _RegionGrowingThresholdMax = _targetMax;
+    _subtractionMin = _targetMin - _sourceMax;
+    _subtractionMax = _targetMax - _sourceMin;
+    _subtractionDisplayMin = _subtractionMin;
+    _subtractionDisplayMax = _subtractionMax;  
 }
 
 inline void irtkRView::SetViewMode(irtkRViewMode value)

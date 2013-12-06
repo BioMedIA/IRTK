@@ -35,6 +35,10 @@ public:
   // Constructor (default)
   irtkColor();
 
+  irtkColor( unsigned char _r,
+             unsigned char _g,
+             unsigned char _b );
+
   // Constructor (copy)
   irtkColor(const irtkColor &);
 
@@ -63,6 +67,15 @@ inline irtkColor::irtkColor()
   r = 0;
   g = 0;
   b = 0;
+}
+
+inline irtkColor::irtkColor( unsigned char _r,
+                             unsigned char _g,
+                             unsigned char _b )
+{
+  r = _r;
+  g = _g;
+  b = _b;
 }
 
 inline irtkColor::irtkColor(const irtkColor &c)
