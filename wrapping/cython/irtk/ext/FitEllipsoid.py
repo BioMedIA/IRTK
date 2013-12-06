@@ -127,7 +127,7 @@ def fit_ellipsoid2( points, spacing=[1.0,1.0,1.0] ):
     return center,S,V
     #return center, 1/S[::-1]**2, V[::-1]
 
-def draw_ellipsoid( img, (z0,y0,x0,z1,y1,x1), center, s, v, l, spacing=[1.0,1.0,1.0] ):
+def draw_ellipsoid( img, center, s, v, l=1, spacing=[1.0,1.0,1.0] ):
     spacing = np.array(spacing[::-1],dtype='float')
     bbox = np.array([ center - np.dot(v,(s*np.array(offset,dtype='float')).T)
              for offset in neighbourhood],dtype='int')

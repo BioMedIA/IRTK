@@ -43,7 +43,7 @@ Below is a basic example:
       :height: 200pt
 
 
-Below is a more complex example where we read several scans, registered them all
+Below is a more complex example where we read several scans, register them all
 to the first one and compute an average volume:              
                
 .. code-block:: python
@@ -77,9 +77,13 @@ to the first one and compute an average volume:
       :align: center
       :height: 200pt
 
+.. toctree::
+      :maxdepth: 2
+
+      why.rst              
                
-Reference
-=========
+Module reference
+================
 
 .. toctree::
    :maxdepth: 2

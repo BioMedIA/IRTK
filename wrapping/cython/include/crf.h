@@ -10,4 +10,6 @@ void _crf( pixel_t* img,
            int* dim,
            LabelID* labels,
            double* proba,
-           double l );
+           double l,
+           double sigma,
+           double sigmaZ );

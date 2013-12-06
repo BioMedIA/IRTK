@@ -4,20 +4,23 @@ import csv
 import numpy as np
 import sys
 import os
-import SimpleITK as sitk
 import subprocess
+import random
+import irtk
 
-def sift3d( img, file_id, tmp_dir='tmp' ):
-    
+def sift3d( img, file_id=None, tmp_dir='tmp' ):
+
+    if file_id is None:
+        file_id = str( random.randint(1, 1000) )
+        
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
 
-    tmp_file = tmp_dir + '/' + str(os.getpid()) + "_" + file_id
-    tmp_sift = tmp_file + ".txt"
-    sitk_img = sitk.GetImageFromArray(img )
-    sitk.WriteImage( sitk_img, tmp_file )
+    tmp_file = tmp_dir + '/' + str(os.getpid()) + "_" + file_id + ".nii"
+    tmp_sift = tmp_dir + '/' + str(os.getpid()) + "_" + file_id + ".txt"
+    irtk.imwrite( tmp_file, img )
 
-    proc = subprocess.Popen(["./featExtract.ubu",
+    proc = subprocess.Popen([os.path.dirname(irtk.__file__) + "/ext/featExtract.ubu",
                          tmp_file,
                          tmp_sift], stdout=subprocess.PIPE)
     (out, err) = proc.communicate()
@@ -52,9 +55,9 @@ def sift3d( img, file_id, tmp_dir='tmp' ):
         for i in range(64):
             descr.append(float(row["d"+str(i)]))
         descr = np.array( descr, dtype='float' )
-        features.append( ( int(row['x']),
-                           int(row['y']),
-                           int(row['z']),
+        features.append( ( ( int(row['x']),
+                             int(row['y']),
+                             int(row['z']) ),
                            descr )
                          )
 

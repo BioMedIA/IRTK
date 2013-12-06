@@ -647,8 +647,40 @@ class Image(np.ndarray):
         """
         return _irtk.orientation( self.get_header() )
 
+    def dice( self, mask2, verbose=True ):
+        countA = self.sum()
+        countB = mask2.sum()
+        countAandB = np.sum( np.logical_and(self, mask2) )
 
+        fraction = (countA+countB)/2
+        if fraction != 0:
+            dice_metric = float(countAandB)/float(fraction) 
+        else:
+            dice_metric = 1
 
+        fraction = countA+countB-countAandB
+        if fraction != 0:
+            overlap_metric = float(countAandB)/float(fraction)
+        else:
+            overlap_metric = 1
+
+        if verbose:
+            print "Dice metric: ", dice_metric
+            print "Overlap metric: ", overlap_metric
+
+        return dice_metric, overlap_metric
+
+    def resize( self, shape, interpolation='linear' ):
+        dx,dy,dz,dt = self.header['pixelSize']
+        dx *= self.shape[2] / shape[2]
+        dy *= self.shape[1] / shape[1]
+        dz *= self.shape[0] / shape[0]
+
+        target = self.get_header()
+        target['pixelSize'] = np.array( [dx,dy,dz,dt], dtype='float64' )
+        target['dim'] = np.array( [shape[2],shape[1],shape[0],1], dtype='int32' )
+
+        return self.transform( target=target, interpolation=interpolation )
     
 def imread( filename, dtype=None ):
     """
@@ -964,7 +996,7 @@ def imshow( img,
 
     return False
 
-def crf( img, labels, proba, l=1.0 ):
+def crf( img, labels, proba, l=1.0, sigma=0.0, sigmaZ=0.0 ):
     """
     Conditional Random Field.
     """
@@ -976,5 +1008,6 @@ def crf( img, labels, proba, l=1.0 ):
                             header,
                             labels.get_data('int16','cython'),
                             proba.get_data('float64','cython'),
-                            l )
+                            l, sigma, sigmaZ )
     return Image(new_labels, header)
+

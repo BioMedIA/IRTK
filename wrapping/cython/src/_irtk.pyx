@@ -126,6 +126,9 @@ def resample( np.ndarray[float, ndim=4,  mode="c"] img_in,
     cdef int new_x = int(float(dim[0]) * pixelSize[0] / new_pixelSize[0])
     cdef int new_y = int(float(dim[1]) * pixelSize[1] / new_pixelSize[1])
     cdef int new_z = int(float(dim[2]) * pixelSize[2] / new_pixelSize[2])
+    new_x = max(1,new_x)
+    new_y = max(1,new_y)
+    new_z = max(1,new_z)
 
     cdef np.ndarray[float, ndim=4,  mode="c"] img_out = np.zeros( (dim[3], # T
                                                                    new_z,
@@ -713,13 +716,17 @@ cdef extern from "crf.h":
                int* dim,
                LabelID* labels,
                double* proba,
-               double l )
-  
+               double l,
+               double sigma,
+               double sigmaZ )
+    
 def crf( np.ndarray[pixel_t, ndim=4, mode="c"] img,
            header,
            np.ndarray[LabelID, ndim=4, mode="c"] labels,
            np.ndarray[double, ndim=4, mode="c"] proba,
-           double l=1.0 ):
+           double l=1.0,
+           double sigma=0.0,
+           double sigmaZ=0.0 ):
     cdef np.ndarray[double, ndim=1,  mode="c"] pixelSize = header['pixelSize']
     cdef np.ndarray[double, ndim=1,  mode="c"] xAxis = header['orientation'][0]
     cdef np.ndarray[double, ndim=1,  mode="c"] yAxis = header['orientation'][1]
@@ -736,6 +743,7 @@ def crf( np.ndarray[pixel_t, ndim=4, mode="c"] img,
            <int*> dim.data,
            <LabelID*> labels.data,
            <double*> proba.data,
-           l )
+           l, sigma, sigmaZ )
     
     return labels
+

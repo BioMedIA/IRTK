@@ -1,16 +1,64 @@
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 
-def list_colormaps():
-    maps = [m for m in plt.cm.datad if not m.endswith("_r")]
-    maps.sort()
-    for m in maps:
-        print m
+def HSVtoRGB( h, s, v ):
+    """
+    from irtk/packages/rview/src/irtkColor.cc
+    """
+    if s == 0:
+        if h < 0:
+            r = int(255.0*v)
+            g = int(255.0*v);
+            b = int(255.0*v);
+        else:
+            raise ValueError( "irtkColor::HSV: Undefined HSV color" )
+
+    else:
+        if h == 1:
+            h = 0
+        h = h * 6
+        i = int(h)
+        f = h - i
+        p = v * (1 - s)
+        q = v * (1 - (s * f))
+        t = v * (1 - (s * (1 - f)))
+
+        if i == 0:
+            r = int(255.0*v)
+            g = int(255.0*t)
+            b = int(255.0*p)
+        elif i == 1:
+            r = int(255.0*q)
+            g = int(255.0*v)
+            b = int(255.0*p)
+        elif i == 2:
+            r = int(255.0*p)
+            g = int(255.0*v)
+            b = int(255.0*t)
+        elif i == 3:
+            r = int(255.0*p)
+            g = int(255.0*q)
+            b = int(255.0*v)
+        elif i == 4:
+            r = int(255.0*t)
+            g = int(255.0*p)
+            b = int(255.0*v)
+        elif i == 5:
+            r = int(255*v)
+            g = int(255*p)
+            b = int(255*q)
+
+    return r, g, b
         
 def get_colormap( name, min=0, max=255 ):
-    colormap = plt.cm.get_cmap(name, max+1-min)(range(min,max+1))*255
-    colormap = colormap[:,:3].astype('uint8')
+    if name in [ "rainbow", "jet" ]:
+        colormap = map( lambda x: HSVtoRGB(float(max - x)/float(max - min)*2.0/3.0,
+                                           1.0,
+                                           1.0 ),
+                        range(min,max+1) )
+        colormap = np.array( colormap, dtype='uint8' )
+    else:
+        raise ValueError( "Unknown colormap: " + name )
     color_dict = {}
     for i in xrange(min,max+1):
         color_dict[i] = colormap[i]

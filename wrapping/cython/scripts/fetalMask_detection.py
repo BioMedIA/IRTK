@@ -22,27 +22,30 @@ parser.add_argument( "filename", type=str )
 parser.add_argument( "ga", type=float )
 parser.add_argument( "output_mask", type=str )
 parser.add_argument( '--debug', action="store_true", default=False )
+parser.add_argument( '--fold', type=str, default='0' )
 args = parser.parse_args()
 print args
 
 filename = args.filename
 ga = args.ga
 output_mask = args.output_mask
-DEBUG = args.debug
 
 output_dir = os.path.dirname( output_mask )
 if output_dir != '' and not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
+if output_dir == '':
+    output_dir = '.'
+
 if os.environ['USER'] == "kevin":
     raw_folder = "/home/kevin/Imperial/PhD/DATASETS/Originals/"
-    vocabulary = "/home/kevin/Imperial/PhD/MyPHD/Detection/BOW/pipeline2/LEARNING/vocabulary_0.npy"
-    mser_detector = "/home/kevin/Imperial/PhD/MyPHD/Detection/BOW/pipeline2/LEARNING/mser_detector_0_linearSVM"
+    vocabulary = "/home/kevin/Imperial/PhD/MyPHD/Detection/BOW/pipeline2/LEARNING/vocabulary_"+args.fold+".npy"
+    mser_detector = "/home/kevin/Imperial/PhD/MyPHD/Detection/BOW/pipeline2/LEARNING/mser_detector_"+args.fold+"_linearSVM"
     ga_file =  "/home/kevin/Imperial/PhD/MyPHD/Detection/BOW/pipeline2/LEARNING/metadata/ga.csv"
 else:
     raw_folder = "/vol/biomedic/users/kpk09/DATASETS/Originals"
-    vocabulary = "/vol/biomedic/users/kpk09/pipeline2/LEARNING/vocabulary_0.npy"
-    mser_detector = "/vol/biomedic/users/kpk09/pipeline2/LEARNING/mser_detector_0_linearSVM"
+    vocabulary = "/vol/biomedic/users/kpk09/pipeline2/LEARNING/vocabulary_"+args.fold+".npy"
+    mser_detector = "/vol/biomedic/users/kpk09/pipeline2/LEARNING/mser_detector_"+args.fold+"_linearSVM"
     ga_file =  "/vol/biomedic/users/kpk09/pipeline2/LEARNING/metadata/ga.csv"
 
     print"Detect MSER regions"
@@ -56,7 +59,8 @@ image_regions = detect_mser( filename,
                              vocabulary,
                              mser_detector,
                              NEW_SAMPLING,
-                             DEBUG=False,
+                             DEBUG=args.debug,
+                             output_folder=output_dir,
                              return_image_regions=True)
 
 # flatten list
@@ -90,16 +94,17 @@ print detections
                                              return_indices=True )
 
 print "initial mask"
-mask = irtk.zeros(img.resample2D(NEW_SAMPLING).get_header(), dtype='uint8')
+mask = irtk.zeros(img.resample2D(NEW_SAMPLING, interpolation='nearest').get_header(),
+                  dtype='uint8')
 
 for i in inliers:
     (x,y,z), c = image_regions[i]
     mask[z,c[:,1],c[:,0]] = 1
 
-mask = mask.resample2D(img.header['pixelSize'][0])
+mask = mask.resample2D(img.header['pixelSize'][0], interpolation='nearest' )
 
 # ellipse mask
-ellipse_mask = irtk.zeros(img.resample2D(NEW_SAMPLING).get_header(), dtype='uint8')
+ellipse_mask = irtk.zeros(img.resample2D(NEW_SAMPLING, interpolation='nearest').get_header(), dtype='uint8')
 
 for i in inliers:
     (x,y,z), c = image_regions[i]
@@ -110,7 +115,7 @@ for i in inliers:
                            ellipse[2]) , 1, thickness=-1)
     ellipse_mask[z][tmp_img > 0] = 1
 
-ellipse_mask = ellipse_mask.resample2D(img.header['pixelSize'][0])
+ellipse_mask = ellipse_mask.resample2D(img.header['pixelSize'][0], interpolation='nearest')
 #irtk.imwrite(output_dir + "/ellipse_mask.nii", ellipse_mask )
 
 mask[ellipse_mask == 1] = 1
@@ -153,4 +158,5 @@ neg_mask[max(0,z-d/2):min(img.shape[0],z+d/2+1),
 
 mask[neg_mask>0] = 2
 
+print mask, mask.max()
 irtk.imwrite(output_mask, mask )

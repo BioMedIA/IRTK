@@ -5,11 +5,6 @@ written using Cython and a script to simulate templated code.
 
 import sys
 
-if "matplotlib" not in sys.modules.keys():
-    # then we do not have an interactive pylab environment
-    import matplotlib
-    matplotlib.use('PDF') # pygtk not installed on biomedia machines 
-
 __all__ = []
 
 import irtk.image

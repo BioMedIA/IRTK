@@ -9,7 +9,9 @@ void _crf( pixel_t* img,
            int* dim,
            LabelID* labels,
            double* proba,
-           double l ) {
+           double l,
+           double sigma,
+           double sigmaZ ) {
 
     irtkGenericImage<pixel_t> irtk_image;
     py2irtk<pixel_t>( irtk_image,
@@ -45,6 +47,8 @@ void _crf( pixel_t* img,
                  irtk_labels,
                  irtk_proba );
     crf.SetLambda( l );
+    crf.SetSigma( sigma );
+    crf.SetSigmaZ( sigmaZ );
     crf.Run();
 
     irtk2py<LabelID>( irtk_labels,
