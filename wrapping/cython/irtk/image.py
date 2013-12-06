@@ -648,6 +648,9 @@ class Image(np.ndarray):
         return _irtk.orientation( self.get_header() )
 
     def dice( self, mask2, verbose=True ):
+        """
+        Dice and overlap metrics
+        """
         countA = self.sum()
         countB = mask2.sum()
         countAandB = np.sum( np.logical_and(self, mask2) )
@@ -671,6 +674,9 @@ class Image(np.ndarray):
         return dice_metric, overlap_metric
 
     def resize( self, shape, interpolation='linear' ):
+        """
+        Resize image with an affine transformation to force it to a given shape.
+        """
         dx,dy,dz,dt = self.header['pixelSize']
         dx *= self.shape[2] / shape[2]
         dy *= self.shape[1] / shape[1]
