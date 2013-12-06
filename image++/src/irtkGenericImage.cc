@@ -536,6 +536,26 @@ template <class VoxelType> void irtkGenericImage<VoxelType>::Saturate( double q0
   }
 }
 
+template <class VoxelType> void irtkGenericImage<VoxelType>::Quantiles( vector<double> &q, 
+                                                                        vector<VoxelType> &res )
+{
+  int i, n;
+  VoxelType *ptr;
+  
+  // find quantiles
+  n   = this->GetNumberOfVoxels();
+  ptr = this->GetPointerToVoxels();  
+  vector<VoxelType> voxel_tmp(n);
+  for (i=0;i<n;i++)
+    voxel_tmp[i] = ptr[i];
+
+  sort(voxel_tmp.begin(),voxel_tmp.end());
+
+  res.resize( q.size() );
+  for (i=0;i<q.size();i++)
+    res[i] = voxel_tmp[round((voxel_tmp.size()-1)*q[i])];
+}
+
 template <class VoxelType> irtkGenericImage<VoxelType> irtkGenericImage<VoxelType>::GetRegion(int k, int m) const
 {
   int i, j;

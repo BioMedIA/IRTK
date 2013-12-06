@@ -107,6 +107,10 @@ public:
   /// Saturation
   void Saturate( double q0=0.01, double q1=0.99 );
   
+  /// Quantiles
+  void Quantiles( vector<double> &q, 
+                  vector<VoxelType> &res );
+  
   /// Function for pixel access via pointers
   VoxelType *GetPointerToVoxels(int = 0, int = 0, int = 0, int = 0) const;
 

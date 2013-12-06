@@ -247,6 +247,9 @@ public:
   /// Print function
   virtual void Print();
 
+  /// Saturate
+  virtual void Saturate( double q0, double q1 ) = 0;
+  
 };
 
 inline int irtkBaseImage::GetX() const
