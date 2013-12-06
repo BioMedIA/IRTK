@@ -129,6 +129,7 @@ double irtkLinearInterpolateImageFunction::EvaluateInside(double x, double y, do
 double irtkLinearInterpolateImageFunction::Evaluate(double x, double y, double z, double time)
 {
   double val;
+  double weight;
   int i, j, k, l, m, n, t;
 
   i = (int)floor(x);
@@ -137,6 +138,7 @@ double irtkLinearInterpolateImageFunction::Evaluate(double x, double y, double z
   t = round(time);
 
   val = 0;
+  weight = 0;
   for (l = i; l <= i+1; l++) {
     if ((l >= 0) && (l < this->_x)) {
       for (m = j; m <= j+1; m++) {
@@ -144,12 +146,17 @@ double irtkLinearInterpolateImageFunction::Evaluate(double x, double y, double z
           for (n = k; n <= k+1; n++) {
             if ((n >= 0) && (n < this->_z)) {
               val += (1 - fabs(l - x))*(1 - fabs(m - y))*(1 - fabs(n - z))*this->_input->GetAsDouble(l, m, n, t);
+              weight += (1 - fabs(l - x))*(1 - fabs(m - y))*(1 - fabs(n - z));
             }
           }
         }
       }
     }
   }
+  
+  if (weight > 0)
+    val /= weight;
+  
   switch (this->_input->GetScalarType()) {
 	  case IRTK_VOXEL_UNSIGNED_SHORT: {
 		  val = round(val);
