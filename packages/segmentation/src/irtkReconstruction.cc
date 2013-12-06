@@ -30,7 +30,7 @@ void bbox( irtkRealImage &stack,
            double &max_y,
            double &max_z ) {
 
-    cout << "bbox" << endl;
+    //cout << "bbox" << endl;
     
     min_x = voxel_limits<irtkRealPixel>::max();
     min_y = voxel_limits<irtkRealPixel>::max();
@@ -39,16 +39,26 @@ void bbox( irtkRealImage &stack,
     max_y = voxel_limits<irtkRealPixel>::min();
     max_z = voxel_limits<irtkRealPixel>::min();
     double x,y,z;
+    // WARNING: do not search to increment by stack.GetZ()-1,
+    // otherwise you would end up with a 0 increment for slices...
     for ( int i = 0; i <= stack.GetX(); i += stack.GetX() )
         for ( int j = 0; j <= stack.GetY(); j += stack.GetY() )
             for ( int k = 0; k <= stack.GetZ(); k += stack.GetZ() ) {
                 x = i;
                 y = j;
                 z = k;
+         //        cout << "line1 " 
+         // << x << " "
+         // << y << " "
+         // << z << endl;
                 stack.ImageToWorld( x, y, z );
                 // FIXME!!!
                 transformation.Transform( x, y, z );
                 //transformation.Inverse( x, y, z );
+         //        cout << "line2 " 
+         // << x << " "
+         // << y << " "
+         // << z << endl;
                 if ( x < min_x )
                     min_x = x;
                 if ( y < min_y )
@@ -62,6 +72,13 @@ void bbox( irtkRealImage &stack,
                 if ( z > max_z )
                     max_z = z;
             }
+    // cout << "bbox" 
+    //      << min_x << " "
+    //      << min_y << " "
+    //      << min_z << " "
+    //      << max_x << " "
+    //      << max_y << " "
+    //      << max_z << endl;
 }
 
 void bboxCrop( irtkRealImage &image ) {
@@ -93,7 +110,7 @@ void bboxCrop( irtkRealImage &image ) {
 
     //Cut region of interest
     image = image.GetRegion( min_x, min_y, min_z,
-                             max_x+1, max_y+1, max_z+1 );                
+                             max_x, max_y, max_z );                
 }
 
 void centroid( irtkRealImage &image,
@@ -464,9 +481,11 @@ void irtkReconstruction::CreateMaskFromBlackBackground( vector<irtkRealImage>& s
 	irtkGreyImage average = CreateAverage(stacks, stack_transformations);
 
     irtkGreyPixel* ptr = average.GetPointerToVoxels();
-    for (int i = 0; i < average.GetNumberOfVoxels(); i++)
+    for (int i = 0; i < average.GetNumberOfVoxels(); i++) {
         if (*ptr < 0)
             *ptr = 0;
+        ptr++;
+    }
     
 	//Create mask of the average from the black background
 	irtkMeanShift msh(average, 0, 256);
@@ -475,7 +494,7 @@ void irtkReconstruction::CreateMaskFromBlackBackground( vector<irtkRealImage>& s
 	msh.RemoveBackground();
 	irtkGreyImage mask = msh.ReturnMask();
 
-	//Calculate LCC of the mask to remove disconected structures
+	//Calculate LCC of the mask to remove disconnected structures
 	irtkMeanShift msh2(mask, 0, 256);
 	msh2.SetOutput(&mask);
 	msh2.Lcc(1);
@@ -506,6 +525,7 @@ void irtkReconstruction::SetTemplate(irtkRealImage templateImage)
 
 double irtkReconstruction::CreateLargeTemplate( vector<irtkRealImage>& stacks,
                                                 vector<irtkRigidTransformation>& stack_transformations,
+                                                irtkImageAttributes &templateAttr,
                                                 double resolution,
                                                 double smooth_mask,
                                                 double threshold_mask,
@@ -542,14 +562,110 @@ double irtkReconstruction::CreateLargeTemplate( vector<irtkRealImage>& stacks,
         if ( max_z0 > max_z )
             max_z = max_z0;
     }
+
+    cout << "bboxLargeTemplate" 
+         << min_x << " "
+         << min_y << " "
+         << min_z << " "
+         << max_x << " "
+         << max_y << " "
+         << max_z << endl;
+
+    double ox = min_x + (max_x - min_x)/2;
+    double oy = min_y + (max_y - min_y)/2;
+    double oz = min_z + (max_z - min_z)/2;
+
+    irtkRigidTransformation translation1;
+    translation1.PutTranslationX(ox);
+    translation1.PutTranslationY(oy);
+    translation1.PutTranslationZ(oz);
+
+    irtkRigidTransformation translation2;
+    translation2.PutTranslationX(-ox);
+    translation2.PutTranslationY(-oy);
+    translation2.PutTranslationZ(-oz);        
+    
+    irtkRigidTransformation tmp_transformation;
+    irtkMatrix m = tmp_transformation.GetMatrix();
+
+    // x-axis
+    m(0,0) = templateAttr._xaxis[0];
+    m(0,1) = templateAttr._xaxis[1];
+    m(0,2) = templateAttr._xaxis[2];
+
+    // y-axis
+    m(1,0) = templateAttr._yaxis[0];
+    m(1,1) = templateAttr._yaxis[1];
+    m(1,2) = templateAttr._yaxis[2];
+
+    // z-axis
+    m(2,0) = templateAttr._zaxis[0];
+    m(2,1) = templateAttr._zaxis[1];
+    m(2,2) = templateAttr._zaxis[2];
+
+    // // x-axis
+    // m(0,0) = templateAttr._xaxis[0];
+    // m(1,0) = templateAttr._xaxis[1];
+    // m(2,0) = templateAttr._xaxis[2];
+
+    // // y-axis
+    // m(0,1) = templateAttr._yaxis[0];
+    // m(1,1) = templateAttr._yaxis[1];
+    // m(2,1) = templateAttr._yaxis[2];
+
+    // // z-axis
+    // m(0,2) = templateAttr._zaxis[0];
+    // m(1,2) = templateAttr._zaxis[1];
+    // m(2,2) = templateAttr._zaxis[2];  
+    
+
+    //m.Invert();
+
+    tmp_transformation.PutMatrix(translation1.GetMatrix()*m*translation2.GetMatrix());
+    tmp_transformation.UpdateParameter();
+
+    // tmp_transformation.Invert();
+    // tmp_transformation.UpdateParameter();
+    
+    min_x0 = voxel_limits<irtkRealPixel>::max();
+    min_y0 = voxel_limits<irtkRealPixel>::max();
+    min_z0 = voxel_limits<irtkRealPixel>::max();
+    max_x0 = voxel_limits<irtkRealPixel>::min();
+    max_y0 = voxel_limits<irtkRealPixel>::min();
+    max_z0 = voxel_limits<irtkRealPixel>::min();
+    double x,y,z;
+    double x0,y0,z0;
+    for ( x = min_x; x <= max_x+1; x += max_x - min_x )
+        for ( y = min_y; y <= max_y+1; y += max_y - min_y )
+            for ( z = min_z; z <= max_z+1; z += max_z - min_z ) {
+                x0 = x;
+                y0 = y;
+                z0 = z;
+                tmp_transformation.Transform( x0, y0, z0 );
+                if ( x0 < min_x0 )
+                    min_x0 = x0;
+                if ( y0 < min_y0 )
+                    min_y0 = y0;
+                if ( z0 < min_z0 )
+                    min_z0 = z0;
+                if ( x0 > max_x0 )
+                    max_x0 = x0;
+                if ( y0 > max_y0 )
+                    max_y0 = y0;
+                if ( z0 > max_z0 )
+                    max_z0 = z0;
+            }
     
     // Set image attributes
     irtkImageAttributes attr;
 
     // dim
-    attr._x = (max_x+1 - min_x + expand)/resolution;
-    attr._y = (max_y+1 - min_y + expand)/resolution;
-    attr._z = (max_z+1 - min_z + expand)/resolution;
+    // attr._x = (max_x - min_x + expand)/resolution;
+    // attr._y = (max_y - min_y + expand)/resolution;
+    // attr._z = (max_z - min_z + expand)/resolution;
+    attr._x = (max_x0 - min_x0 + expand)/resolution;
+    attr._y = (max_y0 - min_y0 + expand)/resolution;
+    attr._z = (max_z0 - min_z0 + expand)/resolution; 
     attr._t = 1;
 
     // voxel size
@@ -559,27 +675,45 @@ double irtkReconstruction::CreateLargeTemplate( vector<irtkRealImage>& stacks,
     attr._dt = 1;
     
     // origin
-    attr._xorigin = min_x + (max_x+1 - min_x)/2;
-    attr._yorigin = min_y + (max_y+1 - min_y)/2;
-    attr._zorigin = min_z + (max_z+1 - min_z)/2;
+    attr._xorigin = min_x + (max_x - min_x)/2;
+    attr._yorigin = min_y + (max_y - min_y)/2;
+    attr._zorigin = min_z + (max_z - min_z)/2;
     attr._torigin = 0;
 
     // x-axis
-    attr._xaxis[0] = 1;
-    attr._xaxis[1] = 0;
-    attr._xaxis[2] = 0;
+    attr._xaxis[0] = templateAttr._xaxis[0];
+    attr._xaxis[1] = templateAttr._xaxis[1];
+    attr._xaxis[2] = templateAttr._xaxis[2];
 
     // y-axis
-    attr._yaxis[0] = 0;
-    attr._yaxis[1] = 1;
-    attr._yaxis[2] = 0;
+    attr._yaxis[0] = templateAttr._yaxis[0];
+    attr._yaxis[1] = templateAttr._yaxis[1];
+    attr._yaxis[2] = templateAttr._yaxis[2];
 
     // z-axis
-    attr._zaxis[0] = 0;
-    attr._zaxis[1] = 0;
-    attr._zaxis[2] = 1;
+    attr._zaxis[0] = templateAttr._zaxis[0];
+    attr._zaxis[1] = templateAttr._zaxis[1];
+    attr._zaxis[2] = templateAttr._zaxis[2];
 
+    // // x-axis
+    // attr._xaxis[0] = 1;
+    // attr._xaxis[1] = 0;
+    // attr._xaxis[2] = 0;
+
+    // // y-axis
+    // attr._yaxis[0] = 0;
+    // attr._yaxis[1] = 1;
+    // attr._yaxis[2] = 0;
+
+    // // z-axis
+    // attr._zaxis[0] = 0;
+    // attr._zaxis[1] = 0;
+    // attr._zaxis[2] = 1; 
+    
+    attr.Print();
+    
     _reconstructed.Initialize(attr);
+    //_reconstructed = 0;
     _template_created = true;
 
     CreateMaskFromAllMasks( stacks,
@@ -589,7 +723,25 @@ double irtkReconstruction::CreateLargeTemplate( vector<irtkRealImage>& stacks,
     bboxCrop( _mask );
     _reconstructed = _mask;
 
-    _reconstructed.Write("_reconstructed.nii");
+
+    // for ( x = min_x; x <= max_x; x += resolution )
+    //     for ( y = min_y; y <= max_y; y += resolution )
+    //         for ( z = min_z; z <= max_z; z += resolution ) {
+    //             x0 = x;
+    //             y0 = y;
+    //             z0 = z;
+    //             _reconstructed.WorldToImage(x0,y0,z0);
+    //             int i = x0;
+    //             int j = y0;
+    //             int k = z0;
+    //             if ( (i >= 0) && (i < _reconstructed.GetX()) &&
+    //                  (j >= 0) && (j < _reconstructed.GetY()) &&
+    //                  (k >= 0) && (k < _reconstructed.GetZ()) )
+    //                 _reconstructed.Put(i,j,k,1.0);
+    //         }
+    
+    // _reconstructed.Write("_reconstructed.nii.gz");
+    // exit(0);
     
     //return resulting resolution of the template image
     return resolution;
@@ -636,7 +788,7 @@ void irtkReconstruction::CreateMaskFromAllMasks( vector<irtkRealImage>& stacks,
     weights.Write("weights4mask.nii");
     // FIXME threshold_mask ???
     irtkGreyImage mask = (weights < threshold_mask) != threshold_mask;
-    //Calculate LCC of the mask to remove disconected structures
+    //Calculate LCC of the mask to remove disconnected structures
     irtkMeanShift msh2(mask, 0, 256);
     msh2.SetOutput(&mask);
     msh2.Lcc(1);
@@ -651,7 +803,25 @@ void irtkReconstruction::UpdateMaskFromAllMasks( double smooth_mask,
 {
     if (_debug)
         cout << "UpdateMaskFromBlackBackground" << endl;
-    CreateMaskFromAllMasks( _slices, _transformations, smooth_mask, threshold_mask );
+
+    if (_slice_weight.size() == 0)
+        CreateMaskFromAllMasks( _slices,
+                                _transformations,
+                                smooth_mask,
+                                threshold_mask );
+    else {
+        vector<irtkRealImage> selected_slices;
+        vector<irtkRigidTransformation> selected_transformations;
+        for ( int i = 0; i < _slices.size(); i++ )
+            if ( (_slice_weight[i] >= 0.5) && _slice_inside[i] ) {
+                selected_slices.push_back( _slices[i] );
+                selected_transformations.push_back( _transformations[i] );
+            }
+        CreateMaskFromAllMasks( selected_slices,
+                                selected_transformations,
+                                smooth_mask,
+                                threshold_mask );
+    }
 }
 
 void irtkReconstruction::UpdateProbabilityMap()
@@ -659,29 +829,46 @@ void irtkReconstruction::UpdateProbabilityMap()
     if (_debug)
         cout << "UpdateProbabilityMap" << endl;
 
+    // FIXME:
+    // do not compute average but SUM of probabilities
+    // then use the expected volume from GA to rescale probability map
+
     _brain_probability.Initialize( _reconstructed.GetImageAttributes() );
     _brain_probability = 0;
+
+    vector<irtkRealImage> selected_probability_maps;
+    vector<irtkRigidTransformation> selected_transformations;
+    for ( int i = 0; i < _slices.size(); i++ )
+        if ( _slice_inside[i] && (_slice_weight[i] >= 0.98) ) {
+            selected_probability_maps.push_back( _probability_maps[i] );
+            selected_transformations.push_back( _transformations[i] );
+        }    
     
-    InvertStackTransformations(_transformations);
-    // ParallelAverage parallelAverage( this,
-    //                                  _probability_maps,
-    //                                  _transformations,
-    //                                  voxel_limits<irtkRealPixel>::min(), 0, 0 ); // target/source/background
-    // parallelAverage();
+    InvertStackTransformations( selected_transformations );
 
     irtkRealImage average;
     irtkRealImage weights;
     ParallelSliceAverage parallelSliceAverage( this,
-                                               _probability_maps,
-                                               _transformations,
+                                               selected_probability_maps,
+                                               selected_transformations,
                                                average,
                                                weights ); 
     parallelSliceAverage();
-    InvertStackTransformations(_transformations);
-    //    _brain_probability = parallelAverage.average;
-    //irtkRealImage weights = parallelAverage.weights;
-    _brain_probability = average / weights;
+    //_brain_probability = average / weights;
+    _brain_probability = average; // this is actually a sum
     
+
+    // // update probability map using gaussian reconstruction
+    // vector<irtkRealImage> tmp_slices;
+    // this->GetSlices(tmp_slices);
+    // this->SetSlices(_probability_maps);
+    // this->CoeffInit();
+    // this->GaussianReconstruction();
+
+    // _brain_probability = _reconstructed;
+    // this->SetSlices(tmp_slices);
+
+    // mask probability map
     irtkRealPixel *pr = _brain_probability.GetPointerToVoxels();
     irtkRealPixel *pm = _mask.GetPointerToVoxels();
     for (int i = 0; i < _brain_probability.GetNumberOfVoxels(); i++) {
@@ -693,39 +880,120 @@ void irtkReconstruction::UpdateProbabilityMap()
 }
 
 void irtkReconstruction::crf3DMask( double smooth_mask,
-                                    double threshold_mask ) {
+                                    double threshold_mask,
+                                    int iteration ) {
     if (_debug)
         cout << "crf3DMask" << endl;
-
-    // FIXME: need bbox_crop of the refined mask...
     
     _mask.Write("maskbeforeCRF.nii");
+
+    // Preprocess probability map
+    float BV = (-171.48036 + 4.8079*_GA + 0.29521*_GA*_GA)*1000;
+    float box_volume = _brain_probability.GetZ()*_brain_probability.GetZSize()*
+                       _brain_probability.GetY()*_brain_probability.GetYSize()*
+                       _brain_probability.GetX()*_brain_probability.GetXSize();
+    float ratio = BV / box_volume;
+
+    _brain_probability.Saturate( 0.5*(1.0-ratio), 1.0-0.5*ratio );
+    
+    // // saturate
+    // _brain_probability.Saturate( 0.01, 0.99 );
+    
+    // constrast stretch
+    _brain_probability.PutMinMax( 0.0, 1.0 );
+    
+    _brain_probability.Write("probabeforeCRF.nii");
     
     irtkGreyImage labels( _reconstructed.GetImageAttributes() );
     irtkGreyPixel *ptr = labels.GetPointerToVoxels();
     irtkRealPixel *pm = _brain_probability.GetPointerToVoxels();
     for ( unsigned int i = 0; i < labels.GetNumberOfVoxels(); i++ ) {
-        if (*pm>=0.5)
-            *ptr = 2;
-        // else if (*pm>=0)
-        //     *ptr = 1;
+        if (*pm>0.5)
+            *ptr = 1;
         else
             *ptr = 0;
+        pm++;
+        ptr++;
     }
+    
+    //Calculate LCC of the mask to remove disconnected structures
+    irtkMeanShift msh1(labels, 0, 256);
+    msh1.SetOutput(&labels);
+    msh1.Lcc(1);
 
+    irtkNearestNeighborInterpolateImageFunction interpolator_nearest;
+    irtkLinearInterpolateImageFunction interpolator_linear;
+    double resolution = _reconstructed.GetXSize();
+    irtkResampling<irtkRealPixel> downsampling( resolution*2,
+                                                resolution*2,
+                                                resolution*2 );
+    downsampling.SetInput(&_reconstructed);
+    downsampling.SetOutput(&_reconstructed);
+    downsampling.SetInterpolator(&interpolator_linear);
+    downsampling.Run();
+
+    downsampling.SetInput(&_brain_probability);
+    downsampling.SetOutput(&_brain_probability);
+    downsampling.SetInterpolator(&interpolator_linear);
+    downsampling.Run();
+
+    irtkResampling<irtkGreyPixel> downsampling_grey( resolution*2,
+                                                     resolution*2,
+                                                     resolution*2 );    
+    downsampling_grey.SetInput(&labels);
+    downsampling_grey.SetOutput(&labels);
+    downsampling_grey.SetInterpolator(&interpolator_nearest);
+    downsampling_grey.Run();    
+
+    _reconstructed.Write("reconstructedbeforeCRF.nii");
+    labels.Write("labelsbeforeCRF.nii");
+
+    irtkGreyImage labelsbeforeCRF = labels;
+    
     cout << "starting crf...\n";
+
+    // evaluate noise
+    irtkRealImage denoised;
+    irtkGaussianBlurring<irtkRealPixel> gb(4);
+    gb.SetInput(&_reconstructed);
+    gb.SetOutput(&denoised);
+    gb.Run();
+    denoised -= _reconstructed;
+            
     irtkCRF crf( _reconstructed, labels, _brain_probability );
+    crf.SetSigma( denoised.GetSD() );
+    crf.SetLambda(10.0);
     crf.Run();
-    // crf( _reconstructed.GetPointerToVoxels(),
-    //      _reconstructed.GetZ(), _reconstructed.GetY(), _reconstructed.GetX(),
-    //      _reconstructed.GetSD(1),
-    //      labels.GetPointerToVoxels(),
-    //      _brain_probability.GetPointerToVoxels(),
-    //      1.0 );
 
-    labels.Write("maskCRF.nii");
+    irtkResampling<irtkRealPixel> upsampling( resolution,
+                                              resolution,
+                                              resolution );
 
-    //Calculate LCC of the mask to remove disconected structures
+    upsampling.SetInput(&_reconstructed);
+    upsampling.SetOutput(&_reconstructed);
+    upsampling.SetInterpolator(&interpolator_nearest);
+    upsampling.Run();  
+ 
+    irtkResampling<irtkGreyPixel> upsampling_grey( resolution,
+                                              resolution,
+                                              resolution );
+    upsampling_grey.SetInput(&labels);
+    upsampling_grey.SetOutput(&labels);
+    upsampling_grey.SetInterpolator(&interpolator_nearest);
+    upsampling_grey.Run();  
+
+    char buffer[256];
+    sprintf( buffer, "maskCRF%i.nii", iteration );    
+    labels.Write( buffer );
+
+    // sanity check:
+    // if CRF failed, fall back to labels before CRF
+    irtkGreyPixel smin, smax;
+    labels.GetMinMax(&smin, &smax);
+    if (smax == 0)
+        labels = labelsbeforeCRF;
+
+    //Calculate LCC of the mask to remove disconnected structures
     irtkMeanShift msh2(labels, 0, 256);
     msh2.SetOutput(&labels);
     msh2.Lcc(1);
@@ -1171,8 +1439,10 @@ void irtkReconstruction::SimulateStacks(vector<irtkRealImage>& stacks)
     }   
 }
 
-void irtkReconstruction::MatchStackIntensities(vector<irtkRealImage>& stacks,
-                                               vector<irtkRigidTransformation>& stack_transformations, double averageValue, bool together)
+void irtkReconstruction::MatchStackIntensities( vector<irtkRealImage>& stacks,
+                                                vector<irtkRigidTransformation>& stack_transformations,
+                                                double averageValue,
+                                                bool together )
 {
     if (_debug)
         cout << "Matching intensities of stacks. ";
@@ -3650,6 +3920,13 @@ void irtkReconstruction::GetSlices( vector<irtkRealImage> &slices )
         slices.push_back(_slices[i]);
 }
 
+void irtkReconstruction::SetSlices( vector<irtkRealImage> &slices )
+{
+    _slices.clear();    
+    for (unsigned int i = 0; i < slices.size(); i++)
+        _slices.push_back(slices[i]);
+}
+
 void irtkReconstruction::SaveProbabilityMap( int i )
 {
     char buffer[256];
@@ -3657,13 +3934,15 @@ void irtkReconstruction::SaveProbabilityMap( int i )
     _brain_probability.Write( buffer );
 }
 
-void irtkReconstruction::SlicesInfo( const char* filename )
+void irtkReconstruction::SlicesInfo( const char* filename,
+                                     vector<string> &stack_files )
 {
     ofstream info;
     info.open( filename );
 
     // header
     info << "stack_index" << "\t"
+         << "stack_name" << "\t"
          << "included" << "\t" // Included slices
          << "excluded" << "\t"  // Excluded slices
          << "outside" << "\t"  // Outside slices
@@ -3680,6 +3959,7 @@ void irtkReconstruction::SlicesInfo( const char* filename )
     for (int i = 0; i < _slices.size(); i++) {
         irtkRigidTransformation& t = _transformations[i];
         info << _stack_index[i] << "\t"
+             << stack_files[_stack_index[i]] << "\t"
              << (((_slice_weight[i] >= 0.5) && (_slice_inside[i]))?1:0) << "\t" // Included slices
              << (((_slice_weight[i] < 0.5) && (_slice_inside[i]))?1:0) << "\t"  // Excluded slices
              << ((!(_slice_inside[i]))?1:0) << "\t"  // Outside slices
@@ -4036,6 +4316,16 @@ void irtkReconstruction::CropImage(irtkRealImage& image, irtkRealImage& mask)
         cout << "Region of interest is " << x1 << " " << y1 << " " << z1 << " " << x2 << " " << y2
              << " " << z2 << endl;
 
+    // if no intersection with mask, force exclude
+    if ((x2 < x1) || (y2 < y1) || (z2 < z1) ) {
+        x1 = 0;
+        y1 = 0;
+        z1 = 0;
+        x2 = 0;
+        y2 = 0;
+        z2 = 0;
+    }
+    
     //Cut region of interest
     image = image.GetRegion(x1, y1, z1, x2+1, y2+1, z2+1);
 }
@@ -4045,8 +4335,9 @@ void irtkReconstruction::InvertStackTransformations( vector<irtkRigidTransformat
     //for each stack
     for (unsigned int i = 0; i < stack_transformations.size(); i++) {
         //invert transformation for the stacks
-	stack_transformations[i].Invert();
-	stack_transformations[i].UpdateParameter();
+        stack_transformations[i].Invert();
+        stack_transformations[i].UpdateParameter();
+        //stack_transformations[i].Print();
     }
 }
 

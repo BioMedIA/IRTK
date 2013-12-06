@@ -61,6 +61,8 @@ void usage()
   cerr << "\t-no_robust_statistics     Switch off robust statistics."<<endl;
   cerr << "\t-bspline                  Use multi-level bspline interpolation instead of super-resolution."<<endl;
   cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
+  cerr << "\t-info [filename]          Filename for slice information in\
+                                       tab-sparated columns."<<endl;
   cerr << "\t-debug                    Debug mode - save intermediate results."<<endl;
   cerr << "\t-no_log                   Do not redirect cout and cerr to log files."<<endl;
   cerr << "\t" << endl;
@@ -81,6 +83,7 @@ int main(int argc, char **argv)
   char * output_name = NULL;
   /// Slice stacks
   vector<irtkRealImage> stacks;
+  vector<string> stack_files;
   /// Stack transformation
   vector<irtkRigidTransformation> stack_transformations;
   /// user defined transformations
@@ -115,6 +118,8 @@ int main(int argc, char **argv)
   bool remove_black_background = false;
   //flag to swich the intensity matching on and off
   bool intensity_matching = true;
+  bool rescale_stacks = false;
+
   //flag to swich the robust statistics on and off
   bool robust_statistics = true;
   //flag to replace super-resolution reconstruction by multilevel B-spline interpolation
@@ -122,10 +127,10 @@ int main(int argc, char **argv)
   
   irtkRealImage average;
 
+  string info_filename = "slice_info.tsv";
   string log_id;
   bool no_log = false;
-  
-  
+
   //forced exclusion of slices
   int number_of_force_excluded_slices = 0;
   vector<int> force_excluded;
@@ -154,8 +159,8 @@ int main(int argc, char **argv)
   {
       //if ( i == 0 )
           //log_id = argv[1];
+      stack_files.push_back(argv[1]);
     stack.Read(argv[1]);
-    //reconstruction.Rescale(stack,1000);
     cout<<"Reading stack ... "<<argv[1]<<endl;
     argc--;
     argv++;
@@ -257,7 +262,7 @@ int main(int argc, char **argv)
       ok = true;
       argc--;
       argv++;
-    }
+    } 
     
     //Smoothing parameter
     if ((ok == false) && (strcmp(argv[1], "-lambda") == 0)){
@@ -386,8 +391,27 @@ int main(int argc, char **argv)
       argv++;
       no_log=true;
       ok = true;
-    }    
+    }
 
+    // rescale stacks to avoid error:
+    // irtkImageRigidRegistrationWithPadding::Initialize: Dynamic range of source is too large
+    if ((ok == false) && (strcmp(argv[1], "-rescale_stacks") == 0)){
+      argc--;
+      argv++;
+      rescale_stacks=true;
+      ok = true;
+    }       
+
+    // Save slice info
+    if ((ok == false) && (strcmp(argv[1], "-info") == 0)) {
+        argc--;
+        argv++;
+        info_filename=argv[1];
+        ok = true;
+        argc--;
+        argv++;
+    }
+ 
     //Read transformations from this folder
     if ((ok == false) && (strcmp(argv[1], "-transformations") == 0)){
       argc--;
@@ -432,6 +456,12 @@ int main(int argc, char **argv)
       cerr << "Can not parse argument " << argv[1] << endl;
       usage();
     }
+  }
+
+  if (rescale_stacks)
+  {
+      for (i=0;i<nStacks;i++)
+          reconstruction.Rescale(stacks[i],1000);
   }
   
   //If transformations were not defined by user, set them to identity
@@ -570,6 +600,38 @@ int main(int argc, char **argv)
       sprintf(buffer,"cropped%i.nii.gz",i);
       stacks[i].Write(buffer);
     }
+  }
+
+  // we remove stacks of size 1 voxel (no intersection with ROI)
+  vector<irtkRealImage> selected_stacks;
+  vector<irtkRigidTransformation> selected_stack_transformations;
+  int new_nStacks = 0;
+  int new_templateNumber = 0;
+  for (i=0; i<nStacks; i++)
+  {
+      if (stacks[i].GetX() == 1) {
+          cerr << "stack " << i << " has no intersection with ROI" << endl;
+          continue;
+      }
+
+      // we keep it
+      selected_stacks.push_back(stacks[i]);
+      selected_stack_transformations.push_back(stack_transformations[i]);
+      
+      if (i == templateNumber)
+          new_templateNumber = templateNumber - (i-new_nStacks);
+
+      new_nStacks++;
+      
+  }
+  stacks.clear();
+  stack_transformations.clear();
+  nStacks = new_nStacks;
+  templateNumber = new_templateNumber;
+  for (i=0; i<nStacks; i++)
+  {
+      stacks.push_back(selected_stacks[i]);
+      stack_transformations.push_back(selected_stack_transformations[i]);
   }
   
   //Repeat volumetric registrations with cropped stacks
@@ -825,6 +887,11 @@ int main(int argc, char **argv)
   reconstructed.Write(output_name); 
   reconstruction.SaveTransformations();
   reconstruction.SaveSlices();
+
+  if ( info_filename.length() > 0 )
+      reconstruction.SlicesInfo( info_filename.c_str(),
+                                 stack_files );
+ 
   if(debug)
   {
     reconstruction.SaveWeights();

@@ -164,6 +164,9 @@ class irtkReconstruction : public irtkObject
     
     ///BSpline reconstruction
     irtkBSplineReconstruction _bSplineReconstruction;
+
+    /// Gestational age (to compute expected brain volume)
+    double _GA;
   
  public:
 
@@ -177,6 +180,7 @@ class irtkReconstruction : public irtkObject
                            double resolution=0 );
     double CreateLargeTemplate( vector<irtkRealImage>& stacks,
                                 vector<irtkRigidTransformation>& stack_transformations,
+                                irtkImageAttributes &templateAttr,
                                 double resolution,
                                 double smooth_mask,
                                 double threshold_mask,
@@ -189,6 +193,9 @@ class irtkReconstruction : public irtkObject
     ///Remember volumetric mask and smooth it if necessary
     void SetMask(irtkRealImage * mask, double sigma, double threshold=0.5 );
 
+    /// Set gestational age (to compute expected brain volume)
+    void SetGA(double ga);
+    
     ///Remember volumetric mask 
     void PutMask(irtkRealImage mask);
   
@@ -207,7 +214,8 @@ class irtkReconstruction : public irtkObject
     void SaveProbabilityMap( int i );
 
     void crf3DMask( double smooth_mask,
-                    double threshold_mask );
+                    double threshold_mask,
+                    int iteration );
   
     void CenterStacks( vector<irtkRealImage>& stacks,
                        vector<irtkRigidTransformation>& stack_transformations,
@@ -250,7 +258,8 @@ class irtkReconstruction : public irtkObject
     ///Update slices if stacks have changed
     void UpdateSlices(vector<irtkRealImage>& stacks, vector<double>& thickness);
   
-    void GetSlices( vector<irtkRealImage>& second_stacks );  
+    void GetSlices( vector<irtkRealImage>& slices );  
+    void SetSlices( vector<irtkRealImage>& slices );
   
     ///Invert all stack transformation
     void InvertStackTransformations( vector<irtkRigidTransformation>& stack_transformations );
@@ -330,7 +339,7 @@ class irtkReconstruction : public irtkObject
   
     ///Save slices
     void SaveSlices();
-    void SlicesInfo( const char* filename );
+    void SlicesInfo( const char* filename, vector<string> &stack_filenames );
   
     ///Save weights
     void SaveWeights();
@@ -495,6 +504,10 @@ inline void irtkReconstruction::SetSigma(double sigma)
     _sigma_bias=sigma;
 }
 
+inline void irtkReconstruction::SetGA(double ga)
+{
+    _GA = ga;
+}
 
 inline void irtkReconstruction::SpeedupOn()
 {

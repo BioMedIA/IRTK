@@ -33,6 +33,8 @@ private:
     irtkGenericImage<LabelID> &_labels;
     irtkGenericImage<irtkRealPixel> &_proba;
     double _lambda;
+    double _sigma;
+    double _sigmaZ;
 
     size_t index( size_t i, size_t j, size_t k );
     
@@ -47,6 +49,8 @@ public:
     ~irtkCRF();
     
     void SetLambda( double lambda );
+    void SetSigma( double sigma );
+    void SetSigmaZ( double sigmaZ );
 
     void Run();
 };
@@ -57,4 +61,12 @@ inline size_t irtkCRF::index( size_t z, size_t y, size_t x ) {
 
 inline void irtkCRF::SetLambda( double lambda ) {
     _lambda = lambda;
+}
+
+inline void irtkCRF::SetSigma( double sigma ) {
+    _sigma = sigma;
+}
+
+inline void irtkCRF::SetSigmaZ( double sigmaZ ) {
+    _sigmaZ = sigmaZ;
 }

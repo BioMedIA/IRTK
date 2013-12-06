@@ -56,6 +56,8 @@ void usage()
     cerr << "\t-transformations [folder] Use existing slice-to-volume transformations to initialize the reconstruction."<<endl;
     cerr << "\t-force_exclude [number of slices] [ind1] ... [indN]  Force exclusion of slices with these indices."<<endl;
     cerr << "\t-no_intensity_matching    Switch off intensity matching."<<endl;
+    cerr << "\t-no_robust_statistics     Switch off robust statistics."<<endl;
+    cerr << "\t-bspline                  Use multi-level bspline interpolation instead of super-resolution."<<endl;    
     cerr << "\t-log_prefix [prefix]      Prefix for the log file."<<endl;
     cerr << "\t-centroid                 Center stacks before any registrations."<<endl;
     cerr << "\t-info [filename]          Filename for slice information in\
@@ -85,6 +87,7 @@ int main(int argc, char **argv)
     vector<irtkRealImage> second_stacks;
     vector<irtkRealImage> probability_maps;
     vector<irtkRealImage> slices;
+    vector<string> stack_files;
   
     /// Stack transformation
     vector<irtkRigidTransformation> stack_transformations;
@@ -120,15 +123,23 @@ int main(int argc, char **argv)
     char * folder=NULL;
     //flag to swich the intensity matching on and off
     bool intensity_matching = true;
+
+    //flag to swich the robust statistics on and off
+    bool robust_statistics = true;
+    //flag to replace super-resolution reconstruction by multilevel B-spline interpolation
+    bool bspline = false;    
   
     irtkRealImage average;
 
-    string info_filename = "";
+    string info_filename = "slice_info.tsv";
     string log_id;
     bool no_log = false;
     bool no_sync = false;
     double threshold_mask = 0.2;
     bool centroid = false;
+
+    /// Gestational age (to compute expected brain volume)
+    double ga = 0;
   
     //forced exclusion of slices
     int number_of_force_excluded_slices = 0;
@@ -155,6 +166,7 @@ int main(int argc, char **argv)
 
     // Read stacks 
     for (i=0;i<nStacks;i++) {
+        stack_files.push_back(argv[1]);
         stack.Read(argv[1]);
         reconstruction.Rescale(stack,1000);
         cout<<"Reading stack ... "<<argv[1]<<endl;
@@ -170,7 +182,6 @@ int main(int argc, char **argv)
         cout<<"Reading transformation ... "<<argv[1]<<" ... ";
         cout.flush();
         if (strcmp(argv[1], "id") == 0) {
-            //transformation = new irtkRigidTransformation;
             if ( templateNumber < 0) templateNumber = i;
         }
         else {
@@ -180,11 +191,9 @@ int main(int argc, char **argv)
 
         argc--;
         argv++;
-        //irtkRigidTransformation *rigidTransf = dynamic_cast<irtkRigidTransformation*> (transformation);
         stack_transformations.push_back(transformation);
-        //delete rigidTransf;
-        //delete transformation;
     }
+    reconstruction.InvertStackTransformations(stack_transformations);
 
     // Parse options.
     while (argc > 1) {
@@ -285,6 +294,16 @@ int main(int argc, char **argv)
             argc--;
             argv++;
         }
+
+        // Gestational age
+        if ((ok == false) && (strcmp(argv[1], "-ga") == 0)){
+            argc--;
+            argv++;
+            ga=atof(argv[1]);
+            ok = true;
+            argc--;
+            argv++;
+        }
     
         //Smoothing parameter
         if ((ok == false) && (strcmp(argv[1], "-lambda") == 0)) {
@@ -368,6 +387,22 @@ int main(int argc, char **argv)
             ok = true;
         }          
 
+        //Switch off robust statistics
+        if ((ok == false) && (strcmp(argv[1], "-no_robust_statistics") == 0)){
+            argc--;
+            argv++;
+            robust_statistics=false;
+            ok = true;
+        }
+
+        //Use multilevel B-spline interpolation instead of super-resolution
+        if ((ok == false) && (strcmp(argv[1], "-bspline") == 0)){
+            argc--;
+            argv++;
+            bspline=true;
+            ok = true;
+        }
+    
         //Perform bias correction of the reconstructed image agains the GW image in the same motion correction iteration
         if ((ok == false) && (strcmp(argv[1], "-global_bias_correction") == 0)) {
             argc--;
@@ -433,7 +468,7 @@ int main(int argc, char **argv)
         if ((ok == false) && (strcmp(argv[1], "-centroid") == 0)) {
             argc--;
             argv++;
-            no_sync=true;
+            centroid=true;
             ok = true;
         }         
 
@@ -494,6 +529,9 @@ int main(int argc, char **argv)
     //Output volume
     irtkRealImage reconstructed;
 
+    // Gestational age
+    reconstruction.SetGA(ga);    
+
     //Set debug mode
     if (debug) reconstruction.DebugOn();
     else reconstruction.DebugOff();
@@ -512,11 +550,13 @@ int main(int argc, char **argv)
         cerr<<"Please identify the template by assigning id transformation."<<endl;
         exit(1);
     }  
-  
+    
     //Create template volume with isotropic resolution 
     //if resolution==0 it will be determined from in-plane resolution of the image
     resolution = reconstruction.CreateTemplate(stacks[templateNumber],resolution);
-  
+
+    irtkImageAttributes templateAttr = stacks[templateNumber].GetImageAttributes();
+
     //Redirect output from screen to text files:
   
     //to remember cout and cerr buffer
@@ -552,7 +592,9 @@ int main(int argc, char **argv)
                                      templateNumber );
 
     //volumetric registration
-    reconstruction.StackRegistrations(stacks,stack_transformations,templateNumber);
+    reconstruction.StackRegistrations( stacks,
+                                       stack_transformations,
+                                       templateNumber );
 
     reconstruction.CreateMaskFromAllMasks( stacks,
                                            stack_transformations,
@@ -586,6 +628,7 @@ int main(int argc, char **argv)
    
     resolution = reconstruction.CreateLargeTemplate( stacks,
                                                      stack_transformations,
+                                                     templateAttr,
                                                      resolution,
                                                      smooth_mask,
                                                      threshold_mask );
@@ -700,6 +743,7 @@ int main(int argc, char **argv)
             reconstruction.GetTransformations(slice_transformations);
             resolution = reconstruction.CreateLargeTemplate( slices,
                                                              slice_transformations,
+                                                             templateAttr,
                                                              resolution,
                                                              smooth_mask,
                                                              threshold_mask,
@@ -708,9 +752,15 @@ int main(int argc, char **argv)
             if ( (iter >= iterations-3) && (probability_maps.size() > 0) ) {
                 reconstruction.UpdateProbabilityMap();
                 reconstruction.SaveProbabilityMap(iter);
-                reconstruction.CoeffInit();
-                reconstruction.GaussianReconstruction();
-                reconstruction.crf3DMask( smooth_mask, threshold_mask );                    
+                if (bspline) {
+                    reconstruction.CoeffInitBSpline();
+                    reconstruction.BSplineReconstruction();
+                }
+                else {
+                    reconstruction.CoeffInit();
+                    reconstruction.GaussianReconstruction();
+                }
+                reconstruction.crf3DMask( smooth_mask, threshold_mask, iter );                    
             }
             reconstruction.MaskSlices();
         }
@@ -743,10 +793,16 @@ int main(int argc, char **argv)
         reconstruction.InitializeEMValues();
     
         //Calculate matrix of transformation between voxels of slices and volume
-        reconstruction.CoeffInit();
+        if (bspline)
+            reconstruction.CoeffInitBSpline();
+        else
+            reconstruction.CoeffInit();
 
         //Initialize reconstructed image with Gaussian weighted reconstruction
-        reconstruction.GaussianReconstruction();
+        if (bspline)
+            reconstruction.BSplineReconstruction();
+        else
+            reconstruction.GaussianReconstruction();
 
         //Simulate slices (needs to be done after Gaussian reconstruction)
         reconstruction.SimulateSlices();    
@@ -755,11 +811,15 @@ int main(int argc, char **argv)
         reconstruction.InitializeRobustStatistics();
     
         //EStep
-        reconstruction.EStep();
+        if(robust_statistics)
+            reconstruction.EStep();
 
         //number of reconstruction iterations
         if ( iter==(iterations-1) ) rec_iterations = rec_iterations2; //30      
         else  rec_iterations = rec_iterations1; //10
+
+        if ((bspline)&&(!robust_statistics)&&(!intensity_matching))
+            rec_iterations=0;    
         
         //reconstruction iterations
         i=0;
@@ -775,7 +835,10 @@ int main(int argc, char **argv)
             }
       
             //MStep and update reconstructed volume
-            reconstruction.Superresolution(i+1);
+            if (bspline)
+                reconstruction.BSplineReconstruction();
+            else
+                reconstruction.Superresolution(i+1);
 
             if((sigma>0)&&(!global_bias_correction))
                 reconstruction.NormaliseBias(i);
@@ -784,10 +847,12 @@ int main(int argc, char **argv)
             // after the update of the reconstructed volume)
             reconstruction.SimulateSlices(); 
 
-            reconstruction.MStep(i+1);
+            if(robust_statistics)
+                reconstruction.MStep(i+1);
       
             //E-step
-            reconstruction.EStep();
+            if(robust_statistics)
+                reconstruction.EStep();
       
             //Save intermediate reconstructed image
             if (debug) {
@@ -800,8 +865,8 @@ int main(int argc, char **argv)
         } //end of reconstruction iterations
     
         //Mask reconstructed image to ROI given by the mask
-        reconstruction.MaskVolume();
-
+        if(!bspline)
+            reconstruction.MaskVolume();
         
         if (debug) {
             //Save reconstructed image
@@ -833,18 +898,28 @@ int main(int argc, char **argv)
     reconstruction.SaveTransformations();
 
     if ( info_filename.length() > 0 )
-        reconstruction.SlicesInfo( info_filename.c_str() );
+        reconstruction.SlicesInfo( info_filename.c_str(),
+                                   stack_files );
     //reconstruction.SaveSlices();
 
     if (debug) {
         reconstruction.SaveWeights();
         reconstruction.SaveBiasFields();
         // FIXME
-        // reconstruction.SimulateStacks(second_stacks);
-        // for (unsigned int i=0;i<stacks.size();i++) {
-        //     sprintf(buffer,"simulated%i.nii.gz",i);
-        //     stacks[i].Write(buffer);
-        // }
+        if (second_stacks.size() > 0) {
+            reconstruction.SimulateStacks(second_stacks);
+            for (unsigned int i=0;i<second_stacks.size();i++) {
+                sprintf(buffer,"simulated%i.nii.gz",i);
+                second_stacks[i].Write(buffer);
+            }
+        }
+        else {
+            reconstruction.SimulateStacks(stacks);
+            for (unsigned int i=0;i<stacks.size();i++) {
+                sprintf(buffer,"simulated%i.nii.gz",i);
+                stacks[i].Write(buffer);
+            }
+        }
     }
 
 } //The end of main()

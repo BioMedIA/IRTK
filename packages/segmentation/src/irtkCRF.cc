@@ -11,7 +11,6 @@
 =========================================================================*/
 
 
-
 #include "irtkCRF.h"
 
 irtkCRF::irtkCRF( irtkGenericImage<pixel_t> &img,
@@ -20,6 +19,8 @@ irtkCRF::irtkCRF( irtkGenericImage<pixel_t> &img,
  : _img(img), _labels(labels), _proba(proba)
 {
     _lambda = 1.0;
+    _sigma = 0;
+    _sigmaZ = 0;
 }
 
 irtkCRF::~irtkCRF()
@@ -67,7 +68,11 @@ void irtkCRF::Run()
 
         int x0, y0, z0;
         SiteID id, id0;
-        double std2 = 2.0 * pow(_img.GetSD(),2);
+        double std2;
+        if ( this->_sigma == 0 )
+            this->_sigma = _img.GetSD();
+        if ( this->_sigmaZ == 0 )
+            this->_sigmaZ = this->_sigma;
         for ( int z = 0; z < _img.GetZ(); z++ )
             for ( int y = 0; y < _img.GetY(); y++ )
                 for ( int x = 0; x < _img.GetX(); x++ ) 
@@ -83,9 +88,13 @@ void irtkCRF::Run()
                                      0 <= y0 && y0 < _img.GetY() &&
                                      0 <= x0 && x0 < _img.GetX() &&
                                      id < id0 ) { 
-                                    double dist = sqrt( pow(double(a),2.0) +
-                                                        pow(double(b),2.0) +
-                                                        pow(double(c),2.0) );
+                                    double dist = sqrt( pow(double(a)*_img.GetZSize(),2.0) +
+                                                        pow(double(b)*_img.GetYSize(),2.0) +
+                                                        pow(double(c)*_img.GetXSize(),2.0) );
+                                    if (a==0)
+                                        std2 = 2.0 * pow(this->_sigma,2);
+                                    else
+                                        std2 = 2.0 * pow(this->_sigmaZ,2);
                                     double w = exp( -pow( double(_img(x,y,z) -
                                                           _img(x0,y0,z0)), 2.0)
                                                     / std2 )
