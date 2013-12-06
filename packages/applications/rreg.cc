@@ -44,6 +44,7 @@ void usage()
   cerr << "<-Sy2 value>         Region of interest in source image" << endl;
   cerr << "<-Sz2 value>         Region of interest in source image" << endl;
   cerr << "<-Tp  value>         Padding value in target" << endl;
+  cerr << "<-rescale min max>   Rescale images before registering" << endl;  
   cerr << "<-center>            Center voxel grids onto image origins" << endl;
   cerr << "<-image>             Project transformation into image coordinate" << endl;
   cerr << "Due to rreg does not have scale, can't use this option if two images's projection matrix contain scale coefficients (two images do not have same voxel size)" << endl;
@@ -308,6 +309,19 @@ int main(int argc, char **argv)
       argv++;
       ok = true;
     }
+    if ((ok == false) && (strcmp(argv[1], "-rescale") == 0)) {
+      argc--;
+      argv++;
+      irtkGreyPixel min = atof(argv[1]);
+      argc--;
+      argv++;
+      irtkGreyPixel max = atof(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+      target.PutMinMax(min,max);
+      source.PutMinMax(min,max);
+    }    
     if ((ok == false) && (strcmp(argv[1], "-debug") == 0)) {
       argc--;
       argv++;
