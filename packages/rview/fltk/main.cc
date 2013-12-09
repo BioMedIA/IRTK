@@ -61,6 +61,7 @@ void usage()
   cerr << "\t<-tcolor color>                  Target image color\n";
   cerr << "\t<-scolor color>                  Source image color\n";
   cerr << "\t   where color is  <red | blue | green | rainbow>\n";
+  cerr << "\t<-line value>                    Line thickness\n";  
   cerr << "\t<-diff>                          Subtraction view\n";
   cerr << "\t<-tcontour r g b>                Switch on target contours (see -tmin)\n";
   cerr << "\t<-scontour r g b>                Switch on source contours (see -smin)\n";
@@ -463,7 +464,7 @@ int main(int argc, char **argv)
       ok = true;
     }
 
-    if ((ok == false) && (strcmp(argv[1], "-line_thickness") == 0)){
+    if ((ok == false) && (strcmp(argv[1], "-line") == 0)){
       argv++;
       argc--;
       double val = atof(argv[1]);
