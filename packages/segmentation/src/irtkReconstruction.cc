@@ -3497,43 +3497,41 @@ public:
         for ( size_t x = r.begin(); x != r.end(); ++x ) {
             int xx, yy, zz;
             for (int y = 0; y < dy; y++)
-                for (int z = 0; z < dz; z++) {                    
+                for (int z = 0; z < dz; z++) 
+		  if(reconstructor->_confidence_map(x,y,z)>0)
+		  {                    
                     double val = 0;
-                    double valW = 0;
                     double sum = 0;
                     for (int i = 0; i < 13; i++) {
                         xx = x + reconstructor->_directions[i][0];
                         yy = y + reconstructor->_directions[i][1];
                         zz = z + reconstructor->_directions[i][2];
-                        if ((xx >= 0) && (xx < dx) && (yy >= 0) && (yy < dy) && (zz >= 0) && (zz < dz)) {
-                            val += b[i](x, y, z) * original(xx, yy, zz) * reconstructor->_confidence_map(xx, yy, zz);
-                            valW += b[i](x, y, z) * reconstructor->_confidence_map(xx, yy, zz);
+                        if ((xx >= 0) && (xx < dx) && (yy >= 0) && (yy < dy) && (zz >= 0) && (zz < dz)) 
+			  if(reconstructor->_confidence_map(xx,yy,zz)>0)
+			  {
+                            val += b[i](x, y, z) * original(xx, yy, zz);
                             sum += b[i](x, y, z);
-                        }
+                          }
                     }
 
                     for (int i = 0; i < 13; i++) {
                         xx = x - reconstructor->_directions[i][0];
                         yy = y - reconstructor->_directions[i][1];
                         zz = z - reconstructor->_directions[i][2];
-                        if ((xx >= 0) && (xx < dx) && (yy >= 0) && (yy < dy) && (zz >= 0) && (zz < dz)) {
-                            val += b[i](xx, yy, zz) * original(xx, yy, zz) * reconstructor->_confidence_map(xx, yy, zz);
-                            valW += b[i](xx, yy, zz) * reconstructor->_confidence_map(xx, yy, zz);
-                            sum += b[i](xx, yy, zz);
-                        }
+                        if ((xx >= 0) && (xx < dx) && (yy >= 0) && (yy < dy) && (zz >= 0) && (zz < dz)) 
+			  if(reconstructor->_confidence_map(xx,yy,zz)>0)
+			  {
+                            val += b[i](x, y, z) * original(xx, yy, zz);
+                            sum += b[i](x, y, z);
+                          }
+                        
                     }
 
-                    val -= sum * original(x, y, z) * reconstructor->_confidence_map(x, y, z);
-                    valW -= sum * reconstructor->_confidence_map(x, y, z);
-                    val = original(x, y, z) * reconstructor->_confidence_map(x, y, z)
+                    val -= sum * original(x, y, z);
+                    val = original(x, y, z) 
                         + reconstructor->_alpha * reconstructor->_lambda / (reconstructor->_delta * reconstructor->_delta) * val;
-                    valW = reconstructor->_confidence_map(x, y, z) + reconstructor->_alpha * reconstructor->_lambda / (reconstructor->_delta * reconstructor->_delta) * valW;
 
-                    if (valW > 0) {
-                        reconstructor->_reconstructed(x, y, z) = val / valW;
-                    }
-                    else
-                        reconstructor->_reconstructed(x, y, z) = 0;
+                        reconstructor->_reconstructed(x, y, z) = val;
                 }
             
         }
