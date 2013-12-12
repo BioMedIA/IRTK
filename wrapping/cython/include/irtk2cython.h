@@ -12,6 +12,7 @@
 #include <irtkFileToImage.h>
 #include <irtkImageFunction.h>
 #include <irtkResampling.h>
+#include <irtkGaussianBlurring.h>
 
 // Interpolation method
 #define NEAREST_NEIGHBOR 0
@@ -218,6 +219,16 @@ void _resample( float* img_in,
                 float* img_out,
                 int interpolation_method=LINEAR,
                 float gaussian_parameter=1.0 );
+
+void _gaussianBlurring( float* img_in,
+                        double* pixelSize,
+                        double* xAxis,
+                        double* yAxis,
+                        double* zAxis,
+                        double* origin,
+                        int* dim,
+                        float* img_out,
+                        double sigma );
 
 irtkMatrix py2matrix( int rows, int cols, double* data );
 

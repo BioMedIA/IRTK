@@ -49,6 +49,15 @@ cdef extern from "irtk2cython.h":
                 float* img_out,
                 int interpolation_method,
                 float gaussian_parameter )
+    void _gaussianBlurring( float* img_in,
+                            double* pixelSize,
+                            double* xAxis,
+                            double* yAxis,
+                            double* zAxis,
+                            double* origin,
+                            int* dim,
+                            float* img_out,
+                            double sigma )
     void _transform_points( double* m,
                             double* pts,
                             size_t n )
@@ -159,6 +168,34 @@ def resample( np.ndarray[float, ndim=4,  mode="c"] img_in,
                 <float*> img_out.data,
                 inter,
                 gaussian_parameter )
+
+    return img_out, header
+
+def gaussianBlurring( np.ndarray[float, ndim=4,  mode="c"] img_in,
+                      header,
+                      double sigma ):
+    cdef np.ndarray[double, ndim=1,  mode="c"] pixelSize = header['pixelSize']
+    cdef np.ndarray[double, ndim=1,  mode="c"] xAxis = header['orientation'][0]
+    cdef np.ndarray[double, ndim=1,  mode="c"] yAxis = header['orientation'][1]
+    cdef np.ndarray[double, ndim=1,  mode="c"] zAxis = header['orientation'][2]
+    cdef np.ndarray[double, ndim=1,  mode="c"] origin = header['origin']
+    cdef np.ndarray[int, ndim=1,  mode="c"] dim =  header['dim']
+
+    cdef np.ndarray[float, ndim=4,  mode="c"] img_out = np.zeros( (dim[3],
+                                                                   dim[2],
+                                                                   dim[1],
+                                                                   dim[0]),
+                                                                  dtype='float32' )
+
+    _gaussianBlurring( <float*> img_in.data,
+                        <double*> pixelSize.data,
+                        <double*> xAxis.data,
+                        <double*> yAxis.data,
+                        <double*> zAxis.data,
+                        <double*> origin.data,
+                        <int*> dim.data,
+                        <float*> img_out.data,
+                        sigma )
 
     return img_out, header
 

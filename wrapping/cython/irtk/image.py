@@ -417,7 +417,16 @@ class Image(np.ndarray):
             res = self.resample( pixelSize,
                                   interpolation=interpolation,
                                   gaussian_parameter=gaussian_parameter)
-        return res    
+        return res
+
+    def gaussianBlurring( self, sigma ):
+        """
+        Gaussian blurring
+        """
+        new_img, new_header = _irtk.gaussianBlurring( self.get_data('float32', 'cython'),
+                                                      self.get_header(),
+                                                      sigma )
+        return Image( new_img, new_header )
     
     def register( self, target, transformation=None ):
         """

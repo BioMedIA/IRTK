@@ -195,6 +195,42 @@ void _resample( float* img_in,
                     dim );
 }
 
+void _gaussianBlurring( float* img_in,
+                        double* pixelSize,
+                        double* xAxis,
+                        double* yAxis,
+                        double* zAxis,
+                        double* origin,
+                        int* dim,
+                        float* img_out,
+                        double sigma ) {
+
+    irtkGenericImage<float> irtk_image;
+    py2irtk<float>( irtk_image,
+                    img_in,
+                    pixelSize,
+                    xAxis,
+                    yAxis,
+                    zAxis,
+                    origin,
+                    dim );
+
+    irtkGaussianBlurring<float> gb(sigma);
+    gb.SetInput(&irtk_image);
+    gb.SetOutput(&irtk_image);
+    gb.Run();
+
+    irtk2py<float>( irtk_image,
+                    img_out,
+                    pixelSize,
+                    xAxis,
+                    yAxis,
+                    zAxis,
+                    origin,
+                    dim ); 
+}
+
+
 irtkMatrix py2matrix( int rows, int cols, double* data ) {
     irtkMatrix matrix(rows, cols);
     int i, j;
