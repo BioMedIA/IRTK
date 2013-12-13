@@ -1479,7 +1479,7 @@ void irtkBSplineFreeFormTransformation3D::ApproximateAsNew2D(const double *x1, c
 					if ((I >= 0) && (I < _x)) {
 						B_I = B_J * this->LookupTable[S][i];
 						basis = B_I / norm;
-						basis2 = B_I;
+						basis2 = B_I * B_I;
 						phi = x2[index] * basis;
 						data[0][J][I]._x += basis2 * phi;
 						phi = y2[index] * basis;
@@ -1580,7 +1580,7 @@ void irtkBSplineFreeFormTransformation3D::ApproximateAsNew3D(const double *x1, c
 							if ((I >= 0) && (I < _x)) {
 								B_I = B_J * this->LookupTable[S][i];
 								basis = B_I / norm;
-								basis2 = B_I;
+								basis2 = B_I * B_I;
 								phi = x2[index] * basis;
 								data[K][J][I]._x += basis2 * phi;
 								phi = y2[index] * basis;
