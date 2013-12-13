@@ -522,6 +522,9 @@ double irtkMAPatchMatchSegmentation::distance(int x1, int y1, int z1, int x2, in
 	tmpradius_y = radius_y;
 	tmpradius_z = radius_z;
 
+	if(target->GetZ() <= 1)
+		tmpradius_z = 0;
+
 	if(target->Get(x1,y1,z1) < 0){
 		return maxdistance - 1;
 	}

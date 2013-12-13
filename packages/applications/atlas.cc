@@ -1,14 +1,14 @@
 /*=========================================================================
 
- Library   : Image Registration Toolkit (IRTK)
- Module    : $Id$
- Copyright : Imperial College, Department of Computing
- Visual Information Processing (VIP), 2008 onwards
- Date      : $Date$
- Version   : $Revision$
- Changes   : $Author$
+Library   : Image Registration Toolkit (IRTK)
+Module    : $Id$
+Copyright : Imperial College, Department of Computing
+Visual Information Processing (VIP), 2008 onwards
+Date      : $Date$
+Version   : $Revision$
+Changes   : $Author$
 
- =========================================================================*/
+=========================================================================*/
 
 #include <irtkImage.h>
 
@@ -50,6 +50,7 @@ void usage()
 	cerr << "                          (default = " << EPSILON << ")" << endl;
 	cerr << "<-scaling value>        Scaling value for final atlas (default = 1)\n";
 	cerr << "<-norm>                 Normalise intensities before atlas construction " << endl;
+	cerr << "<-maxnumber value>      Maxium number of images taken " << endl;
 	cerr << "                          (default = off)\n";
 	exit(1);
 }
@@ -90,50 +91,64 @@ template<typename VoxelType> void normalise(irtkGenericImage<VoxelType> *input, 
 	}
 }
 
-template<typename VoxelType> void finalize_atlas(irtkGenericImage<VoxelType> *input, irtkGenericImage<double> *output, double scale, double weight)
+void finalize_atlas(irtkGenericImage<double> *output, double scale, irtkGenericImage<double> *weight)
 {
 	int i;
-	VoxelType *ptr1;
-	double *ptr2;
+	double *ptr2,*ptr3;
 
-	cout << weight << endl;
 	cout << "Constructing average atlas...";
 	cout.flush();
-	ptr1 = input->GetPointerToVoxels();
 	ptr2 = output->GetPointerToVoxels();
-	for (i = 0; i < input->GetNumberOfVoxels(); i++) {
-		*ptr1 = scale * *ptr2 / weight;
-		ptr1++;
+	ptr3 = weight->GetPointerToVoxels();
+	for (i = 0; i < output->GetNumberOfVoxels(); i++) {
+		if(*ptr3 > 0){
+			*ptr2 = scale * *ptr2 / *ptr3;
+		}else{
+			*ptr2 = -1;
+		}
 		ptr2++;
+		ptr3++;
 	}
 	cout << " done\n";
 }
 
-template<typename VoxelType> void add_atlas(irtkGenericImage<VoxelType> *input, irtkGenericImage<double> *output, int norm, double weight)
+template<typename VoxelType> void add_atlas(irtkGenericImage<VoxelType> *input, irtkGenericImage<double> *output, int norm, double inputweight, irtkGenericImage<double> *weight)
 {
 	int i;
-	double *ptr1, *ptr2;
+	double *ptr1, *ptr2, *ptr3;
 
-	cout << "Adding input to atlas...";
+	cout << inputweight ;
+	cout << " Adding input to atlas...";
 	cout.flush();
+
 	irtkGenericImage<double> tmp = *input;
 	if (norm == true) normalise(input, &tmp);
-	tmp *= weight;
+	tmp *= inputweight;
 
-	if (!(input->GetImageAttributes() == output->GetImageAttributes())){
-		cerr << "Mismatch of image attributes:" << endl;
-		input->GetImageAttributes().Print();
-		output->GetImageAttributes().Print();
-		exit(1);
+	if (!(input->GetImageAttributes() == output->GetImageAttributes())
+		||!(input->GetImageAttributes() == weight->GetImageAttributes())){
+			cerr << "Mismatch of image attributes:" << endl;
+			input->GetImageAttributes().Print();
+			output->GetImageAttributes().Print();
+			weight->GetImageAttributes().Print();
+			exit(1);
 	}
 
 	ptr1 = tmp.GetPointerToVoxels();
 	ptr2 = output->GetPointerToVoxels();
+	ptr3 = weight->GetPointerToVoxels();
+
 	for (i = 0; i < input->GetNumberOfVoxels(); i++) {
-		*ptr2 += *ptr1;
+		if(*ptr1 >= 0){
+			*ptr2 += *ptr1;
+			*ptr3 += inputweight;
+		}
+
 		ptr1++;
 		ptr2++;
+		ptr3++;
 	}
+
 	cout << "done\n";
 }
 
@@ -141,8 +156,9 @@ int main(int argc, char **argv)
 {
 	irtkImage                *input = NULL;
 	irtkGenericImage<double> *output = NULL;
+	irtkGenericImage<double> *weight = NULL;
 	double scale, mean, sigma, epsilon;
-	int padding, norm, i, no, ok, image_type, useGaussianWeights;
+	int padding, norm, i, no, ok, image_type, useGaussianWeights, maxiumimage = 10000;
 
 	// Check command line
 	if (argc < 4) {
@@ -177,7 +193,6 @@ int main(int argc, char **argv)
 	char **input_name = new char *[MAX_IMAGES];
 	double *input_value = new double[MAX_IMAGES];
 	double *input_weight = new double[MAX_IMAGES];
-	double total_weight = 0;
 
 	// Parse any remaining paramters
 	no = 0;
@@ -185,7 +200,6 @@ int main(int argc, char **argv)
 	while ((argc > 1) && (argv[1][0] != '-')) {
 		input_name[no] = argv[1];
 		input_weight[no] = 1;
-		total_weight += 1;
 		no++;
 		argc--;
 		argv++;
@@ -223,6 +237,14 @@ int main(int argc, char **argv)
 			argc--;
 			argv++;
 			textfile = argv[1];
+			argc--;
+			argv++;
+			ok = true;
+		}
+		if ((ok == false) && (strcmp(argv[1], "-maxnumber") == 0)) {
+			argc--;
+			argv++;
+			maxiumimage = atoi(argv[1]);
 			argc--;
 			argv++;
 			ok = true;
@@ -282,8 +304,6 @@ int main(int argc, char **argv)
 					}
 
 					if (input_weight[no] > epsilon) {
-						total_weight += input_weight[no];
-						cout << input_value[no] << " " << input_weight[no] << " " << total_weight << endl;
 						no++;
 					}
 				}
@@ -293,6 +313,10 @@ int main(int argc, char **argv)
 			cout << "atlas: Unable to open file " << textfile << endl;
 			exit(1);
 		}
+	}
+
+	if(no > maxiumimage){
+		no = maxiumimage;
 	}
 
 	// Read and add one input image after the other
@@ -317,134 +341,123 @@ int main(int argc, char **argv)
 		if (i == 0) {
 			irtkFileToImage *reader = irtkFileToImage::New(input_name[i]);
 			image_type = reader->GetDataType();
-		} else {
-			delete input;
 		}
 
 		switch (image_type) {
-			case IRTK_VOXEL_UNSIGNED_CHAR: {
-				cout << "Reading input image " << input_name[i] << "... ";
-				cout.flush();
-				input = new irtkGenericImage<unsigned char>(input_name[i]);
-				cout << "done" << endl;
+		case IRTK_VOXEL_UNSIGNED_CHAR: {
+			cout << "Reading input image " << input_name[i] << "... ";
+			cout.flush();
+			input = new irtkGenericImage<unsigned char>(input_name[i]);
+			cout << "done" << endl;
 
-				if (i == 0) {
-					output = new irtkGenericImage<double>(input->GetImageAttributes());
-				}
-
-				add_atlas(dynamic_cast<irtkGenericImage<unsigned char> *>(input), output, norm, input_weight[i]);
-
-				if (i == no - 1) {
-					// Finalize atlas
-					finalize_atlas(dynamic_cast<irtkGenericImage<unsigned char> *>(input), output, scale, total_weight);
-				}
-
-				break;
+			if (i == 0) {
+				output = new irtkGenericImage<double>(input->GetImageAttributes());
+				weight = new irtkGenericImage<double>(input->GetImageAttributes());
 			}
-			case IRTK_VOXEL_CHAR: {
-				cout << "Reading input image " << input_name[i] << "... ";
-				cout.flush();
-				input = new irtkGenericImage<char>(input_name[i]);
-				cout << "done" << endl;
 
-				if (i == 0) {
-					output = new irtkGenericImage<double>(input->GetImageAttributes());
-				}
+			add_atlas(dynamic_cast<irtkGenericImage<unsigned char> *>(input), output, norm, input_weight[i], weight);
 
-				add_atlas(dynamic_cast<irtkGenericImage<char> *>(input), output, norm, input_weight[i]);
+			delete input;
 
-				if (i == no - 1) {
-					// Finalize atlas
-					finalize_atlas(dynamic_cast<irtkGenericImage<char> *>(input), output, scale, total_weight);
-				}
+			break;
+									   }
+		case IRTK_VOXEL_CHAR: {
+			cout << "Reading input image " << input_name[i] << "... ";
+			cout.flush();
+			input = new irtkGenericImage<char>(input_name[i]);
+			cout << "done" << endl;
 
-				break;
+			if (i == 0) {
+				output = new irtkGenericImage<double>(input->GetImageAttributes());
+				weight = new irtkGenericImage<double>(input->GetImageAttributes());
 			}
-			case IRTK_VOXEL_UNSIGNED_SHORT: {
-				cout << "Reading input image " << input_name[i] << "... ";
-				cout.flush();
-				input = new irtkGenericImage<unsigned short>(input_name[i]);
-				cout << "done" << endl;
 
-				if (i == 0) {
-					output = new irtkGenericImage<double>(input->GetImageAttributes());
-				}
+			add_atlas(dynamic_cast<irtkGenericImage<char> *>(input), output, norm, input_weight[i], weight);
 
-				add_atlas(dynamic_cast<irtkGenericImage<unsigned short> *>(input), output, norm, input_weight[i]);
+			delete input;
 
-				if (i == no - 1) {
-					// Finalize atlas
-					finalize_atlas(dynamic_cast<irtkGenericImage<unsigned short> *>(input), output, scale, total_weight);
-				}
+			break;
+							  }
+		case IRTK_VOXEL_UNSIGNED_SHORT: {
+			cout << "Reading input image " << input_name[i] << "... ";
+			cout.flush();
+			input = new irtkGenericImage<unsigned short>(input_name[i]);
+			cout << "done" << endl;
 
-				break;
+			if (i == 0) {
+				output = new irtkGenericImage<double>(input->GetImageAttributes());
+				weight = new irtkGenericImage<double>(input->GetImageAttributes());
 			}
-			case IRTK_VOXEL_SHORT: {
-				cout << "Reading input image " << input_name[i] << "... ";
-				cout.flush();
-				input = new irtkGenericImage<short>(input_name[i]);
-				cout << "done" << endl;
 
-				if (i == 0) {
-					output = new irtkGenericImage<double>(input->GetImageAttributes());
-				}
+			add_atlas(dynamic_cast<irtkGenericImage<unsigned short> *>(input), output, norm, input_weight[i], weight);
 
-				add_atlas(dynamic_cast<irtkGenericImage<short> *>(input), output, norm, input_weight[i]);
+			delete input;
 
-				if (i == no - 1) {
-					// Finalize atlas
-					finalize_atlas(dynamic_cast<irtkGenericImage<short> *>(input), output, scale, total_weight);
-				}
+			break;
+										}
+		case IRTK_VOXEL_SHORT: {
+			cout << "Reading input image " << input_name[i] << "... ";
+			cout.flush();
+			input = new irtkGenericImage<short>(input_name[i]);
+			cout << "done" << endl;
 
-				break;
+			if (i == 0) {
+				output = new irtkGenericImage<double>(input->GetImageAttributes());
+				weight = new irtkGenericImage<double>(input->GetImageAttributes());
 			}
-			case IRTK_VOXEL_FLOAT: {
-				cout << "Reading input image " << input_name[i] << "... ";
-				cout.flush();
-				input = new irtkGenericImage<float>(input_name[i]);
-				cout << "done" << endl;
 
-				if (i == 0) {
-					output = new irtkGenericImage<double>(input->GetImageAttributes());
-				}
+			add_atlas(dynamic_cast<irtkGenericImage<short> *>(input), output, norm, input_weight[i], weight);
 
-				add_atlas(dynamic_cast<irtkGenericImage<float> *>(input), output, norm, input_weight[i]);
+			delete input;
 
-				if (i == no - 1) {
-					// Finalize atlas
-					finalize_atlas(dynamic_cast<irtkGenericImage<float> *>(input), output, scale, total_weight);
-				}
+			break;
+							   }
+		case IRTK_VOXEL_FLOAT: {
+			cout << "Reading input image " << input_name[i] << "... ";
+			cout.flush();
+			input = new irtkGenericImage<float>(input_name[i]);
+			cout << "done" << endl;
 
-				break;
+			if (i == 0) {
+				output = new irtkGenericImage<double>(input->GetImageAttributes());
+				weight = new irtkGenericImage<double>(input->GetImageAttributes());
 			}
-			case IRTK_VOXEL_DOUBLE: {
-				cout << "Reading input image " << input_name[i] << "... ";
-				cout.flush();
-				input = new irtkGenericImage<double>(input_name[i]);
-				cout << "done" << endl;
 
-				if (i == 0) {
-					output = new irtkGenericImage<double>(input->GetImageAttributes());
-				}
+			add_atlas(dynamic_cast<irtkGenericImage<float> *>(input), output, norm, input_weight[i], weight);
 
-				add_atlas(dynamic_cast<irtkGenericImage<double> *>(input), output, norm, input_weight[i]);
+			delete input;
 
-				if (i == no - 1) {
-					// Finalize atlas
-					finalize_atlas(dynamic_cast<irtkGenericImage<double> *>(input), output, scale, total_weight);
-				}
+			break;
+							   }
+		case IRTK_VOXEL_DOUBLE: {
+			cout << "Reading input image " << input_name[i] << "... ";
+			cout.flush();
+			input = new irtkGenericImage<double>(input_name[i]);
+			cout << "done" << endl;
 
-				break;
+			if (i == 0) {
+				output = new irtkGenericImage<double>(input->GetImageAttributes());
+				weight = new irtkGenericImage<double>(input->GetImageAttributes());
 			}
-			default:
-				cerr << "Voxel type not supported" << endl;
-				exit(1);
+
+			add_atlas(dynamic_cast<irtkGenericImage<double> *>(input), output, norm, input_weight[i], weight);
+
+			delete input;
+
+			break;
+								}
+		default:
+			cerr << "Voxel type not supported" << endl;
+			exit(1);
 		}
 	}
+
+	// Finalize atlas
+	finalize_atlas(output, scale, weight);
 
 	// Write atlas
 	cout << "Writing atlas to " << output_name << " ... ";
 	cout.flush();
-	input->Write(output_name);
+	output->Write(output_name);
 	cout << "done\n";
 }

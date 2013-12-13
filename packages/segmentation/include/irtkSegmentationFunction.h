@@ -12,6 +12,8 @@
 
 #include <irtkGradientImageFilter.h>
 
+#include <irtkPatchMatch.h>
+
 #include <irtkMAPatchMatch.h>
 
 #include <irtkMAPatchMatchSuperResolution.h>

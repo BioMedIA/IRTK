@@ -233,7 +233,10 @@ int irtkMAPatchMatch::randomlink(int i, int j, int k, int o, int index){
 			wj = target->GetY()*randomrate;
 			wk = target->GetZ()*randomrate;
 
-			wi = min(wi,min(wj,wk));
+			if(target->GetZ() > 1)
+				wi = min(wi,min(wj,wk));
+			else
+				wi = min(wi,wj);
 
 			if(wi < 1)
 				wi = 1;
@@ -252,7 +255,11 @@ int irtkMAPatchMatch::randomlink(int i, int j, int k, int o, int index){
 
 			x = ti + rand()%(2*wi+1)-wi;
 			y = tj + rand()%(2*wi+1)-wi;
-			z = tk + rand()%(2*wi+1)-wi;
+
+			if(target->GetZ() > 1)
+				z = tk + rand()%(2*wi+1)-wi;
+			else
+				z = tk;
 
 			if(x < 0) x = 0;
 			if(y < 0) y = 0;
@@ -755,12 +762,19 @@ int irtkMAPatchMatch::propergate(int x, int y, int z, int i, int j, int k, int o
 
 
 double irtkMAPatchMatch::distance(int x1, int y1, int z1, int x2, int y2, int z2, int n){
-	int i,j,k,i1,j1,k1,i2,j2,k2,t,count,g,tmpradius,increase;
+	int i,j,k,i1,j1,k1,i2,j2,k2,t,count,g,tmpradius,tmpradiusx, tmpradiusy, tmpradiusz, increase;
 	double dif = 0, tmp;
 	short value1, value2, values;
 	count = 0;
 	increase = 1;
 	tmpradius = this->radius;
+
+	tmpradiusx = tmpradius;
+	tmpradiusy = tmpradius;
+	if(target->GetZ() > 1)
+		tmpradiusz = tmpradius;
+	else
+		tmpradiusz = 0;
 
 	//check is search
 	if(x2 < 0 || x2 > sources[n]->GetX() - 1
@@ -773,13 +787,13 @@ double irtkMAPatchMatch::distance(int x1, int y1, int z1, int x2, int y2, int z2
 		return maxdistance - 1;
 	}
 
-	for(k = - tmpradius; k <= tmpradius; k+=increase){
+	for(k = - tmpradiusz; k <= tmpradiusz; k+=increase){
 		k1 = k + z1;
 		k2 = k + z2;
-		for(j = -tmpradius; j <= tmpradius; j+=increase){
+		for(j = -tmpradiusy; j <= tmpradiusy; j+=increase){
 			j1 = j + y1;
 			j2 = j + y2;
-			for(i = -tmpradius; i <= tmpradius; i+=increase){
+			for(i = -tmpradiusx; i <= tmpradiusx; i+=increase){
 				i1 = i + x1;
 				i2 = i + x2;
 				if(i1 < 0|| i2 < 0 ||
