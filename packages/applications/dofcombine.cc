@@ -19,6 +19,9 @@ char *dof3_name = NULL;
 void usage()
 {
   cerr << "Usage: dofcombine [input doffile 1] [input doffile 2] [output doffile] [-invert1] [-invert2]" << endl;
+  cerr << endl;
+  cerr << "dofcombine composes two affine transformations T_1 and T_2 so that T_out = T1 o T2." << endl;
+  cerr << "It performs the multiplication of two affine transformation matrices."
   exit(1);
 }
 
