@@ -10,8 +10,11 @@
 
 =========================================================================*/
 
-// Image types and other standard things
 #include <iostream>
+
+#ifdef HAS_VTK
+
+// Image types and other standard things
 #include <cstdlib> 
 #include "vtkUnstructuredGrid.h"
 #include <vtkUnstructuredGridReader.h>
@@ -313,3 +316,13 @@ int main( int argc, char * argv[] )
     exit(EXIT_SUCCESS);
 
 }
+
+#else
+
+int main(int, char *argv[])
+{
+  std::cerr << argv[0] << " needs to be compiled with the VTK library " << std::endl;
+  exit(1);
+}
+
+#endif
