@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.6)
 if(COMMAND cmake_policy)
   # policy settings ...
   cmake_policy(SET CMP0003 NEW)
+  if(POLICY CMP0022)
+    cmake_policy(SET CMP0022 OLD)
+  endif()
 endif(COMMAND cmake_policy)
 
 PROJECT(IRTK)
