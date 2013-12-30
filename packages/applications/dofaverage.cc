@@ -3,7 +3,7 @@
   Library   : Image Registration Toolkit (IRTK)
   Module    : $Id$
   Copyright : Imperial College, Department of Computing
-  Visual Information Processing (VIP), 2008 onwards
+              Visual Information Processing (VIP), 2008 onwards
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
@@ -12,8 +12,8 @@
 
 #include <irtkTransformation.h>
 
-#define MAX_DOFS   10000
-#define EPSILON    0.001
+#define MAX_DOFS 10000
+#define EPSILON 0.001
 
 void usage()
 {
