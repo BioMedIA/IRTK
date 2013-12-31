@@ -40,15 +40,13 @@ int main(int argc, char **argv)
   cout << "WARNING: The current implementation will ignore the global affine transformation component!" << endl;
 
   // Read and check the input transformations
-  irtkMultiLevelFreeFormTransformation *mffd1 = new irtkMultiLevelFreeFormTransformation;
-  mmfd1->irtkTransformation::New(dof1_name);
+  irtkMultiLevelFreeFormTransformation *mffd1 = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(irtkTransformation::New(dof1_name));
   if(mffd1 == NULL){
     cerr << "ERROR: Transformation T_1 is not of type irtkMultiLevelFreeFormTransformation!" << endl;
     exit(1);
   }
 
-  irtkMultiLevelFreeFormTransformation *mffd2 = new irtkMultiLevelFreeFormTransformation;
-  mmfd2->irtkTransformation::New(dof2_name);
+  irtkMultiLevelFreeFormTransformation *mffd2 = dynamic_cast<irtkMultiLevelFreeFormTransformation *>(irtkTransformation::New(dof2_name));
   if(mffd2 == NULL){
     cerr << "ERROR: Transformation T_2 is not of type irtkMultiLevelFreeFormTransformation!" << endl;
     exit(1);
