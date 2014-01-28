@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkSegmentationFunction.h>
@@ -831,4 +835,3 @@ void irtkMAPatchMatchSuperResolution::setDecimatedImage(irtkGreyImage *input)
 	if(debug == true){
 		decimated->Write("decimatedimage.nii.gz");
 	}
-}

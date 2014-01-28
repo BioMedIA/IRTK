@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkSegmentationFunction.h>
@@ -1054,4 +1058,3 @@ double irtkPatchMatch::selfdistance3D(int x1, int y1, int z1, int x2, int y2, in
 		return maxdistance - 1;
 	else
 		return dif/count;
-}
