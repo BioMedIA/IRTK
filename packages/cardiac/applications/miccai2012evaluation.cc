@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 // Image types and other standard things
@@ -312,4 +316,3 @@ int main( int argc, char * argv[] )
 
     exit(EXIT_SUCCESS);
 
-}

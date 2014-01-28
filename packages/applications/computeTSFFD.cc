@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #include <irtkRegistration2.h>
@@ -537,4 +541,3 @@ int main(int argc, char **argv)
 	delete registration;
 	delete mffd;
 	delete [] source;
-}

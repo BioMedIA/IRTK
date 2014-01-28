@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 #include <irtkBep.h>
 
@@ -115,4 +119,4 @@ int main( int argc, char *argv[] )
 	return 0;
 }
 
-#endif
+#endi

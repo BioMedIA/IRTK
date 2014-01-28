@@ -6,6 +6,10 @@ Visual Information Processing (VIP), 2008 onwards
 Date      : $Date: 2013-01-14$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>

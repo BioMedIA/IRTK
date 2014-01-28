@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -2076,4 +2080,4 @@ double irtkCardiac3DImageFreeFormRegistration::SmoothnessPenalty(int index)
     return -penalty;
 }
 
-#endif
+#endi

@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -45,31 +49,31 @@ int main(int argc, char **argv)
 	argc--;
 	argv++;
 
-	// Parse remaining parameters
-	while (argc > 1){
-		ok = false;
-		if ((ok == false) && (strcmp(argv[1], "-intensity") == 0)){
-			argc--;
-			argv++;
-			intensity = true;
-			ok = true;
-		}
-		if ((ok == false) && (strcmp(argv[1], "-gradient") == 0)){
-			argc--;
-			argv++;
-			gradient = true;
-			ok = true;
-		}
-		if ((ok == false) && (strcmp(argv[1], "-spatial") == 0)){
-			argc--;
-			argv++;
-			spatial = true;
-			ok = true;
-		}
-		if (ok == false){
-			cerr << "Can not parse argument " << argv[1] << endl;
-			usage();
-		}
+	// Parse remaining parameter
+	while (argc > 1)
+		ok = false
+		if ((ok == false) && (strcmp(argv[1], "-intensity") == 0))
+			argc--
+			argv++
+			intensity = true
+			ok = true
+		
+		if ((ok == false) && (strcmp(argv[1], "-gradient") == 0))
+			argc--
+			argv++
+			gradient = true
+			ok = true
+		
+		if ((ok == false) && (strcmp(argv[1], "-spatial") == 0))
+			argc--
+			argv++
+			spatial = true
+			ok = true
+		
+		if (ok == false)
+			cerr << "Can not parse argument " << argv[1] << endl
+			usage()
+		
 	} 
 
 	if(intensity == false && gradient == false && spatial == false){

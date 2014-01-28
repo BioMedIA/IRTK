@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -325,4 +329,4 @@ int main( int argc, char *argv[] )
 {
 	cerr << argv[0] << " needs to be compiled with the VTK library " << endl;
 }
-#endif
+#endi

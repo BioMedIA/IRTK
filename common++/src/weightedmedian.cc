@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkCommon.h>
@@ -57,4 +61,3 @@ double weightedmedian(int index, double lambda, double f, float *neighbors, floa
         }
         return neighbors[(index+pos)/2];
     }
-}
