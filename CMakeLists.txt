@@ -15,7 +15,7 @@ IF (USE_VXL)
   INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/vxl/core ${IRTK_SOURCE_DIR}/vxl/vcl)
   ADD_DEFINITIONS(-DUSE_VXL)
 ELSE (USE_VXL)
-  SUBDIRS(recipes/src)
+  #SUBDIRS(recipes/src)
 ENDIF (USE_VXL)
 
 OPTION(BUILD_WITH_TBB "Use TBB library for multithreading support" OFF)
