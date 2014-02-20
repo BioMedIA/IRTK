@@ -10,123 +10,9 @@
 
 =========================================================================*/
 
-#include <irtkImage.h>
-#include <nr.h>
-
-#include <sys/types.h>
-
-
-#ifdef WIN32
-#include <time.h>
-#else
-#include <sys/time.h>
-#endif
-
-
-#include <map>
-
-
-char *output_name = NULL, **input_names = NULL;
-char *mask_name = NULL;
-
-long ran2Seed;
-long ran2initialSeed;
-
-// first short is the label, second short is the number of images voting
-// for that label.
-typedef map<short, short> countMap;
-
-map<short, short>::iterator iter;
-
-short getMostPopular(countMap cMap){
-  short maxCount = 0, mostPopLabel = -1;
-
-  if (cMap.size() == 0){
-    // No votes to count, treat as background.
-    return 0;
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-
-    if (iter->second > maxCount){
-      maxCount     = iter->second;
-      mostPopLabel = iter->first;
-    }
-  }
-
-  return mostPopLabel;
-}
-
-bool isEquivocal(countMap cMap){
-  short maxCount = 0;
-  short numberWithMax = 0;
-
-  if (cMap.size() == 0){
-    // No votes to count, treat as background.
-    return false;
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second > maxCount){
-      maxCount     = iter->second;
-    }
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second ==  maxCount){
-      ++numberWithMax;
-    }
-  }
-
-  if (numberWithMax > 1){
-    return true;
-  } else {
-    return false;
-  }
-
-}
-
-short decideOnTie(countMap cMap){
-  short maxCount = 0;
-  short numberWithMax = 0;
-  int index, count;
-  short temp;
-
-  if (cMap.size() == 0){
-    // No votes to count, treat as background.
-    return false;
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second > maxCount){
-      maxCount     = iter->second;
-    }
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second ==  maxCount){
-      ++numberWithMax;
-    }
-  }
-
-  short *tiedLabels = new short[numberWithMax];
-
-  count = 0;
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second ==  maxCount){
-      tiedLabels[count] = iter->first;
-      ++count;
-    }
-  }
-
-  index = (int) floor( ran2(&ran2Seed) * count );
-
-  temp = tiedLabels[index];
-  delete tiedLabels;
-
-  return temp;
-}
-
+// super-UGLY, but avoid wrecking IRTK build process
+#include "src/combineLabels_core.cc"
+#include <stdexcept>
 
 void usage()
 {
@@ -317,7 +203,10 @@ int main(int argc, char **argv)
     if (*pMask == 0){
       if (isEquivocal(counts[contendedVoxelIndex])){
         ++equivocalCount;
-        *pOut = decideOnTie(counts[contendedVoxelIndex]);
+	try {
+	  *pOut = decideOnTie(counts[contendedVoxelIndex]);
+	}
+	catch (const std::invalid_argument &e) { std::cerr << e.what() << std::endl; }
       }
       ++contendedVoxelIndex;
     }
