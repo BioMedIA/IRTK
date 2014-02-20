@@ -13,27 +13,21 @@
 #endif
 
 
-char *output_name = NULL, **input_names = NULL;
-char *mask_name = NULL;
-
 long ran2Seed;
 long ran2initialSeed;
 
-// first short is the label, second short is the number of images voting
-// for that label.
-// typedef map<short, short> countMap;
 
-map<short, short>::iterator iter;
-
-short getMostPopular(countMap cMap){
+short getMostPopular(const countMap& cMap){
   short maxCount = 0, mostPopLabel = -1;
 
-  if (cMap.size() == 0){
+  if ( cMap.empty() ) {
     // No votes to count, treat as background.
     return 0;
   }
 
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
+  countMap::const_iterator iter;
+  const countMap::const_iterator endMap = cMap.end();
+  for (iter = cMap.begin(); iter != endMap; ++iter){
 
     if (iter->second > maxCount){
       maxCount     = iter->second;
@@ -44,62 +38,61 @@ short getMostPopular(countMap cMap){
   return mostPopLabel;
 }
 
-bool isEquivocal(countMap cMap){
+bool isEquivocal(const countMap& cMap){
   short maxCount = 0;
   short numberWithMax = 0;
 
-  if (cMap.size() == 0){
+  if ( cMap.empty() ) {
     // No votes to count, treat as background.
     return false;
   }
 
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
+  countMap::const_iterator iter;
+  const countMap::const_iterator endMap = cMap.end();
+  for (iter = cMap.begin(); iter != endMap; ++iter){
     if (iter->second > maxCount){
       maxCount     = iter->second;
     }
   }
 
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
+  for (iter = cMap.begin(); iter != endMap; ++iter){
     if (iter->second ==  maxCount){
       ++numberWithMax;
     }
   }
 
-  if (numberWithMax > 1){
-    return true;
-  } else {
-    return false;
-  }
-
+  return numberWithMax > 1;
 }
 
-short decideOnTie(countMap cMap) throw (std::invalid_argument) {
+short decideOnTie(const countMap& cMap) throw (std::invalid_argument) {
   short maxCount = 0;
   short numberWithMax = 0;
   int index, count;
   short temp;
 
-  if (cMap.empty()){
+  if ( cMap.empty() ) {
     // No votes to count, treat as background.
     throw std::invalid_argument("countMap should not be empty");
   }
 
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
+  countMap::const_iterator iter;
+  const countMap::const_iterator endMap = cMap.end();
+  for (iter = cMap.begin(); iter != endMap; ++iter){
     if (iter->second > maxCount){
       maxCount     = iter->second;
     }
   }
 
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
+  for (iter = cMap.begin(); iter != endMap; ++iter){
     if (iter->second ==  maxCount){
       ++numberWithMax;
     }
   }
 
-  short *tiedLabels = new short[numberWithMax];
+  short tiedLabels[numberWithMax];
 
   count = 0;
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
+  for (iter = cMap.begin(); iter != endMap; ++iter){
     if (iter->second ==  maxCount){
       tiedLabels[count] = iter->first;
       ++count;
@@ -109,7 +102,6 @@ short decideOnTie(countMap cMap) throw (std::invalid_argument) {
   index = (int) floor( ran2(&ran2Seed) * count );
 
   temp = tiedLabels[index];
-  delete tiedLabels;
-
+  
   return temp;
 }

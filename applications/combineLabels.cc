@@ -14,6 +14,10 @@
 #include "src/combineLabels_core.cc"
 #include <stdexcept>
 
+char *  output_name = NULL;
+char ** input_names = NULL;
+char *  mask_name   = NULL;
+
 void usage()
 {
   cerr << " " << endl;
