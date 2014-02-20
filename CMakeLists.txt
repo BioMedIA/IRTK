@@ -28,9 +28,15 @@ IF (BUILD_GPU_SUPPORT_WITH_CUDA)
   add_subdirectory(packages/segmentation/src/irtkReconstructionCuda)
 ENDIF(BUILD_GPU_SUPPORT_WITH_CUDA)
 
- SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation wrapping) 
+SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation wrapping) 
 
 INCLUDE(${IRTK_SOURCE_DIR}/config/IRTKInclude.cmake)
+
+OPTION(BUILD_TESTS "Build units tests" ON)
+IF (BUILD_TESTS)
+  MESSAGE("-- Unit tests enabled")
+  ADD_SUBDIRECTORY (test)                 
+ENDIF(BUILD_TESTS)
 
 SET(EXECUTABLE_OUTPUT_PATH ${IRTK_BINARY_DIR}/bin CACHE STRING
   "Where to put the executables")
@@ -50,10 +56,4 @@ CONFIGURE_FILE(${IRTK_SOURCE_DIR}/InstallerScripts/irtkInstaller.sh
 EXEC_PROGRAM(chmod ${IRTK_BINARY_DIR}/bin ARGS +x;irtkInstaller.sh)
 
 INCLUDE(${IRTK_SOURCE_DIR}/config/IRTKGenerateConfigFile.cmake)
-
-OPTION(BUILD_TESTS "Build units tests" ON)
-IF (BUILD_TESTS)
-  MESSAGE("-- Unit tests enabled")
-  ADD_SUBDIRECTORY (test)                 
-ENDIF(BUILD_TESTS)
 
