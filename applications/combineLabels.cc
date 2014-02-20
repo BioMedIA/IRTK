@@ -10,123 +10,13 @@
 
 =========================================================================*/
 
-#include <irtkImage.h>
-#include <nr.h>
+// super-UGLY, but avoid wrecking IRTK build process
+#include "src/combineLabels_core.cc"
+#include <stdexcept>
 
-#include <sys/types.h>
-
-
-#ifdef WIN32
-#include <time.h>
-#else
-#include <sys/time.h>
-#endif
-
-
-#include <map>
-
-
-char *output_name = NULL, **input_names = NULL;
-char *mask_name = NULL;
-
-long ran2Seed;
-long ran2initialSeed;
-
-// first short is the label, second short is the number of images voting
-// for that label.
-typedef map<short, short> countMap;
-
-map<short, short>::iterator iter;
-
-short getMostPopular(countMap cMap){
-  short maxCount = 0, mostPopLabel = -1;
-
-  if (cMap.size() == 0){
-    // No votes to count, treat as background.
-    return 0;
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-
-    if (iter->second > maxCount){
-      maxCount     = iter->second;
-      mostPopLabel = iter->first;
-    }
-  }
-
-  return mostPopLabel;
-}
-
-bool isEquivocal(countMap cMap){
-  short maxCount = 0;
-  short numberWithMax = 0;
-
-  if (cMap.size() == 0){
-    // No votes to count, treat as background.
-    return false;
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second > maxCount){
-      maxCount     = iter->second;
-    }
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second ==  maxCount){
-      ++numberWithMax;
-    }
-  }
-
-  if (numberWithMax > 1){
-    return true;
-  } else {
-    return false;
-  }
-
-}
-
-short decideOnTie(countMap cMap){
-  short maxCount = 0;
-  short numberWithMax = 0;
-  int index, count;
-  short temp;
-
-  if (cMap.size() == 0){
-    // No votes to count, treat as background.
-    return false;
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second > maxCount){
-      maxCount     = iter->second;
-    }
-  }
-
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second ==  maxCount){
-      ++numberWithMax;
-    }
-  }
-
-  short *tiedLabels = new short[numberWithMax];
-
-  count = 0;
-  for (iter = cMap.begin(); iter != cMap.end(); ++iter){
-    if (iter->second ==  maxCount){
-      tiedLabels[count] = iter->first;
-      ++count;
-    }
-  }
-
-  index = (int) floor( ran2(&ran2Seed) * count );
-
-  temp = tiedLabels[index];
-  delete tiedLabels;
-
-  return temp;
-}
-
+char *  output_name = NULL;
+char ** input_names = NULL;
+char *  mask_name   = NULL;
 
 void usage()
 {
@@ -143,6 +33,7 @@ void usage()
   cerr << " Options:" << endl;
   cerr << " -u [filename]     Write out a volume showing the unanimous voxels." << endl;
   cerr << " -pad [value]      Padding value, default = -1." << endl;
+  cerr << " -seed [value]     Setting the same value over several runs will generate the same results (sets the seed of the pseudorandom number generator), default = current time (non-reproducible behaviour)." << endl;
   cerr << " " << endl;
   exit(1);
 }
@@ -157,6 +48,7 @@ int main(int argc, char **argv)
   irtkBytePixel *pMask;
   int writeMask = false;
   int pad = -1;
+  int inSeed = time(NULL);
 
   // Check command line
   if (argc < 4){
@@ -178,6 +70,7 @@ int main(int argc, char **argv)
     argv++;
   }
 
+  // TODO change to getopt
   while (argc > 1){
     ok = false;
     if ((ok == false) && (strcmp(argv[1], "-u") == 0)){
@@ -190,6 +83,12 @@ int main(int argc, char **argv)
     if ((ok == false) && (strcmp(argv[1], "-pad") == 0)){
       argc--;      argv++;
       pad = atoi(argv[1]);
+      argc--;      argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-seed") == 0)){
+      argc--;      argv++;
+      inSeed = atoi(argv[1]);
       argc--;      argv++;
       ok = true;
     }
@@ -298,13 +197,10 @@ int main(int argc, char **argv)
   }
 
   // Get ready for random stuff.
-  time_t tv;
-  tv = time(NULL);
-
-  ran2Seed = tv;
-  ran2initialSeed = -1 * ran2Seed;
-  (void) ran2(&ran2initialSeed);
-
+  // check argument -seed to get a reproducible output
+  // good quality PRNG
+  boost::mt19937 rng;   
+  rng.seed(inSeed);
 
   contendedVoxelIndex = 0;
   equivocalCount = 0;
@@ -317,7 +213,10 @@ int main(int argc, char **argv)
     if (*pMask == 0){
       if (isEquivocal(counts[contendedVoxelIndex])){
         ++equivocalCount;
-        *pOut = decideOnTie(counts[contendedVoxelIndex]);
+	try {
+	  *pOut = decideOnTie(counts[contendedVoxelIndex], rng);
+	}
+	catch (const std::invalid_argument &e) { std::cerr << e.what() << std::endl; }
       }
       ++contendedVoxelIndex;
     }
