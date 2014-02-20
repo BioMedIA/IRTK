@@ -1,7 +1,6 @@
 // avoid tweaking build system for the moment
 #include "../include/combineLabels_core.h"
 #include <irtkImage.h>
-#include <nr.h>
 
 #include <sys/types.h>
 #include <stdexcept>
@@ -12,10 +11,10 @@
 #include <sys/time.h>
 #endif
 
-
-long ran2Seed;
-long ran2initialSeed;
-
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
+              
 
 short getMostPopular(const countMap& cMap){
   short maxCount = 0, mostPopLabel = -1;
@@ -64,11 +63,10 @@ bool isEquivocal(const countMap& cMap){
   return numberWithMax > 1;
 }
 
-short decideOnTie(const countMap& cMap) throw (std::invalid_argument) {
+short decideOnTie(const countMap& cMap, boost::random::mt19937& rng) throw (std::invalid_argument) {
   short maxCount = 0;
   short numberWithMax = 0;
-  int index, count;
-  short temp;
+  int   count;
 
   if ( cMap.empty() ) {
     // No votes to count, treat as background.
@@ -99,9 +97,8 @@ short decideOnTie(const countMap& cMap) throw (std::invalid_argument) {
     }
   }
 
-  index = (int) floor( ran2(&ran2Seed) * count );
+  boost::uniform_int<> uniformCount(0, count -1);
+  boost::variate_generator<boost::mt19937&, boost::uniform_int<> > indexEngine(rng, uniformCount);
 
-  temp = tiedLabels[index];
-  
-  return temp;
+  return tiedLabels[indexEngine()];
 }

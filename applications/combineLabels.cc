@@ -33,6 +33,7 @@ void usage()
   cerr << " Options:" << endl;
   cerr << " -u [filename]     Write out a volume showing the unanimous voxels." << endl;
   cerr << " -pad [value]      Padding value, default = -1." << endl;
+  cerr << " -seed [value]     Setting the same value over several runs will generate the same results (sets the seed of the pseudorandom number generator), default = current time (non-reproducible behaviour)." << endl;
   cerr << " " << endl;
   exit(1);
 }
@@ -47,6 +48,7 @@ int main(int argc, char **argv)
   irtkBytePixel *pMask;
   int writeMask = false;
   int pad = -1;
+  int inSeed = time(NULL);
 
   // Check command line
   if (argc < 4){
@@ -68,6 +70,7 @@ int main(int argc, char **argv)
     argv++;
   }
 
+  // TODO change to getopt
   while (argc > 1){
     ok = false;
     if ((ok == false) && (strcmp(argv[1], "-u") == 0)){
@@ -80,6 +83,12 @@ int main(int argc, char **argv)
     if ((ok == false) && (strcmp(argv[1], "-pad") == 0)){
       argc--;      argv++;
       pad = atoi(argv[1]);
+      argc--;      argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-seed") == 0)){
+      argc--;      argv++;
+      inSeed = atoi(argv[1]);
       argc--;      argv++;
       ok = true;
     }
@@ -188,13 +197,10 @@ int main(int argc, char **argv)
   }
 
   // Get ready for random stuff.
-  time_t tv;
-  tv = time(NULL);
-
-  ran2Seed = tv;
-  ran2initialSeed = -1 * ran2Seed;
-  (void) ran2(&ran2initialSeed);
-
+  // check argument -seed to get a reproducible output
+  // good quality PRNG
+  boost::mt19937 rng;   
+  rng.seed(inSeed);
 
   contendedVoxelIndex = 0;
   equivocalCount = 0;
@@ -208,7 +214,7 @@ int main(int argc, char **argv)
       if (isEquivocal(counts[contendedVoxelIndex])){
         ++equivocalCount;
 	try {
-	  *pOut = decideOnTie(counts[contendedVoxelIndex]);
+	  *pOut = decideOnTie(counts[contendedVoxelIndex], rng);
 	}
 	catch (const std::invalid_argument &e) { std::cerr << e.what() << std::endl; }
       }
