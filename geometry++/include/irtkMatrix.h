@@ -18,6 +18,11 @@
 #include <vnl/vnl_matrix.h>
 #endif
 
+#include <irtkObject.h>
+
+#include <iostream>
+#include <cmath>
+
 /**
 
   Matrix class.
@@ -219,10 +224,10 @@ public:
   //
 
   /// Interface to output stream
-  friend ostream& operator<< (ostream&, const irtkMatrix&);
+  friend std::ostream& operator<< (std::ostream&, const irtkMatrix&);
 
   /// Interface to input stream
-  friend istream& operator>> (istream&, irtkMatrix&);
+  friend std::istream& operator>> (std::istream&, irtkMatrix&);
 
   /// Print matrix
   void Print();
@@ -480,7 +485,7 @@ inline double irtkMatrix::Trace(void) const
         }
         return trace;
     }else{
-        cerr << "irtkMatrix::Trace() matrix number of col != row" << endl;
+        std::cerr << "irtkMatrix::Trace() matrix number of col != row" << std::endl;
         return 0;
     }
 }
@@ -496,7 +501,7 @@ inline double irtkMatrix::Norm(void) const
       norm += _matrix[j][i]*_matrix[j][i];
     }
   }
-  return sqrt(norm);
+  return std::sqrt(norm);
 }
 
 inline double irtkMatrix::InfinityNorm(void) const

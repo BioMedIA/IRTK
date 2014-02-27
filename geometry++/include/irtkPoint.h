@@ -14,6 +14,12 @@
 
 #define _IRTKPOINT_H
 
+#include <irtkObject.h>
+#include <irtkVector.h>
+#include <irtkMatrix.h>
+
+#include <iostream>
+
 /**
 
   Point class.
@@ -184,10 +190,10 @@ public:
   //
 
   // Interface to output stream
-  friend ostream& operator<< (ostream&, const irtkPoint&);
+  friend std::ostream& operator<< (std::ostream&, const irtkPoint&);
 
   /// Interface to input stream
-  friend istream& operator>> (istream&, irtkPoint&);
+  friend std::istream& operator>> (std::istream&, irtkPoint&);
 };
 
 inline irtkPoint::irtkPoint()
@@ -214,7 +220,7 @@ inline irtkPoint::irtkPoint(const irtkPoint& p) : irtkObject(p)
 inline irtkPoint::irtkPoint(const irtkVector& v)
 {
   if ((v.Rows() < 0) || (v.Rows() > 3)) {
-    cerr << "irtkPoint::irtkPoint(const irtkVector&) Illegal dimension: " << v.Rows() << endl;
+    std::cerr << "irtkPoint::irtkPoint(const irtkVector&) Illegal dimension: " << v.Rows() << std::endl;
     exit(1);
   } else {
     if (v.Rows() == 1) {
@@ -414,7 +420,7 @@ inline irtkPoint irtkPoint::operator/ (double x)
 inline irtkPoint& irtkPoint::operator+=(const irtkVector& v)
 {
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator+=(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator+=(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   _x += v(0);
@@ -426,7 +432,7 @@ inline irtkPoint& irtkPoint::operator+=(const irtkVector& v)
 inline irtkPoint& irtkPoint::operator-=(const irtkVector& v)
 {
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator-=(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator-=(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   _x -= v(0);
@@ -438,7 +444,7 @@ inline irtkPoint& irtkPoint::operator-=(const irtkVector& v)
 inline irtkPoint& irtkPoint::operator*=(const irtkVector& v)
 {
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator*=(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator*=(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   _x *= v(0);
@@ -450,7 +456,7 @@ inline irtkPoint& irtkPoint::operator*=(const irtkVector& v)
 inline irtkPoint& irtkPoint::operator/=(const irtkVector& v)
 {
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator/=(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator/=(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   _x /= v(0);
@@ -464,7 +470,7 @@ inline irtkPoint irtkPoint::operator+ (const irtkVector& v)
   irtkPoint tmp;
 
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator+(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator+(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   tmp._x = _x + v(0);
@@ -478,7 +484,7 @@ inline irtkPoint irtkPoint::operator- (const irtkVector& v)
   irtkPoint tmp;
 
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator-(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator-(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   tmp._x = _x - v(0);
@@ -492,7 +498,7 @@ inline irtkPoint irtkPoint::operator* (const irtkVector& v)
   irtkPoint tmp;
 
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator*(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator*(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   tmp._x = _x * v(0);
@@ -506,7 +512,7 @@ inline irtkPoint irtkPoint::operator/ (const irtkVector& v)
   irtkPoint tmp;
 
   if (v.Rows() != 3) {
-    cerr << "irtkPoint::operator/(const irtkVector& v): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator/(const irtkVector& v): Size mismatch" << std::endl;
     exit(1);
   }
   tmp._x = _x / v(0);
@@ -520,7 +526,7 @@ inline irtkPoint irtkPoint::operator* (const irtkMatrix& m)
   irtkPoint tmp;
 
   if ((m.Rows() != 4) && (m.Cols() != 4)) {
-    cerr << "irtkPoint::operator*(const irtkMatrix& m): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator*(const irtkMatrix& m): Size mismatch" << std::endl;
     exit(1);
   }
   tmp._x = _x * m(0, 0) + _y * m(0, 1) + _z * m(0, 2) + m(0, 3);
@@ -535,7 +541,7 @@ inline irtkPoint& irtkPoint::operator*=(const irtkMatrix& m)
   irtkPoint tmp;
 
   if ((m.Rows() != 4) && (m.Cols() != 4)) {
-    cerr << "irtkPoint::operator*(const irtkMatrix& m): Size mismatch" << endl;
+    std::cerr << "irtkPoint::operator*(const irtkMatrix& m): Size mismatch" << std::endl;
     exit(1);
   }
   tmp._x = _x * m(0, 0) + _y * m(0, 1) + _z * m(0, 2) + m(0, 3);
