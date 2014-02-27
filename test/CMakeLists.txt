@@ -14,15 +14,13 @@ ENABLE_TESTING()
 # files containing the actual tests
 SET(test_sources
     applications/combineLabels_test.cc
+    geometry++/irtkPointSet_test.cc
 )
 
 # other source files dependencies
 SET ( source_dependencies
     ${IRTK_SOURCE_DIR}/applications/src/combineLabels_core.cc
 )
-
-message ( "include ${IRTK_INCLUDE_DIRS}" )
-message ( "source ${IRTK_SOURCE_DIR}" )
 
 INCLUDE_DIRECTORIES ( ${IRTK_SOURCE_DIR}
                       ${IRTK_INCLUDE_DIRS}

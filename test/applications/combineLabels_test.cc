@@ -12,7 +12,7 @@ const short maxKey2 = 123;
 const short maxKey3 = 9;
 const short maxKey4 = 5768;
 
-boost::random::mt19937 rng;
+static boost::random::mt19937 rng;
 
 TEST(Applications_CombineLabels, decideOnTie_empty_map) {
   mockMap.clear();
