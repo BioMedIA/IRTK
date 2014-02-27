@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "geometry++/include/irtkPointSet.h"
+#include <irtkPointSet.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>

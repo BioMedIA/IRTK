@@ -15,6 +15,7 @@ ENABLE_TESTING()
 SET(test_sources
     applications/combineLabels_test.cc
     geometry++/irtkPointSet_test.cc
+    geometry++/irtkAffineTransform_test.cc
 )
 
 # other source files dependencies
