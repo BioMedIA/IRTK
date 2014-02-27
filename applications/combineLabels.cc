@@ -70,7 +70,6 @@ int main(int argc, char **argv)
     argv++;
   }
 
-  // TODO change to getopt
   while (argc > 1){
     ok = false;
     if ((ok == false) && (strcmp(argv[1], "-u") == 0)){
