@@ -16,11 +16,13 @@ SET(test_sources
     applications/combineLabels_test.cc
     geometry++/irtkPointSet_test.cc
     geometry++/irtkAffineTransform_test.cc
+    applications/makevolume_test.cc
 )
 
 # other source files dependencies
 SET ( source_dependencies
     ${IRTK_SOURCE_DIR}/applications/src/combineLabels_core.cc
+    ${IRTK_SOURCE_DIR}/applications/src/makevolume_core.cc
 )
 
 INCLUDE_DIRECTORIES ( ${IRTK_SOURCE_DIR}
