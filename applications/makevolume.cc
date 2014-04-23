@@ -96,6 +96,7 @@ int main(int argc, char **argv)
   if (fabs(distance[0] - distance[1]) > 0) {
     index = indexing(z, distance);
   } else {
+    index = new unsigned long[z];
     for (i = 0; i < z; i++) {
       index[i] = i+1;
     }
