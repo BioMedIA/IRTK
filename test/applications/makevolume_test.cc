@@ -26,4 +26,14 @@ TEST(Applications_Makevolume, indexing_reverse_array) {
 
   for (int i = 0; i < 4; i++)
     ASSERT_EQ(index[i], result[i]);
+}
+
+TEST(Applications_Makevolume, indexing_random_array) {
+  long unsigned index[10] = {1, 3, 6, 4, 7, 2, 8, 5, 10, 9};
+  float array[10] = {3.34, 8.234, 4.1, 6.1324, 10.354235, 5.12, 7.123, 9.2345, 12.32, 11.0};
+
+  long unsigned* result = indexing(10, array);
+
+  for (int i = 0; i < 10; i++)
+    ASSERT_EQ(index[i], result[i]);
 } 
