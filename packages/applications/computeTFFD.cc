@@ -121,6 +121,10 @@ int main(int argc, char **argv)
 				char * line = new char[STRING.size()];
 				for (int j=0; j<STRING.size(); j++) line[j] = STRING[j];
 				t_real[n] = atof(line);
+				cout << t_real[n] << endl;
+			}else{
+				cerr<<"time file not compelte "<<timeFile_name<<endl;
+				exit(1);
 			}
 		}
 	} else {
