@@ -14,8 +14,6 @@ Changes   : $Author$
 
 #ifdef USE_VXL
 // need to include vxl here
-#else
-#include <nr.h>
 #endif
 
 void usage()

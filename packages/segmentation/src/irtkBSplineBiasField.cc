@@ -12,8 +12,6 @@
 
 #include <irtkBiasField.h>
 
-#include <nr.h>
-#include <nrutil.h>
 
 #define LUTSIZE (double)(BIASLOOKUPTABLESIZE-1)
 

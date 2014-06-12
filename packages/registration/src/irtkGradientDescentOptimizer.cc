@@ -12,7 +12,6 @@
 
 #include <irtkRegistration.h>
 
-#include <nr.h>
 
 // Used for NR optimization: Evaluates similarity measure
 extern float irtkRegistrationEvaluate(float *x);

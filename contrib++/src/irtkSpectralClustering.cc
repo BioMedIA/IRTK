@@ -1,6 +1,5 @@
 #include <irtkSpectralClustering.h>
 #include <irtkEigenAnalysis.h>
-#include <nr.h>
 #include <iostream>
 #include <fstream>
 #include <vector>

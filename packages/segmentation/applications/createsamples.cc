@@ -22,7 +22,6 @@
 
 #include <highgui.h>
 
-#include <nr.h>
 
 /*
 reading in input sequence, find mid slice from sequence, using landmark to define interest region
