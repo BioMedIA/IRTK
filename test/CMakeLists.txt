@@ -17,6 +17,7 @@ SET(test_sources
     geometry++/irtkPointSet_test.cc
     geometry++/irtkAffineTransform_test.cc
     applications/makevolume_test.cc
+    packages/segmentation/irtkGraphCutSegmentation_4D_test.cc
 )
 
 # other source files dependencies
