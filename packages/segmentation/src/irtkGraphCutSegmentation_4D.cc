@@ -8,7 +8,7 @@
 #include <string>
 #include <sstream>
 #include <irtkGradientImage.h>
-#include <nr.h> 
+#include <algorithm>
 
 irtkGraphCutSegmentation_4D::irtkGraphCutSegmentation_4D(int numTissues, irtkRealImage foregroundAtlas)
 {
@@ -76,7 +76,7 @@ void irtkGraphCutSegmentation_4D::SetInput(const irtkRealImage &input, irtkGener
 		segPtr++;
 		inPtr++;
 	}
-	sort(numberOfValues, gradMagnData);
+	sort(gradMagnData + 1, gradMagnData + 1 + numberOfValues);
 	int index = 1 + (numberOfValues-1)/2;
 	int median = gradMagnData[index];
 	ptr = _gradMagnitude.GetPointerToVoxels();
@@ -91,7 +91,7 @@ void irtkGraphCutSegmentation_4D::SetInput(const irtkRealImage &input, irtkGener
 		inpPtr++;
 	}
 
-	sort(numberOfValues, gradMagnData);
+	sort(gradMagnData + 1, gradMagnData + 1 + numberOfValues);
 	int MAD = gradMagnData[index];
 	if(MAD == 0)
 		MAD = 1;
