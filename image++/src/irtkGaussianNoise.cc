@@ -14,8 +14,9 @@
 
 #include <irtkNoise.h>
 
-#include <nr.h>
-#include <nrutil.h>
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
+
 
 template <class VoxelType> irtkGaussianNoise<VoxelType>::irtkGaussianNoise() : irtkNoise<VoxelType>()
 {
@@ -25,7 +26,14 @@ template <class VoxelType> irtkGaussianNoise<VoxelType>::irtkGaussianNoise() : i
   _MaxVal = VoxelType(MAX_GREY);
 
   long temp = -1 * this->_Init;
-  (void) gasdev(&temp);
+
+  boost::mt19937 rng;
+  rng.seed(temp);
+
+  boost::normal_distribution<> nd(_Mean, _Sigma);
+  boost::variate_generator<boost::mt19937&,
+                           boost::normal_distribution<> > var_nor(rng, nd);
+  (void) var_nor();
 }
 
 template <class VoxelType> irtkGaussianNoise<VoxelType>::irtkGaussianNoise(double Mean, double Sigma, VoxelType MinVal, VoxelType MaxVal) : irtkNoise<VoxelType>()
@@ -36,7 +44,14 @@ template <class VoxelType> irtkGaussianNoise<VoxelType>::irtkGaussianNoise(doubl
   this->_MaxVal = MaxVal;
 
   long temp = -1 * this->_Init;
-  (void) gasdev(&temp);
+
+  boost::mt19937 rng;
+  rng.seed(temp);
+
+  boost::normal_distribution<> nd(Mean, Sigma);
+  boost::variate_generator<boost::mt19937&,
+                           boost::normal_distribution<> > var_nor(rng, nd);
+  (void) var_nor();
 }
 
 
@@ -47,7 +62,14 @@ template <class VoxelType> const char *irtkGaussianNoise<VoxelType>::NameOfClass
 
 template <class VoxelType> double irtkGaussianNoise<VoxelType>::Run(int x, int y, int z, int t)
 {
-  double tmp = this->_input->Get(x, y, z, t) + this->_Sigma * gasdev(&this->_Init) + this->_Mean;
+  boost::mt19937 rng;
+  rng.seed(this->_Init);
+
+  boost::normal_distribution<> nd(this->_Mean, this->_Sigma);
+  boost::variate_generator<boost::mt19937&,
+                           boost::normal_distribution<> > var_nor(rng, nd);
+
+  double tmp = this->_input->Get(x, y, z, t) + this->_Sigma * var_nor() + this->_Mean;
   if (tmp < this->_MinVal) return this->_MinVal;
   if (tmp > this->_MaxVal) return this->_MaxVal;
   return tmp;
