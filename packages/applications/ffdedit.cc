@@ -16,7 +16,7 @@
 
 #include <irtkTransformation.h>
 
-#include <nr.h>
+#include <algorithm>
 
 // Definition of available adaptivity measures
 typedef enum { Entropy, Variance } AdaptivityMeasure;
@@ -48,6 +48,29 @@ void usage()
   cerr << "-percent  <n>" << endl;
   cerr << "-measure  <n>" << endl;
   exit(1);
+}
+
+void sort2(int index, float *array1, float *array2) {
+  int indices[index];
+  float array1_store[index];
+  float array2_store[index];
+
+  for (int i = 0; i < index; i++) {
+    // create array with indices to be sorted
+    indices[i] = i;
+    // keep a back up of the original arrays
+    array1_store[i] = array1[i];
+    array2_store[i] = array2[i];
+  }
+
+  // sort the first array and keep the index order
+  std::sort(indices, indices + index, sort_indices(array1));
+
+  // update the arrays
+  for (int i = 0; i < index; i++) {
+    array1[i+1] = array1_store[indices[i]];
+    array2[i+1] = array2_store[indices[i]];
+  }
 }
 
 void FFDEdit1(AdaptivityMeasure measure, double value)
