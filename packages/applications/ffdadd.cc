@@ -75,8 +75,8 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 #include <sys/time.h>
 #endif
 
-#include <nr.h>
-#include <nrutil.h>
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
 
 void usage()
 {
@@ -324,7 +324,14 @@ int main(int argc, char **argv)
       gettimeofday(&tv, NULL);
       temp = -tv.tv_usec;
 
-      for (i = 0; i < affd->NumberOfDOFs(); i++) affd->Put(i, noise*gasdev(&temp));
+      boost::mt19937 rng;
+      rng.seed(temp);
+
+      boost::normal_distribution<> nd(0.0, 1.0);
+      boost::variate_generator<boost::mt19937&,
+ 			       boost::normal_distribution<> > var_nor(rng, nd);   
+
+      for (i = 0; i < affd->NumberOfDOFs(); i++) affd->Put(i, noise*var_nor());
     }
 
     // Add and write file
@@ -342,7 +349,14 @@ int main(int argc, char **argv)
       gettimeofday(&tv, NULL);
       temp = -tv.tv_usec;
 
-      for (i = 0; i < affd->NumberOfDOFs(); i++) affd->Put(i, noise*gasdev(&temp));
+      boost::mt19937 rng;
+      rng.seed(temp);
+
+      boost::normal_distribution<> nd(0.0, 1.0);
+      boost::variate_generator<boost::mt19937&,
+                               boost::normal_distribution<> > var_nor(rng, nd);
+
+      for (i = 0; i < affd->NumberOfDOFs(); i++) affd->Put(i, noise*var_nor());
     }
 
     // Add and write file
