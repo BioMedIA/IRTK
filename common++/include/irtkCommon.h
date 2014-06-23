@@ -84,6 +84,17 @@ inline int round(double x)
 extern void swap16(char *, char *, long);
 extern void swap32(char *, char *, long);
 extern void swap64(char *, char *, long);
+
+class sort_indices
+{
+  private:
+    float* _array;
+
+  public:
+    sort_indices(float* array) : _array(array) {}
+    bool operator()(int i, int j) { return _array[i] < _array[j]; } 
+};
+
 extern double weightedmedian(int, double,double, float*, float*);
 
 // Orientation codes (same as NIFTI)
