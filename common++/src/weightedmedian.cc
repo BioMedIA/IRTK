@@ -13,7 +13,6 @@
 #include <irtkCommon.h>
 
 #include <algorithm>
-//#include <nr.h>
 
 double median(float q, float p0, float p1){
     float m;
