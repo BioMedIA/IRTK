@@ -30,7 +30,7 @@ template <class VoxelType> irtkGaussianNoise<VoxelType>::irtkGaussianNoise() : i
   boost::mt19937 rng;
   rng.seed(temp);
 
-  boost::normal_distribution<> nd(_Mean, _Sigma);
+  boost::normal_distribution<> nd(0, 1);
   boost::variate_generator<boost::mt19937&,
                            boost::normal_distribution<> > var_nor(rng, nd);
   (void) var_nor();
@@ -48,7 +48,7 @@ template <class VoxelType> irtkGaussianNoise<VoxelType>::irtkGaussianNoise(doubl
   boost::mt19937 rng;
   rng.seed(temp);
 
-  boost::normal_distribution<> nd(Mean, Sigma);
+  boost::normal_distribution<> nd(0, 1);
   boost::variate_generator<boost::mt19937&,
                            boost::normal_distribution<> > var_nor(rng, nd);
   (void) var_nor();
@@ -65,7 +65,7 @@ template <class VoxelType> double irtkGaussianNoise<VoxelType>::Run(int x, int y
   boost::mt19937 rng;
   rng.seed(this->_Init);
 
-  boost::normal_distribution<> nd(this->_Mean, this->_Sigma);
+  boost::normal_distribution<> nd(0, 1);
   boost::variate_generator<boost::mt19937&,
                            boost::normal_distribution<> > var_nor(rng, nd);
 
