@@ -14,14 +14,18 @@
 
 #include <irtkNoise.h>
 
-#include <nr.h>
-#include <nrutil.h>
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
 
 template <class VoxelType> irtkUniformNoise<VoxelType>::irtkUniformNoise(double Amplitude) : irtkNoise<VoxelType>(Amplitude)
 {
-  // Initialise ran2 with negative argument.
-  long temp = -1 * this->_Init;
-  (void) ran2(&temp);
+  boost::mt19937 rng;
+  rng.seed(this->_Init);
+
+  boost::uniform_int<> ud(0, 1);
+  boost::variate_generator<boost::mt19937&,
+			   boost::uniform_int<> > uni_engine(rng, ud); 
+  (void) uni_engine();
 }
 
 template <class VoxelType> const char *irtkUniformNoise<VoxelType>::NameOfClass()
@@ -31,7 +35,13 @@ template <class VoxelType> const char *irtkUniformNoise<VoxelType>::NameOfClass(
 
 template <class VoxelType> double irtkUniformNoise<VoxelType>::Run(int x, int y, int z, int t)
 {
-  return double(this->_input->Get(x, y, z, t)) + this->_Amplitude * ran2(&this->_Init);
+  boost::mt19937 rng;
+  rng.seed(this->_Init);
+
+  boost::uniform_int<> ud(0, this->_Amplitude);
+  boost::variate_generator<boost::mt19937&,
+			   boost::uniform_int<> > uni_engine(rng, ud);
+  return double(this->_input->Get(x, y, z, t)) + uni_engine();
 }
 
 template class irtkUniformNoise<irtkBytePixel>;
