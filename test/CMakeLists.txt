@@ -19,6 +19,7 @@ SET(test_sources
     applications/makevolume_test.cc
     packages/segmentation/irtkGraphCutSegmentation_4D_test.cc
     common++/weightedmedian_test.cc
+    image++/irtkGaussianNoise_test.cc
 )
 
 # other source files dependencies
