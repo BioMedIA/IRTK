@@ -18,6 +18,7 @@ SET(test_sources
     geometry++/irtkAffineTransform_test.cc
     applications/makevolume_test.cc
     packages/segmentation/irtkGraphCutSegmentation_4D_test.cc
+    packages/segmentation/irtkRician_test.cc
     common++/weightedmedian_test.cc
     image++/irtkGaussianNoise_test.cc
 )
