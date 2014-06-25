@@ -44,8 +44,8 @@ void irtkRician::Approximate(){
 	while(difference > 0.0001 && iteration < 500){
 		square_thita = pow(thita,2);
 		temp = 2 + square_thita - (M_PI/8)*exp(-square_thita/2)
-			*pow(((2+square_thita)*bessi0(square_thita/4)
-			+square_thita*bessi1(square_thita/4)),2);
+			*pow(((2+square_thita)*boost::math::cyl_bessel_i(0,square_thita/4)
+			+square_thita*boost::math::cyl_bessel_i(1, square_thita/4)),2);
 		newthita = sqrt(temp*(1+pow(ratio,2))-2);
 		difference = fabs(newthita - thita);
 		thita = newthita;
@@ -54,8 +54,8 @@ void irtkRician::Approximate(){
 	// final evaluation
 	square_thita = pow(thita,2);
 	temp = 2 + square_thita - (M_PI/8)*exp(-square_thita/2)
-		*pow(((2+square_thita)*bessi0(square_thita/4)
-		+square_thita*bessi1(square_thita/4)),2);
+		*pow(((2+square_thita)*boost::math::cyl_bessel_i(0, square_thita/4)
+		+square_thita*boost::math::cyl_bessel_i(1, square_thita/4)),2);
 	_mi = sqrt(pow(_mi,2)+(temp-2)*_sigma);
 	_sigma = _sigma/temp;
 	//calculate norm
@@ -77,6 +77,6 @@ double irtkRician::Evaluate(const double &x)
 
 double irtkRician::Bessel(const double &v)
 {
-  return bessi0(v);
+  return boost::math::cyl_bessel_i(0, v);
 }
 
