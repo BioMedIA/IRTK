@@ -21,6 +21,7 @@
 #else
 #include <nr.h>
 #include <nrutil.h>
+#include <gsl/gsl_linalg.h>
 #endif
 
 #define NR_TOL 1.0e-5
@@ -499,17 +500,24 @@ double irtkMatrix::Det() const
   Matrix2Vnl(&vnl);
   d = vnl_determinant(vnl);
 #else
-  double **a, d;
-  int i, *index;
-  a = dmatrix(1, _rows, 1, _rows);
-  Matrix2NR(a);
-  index = ivector(1, _rows);
-  ludcmp(a, _rows, index, &d);
-  for (i = 1; i <= _rows; i++) {
-    d *= a[i][i];
+  double *a, d;
+  a = new double[_rows * _rows];
+  Matrix2GSL(a);
+  
+  int i, s;
+
+  gsl_matrix_view m = gsl_matrix_view_array(a, _rows, _rows);
+  gsl_permutation *p = gsl_permutation_alloc(_rows);
+
+  gsl_linalg_LU_decomp(&m.matrix, p, &s);
+  d = s;
+  for (i = 0; i < _rows; i++) {
+     d *= gsl_matrix_get(&m.matrix, i, i);
   }
-  free_dmatrix(a, 1, _rows, 1, _rows);
-  free_ivector( index, 1, _rows);
+
+  gsl_permutation_free(p);
+
+  delete [] a;
 #endif
 
   return d;
@@ -528,49 +536,62 @@ void irtkMatrix::Invert(void)
   vnl_matrix<float> output = vnl_matrix_inverse<float>(input);
   Vnl2Matrix(&output);
 #else
-  double **a, **b, *v, d;
-  int i, j, *index;
+  double *a, **b, *v, d;
+  int i, j, s;
 
   // Allocate memory
-  a = dmatrix(1, _rows, 1, _rows);
-  b = dmatrix(1, _rows, 1, _rows);
-  v = dvector(1, _rows);
+  a = new double[_rows * _rows];
+  b = new double*[_rows];
+  for (j = 0; j < _rows; j++)
+     b[j] = new double[_rows];
+  v = new double[_rows];
 
   // Convert matrix to NR format
-  Matrix2NR(a);
+  Matrix2GSL(a);
 
-  index = ivector(1, _rows);
+  gsl_vector *x = gsl_vector_alloc(_rows);
+  gsl_matrix_view m_view = gsl_matrix_view_array(a, _rows, _rows);
+  gsl_vector_view v_view = gsl_vector_view_array(v, _rows);
 
-  ludcmp(a, _rows, index, &d);
+  // Do the LU decomposition
+  gsl_permutation *p = gsl_permutation_alloc(_rows);
+  gsl_linalg_LU_decomp(&m_view.matrix, p, &s);
 
-  for (j = 1; j <= _rows; j++) {
-    d *= a[j][j];
+  d = s;
+  for (j = 0; j < _rows; j++) {
+    d *= gsl_matrix_get(&m_view.matrix, j, j);
   }
+
   if (d == 0) {
     cerr << "irtkMatrix::Invert: Zero determinant\n";
     //exit(1);
   }
-  for (j = 1; j <= _rows; j++) {
-    for (i = 1; i <= _rows; i++) {
+
+  for (j = 0; j < _rows; j++) {
+    for (i = 0; i < _rows; i++) {
       v[i] = 0.0;
     }
     v[j] = 1.0;
 
-    lubksb(a, _rows, index, v);
+    gsl_linalg_LU_solve(&m_view.matrix, p, &v_view.vector, x);
 
-    for (i = 1; i <= _rows; i++) {
-      b[i][j] = v[i];
+    for (i = 0; i < _rows; i++) {
+      b[i][j] = gsl_vector_get(x, i);
     }
   }
 
   // Convert NR format back
-  NR2Matrix(b);
+  GSL2Matrix(b);
 
   // Deallocate memory
-  free_dmatrix(a, 1, _rows, 1, _rows);
-  free_dmatrix(b, 1, _rows, 1, _rows);
-  free_dvector(v, 1, _rows);
-  free_ivector( index, 1, _rows);
+  gsl_permutation_free(p);
+  gsl_vector_free(x);
+
+  delete [] a;
+  for (j = 0; j < _rows; j++)
+     delete [] b[j];
+  delete [] b;
+  delete [] v;
 #endif
 }
 
@@ -587,49 +608,62 @@ void irtkMatrix::Adjugate(double &d)
   vnl_matrix<float> output = vnl_matrix_inverse<float>(input);
   Vnl2Matrix(&output);
 #else
-  double **a, **b, *v;
-  int i, j, *index;
+  double *a, **b, *v;
+  int i, j, s;
 
   // Allocate memory
-  a = dmatrix(1, _rows, 1, _rows);
-  b = dmatrix(1, _rows, 1, _rows);
-  v = dvector(1, _rows);
+  a = new double[_rows * _rows];
+  b = new double*[_rows];
+  for (j = 0; j < _rows; j++)
+     b[j] = new double[_rows];
+  v = new double[_rows];
 
-  // Convert matrix to NR format
-  Matrix2NR(a);
+  // Convert matrix to GSL format
+  Matrix2GSL(a);
 
-  index = ivector(1, _rows);
+  gsl_vector *x = gsl_vector_alloc(_rows);
+  gsl_vector_view v_view = gsl_vector_view_array(v, _rows);
+  gsl_matrix_view m_view = gsl_matrix_view_array(a, _rows, _rows);
 
-  ludcmp(a, _rows, index, &d);
+  // Dp the LU decomposition
+  gsl_permutation *p = gsl_permutation_alloc(_rows);
+  gsl_linalg_LU_decomp(&m_view.matrix, p, &s);
 
-  for (j = 1; j <= _rows; j++) {
-    d *= a[j][j];
-  }
+  d = s;
+  for (j = 0; j < _rows; j++) {
+    d *= gsl_matrix_get(&m_view.matrix, j, j);
+  } 
+
   if (d == 0) {
     cerr << "irtkMatrix::Invert: Zero determinant\n";
     //exit(1);
   }
-  for (j = 1; j <= _rows; j++) {
-    for (i = 1; i <= _rows; i++) {
+
+  for (j = 0; j < _rows; j++) {
+    for (i = 0; i < _rows; i++) {
       v[i] = 0.0;
     }
     v[j] = 1.0;
 
-    lubksb(a, _rows, index, v);
+    gsl_linalg_LU_solve(&m_view.matrix, p, &v_view.vector, x);
 
-    for (i = 1; i <= _rows; i++) {
-      b[i][j] = v[i]*d;
+    for (i = 0; i < _rows; i++) {
+      b[i][j] = gsl_vector_get(x, i) * d;
     }
   }
 
   // Convert NR format back
-  NR2Matrix(b);
+  GSL2Matrix(b);
 
   // Deallocate memory
-  free_dmatrix(a, 1, _rows, 1, _rows);
-  free_dmatrix(b, 1, _rows, 1, _rows);
-  free_dvector(v, 1, _rows);
-  free_ivector( index, 1, _rows);
+  gsl_permutation_free(p);
+  gsl_vector_free(x);
+
+  delete [] a;
+  for (j = 0; j < _rows; j++)
+    delete [] b[j];
+  delete [] b;
+  delete [] v;
 #endif
 }
 
@@ -809,8 +843,6 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
 
 void irtkMatrix::SVD(irtkMatrix &u, irtkVector &w, irtkMatrix &v)
 {
-  int i;
-
   double **NR_u, **NR_v, *NR_w;
 
   NR_w = dvector(1, _cols);
@@ -1120,6 +1152,18 @@ void irtkMatrix::Matrix2NR(float **m) const
   }
 }
 
+void irtkMatrix::Matrix2GSL(float *m) const
+{
+   int i, j, index = 0;
+
+   for (i = 0; i < _rows; i++) {
+     for (j = 0; j < _cols; j++) {
+	m[index] = _matrix[j][i];
+        index++;
+     }
+   }
+}
+
 void irtkMatrix::NR2Matrix(float **m)
 {
   int i, j;
@@ -1129,6 +1173,17 @@ void irtkMatrix::NR2Matrix(float **m)
       _matrix[j][i] = m[i+1][j+1];
     }
   }
+}
+
+void irtkMatrix::GSL2Matrix(float **m)
+{
+  int i, j;
+
+  for (j = 0; j < _cols; j++) {
+    for (i = 0; i < _rows; i++) {
+      _matrix[j][i] = m[i][j];
+    }
+  } 
 }
 
 void irtkMatrix::Matrix2NR(double **m) const
@@ -1142,6 +1197,18 @@ void irtkMatrix::Matrix2NR(double **m) const
   }
 }
 
+void irtkMatrix::Matrix2GSL(double *m) const
+{
+   int i, j, index = 0;
+
+   for (i = 0; i < _rows; i++) {
+     for (j = 0; j < _cols; j++) {
+	m[index] = _matrix[j][i];
+        index++;
+     }
+   }
+}
+
 void irtkMatrix::NR2Matrix(double **m)
 {
   int i, j;
@@ -1153,6 +1220,16 @@ void irtkMatrix::NR2Matrix(double **m)
   }
 }
 
+void irtkMatrix::GSL2Matrix(double **m)
+{
+  int i, j;
+
+  for (j = 0; j < _cols; j++) {
+    for (i = 0; i < _rows; i++) {
+      _matrix[j][i] = m[i][j];
+    }
+  }
+}
 
 irtkVector  irtkMatrix::operator* (const irtkVector& v)
         {

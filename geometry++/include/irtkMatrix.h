@@ -255,9 +255,15 @@ public:
   void Matrix2NR(float **) const;
   void Matrix2NR(double **) const;
 
+  void Matrix2GSL(float *) const;
+  void Matrix2GSL(double *) const;
+
   /// Conversion from numerical recipes matrix
   void NR2Matrix(float **);
   void NR2Matrix(double **);
+
+  void GSL2Matrix(float **);
+  void GSL2Matrix(double **);
 
   //
   // Matrix operators for vectors
