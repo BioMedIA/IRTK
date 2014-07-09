@@ -2,6 +2,8 @@
 
 #include "geometry++/src/irtkMatrix.cc"
 
+const double EPSILON = 0.0001;
+
 TEST(Geometry_irtkMatrix, Det_3x3) {
     irtkMatrix matrix(3, 3);
 
@@ -79,8 +81,8 @@ TEST(Geometry_irtkMatrix, Adjugate_3x3) {
 
     double d; 
     matrix.Adjugate(d);
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < matrix.Rows(); i++) {
+      for (int j = 0; j < matrix.Cols(); j++) {
 	  ASSERT_EQ(expected(i, j), round(matrix(i, j)));
       }
     }
@@ -88,12 +90,66 @@ TEST(Geometry_irtkMatrix, Adjugate_3x3) {
 
 TEST(Geometry_irtkMatrix, SVD) {
    irtkMatrix matrix(4, 2);
-   matrix.Put(0, 0, 2);
-   matrix.Put(0, 1, 4);
+   matrix.Put(0, 0, 1);
+   matrix.Put(0, 1, 2);
+   matrix.Put(1, 0, 3);
+   matrix.Put(1, 1, 4);
+   matrix.Put(2, 0, 5);
+   matrix.Put(2, 1, 6);
+   matrix.Put(3, 0, 7);
+   matrix.Put(3, 1, 8);
+
+   irtkMatrix u;
+   irtkMatrix v;
+   irtkVector w;
+
+   matrix.SVD(u, w, v);
+
+   irtkMatrix s(2, 2);
+   s(0, 0) = w(0);
+   s(0, 1) = 0;
+   s(1, 0) = 0;
+   s(1, 1) = w(1);
+
+   v.Transpose();   
+   
+   irtkMatrix result;
+   result = u * s * v;
+   
+   for (int i = 0; i < matrix.Rows(); i++) {
+      for (int j = 0; j < matrix.Cols(); j++) {
+         ASSERT_EQ(matrix(i, j), round(result(i, j)));
+      }
+   } 
+}
+
+TEST(Geometry_irtkMatrix, LeastSquaresFit) {
+   irtkMatrix matrix(5, 2);
+   matrix.Put(0, 0, 1);
+   matrix.Put(0, 1, 1);
    matrix.Put(1, 0, 1);
-   matrix.Put(1, 1, 3);
-   matrix.Put(2, 0, 0);
-   matrix.Put(2, 1, 0);
-   matrix.Put(3, 0, 0);
-   matrix.Put(3, 1, 0);  
+   matrix.Put(1, 1, 2);
+   matrix.Put(2, 0, 1);
+   matrix.Put(2, 1, 3);
+   matrix.Put(3, 0, 1);
+   matrix.Put(3, 1, 4);
+   matrix.Put(4, 0, 1);
+   matrix.Put(4, 1, 5);
+
+   irtkVector y(5);
+   y(0) = 3;
+   y(1) = 4;
+   y(2) = 5;
+   y(3) = 6;
+   y(4) = 7; 
+
+   irtkVector x(2);
+
+   matrix.LeastSquaresFit(y, x);
+
+   double expected_x[2] = {2, 1};
+
+   for (int i = 0; i < x.Rows(); i++) {
+      ASSERT_NEAR(expected_x[i], x(i), EPSILON);
+   }
 }
