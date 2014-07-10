@@ -16,6 +16,8 @@
 
 #ifdef USE_VXL
 #include <vnl/vnl_matrix.h>
+#else
+#include <gsl/gsl_matrix.h>
 #endif
 
 #include <irtkObject.h>
@@ -251,19 +253,11 @@ public:
 
 #else
 
-  /// Conversion to numerical recipes matrix (memory must be allocated)
-  void Matrix2NR(float **) const;
-  void Matrix2NR(double **) const;
+  /// Conversion to GSL matrix (memory must be allocated)
+  void Matrix2GSL(gsl_matrix *) const;
 
-  void Matrix2GSL(float *) const;
-  void Matrix2GSL(double *) const;
-
-  /// Conversion from numerical recipes matrix
-  void NR2Matrix(float **);
-  void NR2Matrix(double **);
-
-  void GSL2Matrix(float **);
-  void GSL2Matrix(double **);
+  /// Conversion from GSL matrix
+  void GSL2Matrix(gsl_matrix *);
 
   //
   // Matrix operators for vectors
