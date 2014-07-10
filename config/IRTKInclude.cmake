@@ -194,9 +194,11 @@ ENDIF (BUILD_WITH_VTK)
 
 
 LINK_LIBRARIES(segmentation++ registration2++ registration++ transformation++ contrib++
-image++ geometry++ common++ recipes) 
-LINK_LIBRARIES(${CMAKE_DL_LIBS} pthread)
+image++ geometry++ common++ recipes)
 
+IF (UNIX) 
+   LINK_LIBRARIES(${CMAKE_DL_LIBS} pthread)
+ENDIF ()
 
 # Options to build with nifti, znz and possibly fslio
 OPTION(BUILD_WITH_NIFTI "Build using NIFTI support" ON)
