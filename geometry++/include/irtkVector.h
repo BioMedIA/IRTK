@@ -17,6 +17,8 @@
 #ifdef USE_VXL
 // VXL header file was loaded in irtkMatrix.h
 #include <vnl/vnl_diag_matrix.h>
+#else
+#include <gsl/gsl_vector.h>
 #endif
 
 #include <iostream>
@@ -191,13 +193,11 @@ public:
   template <class T> void Vnl2Vector(vnl_diag_matrix<T>*);
 
 #else
-  /// Conversion to numerical recipes vector (memory must be allocated)
-  void Vector2NR(float *) const;
-  void Vector2NR(double *) const;
+  /// Conversion to GSL vector (memory must be allocated)
+  void Vector2GSL(gsl_vector *) const;
 
-  /// Conversion from numerical recipes vector
-  void NR2Vector(float *);
-  void NR2Vector(double *);
+  /// Conversion from GSL vector
+  void GSL2Vector(gsl_vector *);
 #endif
 
 };
