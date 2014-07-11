@@ -14,16 +14,15 @@
 
 #include <irtkTransformation.h>
 
-#define NRANSI
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multiroots.h>
+
 #define MAXITS 100
 #define TOLF 1.0e-4
 #define ALF 1.0e-4
 #define TOLMIN 1.0e-6
 #define TOLX 1.0e-7
 #define STPMX 100.0
-
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multiroots.h>
 
 irtkTransformation *irtkTransformationPointer;
 
