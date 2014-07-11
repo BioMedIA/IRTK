@@ -1,8 +1,5 @@
 #include "gtest/gtest.h"
 
-//#include <nr.h>
-//#include <nrutil.h>
-#include "packages/transformation/src/newt2.cc"
 #include <irtkTransformation.h>
 
 const double EPSILON = 0.001;
