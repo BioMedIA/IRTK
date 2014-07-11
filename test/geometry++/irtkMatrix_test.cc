@@ -223,14 +223,5 @@ TEST(Geometry_irtkMatrix, Eigenvalues_diag_matrix) {
    irtkMatrix E1, E2;
    irtkVector e;
 
-   matrix.Eigenvalues(E1, e, E2);
-    
-   irtkVector exp(3);
-   exp(0) = 2;
-   exp(1) = 0;
-   exp(2) = 1;
-
-   for (int i = 0; i < e.Rows(); i++) {
-      ASSERT_NEAR(exp(i), e(i), EPSILON);
-   }
+   ASSERT_THROW(matrix.Eigenvalues(E1, e, E2), irtkException);
 }

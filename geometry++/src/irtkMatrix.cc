@@ -782,9 +782,8 @@ void irtkMatrix::Eigenvalues(irtkMatrix &E1, irtkVector &e, irtkMatrix &E2)
       gsl_eigen_symmv(GSL_m, eval, evec, w);
       gsl_eigen_symmv_free(w);
     } else { // Eigenvalue Decomposition
-      gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(_rows);
-      gsl_eigen_symmv(GSL_m, eval, evec, w);
-      gsl_eigen_symmv_free(w);
+      irtkException e("Cannot calculate eigenvalues, matrix is not symmetric.");
+      throw e;
     }
     // Convert GSL format back
     E1 = irtkMatrix(_rows, _rows);
