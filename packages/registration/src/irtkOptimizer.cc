@@ -12,6 +12,8 @@
 
 #include <irtkRegistration.h>
 
+#include <gsl/gsl_vector.h>
+
 // Global variable used for NR optimization
 irtkOptimizer *_optimizer;
 
@@ -24,7 +26,7 @@ irtkOptimizer::irtkOptimizer()
   _StepSize = 0.1;
 }
 
-// Used for NR optimization: Evaluates similarity measure
+// Used for GSL optimization: Evaluates similarity measure
 float irtkRegistrationEvaluate(float *x)
 {
   int i;
@@ -35,7 +37,7 @@ float irtkRegistrationEvaluate(float *x)
   return -_optimizer->GetRegistration()->Evaluate();
 }
 
-// Used for NR optimization: Evaluates similarity measure
+// Used for GSL optimization: Evaluates similarity measure
 void irtkRegistrationEvaluateDerivative(float *x, float *dx)
 {
   int i;
@@ -44,6 +46,53 @@ void irtkRegistrationEvaluateDerivative(float *x, float *dx)
     _optimizer->GetTransformation()->Put(i, x[i+1]);
   }
   _optimizer->GetRegistration()->EvaluateGradient(_optimizer->GetStepSize(), dx+1);
+}
+
+
+/* The function f that we want to minimize */
+double evaluate_f (const gsl_vector *v, void *params)
+{
+  size_t i;
+
+  float *x = new float[v->size];
+  for (i = 0; i < v->size; i++) {
+     x[i] = gsl_vector_get(v, i);
+  }
+
+  double result = irtkRegistrationEvaluate(x-1);
+  delete [] x;
+
+  return result;
+}
+
+/* The gradient of f */
+void evaluate_df (const gsl_vector *v, void *params, gsl_vector *df)
+{
+  size_t i;
+
+  float *x = new float[v->size];
+  float *dx = new float[v->size];
+
+  for (i = 0; i < v->size; i++) {
+     x[i] = gsl_vector_get(v, i);
+  }
+
+  irtkRegistrationEvaluateDerivative(x-1, dx-1);
+
+  for (i = 0; i < v->size; i++) {
+     gsl_vector_set(df, i, dx[i]);
+  }
+
+  delete [] x;
+  delete [] dx;
+}
+
+/* Compute both f and df together */
+void evaluate_fdf (const gsl_vector *x, void *params,
+                   double *f, gsl_vector *df)
+{
+  *f = evaluate_f(x, params);
+  evaluate_df(x, params, df);
 }
 
 irtkOptimizer::~irtkOptimizer()
