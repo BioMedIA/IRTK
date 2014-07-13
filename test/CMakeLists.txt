@@ -21,6 +21,7 @@ SET(test_sources
     packages/segmentation/irtkGraphCutSegmentation_4D_test.cc
     packages/segmentation/irtkRician_test.cc
     packages/registration/irtkConjugateGradientDescentOptimizer_test.cc
+    packages/registration/irtkSteepestGradientDescentOptimizer_test.cc
     packages/transformation/newt2_test.cc
     common++/weightedmedian_test.cc
     image++/irtkGaussianNoise_test.cc
