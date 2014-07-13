@@ -2,20 +2,20 @@ cmake_minimum_required(VERSION 2.6)
 if(COMMAND cmake_policy)
   # policy settings ...
   cmake_policy(SET CMP0003 NEW)
+  if(POLICY CMP0022)
+    cmake_policy(SET CMP0022 OLD)
+  endif()
 endif(COMMAND cmake_policy)
 
 PROJECT(IRTK)
 
-INCLUDE(CTest)
 
-OPTION(USE_VXL "Use VXL library instead of Numerical Recipes" OFF)
+OPTION(USE_VXL "Use VXL library" OFF)
 IF (USE_VXL)
   SUBDIRS(vxl)
   #  INCLUDE_DIRECTORIES(${VCL_INCLUDE_DIR} ${VXLCORE_INCLUDE_DIR})
   INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/vxl/core ${IRTK_SOURCE_DIR}/vxl/vcl)
   ADD_DEFINITIONS(-DUSE_VXL)
-ELSE (USE_VXL)
-  #SUBDIRS(recipes/src)
 ENDIF (USE_VXL)
 
 OPTION(BUILD_WITH_TBB "Use TBB library for multithreading support" OFF)
@@ -26,7 +26,7 @@ IF (BUILD_GPU_SUPPORT_WITH_CUDA)
   add_subdirectory(packages/segmentation/src/irtkReconstructionCuda)
 ENDIF(BUILD_GPU_SUPPORT_WITH_CUDA)
 
-SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation wrapping)
+SUBDIRS(common++/src geometry++/src image++/src contrib++/src applications packages documentation wrapping) 
 
 INCLUDE(${IRTK_SOURCE_DIR}/config/IRTKInclude.cmake)
 

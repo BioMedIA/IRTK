@@ -53,3 +53,4 @@ double irtkScalarGaussianDz::Evaluate(double x, double y, double z)
 		     - ((y-_Y_0) * (y-_Y_0))/(2.0 * _VarY) 
 		     - ((z-_Z_0) * (z-_Z_0))/(2.0 * _VarZ));
   return - (1.0 / _VarZ) * _Factor * _Exp * (z - _Z_0);
+}

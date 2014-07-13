@@ -18,8 +18,9 @@ See COPYRIGHT for details
 
 #include <irtkTransformation.h>
 
-#define NRANSI
-#include <nrutil.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multiroots.h>
+
 #define MAXITS 100
 #define TOLF 1.0e-4
 #define ALF 1.0e-4
@@ -29,127 +30,8 @@ See COPYRIGHT for details
 
 irtkTransformation *irtkTransformationPointer;
 
-int nn;
-float *fvec;
-void (*nrfuncv)(int, float v[], float f[]);
 double x_invert, y_invert, z_invert;
 
-void newt2(float x[], int n, int *check, void (*vecfunc)(int, float [], float []))
-{
-  void fdjac(int n, float x[], float fvec[], float **df,
-             void (*vecfunc)(int, float [], float []));
-  float fmin(float x[]);
-  void lnsrch(int n, float xold[], float fold, float g[], float p[], float x[],
-              float *f, float stpmax, int *check, float (*func)(float []));
-  void lubksb(float **a, int n, int *indx, float b[]);
-  void ludcmp(float **a, int n, int *indx, float *d);
-  int i,its,j,*indx;
-  float d,den,f,fold,stpmax,sum,temp,test,**fjac,*g,*p,*xold;
-  double xpoint,ypoint,zpoint;
-  irtkMatrix jacobian(3,3); /* Jacobian of transformation*/
-  indx=ivector(1,n);
-  fjac=matrix(1,n,1,n);
-  g=::vector(1,n);
-  p=::vector(1,n);
-  xold=::vector(1,n);
-
-  fvec=::vector(1,n);
-  nn=n;
-  nrfuncv=vecfunc;
-  f=fmin(x);
-  test=0.0;
-  for (i=1;i<=n;i++)
-    if (fabs(fvec[i]) > test) test=fabs(fvec[i]);
-  if (test<0.01*TOLF) {
-    *check=0;
-    free_vector(fvec,1,n);
-    free_vector(xold,1,n);
-    free_vector(p,1,n);
-    free_vector(g,1,n);
-    free_matrix(fjac,1,n,1,n);
-    free_ivector(indx,1,n);
-    return;
-  }
-  for (sum=0.0,i=1;i<=n;i++) sum += SQR(x[i]);
-  stpmax=STPMX*FMAX(sqrt(sum),(float)n);
-  for (its=1;its<=MAXITS;its++) {
-    xpoint=x[1];
-    ypoint=x[2];
-    zpoint=x[3];
-    irtkTransformationPointer->Jacobian(jacobian,xpoint,ypoint,zpoint);
-    if (irtkTransformationPointer->Jacobian(xpoint,ypoint,zpoint) < 0.0) {
-      cerr << "input mapping non-invertible!\n";
-    }
-    for (i=1;i<=n;i++) {
-      for (j=1;j<=n;j++) fjac[j][i]=jacobian(j-1,i-1);
-    }
-
-    for (i=1;i<=n;i++) {
-      for (sum=0.0,j=1;j<=n;j++) sum += fjac[j][i]*fvec[j];
-      g[i]=sum;
-    }
-    for (i=1;i<=n;i++) xold[i]=x[i];
-    fold=f;
-    for (i=1;i<=n;i++) p[i] = -fvec[i];
-    ludcmp(fjac,n,indx,&d);
-
-    lubksb(fjac,n,indx,p);
-
-    lnsrch(n,xold,fold,g,p,x,&f,stpmax,check,fmin);
-    test=0.0;
-    for (i=1;i<=n;i++)
-      if (fabs(fvec[i]) > test) test=fabs(fvec[i]);
-    if (test < TOLF) {
-      *check=0;
-      free_vector(fvec,1,n);
-      free_vector(xold,1,n);
-      free_vector(p,1,n);
-      free_vector(g,1,n);
-      free_matrix(fjac,1,n,1,n);
-      free_ivector(indx,1,n);
-      return;
-    }
-
-    if (*check) {
-      test=0.0;
-      den=FMAX(f,0.5*n);
-      for (i=1;i<=n;i++) {
-        temp=fabs(g[i])*FMAX(fabs(x[i]),1.0)/den;
-        if (temp > test) test=temp;
-      }
-      *check=(test < TOLMIN ? 1 : 0);
-      free_vector(fvec,1,n);
-      free_vector(xold,1,n);
-      free_vector(p,1,n);
-      free_vector(g,1,n);
-      free_matrix(fjac,1,n,1,n);
-      free_ivector(indx,1,n);
-      return;
-    }
-    test=0.0;
-    for (i=1;i<=n;i++) {
-      temp=(fabs(x[i]-xold[i]))/FMAX(fabs(x[i]),1.0);
-      if (temp > test) test=temp;
-    }
-    if (test < TOLX) {
-      free_vector(fvec,1,n);
-      free_vector(xold,1,n);
-      free_vector(p,1,n);
-      free_vector(g,1,n);
-      free_matrix(fjac,1,n,1,n);
-      free_ivector(indx,1,n);
-      return;
-    }
-  }
-  *check=2;
-  free_vector(fvec,1,n);
-  free_vector(xold,1,n);
-  free_vector(p,1,n);
-  free_vector(g,1,n);
-  free_matrix(fjac,1,n,1,n);
-  free_ivector(indx,1,n);
-  return;
-}
 
 void irtkTransformationEvaluate(int, float point[], float fval[])
 {
@@ -166,3 +48,84 @@ void irtkTransformationEvaluate(int, float point[], float fval[])
   fval[3] = zpoint-z_invert;
 }
 
+int evaluate_f (const gsl_vector * x, void * p, gsl_vector * f) {
+  float point[3], func[3];
+  int i;
+  
+  for (i = 0; i < 3; i++) {
+     point[i] = gsl_vector_get(x, i);
+  }
+
+  irtkTransformationEvaluate(3, point-1, func-1);
+
+  for (i = 0; i < 3; i++) {
+     gsl_vector_set(f, i, func[i]);
+  }
+
+  return GSL_SUCCESS;
+}
+
+int evaluate_df (const gsl_vector * x, void * p, gsl_matrix * J) {
+  irtkMatrix jacobian(3, 3);
+
+  const double xpoint = gsl_vector_get(x, 0);
+  const double ypoint = gsl_vector_get(x, 1);
+  const double zpoint = gsl_vector_get(x, 2);
+
+  irtkTransformationPointer->Jacobian(jacobian,xpoint,ypoint,zpoint);
+
+  int i, j;
+  for (i = 0; i < 3; i++) {
+     for (j = 0; j < 3; j++) {
+        gsl_matrix_set (J, i, j, jacobian(i, j));
+     }
+  }
+  return GSL_SUCCESS;
+}
+
+int evaluate_fdf (const gsl_vector * x, void * params,
+                  gsl_vector *f, gsl_matrix * J) {
+  evaluate_f(x, params, f);
+  evaluate_df(x, params, J);
+  return GSL_SUCCESS;
+}
+
+void newt2(float x[], int n, int *check, void (*vecfunc)(int, float [], float [])) {
+  const gsl_multiroot_fdfsolver_type * T;
+  gsl_multiroot_fdfsolver * s;
+
+  int status, i;
+  size_t iter = 0;
+
+  gsl_multiroot_function_fdf f = {&evaluate_f,
+                                  &evaluate_df,
+                                  &evaluate_fdf,
+                                  n, NULL};
+
+  gsl_vector *xvec = gsl_vector_alloc(n);
+  for (i = 0; i < n; i++) {
+     gsl_vector_set(xvec, i, x[i+1]);
+  }
+  
+  T = gsl_multiroot_fdfsolver_newton;
+  s = gsl_multiroot_fdfsolver_alloc(T, n);
+  gsl_multiroot_fdfsolver_set(s, &f, xvec);
+
+  do {
+     iter++;
+
+     status = gsl_multiroot_fdfsolver_iterate(s);
+
+     if (status)
+        break;
+
+     status = gsl_multiroot_test_residual(s->f, TOLF);
+  } while (status == GSL_CONTINUE && iter < MAXITS);
+
+  for (i = 0; i < n; i++) {
+     x[i+1] = gsl_vector_get(s->x, i);
+  } 
+
+  gsl_multiroot_fdfsolver_free(s);
+  gsl_vector_free(xvec);
+}

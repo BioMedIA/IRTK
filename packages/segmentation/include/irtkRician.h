@@ -20,7 +20,7 @@ See LICENSE for details
 
 #include <irtkImage.h>
 
-#include <nr.h>
+#include <boost/math/special_functions/bessel.hpp>
 
 /**
 

@@ -26,8 +26,6 @@ See LICENSE for details
 
 #include <highgui.h>
 
-#include <nr.h>
-
 /*
 reading in input sequence, find mid slice from sequence, using landmark to define interest region
 output to jpg files write interest region to positive output info.dat on the end of the file

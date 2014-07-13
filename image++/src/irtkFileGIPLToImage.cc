@@ -170,3 +170,4 @@ void irtkFileGIPLToImage::ReadHeader()
 
   // Data starts here
   this->_start = GIPL_HEADERSIZE;
+}

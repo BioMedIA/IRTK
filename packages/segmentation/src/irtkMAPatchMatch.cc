@@ -944,3 +944,4 @@ void irtkMAPatchMatch::upSampleNNF(irtkMAPatchMatch *reference)
 			}
 		}
 	}
+}

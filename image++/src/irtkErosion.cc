@@ -86,4 +86,4 @@ template <class VoxelType> void irtkErosion<VoxelType>::Run()
 
 template class irtkErosion<irtkBytePixel>;
 template class irtkErosion<irtkGreyPixel>;
-template class irtkErosion<irtkRealPixel>
+template class irtkErosion<irtkRealPixel>;

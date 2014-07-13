@@ -1,6 +1,20 @@
+/*=========================================================================
+
+Library   : Image Registration Toolkit (IRTK)
+Copyright : Imperial College, Department of Computing
+Visual Information Processing (VIP), 2008 onwards
+Date      : $Date: 2013-01-14$
+Changes   : $Author$
+
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
+=========================================================================*/
 
 #include <irtkImage.h>
-#include <nr.h>
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
 
 #include <irtkModeFilter.h>
 
@@ -59,20 +73,20 @@ template <class VoxelType> void irtkModeFilter<VoxelType>::Run()
   int *tiedLabels;
 
   int randChoice;
-  long ran2Seed;
-  long ran2initialSeed;
 
   // Do the initial set up
   this->Initialize();
 
 
   // Get ready for random stuff.
-  time_t tv;
-  tv = time(NULL);
-
-  ran2Seed = tv;
-  ran2initialSeed = -1 * ran2Seed;
-  (void) ran2(&ran2initialSeed);
+  long inSeed = time(NULL);
+  boost::mt19937 rng;
+  rng.seed(inSeed);
+  
+  boost::uniform_int<> ud(0, 1);
+  boost::variate_generator<boost::mt19937&, boost::uniform_int<> > engine(rng, ud);
+  
+  (void) engine();
 
 
   this->_input->GetMinMaxAsDouble(&inputMin, &inputMax);
@@ -132,7 +146,7 @@ template <class VoxelType> void irtkModeFilter<VoxelType>::Run()
           }
 
           if (ties > 1){
-            randChoice = (int) floor( ran2(&ran2Seed) * ties );
+            randChoice = (int) floor( engine() * ties );
             value = tiedLabels[ randChoice ];
           } else {
             value = mode;

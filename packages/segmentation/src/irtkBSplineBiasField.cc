@@ -16,9 +16,6 @@ See LICENSE for details
 
 #include <irtkBiasField.h>
 
-#include <nr.h>
-#include <nrutil.h>
-
 #define LUTSIZE (double)(BIASLOOKUPTABLESIZE-1)
 
 double irtkBSplineBiasField::LookupTable   [BIASLOOKUPTABLESIZE][4];

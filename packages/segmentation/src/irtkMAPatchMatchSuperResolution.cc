@@ -835,3 +835,4 @@ void irtkMAPatchMatchSuperResolution::setDecimatedImage(irtkGreyImage *input)
 	if(debug == true){
 		decimated->Write("decimatedimage.nii.gz");
 	}
+}

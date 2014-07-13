@@ -16,13 +16,36 @@ See LICENSE for details
 
 #include <irtkCommon.h>
 
-#include <nr.h>
+#include <algorithm>
 
 double median(float q, float p0, float p1){
     float m;
     m = p0>p1?p0:p1;
     m = q > m? m:q;
     return m;
+}
+
+void sort2(int index, float *array1, float *array2) {
+    int indices[index];
+    float array1_store[index];
+    float array2_store[index];
+
+    for (int i = 0; i < index; i++) {
+       // create array with indices to be sorted
+       indices[i] = i;
+       // keep a back up of the original arrays
+       array1_store[i] = array1[i];
+       array2_store[i] = array2[i];
+    }
+
+    // sort the first array and keep the index order
+    std::sort(indices, indices + index, sort_indices(array1));
+
+    // update the arrays
+    for (int i = 0; i < index; i++) {
+       array1[i+1] = array1_store[indices[i]];
+       array2[i+1] = array2_store[indices[i]];
+    }
 }
 
 /// weight must be normalized to sum = 1 before entering here.
@@ -61,3 +84,4 @@ double weightedmedian(int index, double lambda, double f, float *neighbors, floa
         }
         return neighbors[(index+pos)/2];
     }
+}

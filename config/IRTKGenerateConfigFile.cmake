@@ -3,7 +3,6 @@
 # ITRK.
 
 SET(IRTK_INCLUDE_DIRS 
-	${PROJECT_SOURCE_DIR}/recipes/include
 	${PROJECT_SOURCE_DIR}/common++/include
 	${PROJECT_SOURCE_DIR}/geometry++/include
 	${PROJECT_SOURCE_DIR}/image++/include

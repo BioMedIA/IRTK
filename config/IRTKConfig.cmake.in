@@ -15,7 +15,7 @@ SET(IRTK_INCLUDE_DIRS "@IRTK_INCLUDE_DIRS@")
 SET(IRTK_LIBRARIES_DIR "@IRTK_LIBRARIES_DIR@") 
 
 SET(IRTK_LIBRARIES segmentation++ registration2++ registration++ transformation++ contrib++
-image++ geometry++ common++ recipes) 
+image++ geometry++ common++) 
 
 IF (@BUILD_CONDOR_EXE_FLAG@)
    SET (CMAKE_X_LIBS "-lGL -L/usr/X11R6/lib -lm -lXext -lXt -lSM -lX11  -lICE -ldl -lnsl")

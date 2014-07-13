@@ -175,38 +175,21 @@ void irtkVector::Write(char *filename)
 
 #else
 
-void irtkVector::Vector2NR(float *v) const
+void irtkVector::Vector2GSL(gsl_vector *v) const
 {
   int i;
 
   for (i = 0; i < _rows; i++) {
-    v[i+1] = _vector[i];
+     gsl_vector_set(v, i, _vector[i]);
   }
 }
 
-void irtkVector::NR2Vector(float *v)
+void irtkVector::GSL2Vector(gsl_vector *v)
 {
   int i;
 
   for (i = 0; i < _rows; i++) {
-    _vector[i] = v[i+1];
-  }
-}
-void irtkVector::Vector2NR(double *v) const
-{
-  int i;
-
-  for (i = 0; i < _rows; i++) {
-    v[i+1] = _vector[i];
-  }
-}
-
-void irtkVector::NR2Vector(double *v)
-{
-  int i;
-
-  for (i = 0; i < _rows; i++) {
-    _vector[i] = v[i+1];
+     _vector[i] = gsl_vector_get(v, i);
   }
 }
 

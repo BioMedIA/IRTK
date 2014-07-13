@@ -137,3 +137,4 @@ int main(int argc, char **argv){
 	cout << "Optimization done"<<endl;
 		
 	patchmatch->outputmap(outImageName);
+}

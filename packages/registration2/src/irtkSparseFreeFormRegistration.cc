@@ -16,9 +16,6 @@ See LICENSE for details
 
 #include <irtkRegistration2.h>
 
-#include <nr.h>
-#include <nrutil.h>
-
 #ifdef WIN32
 #include <time.h>
 #else

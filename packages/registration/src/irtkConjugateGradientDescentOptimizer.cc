@@ -16,17 +16,24 @@ See COPYRIGHT for details
 
 #include <irtkRegistration.h>
 
-#include <nr.h>
+#include <gsl/gsl_multimin.h>
 
-// Used for NR optimization: Evaluates similarity measure
-extern float irtkRegistrationEvaluate(float *x);
+#define MAXITS 200
 
-// Used for NR optimization: Evaluates similarity measure
-extern void  irtkRegistrationEvaluateDerivative(float *x, float *dx);
+/* The function f that we want to minimize */
+extern double evaluate_f (const gsl_vector *v, void *params);
+
+/* The gradient of f */
+extern void evaluate_df (const gsl_vector *v, void *params, gsl_vector *df);
+
+/* Compute both f and df together */
+extern void evaluate_fdf (const gsl_vector *x, void *params,
+                   double *f, gsl_vector *df);
 
 double irtkConjugateGradientDescentOptimizer::Run()
 {
-  int i, n;
+  int i, n, status;
+  size_t iter = 0;
   float new_similarity, old_similarity;
 
   // Number of variables we have to optimize
@@ -35,21 +42,47 @@ double irtkConjugateGradientDescentOptimizer::Run()
   // Current similarity
   old_similarity = _Registration->Evaluate();
 
-  // Convert some stuff to NR
-  float *x = new float[n];
+  // Convert some stuff to GSL
+  gsl_vector *x = gsl_vector_alloc(n);
   for (i = 0; i < n; i++) {
-    x[i] = _Transformation->Get(i);
+    gsl_vector_set(x, i, _Transformation->Get(i));
   }
-  // Call NR Fletcher-Reeves-Polak-Ribiere routine for conjugate gradient
-  frprmn(x-1, n, _Epsilon, &i, &new_similarity, irtkRegistrationEvaluate, irtkRegistrationEvaluateDerivative);
+ 
+  const gsl_multimin_fdfminimizer_type *T;
+  gsl_multimin_fdfminimizer *s;
 
-  // Convert some stuff back from NR
+  gsl_multimin_function_fdf func;
+  func.n = n;
+  func.f = &evaluate_f;
+  func.df = &evaluate_df;
+  func.fdf = &evaluate_fdf;
+
+  T = gsl_multimin_fdfminimizer_conjugate_pr;
+  s = gsl_multimin_fdfminimizer_alloc(T, n);
+
+  gsl_multimin_fdfminimizer_set(s, &func, x, _StepSize, _Epsilon);
+
+  // Call GSL Polak-Ribiere routine for conjugate gradient
+  do {
+    iter++;
+    status = gsl_multimin_fdfminimizer_iterate(s);
+
+    if (status)
+      break;
+
+    status = gsl_multimin_test_gradient (s->gradient, _Epsilon);
+  } while (status == GSL_CONTINUE && iter < MAXITS); 
+  
+  new_similarity = s->f;
+
+  // Convert some stuff back from GSL
   for (i = 0; i < n; i++) {
-    _Transformation->Put(i, x[i]);
+    _Transformation->Put(i, gsl_vector_get(s->x, i));
   }
 
-  // Delete NR memory
-  delete []x;
+  // Delete GSL memory
+  gsl_multimin_fdfminimizer_free(s);
+  gsl_vector_free(x);
 
   // Return
   if (-new_similarity > old_similarity) {

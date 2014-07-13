@@ -133,3 +133,4 @@ int main(int argc, char **argv){
 	if(output_graph_name != NULL){
 		patchmatch->outputgraph(output_graph_name);
 	}
+}

@@ -51,10 +51,8 @@ public:
   void Read (char *);
   void Write(char *);
 
-  void Vector2NR(float *) const;
-  void Vector2NR(double *) const;
-  void NR2Vector(float *);
-  void NR2Vector(double *);
+  void Vector2GSL(gsl_vector *) const;
+  void GSL2Vector(gsl_vector *);
 
 %extend
 {

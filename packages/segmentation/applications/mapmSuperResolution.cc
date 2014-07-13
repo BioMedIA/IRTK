@@ -41,7 +41,6 @@ int main(int argc, char **argv){
 	irtkGreyImage ** atlases = NULL;
 	irtkGreyImage * ld_image = NULL;
 	char *output_name = NULL;
-	double xsize,ysize,zsize;
 	int em_iterations = 1;
 	int nnf_iterations = 40;
 	double searchradius = 0.1;
@@ -164,4 +163,4 @@ int main(int argc, char **argv){
 	if(output_name != NULL){
 		patchmatch->outputmap(output_name);
 	}
-
+}

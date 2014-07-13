@@ -13,6 +13,14 @@ IF (BUILD_CONDOR_EXE)
    SET (CMAKE_SHLIB_LINK_FLAGS "-static")
 ENDIF (BUILD_CONDOR_EXE)
 
+# Finding GNU scientific library GSL
+FIND_PACKAGE(GSL REQUIRED)
+IF (GSL_FOUND)
+  INCLUDE_DIRECTORIES(${GSL_INCLUDE_DIR})
+  LINK_DIRECTORIES(${GSL_LINK_DIRECTORIES})
+  LINK_LIBRARIES(${GSL_LIBRARIES})
+ENDIF (GSL_FOUND)
+
 # Option to build with OpenCV or not.
 OPTION(BUILD_WITH_OPENCV "Build using OPENCV" OFF)
 
@@ -133,7 +141,6 @@ ENDIF (WRAP_CYTHON)
 
 ADD_DEFINITIONS(-DIMPERIAL -DANSI -DHAS_CONTRIB -DNO_BOUNDS -DENABLE_UNIX_COMPRESS)
 
-INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/recipes/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/common++/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/geometry++/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/image++/include)
@@ -186,7 +193,11 @@ ENDIF (BUILD_WITH_VTK)
 
 
 LINK_LIBRARIES(segmentation++ registration2++ registration++ transformation++ contrib++
-image++ geometry++ common++ recipes) 
+image++ geometry++ common++)
+
+IF (UNIX) 
+   LINK_LIBRARIES(${CMAKE_DL_LIBS} pthread)
+ENDIF ()
 
 # Options to build with nifti, znz and possibly fslio
 OPTION(BUILD_WITH_NIFTI "Build using NIFTI support" ON)

@@ -18,9 +18,6 @@ See LICENSE for details
 
 #include <irtkNoise.h>
 
-#include <nr.h>
-#include <nrutil.h>
-
 template <class VoxelType> irtkGaussianNoiseWithPadding<VoxelType>::irtkGaussianNoiseWithPadding() : irtkGaussianNoise<VoxelType>()
 {
   _PaddingValue = std::numeric_limits<VoxelType>::min();

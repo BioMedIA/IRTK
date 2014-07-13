@@ -26,6 +26,12 @@ See LICENSE for details
 
 */
 
+#include <irtkObject.h>
+#include <irtkPoint.h>
+
+#include <iostream>
+
+
 class irtkPointSet : public irtkObject
 {
 
@@ -136,10 +142,10 @@ public:
   //
 
   /// Interface to output stream
-  friend ostream& operator<< (ostream&, const irtkPointSet&);
+  friend std::ostream& operator<< (std::ostream&, const irtkPointSet&);
 
   /// Interface to input stream
-  friend istream& operator>> (istream&, irtkPointSet&);
+  friend std::istream& operator>> (std::istream&, irtkPointSet&);
 
   /// Read pointset from file
   void Read (char *);

@@ -20,8 +20,6 @@ See LICENSE for details
 
 #include <irtkGradientImage.h>
 
-#include <nr.h>
-
 template <class VoxelType> irtkNonLocalMedianFilter<VoxelType>::irtkNonLocalMedianFilter(
     int Sigma, irtkGenericImage<irtkGreyPixel>* input2, irtkGenericImage<irtkRealPixel>* input3
     , irtkGenericImage<VoxelType>* input4)

@@ -1,7 +1,7 @@
 PROJECT(RVIEW_GLUT)
 
 LINK_LIBRARIES(rview++ registration++ transformation++ image++ geometry++
-common++ recipes) 
+common++) 
 
 INCLUDE (${CMAKE_ROOT}/Modules/FindGLUT.cmake)
 

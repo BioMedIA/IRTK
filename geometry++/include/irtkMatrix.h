@@ -20,7 +20,14 @@ See LICENSE for details
 
 #ifdef USE_VXL
 #include <vnl/vnl_matrix.h>
+#else
+#include <gsl/gsl_matrix.h>
 #endif
+
+#include <irtkObject.h>
+
+#include <iostream>
+#include <cmath>
 
 /**
 
@@ -223,10 +230,10 @@ public:
   //
 
   /// Interface to output stream
-  friend ostream& operator<< (ostream&, const irtkMatrix&);
+  friend std::ostream& operator<< (std::ostream&, const irtkMatrix&);
 
   /// Interface to input stream
-  friend istream& operator>> (istream&, irtkMatrix&);
+  friend std::istream& operator>> (std::istream&, irtkMatrix&);
 
   /// Print matrix
   void Print();
@@ -250,13 +257,11 @@ public:
 
 #else
 
-  /// Conversion to numerical recipes matrix (memory must be allocated)
-  void Matrix2NR(float **) const;
-  void Matrix2NR(double **) const;
+  /// Conversion to GSL matrix (memory must be allocated)
+  void Matrix2GSL(gsl_matrix *) const;
 
-  /// Conversion from numerical recipes matrix
-  void NR2Matrix(float **);
-  void NR2Matrix(double **);
+  /// Conversion from GSL matrix
+  void GSL2Matrix(gsl_matrix *);
 
   //
   // Matrix operators for vectors
@@ -484,7 +489,7 @@ inline double irtkMatrix::Trace(void) const
         }
         return trace;
     }else{
-        cerr << "irtkMatrix::Trace() matrix number of col != row" << endl;
+        std::cerr << "irtkMatrix::Trace() matrix number of col != row" << std::endl;
         return 0;
     }
 }
@@ -500,7 +505,7 @@ inline double irtkMatrix::Norm(void) const
       norm += _matrix[j][i]*_matrix[j][i];
     }
   }
-  return sqrt(norm);
+  return std::sqrt(norm);
 }
 
 inline double irtkMatrix::InfinityNorm(void) const

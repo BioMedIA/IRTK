@@ -18,8 +18,6 @@ See LICENSE for details
 
 #ifdef USE_VXL
 // need to include vxl here
-#else
-#include <nr.h>
 #endif
 
 void usage()

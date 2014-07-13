@@ -75,10 +75,8 @@ public:
   void Write(char *);
   void Import (char *, int, int);
 
-  void Matrix2NR(float **) const;
-  void Matrix2NR(double **) const;
-  void NR2Matrix(float **);
-  void NR2Matrix(double **);
+  void Matrix2GSL(gsl_matrix *) const;
+  void GSL2Matrix(gsl_matrix *);
   //
   // Matrix operators for vectors
   //

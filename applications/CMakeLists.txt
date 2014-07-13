@@ -1,9 +1,17 @@
 LINK_LIBRARIES(contrib++ image++ geometry++ common++) 
 IF (USE_VXL)
   LINK_LIBRARIES(irtkvnl irtkvcl irtkvnl_algo irtknetlib)
-ELSE (USE_VXL)
-  LINK_LIBRARIES(recipes)
 ENDIF (USE_VXL)
+
+# add boost dependencies
+find_package( Boost 1.46 )
+
+if ( NOT Boost_FOUND )
+message( STATUS "Boost could not be found." )
+   set( BOOST_ROOT ${BOOST_ROOT} CACHE PATH "Please enter path to Boost include folder." FORCE )
+endif ()
+
+message( STATUS "Boost_INCLUDE_DIRS : '" ${Boost_INCLUDE_DIRS} "'" )
 
 # Convenience macros
 MACRO(ADD_IRTK_EXECUTABLE name)
@@ -88,3 +96,4 @@ ELSE ()
   ADD_IRTK_EXECUTABLE(AnisoDiff)
     
 ENDIF ()
+

@@ -14,13 +14,8 @@ See LICENSE for details
 
 =========================================================================*/
 
-#include <irtkImage.h>
+#include "src/makevolume_core.cc"
 
-#ifdef USE_VXL
-// need to include vxl here
-#else
-#include <nr.h>
-#endif
 
 void usage()
 {
@@ -42,7 +37,8 @@ int main(int argc, char **argv)
 
   cout << "Making volume from " << z << " slices" << endl;
 
-  long unsigned* index = new unsigned long[z];
+  //long unsigned* index = new unsigned long[z];
+  long unsigned* index;
   float* distance = new float[z];
   irtkGreyImage* input = new irtkGreyImage[z];
 
@@ -102,8 +98,9 @@ int main(int argc, char **argv)
   cerr << "Not implemented in the VXL library." << endl;
 #else
   if (fabs(distance[0] - distance[1]) > 0) {
-    indexx(z, distance-1, index-1);
+    index = indexing(z, distance);
   } else {
+    index = new unsigned long[z];
     for (i = 0; i < z; i++) {
       index[i] = i+1;
     }

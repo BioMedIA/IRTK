@@ -21,7 +21,14 @@ See LICENSE for details
 #ifdef USE_VXL
 // VXL header file was loaded in irtkMatrix.h
 #include <vnl/vnl_diag_matrix.h>
+#else
+#include <gsl/gsl_vector.h>
 #endif
+
+#include <iostream>
+#include <cmath>
+
+#include <irtkObject.h>
 
 /**
 
@@ -167,10 +174,10 @@ public:
   //
 
   /// Interface to output stream
-  friend ostream& operator<< (ostream&, const irtkVector&);
+  friend std::ostream& operator<< (std::ostream&, const irtkVector&);
 
   /// Interface to input stream
-  friend istream& operator>> (istream&, irtkVector&);
+  friend std::istream& operator>> (std::istream&, irtkVector&);
 
   /// Print vector
   void Print();
@@ -190,13 +197,11 @@ public:
   template <class T> void Vnl2Vector(vnl_diag_matrix<T>*);
 
 #else
-  /// Conversion to numerical recipes vector (memory must be allocated)
-  void Vector2NR(float *) const;
-  void Vector2NR(double *) const;
+  /// Conversion to GSL vector (memory must be allocated)
+  void Vector2GSL(gsl_vector *) const;
 
-  /// Conversion from numerical recipes vector
-  void NR2Vector(float *);
-  void NR2Vector(double *);
+  /// Conversion from GSL vector
+  void GSL2Vector(gsl_vector *);
 #endif
 
 };
@@ -345,7 +350,7 @@ inline irtkVector& irtkVector::operator-=(const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator-=: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator-=: Size mismatch" << std::endl;
     exit(1);
   }
   for (i = 0; i < _rows; i++) {
@@ -360,7 +365,7 @@ inline irtkVector& irtkVector::operator+=(const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator+=: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator+=: Size mismatch" << std::endl;
     exit(1);
   }
   for (i = 0; i < _rows; i++) {
@@ -375,7 +380,7 @@ inline irtkVector& irtkVector::operator*=(const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator*=: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator*=: Size mismatch" << std::endl;
     exit(1);
   }
   for (i = 0; i < _rows; i++) {
@@ -390,7 +395,7 @@ inline irtkVector& irtkVector::operator/=(const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator/=: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator/=: Size mismatch" << std::endl;
     exit(1);
   }
   for (i = 0; i < _rows; i++) {
@@ -405,7 +410,7 @@ inline irtkVector irtkVector::operator- (const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator-: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator-: Size mismatch" << std::endl;
     exit(1);
   }
   irtkVector m(_rows);
@@ -420,7 +425,7 @@ inline irtkVector irtkVector::operator+ (const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator+: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator+: Size mismatch" << std::endl;
     exit(1);
   }
   irtkVector m(_rows);
@@ -435,7 +440,7 @@ inline irtkVector irtkVector::operator* (const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator*: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator*: Size mismatch" << std::endl;
     exit(1);
   }
   irtkVector m(_rows);
@@ -450,7 +455,7 @@ inline irtkVector irtkVector::operator/ (const irtkVector& v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::operator/: Size mismatch" << endl;
+    std::cerr << "irtkVector::operator/: Size mismatch" << std::endl;
     exit(1);
   }
   irtkVector m(_rows);
@@ -511,7 +516,7 @@ inline double irtkVector::ScalarProduct(const irtkVector &v)
   double scalar_product=0;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::ScalarProduct: Size mismatch" << endl;
+    std::cerr << "irtkVector::ScalarProduct: Size mismatch" << std::endl;
     exit(1);
   }
 
@@ -526,7 +531,7 @@ inline irtkVector irtkVector::CrossProduct(const irtkVector &v)
   int i;
 
   if (_rows != v._rows) {
-    cerr << "irtkVector::CrossProduct: Size mismatch" << endl;
+    std::cerr << "irtkVector::CrossProduct: Size mismatch" << std::endl;
     exit(1);
   }
 
@@ -550,7 +555,7 @@ inline double irtkVector::Norm(void) const
   for (int i = 0; i < _rows; i++) {
     norm += _vector[i]*_vector[i];
   }
-  return sqrt(norm);
+  return std::sqrt(norm);
 }
 
 inline void irtkVector::Normalize(void)
@@ -587,6 +592,5 @@ inline void irtkVector::Vnl2Vector(vnl_diag_matrix<T>* m)
 #endif
 
 #endif
-
 
 
