@@ -1,7 +1,7 @@
 PROJECT(RVIEW_FLTK)
 
 LINK_LIBRARIES(rview++ registration++ transformation++ image++ geometry++
-common++ recipes)
+common++)
 
 SET(RVIEW_FLTK_SRCS
 Fl_Simple_Group.cc

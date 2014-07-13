@@ -105,7 +105,7 @@ SET(IRTK_LIBRARIES contrib++ image++ geometry++ common++)
 IF (USE_VXL)
   SET(IRTK_LIBRARIES irtkvnl irtkvcl irtkvnl_algo irtknetlib ${IRTK_LIBRARIES})
 ELSE (USE_VXL)
-  SET(IRTK_LIBRARIES recipes ${IRTK_LIBRARIES})
+  SET(IRTK_LIBRARIES ${IRTK_LIBRARIES})
 ENDIF (USE_VXL)
 
 endif(BUILD_OUT_OF_IRTK_TREE)

@@ -2,7 +2,7 @@ PROJECT(IRTK_TEST)
 
 INCLUDE(CTest)
 
-LINK_LIBRARIES(rview++ registration++ transformation++ image++ geometry++ common++ recipes)
+LINK_LIBRARIES(rview++ registration++ transformation++ image++ geometry++ common++)
 
 #add google test
 SET (GTEST_SOURCEDIR ../gtest)

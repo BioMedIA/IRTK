@@ -141,7 +141,6 @@ ENDIF (WRAP_CYTHON)
 
 ADD_DEFINITIONS(-DIMPERIAL -DANSI -DHAS_CONTRIB -DNO_BOUNDS -DENABLE_UNIX_COMPRESS)
 
-INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/recipes/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/common++/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/geometry++/include)
 INCLUDE_DIRECTORIES(${IRTK_SOURCE_DIR}/image++/include)
@@ -194,7 +193,7 @@ ENDIF (BUILD_WITH_VTK)
 
 
 LINK_LIBRARIES(segmentation++ registration2++ registration++ transformation++ contrib++
-image++ geometry++ common++ recipes)
+image++ geometry++ common++)
 
 IF (UNIX) 
    LINK_LIBRARIES(${CMAKE_DL_LIBS} pthread)

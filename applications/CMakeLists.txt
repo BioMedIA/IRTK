@@ -1,8 +1,6 @@
 LINK_LIBRARIES(contrib++ image++ geometry++ common++) 
 IF (USE_VXL)
   LINK_LIBRARIES(irtkvnl irtkvcl irtkvnl_algo irtknetlib)
-ELSE (USE_VXL)
-  LINK_LIBRARIES(recipes)
 ENDIF (USE_VXL)
 
 # add boost dependencies
