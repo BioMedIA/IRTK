@@ -14,7 +14,7 @@
 #include <irtkImage.h>
 #include <irtkNoise.h>
 
-// recipe includes
+// boost includes
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
