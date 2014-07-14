@@ -117,10 +117,15 @@ int main(int argc, char **argv)
 	if (textFileReader.is_open()) {
 		for (int n = 0; n < N_source; n++) {
 			if (!textFileReader.eof()) {
-				getline(textFileReader,STRING);
+				/*getline(textFileReader,STRING);
 				char * line = new char[STRING.size()];
-				for (int j=0; j<STRING.size(); j++) line[j] = STRING[j];
-				t_real[n] = atof(line);
+				for (int j=0; j<STRING.size(); j++) line[j] = STRING[j];*/
+				/*t_real[n] = atof(line);*/
+				textFileReader >> t_real[n];
+				cout << t_real[n] << endl;
+			}else{
+				cerr<<"time file not compelte "<<timeFile_name<<endl;
+				exit(1);
 			}
 		}
 	} else {
