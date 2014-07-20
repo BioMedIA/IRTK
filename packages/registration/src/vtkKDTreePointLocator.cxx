@@ -609,7 +609,7 @@ inline static double *getLinearPointListIfPossible(vtkDataSet *ds)
     else if (ds->IsA("vtkPointSet"))
     {
         vtkDataArray *arr = ((vtkPointSet*)ds)->GetPoints()->GetData();
-#if ((VTK_MAJOR_VERSION == 5) || ((VTK_MAJOR_VERSION == 4) && (VTK_MINOR_VERSION > 3)))
+#if ((VTK_MAJOR_VERSION == 5) || (VTK_MAJOR_VERSION == 6) || ((VTK_MAJOR_VERSION == 4) && (VTK_MINOR_VERSION > 3)))
        if (arr->IsA("vtkDoubleArray"))
         {
             return ((vtkDoubleArray*)arr)->GetPointer(0);

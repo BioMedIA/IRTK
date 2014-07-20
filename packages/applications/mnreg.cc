@@ -67,7 +67,9 @@ int main(int argc, char **argv)
   model_reader->Update();
   vtkPolyData *model = vtkPolyData::New();
   model = model_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
   model->Update();
+#endif
 
   // Read image
   cout << "Reading image ... "; cout.flush();

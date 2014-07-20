@@ -292,7 +292,12 @@ int main(int argc, char **argv)
 	dummy.ImageToVTK(vtkimage);
 
 	// Set as input to MC
-	mcubes->SetInput(vtkimage);
+#if VTK_MAJOR_VERSION >= 6
+  	mcubes->SetInputData(vtkimage);
+#else //VTK_MAJOR_VERSION >= 6
+  	mcubes->SetInput(vtkimage);
+#endif //VTK_MAJOR_VERSION >= 6
+
 
 	// Specify output
 	vtkPolyData *output = NULL;
@@ -319,8 +324,9 @@ int main(int argc, char **argv)
 	} else {
 		output = mcubes->GetOutput();
 	}
-
+#if VTK_MAJOR_VERSION < 6
 	output->Update();
+#endif
 
 	// Now transform between vtk and image coordinate systems
 	for (i = 0; i < output->GetNumberOfPoints(); i++) {
@@ -342,7 +348,12 @@ int main(int argc, char **argv)
 	// Recalculate normals, if applicable
 	if (output->GetPointData()->GetNormals() != NULL) {
 		vtkPolyDataNormals *filter = vtkPolyDataNormals::New();
-		filter->SetInput(output);
+#if VTK_MAJOR_VERSION >= 6
+    		filter->SetInputData(output);
+#else //VTK_MAJOR_VERSION >= 6
+    		filter->SetInput(output);
+#endif //VTK_MAJOR_VERSION >= 6
+
 		filter->Update(); // absolutely necessary!
 		output->GetPointData()->SetNormals(filter->GetOutput()->GetPointData()->GetNormals());
 		filter->Delete();
@@ -350,7 +361,12 @@ int main(int argc, char **argv)
 
 	// Write result
 	vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+#if VTK_MAJOR_VERSION >= 6
+	writer->SetInputData(output);
+#else //VTK_MAJOR_VERSION >= 6
 	writer->SetInput(output);
+#endif //VTK_MAJOR_VERSION >= 6
+
 	writer->SetFileName(output_name);
 
 	if (!bASCII) {

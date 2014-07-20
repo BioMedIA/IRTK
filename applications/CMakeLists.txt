@@ -3,7 +3,6 @@ IF (USE_VXL)
   LINK_LIBRARIES(irtkvnl irtkvcl irtkvnl_algo irtknetlib)
 ENDIF (USE_VXL)
 
-
 # Convenience macros
 MACRO(ADD_IRTK_EXECUTABLE name)
   ADD_EXECUTABLE(${name} ${name}.cc ${ARGN})
@@ -65,6 +64,9 @@ ELSE ()
   ADD_IRTK_EXECUTABLE(modefilter)
   ADD_IRTK_EXECUTABLE(combineimages)
   ADD_IRTK_EXECUTABLE(mcubes)
+#IF("${VTK_MAJOR_VERSION}" GREATER 5)
+#    target_link_libraries(mcubes ${VTK_LIBRARIES})
+#ENDIF("${VTK_MAJOR_VERSION}" GREATER 5)
   ADD_IRTK_EXECUTABLE(msample)
   ADD_IRTK_EXECUTABLE(median)
   ADD_IRTK_EXECUTABLE(opening)

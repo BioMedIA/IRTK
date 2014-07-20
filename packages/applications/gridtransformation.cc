@@ -182,7 +182,12 @@ int main(int argc, char **argv)
   // Write the final set
   vtkUnstructuredGridWriter   *writer = vtkUnstructuredGridWriter::New();
   writer->SetFileName(output_name);
+#if VTK_MAJOR_VERSION >= 6
+  writer->SetInputData(surface);
+#else //VTK_MAJOR_VERSION >= 6
   writer->SetInput(surface);
+#endif //VTK_MAJOR_VERSION >= 6
+
   writer->Write();
 
   if(irtkoutput_name){

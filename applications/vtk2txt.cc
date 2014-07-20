@@ -78,7 +78,10 @@ int main(int argc, char **argv)
 	reader->Update();
 	vtkPolyData *model = vtkPolyData::New();
 	model = reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
 	model->Update();
+#endif
+
 
 	// Read scalar if there's scalar
 	vtkDoubleArray *array = NULL;

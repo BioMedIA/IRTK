@@ -517,7 +517,12 @@ void MarkBoundary(vtkPolyData *polydata)
     edges->ManifoldEdgesOff();
     edges->NonManifoldEdgesOff();
     edges->SetColoring(1);
-    edges->SetInput(polydata);
+#if VTK_MAJOR_VERSION >= 6
+      edges->SetInputData(polydata);
+#else
+      edges->SetInput(polydata);
+#endif
+  
     edges->Update();
 
     // Calculate number of points

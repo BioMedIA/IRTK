@@ -152,12 +152,20 @@ int main(int argc, char **argv)
   target_reader->SetFileName(_target_name);
   target_reader->Modified();
   vtkCleanPolyData *target_cleaner = vtkCleanPolyData::New();
-  target_cleaner->SetInput(target_reader->GetOutput());
+#if VTK_MAJOR_VERSION >= 6
+    target_cleaner->SetInputData(target_reader->GetOutput());
+#else //VTK_MAJOR_VERSION >= 6
+    target_cleaner->SetInput(target_reader->GetOutput());
+#endif //VTK_MAJOR_VERSION >= 6
+
   target_cleaner->Modified();
   target_cleaner->Update();
   vtkPolyData *target = vtkPolyData::New();
   target = target_cleaner->GetOutput();
+#if VTK_MAJOR_VERSION < 6
   target->Update();
+#endif
+
 
   // Source pipeline
   cout << "Reading source ... " << _source_name << endl;
@@ -166,7 +174,12 @@ int main(int argc, char **argv)
   source_reader->Modified();
   source_reader->Update();
   vtkCleanPolyData *source_cleaner = vtkCleanPolyData::New();
-  source_cleaner->SetInput(source_reader->GetOutput());
+#if VTK_MAJOR_VERSION >= 6
+    source_cleaner->SetInputData(source_reader->GetOutput());
+#else //VTK_MAJOR_VERSION >= 6
+    source_cleaner->SetInput(source_reader->GetOutput());
+#endif //VTK_MAJOR_VERSION >= 6
+
   source_cleaner->Modified();
   source_cleaner->Update();
   vtkPolyData *source = vtkPolyData::New();

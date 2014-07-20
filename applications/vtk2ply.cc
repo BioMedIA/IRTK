@@ -53,10 +53,18 @@ int main(int argc, char **argv)
 	reader->Update();
 	vtkPolyData *model = vtkPolyData::New();
 	model = reader->GetOutput();
-	model->Update();
+#if VTK_MAJOR_VERSION < 6
+ 	model->Update();
+#endif
+
 
 	vtkPLYWriter *writer = vtkPLYWriter::New();
+#if VTK_MAJOR_VERSION >= 6
+	writer->SetInputData(model);
+#else //VTK_MAJOR_VERSION >= 6
 	writer->SetInput(model);
+#endif //VTK_MAJOR_VERSION >= 6
+
 	writer->SetFileTypeToASCII();
 	writer->SetFileName(output_name);
 	writer->Write();

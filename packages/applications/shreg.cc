@@ -166,7 +166,10 @@ int main(int argc, char **argv)
   vtkPolyData *target = vtkPolyData::New();
   target = target_reader->GetOutput();
   target->Modified();
+#if VTK_MAJOR_VERSION < 6
   target->Update();
+#endif
+
   cout << "  (" << target->GetNumberOfPoints() << " points)" << endl;
 
   // Source pipeline

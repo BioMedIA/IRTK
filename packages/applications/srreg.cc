@@ -155,14 +155,24 @@ int main(int argc, char **argv)
 
   if (clean == true) {
     vtkCleanPolyData *target_cleaner = vtkCleanPolyData::New();
+#if VTK_MAJOR_VERSION >= 6
+    target_cleaner->SetInputData(target_reader->GetOutput());
+#else //VTK_MAJOR_VERSION >= 6
     target_cleaner->SetInput(target_reader->GetOutput());
+#endif //VTK_MAJOR_VERSION >= 6
+
     target_cleaner->Modified();
     target_cleaner->Update();
     target = target_cleaner->GetOutput();
+#if VTK_MAJOR_VERSION < 6
     target->Update();
+#endif
+
   } else {
     target = target_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
     target->Update();
+#endif
   }
 
   // Source pipeline
@@ -175,14 +185,24 @@ int main(int argc, char **argv)
 
   if (clean == true) {
     vtkCleanPolyData *source_cleaner = vtkCleanPolyData::New();
+#if VTK_MAJOR_VERSION >= 6
+    source_cleaner->SetInputData(source_reader->GetOutput());
+#else //VTK_MAJOR_VERSION >= 6
     source_cleaner->SetInput(source_reader->GetOutput());
+#endif //VTK_MAJOR_VERSION >= 6
+
     source_cleaner->Modified();
     source_cleaner->Update();
     source = source_cleaner->GetOutput();
+#if VTK_MAJOR_VERSION < 6
     source->Update();
+#endif
+
   } else {
     source = source_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
     source->Update();
+#endif
   }
 
   if (ignoreEdges == true) {

@@ -107,14 +107,24 @@ int main(int argc, char **argv)
   // Recalculate normals, if applicable
   if (surface->GetPointData()->GetNormals() != NULL) {
     vtkPolyDataNormals *filter = vtkPolyDataNormals::New();
-    filter->SetInput(surface);
+#if VTK_MAJOR_VERSION >= 6
+        filter->SetInputData(surface);
+#else //VTK_MAJOR_VERSION >= 6
+        filter->SetInput(surface);
+#endif //VTK_MAJOR_VERSION >= 6
+
     filter->Update(); // absolutely necessary!
     surface->GetPointData()->SetNormals(filter->GetOutput()->GetPointData()->GetNormals());
     filter->Delete(); // be good
   }
 
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-  writer->SetInput(surface);
+#if VTK_MAJOR_VERSION >= 6
+    writer->SetInputData(surface);
+#else //VTK_MAJOR_VERSION >= 6
+    writer->SetInput(surface);
+#endif //VTK_MAJOR_VERSION >= 6
+
   writer->SetFileName(output_name);
   writer->Write();
 }
