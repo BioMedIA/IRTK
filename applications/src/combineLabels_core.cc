@@ -103,7 +103,7 @@ short decideOnTie(const countMap& cMap, boost::random::mt19937& rng) throw (std:
     }
   }
 
-  short tiedLabels[numberWithMax];
+  short * tiedLabels = new short[numberWithMax];
 
   count = 0;
   for (iter = cMap.begin(); iter != endMap; ++iter){
@@ -116,5 +116,7 @@ short decideOnTie(const countMap& cMap, boost::random::mt19937& rng) throw (std:
   boost::uniform_int<> uniformCount(0, count -1);
   boost::variate_generator<boost::mt19937&, boost::uniform_int<> > indexEngine(rng, uniformCount);
 
-  return tiedLabels[indexEngine()];
+  short rtn = tiedLabels[indexEngine()];
+  delete[] tiedLabels;
+  return rtn;
 }

@@ -55,9 +55,9 @@ void usage()
 }
 
 void sort2(int index, float *array1, float *array2) {
-  int indices[index];
-  float array1_store[index];
-  float array2_store[index];
+  int* indices = new int[index];
+  float* array1_store = new float[index];
+  float* array2_store = new float[index];
 
   for (int i = 0; i < index; i++) {
     // create array with indices to be sorted
@@ -75,6 +75,10 @@ void sort2(int index, float *array1, float *array2) {
     array1[i+1] = array1_store[indices[i]];
     array2[i+1] = array2_store[indices[i]];
   }
+
+  delete[] indices;
+  delete[] array1_store;
+  delete[] array2_store;
 }
 
 void FFDEdit1(AdaptivityMeasure measure, double value)
