@@ -146,7 +146,7 @@ template <class VoxelType> void irtkModeFilter<VoxelType>::Run()
           }
 
           if (ties > 1){
-            randChoice = (int) floor( engine() * ties );
+            randChoice = (int) floor( (float)(engine() * ties) );
             value = tiedLabels[ randChoice ];
           } else {
             value = mode;
