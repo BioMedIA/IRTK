@@ -1,10 +1,43 @@
-Copyright and License Agreement
+Image Registration Toolkit (IRTK)
 
-WE (IXICO LIMITED) ARE WILLING TO LICENSE THIS SOFTWARE TO YOU ONLY ON THE CONDITION THAT YOU ACCEPT ALL OF THE TERMS CONTAINED IN THE FOLLOWING AGREEMENT.
-PLEASE READ THE AGREEMENT CAREFULLY BEFORE DOWNLOADING THE SOFTWARE.  BY
-EXERCISING THE OPTION TO DOWNLOAD THE SOFTWARE YOU AGREE TO BE BOUND BY THE TERMS OF THE AGREEMENT.
+Copyright (c) 1999-2014 and onwards, Imperial College London. 
+All rights reserved.
 
-SOFTWARE LICENCE AGREEMENT
+This software is distributed under the BSD license.
+
+See LICENSE file for details.
+
+-----------------------------------------------------------------------
+
+Disclaimer:
+
+This software has been developed for research purposes only, and hence should not be used as a diagnostic tool. In no event shall the authors or distributors be liable to any direct, indirect, special, incidental, or consequential damages arising of the use of this software, its documentation, or any derivatives thereof, even if the authors have been advised of the possibility of such damage.
+
+-----------------------------------------------------------------------
+
+The Toolkit contains packages that have different copyrights.
+
+They are:
+
+1) packages/transformation:  	Copyright by IXICO LIMITED.
+				Distributed under the CREATIVE COMMONS 					PUBLIC LICENSE.
+
+2) packages/registration:  	Copyright by IXICO LIMITED.
+				Distributed under the CREATIVE COMMONS 					PUBLIC LICENSE.
+
+3) packages/applications:  	Copyright by IXICO LIMITED.
+				Distributed under the CREATIVE COMMONS 					PUBLIC LICENSE.
+
+4) packages/rview:		Copyright by IXICO LIMITED.
+				Distributed under the CREATIVE COMMONS 					PUBLIC LICENSE.
+	
+
+============== NEXT COPYRIGHT NOTICE AND LICENSE ENTRY ==============
+
+
+
+		IXICO License Statement (COPYRIGHT)
+		-----------------------------------
 
 THE WORK (AS DEFINED BELOW) IS PROVIDED UNDER THE TERMS OF THIS CREATIVE COMMONS PUBLIC LICENSE ("CCPL" OR "LICENSE"). THE WORK IS PROTECTED BY COPYRIGHT AND/OR OTHER APPLICABLE LAW. ANY USE OF THE WORK OTHER THAN AS AUTHORIZED UNDER THIS LICENSE OR COPYRIGHT LAW IS PROHIBITED.
 
@@ -88,28 +121,3 @@ d. No term or provision of this License shall be deemed waived and no breach con
 e. This License constitutes the entire agreement between the parties with respect to the Work licensed here. There are no understandings, agreements or representations with respect to the Work not specified here. Licensor shall not be bound by any additional provisions that may appear in any communication from You. This License may not be modified without the mutual written agreement of the Licensor and You.
 
 f. The rights granted under, and the subject matter referenced, in this License were drafted utilizing the terminology of the Berne Convention for the Protection of Literary and Artistic Works (as amended on September 28, 1979), the Rome Convention of 1961, the WIPO Copyright Treaty of 1996, the WIPO Performances and Phonograms Treaty of 1996 and the Universal Copyright Convention (as revised on July 24, 1971). These rights and subject matter take effect in the relevant jurisdiction in which the License terms are sought to be enforced according to the corresponding provisions of the implementation of those treaty provisions in the applicable national law. If the standard suite of rights granted under applicable copyright law includes additional rights not granted under this License, such additional rights are deemed to be included in the License; this License is not intended to restrict the license of any rights under applicable law.
-
-Acknowledgments
-
-If you use the software you should add the following acknowledgement: The Image 
-Registration Toolkit was used under Licence from Ixico Ltd. Additionally, if you use the 
-non-rigid registration software provided you should reference the following papers in any 
-publication:
-
-D. Rueckert, L. I. Sonoda, C. Hayes, D. L. G. Hill, M. O. Leach, and D. J. Hawkes. Non-
-rigid registration using free-form deformations: Application to breast MR images. IEEE 
-Transactions on Medical Imaging, 18(8):712-721, 1999.
-
-J. A. Schnabel, D. Rueckert, M. Quist, J. M. Blackall, A. D. Castellano Smith, T. Hartkens, 
-G. P. Penney, W. A. Hall, H. Liu, C. L. Truwit, F. A. Gerritsen, D. L. G. Hill, and D. J. 
-Hawkes. A generic framework for non-rigid registration based on non-uniform multi-level 
-free-form deformations. In Fourth Int. Conf. on Medical Image Computing and Computer-
-Assisted Intervention (MICCAI '01), pages 573-581, Utrecht, NL, October 2001.
-
-If you use the rigid or affine registration components provided by the software you should 
-reference the following paper in any publication:
-
-C. Studholme, D.L.G.Hill, D.J. Hawkes, An Overlap Invariant Entropy Measure of 3D 
-Medical Image Alignment, Pattern Recognition, Vol. 32(1), Jan 1999, pp 71-86.
-
-
