@@ -3,6 +3,10 @@
   Date      : $Date: 03.03.2009$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>

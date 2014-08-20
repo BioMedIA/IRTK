@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 // super-UGLY, but avoid wrecking IRTK build process
@@ -230,3 +234,4 @@ int main(int argc, char **argv)
 
   delete [] counts;
 }
+
