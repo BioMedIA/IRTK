@@ -21,6 +21,18 @@ IF (GSL_FOUND)
   LINK_LIBRARIES(${GSL_LIBRARIES})
 ENDIF (GSL_FOUND)
 
+# add boost dependencies
+find_package( Boost 1.46 REQUIRED)
+
+if ( NOT Boost_FOUND )
+message( STATUS "Boost could not be found." )
+   set( BOOST_ROOT ${BOOST_ROOT} CACHE PATH "Please enter path to Boost include folder." FORCE )
+endif ()
+
+message( STATUS "Boost_INCLUDE_DIRS : '" ${Boost_INCLUDE_DIRS} "'" )
+
+include_directories(${Boost_INCLUDE_DIRS})
+
 # Option to build with OpenCV or not.
 OPTION(BUILD_WITH_OPENCV "Build using OPENCV" OFF)
 
@@ -186,8 +198,13 @@ IF (BUILD_WITH_VTK)
 	 LINK_LIBRARIES (vtkHybrid)
       ENDIF (VTK_KITS MATCHES "HYBRID")
 
+IF("${VTK_MAJOR_VERSION}" GREATER 5)
+     LINK_LIBRARIES (${VTK_LIBRARIES})
+ELSE("${VTK_MAJOR_VERSION}" GREATER 5)
      LINK_LIBRARIES (vtkRendering vtkImaging
       vtkGraphics vtkFiltering vtkIO vtkCommon)
+ENDIF("${VTK_MAJOR_VERSION}" GREATER 5)
+
    ENDIF (VTK_FOUND)
 ENDIF (BUILD_WITH_VTK)
 
