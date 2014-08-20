@@ -7,6 +7,10 @@
   Date      : $Date$
   Version   : $Revision$
   Changes   : $Author$
+
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
  
 =========================================================================*/
 
@@ -1437,8 +1441,16 @@ template <class Type> void irtkGenericImage<Type>::ImageToVTK(vtkStructuredPoint
   vtk->SetOrigin(x, y, z);
   vtk->SetDimensions(_attr._x, _attr._y, _attr._z);
   vtk->SetSpacing(_attr._dx, _attr._dy, _attr._dz);
+#if VTK_MAJOR_VERSION >= 6
+  vtkInformation* outInfo;
+  vtk->SetScalarType(this->ImageToVTKScalarType(),outInfo);
+  vtk->AllocateScalars(outInfo);
+#else //VTK_MAJOR_VERSION >= 6
   vtk->SetScalarType(this->ImageToVTKScalarType());
   vtk->AllocateScalars();
+#endif //VTK_MAJOR_VERSION >= 6
+
+ 
 
   // Initialize the VTK image
   n    = this->GetNumberOfVoxels();
