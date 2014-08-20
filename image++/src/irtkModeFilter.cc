@@ -1,3 +1,16 @@
+/*=========================================================================
+
+Library   : Image Registration Toolkit (IRTK)
+Copyright : Imperial College, Department of Computing
+Visual Information Processing (VIP), 2008 onwards
+Date      : $Date: 2013-01-14$
+Changes   : $Author$
+
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
+=========================================================================*/
 
 #include <irtkImage.h>
 #include <boost/random.hpp>
@@ -133,7 +146,7 @@ template <class VoxelType> void irtkModeFilter<VoxelType>::Run()
           }
 
           if (ties > 1){
-            randChoice = (int) floor( engine() * ties );
+            randChoice = (int) floor( (float)(engine() * ties) );
             value = tiedLabels[ randChoice ];
           } else {
             value = mode;

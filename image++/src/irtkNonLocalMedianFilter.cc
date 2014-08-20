@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -15,7 +19,6 @@ Changes   : $Author$
 #include <irtkNonLocalMedianFilter.h>
 
 #include <irtkGradientImage.h>
-
 
 template <class VoxelType> irtkNonLocalMedianFilter<VoxelType>::irtkNonLocalMedianFilter(
     int Sigma, irtkGenericImage<irtkGreyPixel>* input2, irtkGenericImage<irtkRealPixel>* input3
