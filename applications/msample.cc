@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -171,7 +175,9 @@ int main(int argc, char **argv)
 	reader->Update();
 	vtkPolyData *model = vtkPolyData::New();
 	model = reader->GetOutput();
-	model->Update();
+#if VTK_MAJOR_VERSION < 6
+  model->Update();
+#endif
 
 	// Extract normals
 	if (model->GetPointData()->GetNormals() == NULL) {
@@ -194,7 +200,10 @@ int main(int argc, char **argv)
 		reader_count->Update();
 		vtkPolyData *model_count = vtkPolyData::New();
 		model_count = reader_count->GetOutput();
+#if VTK_MAJOR_VERSION < 6
 		model_count->Update();
+#endif
+
 		vtkDoubleArray *array = vtkDoubleArray::New();
 		array->SetNumberOfTuples(model->GetNumberOfPoints());
 		array->SetNumberOfComponents(1);
@@ -388,7 +397,12 @@ int main(int argc, char **argv)
 	}
 
 	vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-	writer->SetInput(model);
+#if VTK_MAJOR_VERSION >= 6
+  writer->SetInputData(model);
+#else //VTK_MAJOR_VERSION >= 6
+  writer->SetInput(model);
+#endif //VTK_MAJOR_VERSION >= 6
+
 	writer->SetFileName(output_name);
 	writer->Write();
 	writer->Delete();

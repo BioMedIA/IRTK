@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -49,10 +53,18 @@ int main(int argc, char **argv)
 	reader->Update();
 	vtkPolyData *model = vtkPolyData::New();
 	model = reader->GetOutput();
-	model->Update();
+#if VTK_MAJOR_VERSION < 6
+ 	model->Update();
+#endif
+
 
 	vtkPLYWriter *writer = vtkPLYWriter::New();
+#if VTK_MAJOR_VERSION >= 6
+	writer->SetInputData(model);
+#else //VTK_MAJOR_VERSION >= 6
 	writer->SetInput(model);
+#endif //VTK_MAJOR_VERSION >= 6
+
 	writer->SetFileTypeToASCII();
 	writer->SetFileName(output_name);
 	writer->Write();
