@@ -8,10 +8,13 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkRegistration2.h>
-
 
 #ifdef WIN32
 #include <time.h>

@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -21,7 +25,6 @@
 #include <cxcore.h>
 
 #include <highgui.h>
-
 
 /*
 reading in input sequence, find mid slice from sequence, using landmark to define interest region

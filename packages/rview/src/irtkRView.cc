@@ -6,6 +6,10 @@
  Date      : $Date$
  Version   : $Revision$
  Changes   : $Author$
+
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
  
  =========================================================================*/
 

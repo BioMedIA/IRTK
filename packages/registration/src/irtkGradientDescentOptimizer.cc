@@ -8,15 +8,18 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #include <irtkRegistration.h>
 
-
-// Used for NR optimization: Evaluates similarity measure
+// Used for optimization: Evaluates similarity measure
 extern float irtkRegistrationEvaluate(float *x);
 
-// Used for NR optimization: Evaluates similarity measure
+// Used for optimization: Evaluates similarity measure derivative
 extern void  irtkRegistrationEvaluateDerivative(float *x, float *dx);
 
 double irtkGradientDescentOptimizer::Run()

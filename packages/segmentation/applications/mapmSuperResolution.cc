@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkSegmentationFunction.h>
@@ -159,5 +163,4 @@ int main(int argc, char **argv){
 	if(output_name != NULL){
 		patchmatch->outputmap(output_name);
 	}
-
 }

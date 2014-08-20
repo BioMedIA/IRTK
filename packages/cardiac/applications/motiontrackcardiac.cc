@@ -8,12 +8,15 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
-
-#ifdef HAS_VTK
-
 #include <irtkCardiac.h>
+
 #include <irtkGaussianBlurring.h>
+
 #include <irtkGaussianBlurring4D.h>
 
 char *dofout_name = NULL, *parin_name  = NULL, *parin_name2  = NULL, *parout_name = NULL, **untagfilenames = NULL,**tagfilenames = NULL, *thresholdname = NULL;
@@ -539,14 +542,3 @@ int main(int argc, char **argv)
 	if(thresholdname!=NULL)
 		delete threshold;
 }
-
-#else
-
-#include <iostream>
-int main(int, char *argv[])
-{
-  std::cerr << argv[0] << " needs to be compiled with the VTK library" << std::endl;
-  exit(1);
-}
-
-#endif
