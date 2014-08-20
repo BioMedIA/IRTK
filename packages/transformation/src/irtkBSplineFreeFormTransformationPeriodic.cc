@@ -157,7 +157,7 @@ irtkBSplineFreeFormTransformationPeriodic::irtkBSplineFreeFormTransformationPeri
     // Initialize control point spacing
     _dx = (x2 - x1) / (_x - 1);
     _dy = (y2 - y1) / (_y - 1);
-    _dz = (z2 - z1) / (_z - 1);
+    _dz = _z > 1 ? (z2 - z1) / (_z - 1) : dz;
     _dt = (_tMax - _tMin) / (_t - 1);
 
     // Initialize transformation matrix
@@ -253,7 +253,7 @@ irtkBSplineFreeFormTransformationPeriodic::irtkBSplineFreeFormTransformationPeri
     // Initialize control point spacing
     _dx = (x2 - x1) / (_x - 1);
     _dy = (y2 - y1) / (_y - 1);
-    _dz = (z2 - z1) / (_z - 1);
+    _dz = _z > 1 ? (z2 - z1) / (_z - 1) : dz;
     _dt = (_tMax - _tMin) / (_t - 1);
 
     // Initialize transformation matrix
