@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #include <irtkRegistration.h>
@@ -513,7 +517,12 @@ void MarkBoundary(vtkPolyData *polydata)
     edges->ManifoldEdgesOff();
     edges->NonManifoldEdgesOff();
     edges->SetColoring(1);
-    edges->SetInput(polydata);
+#if VTK_MAJOR_VERSION >= 6
+      edges->SetInputData(polydata);
+#else
+      edges->SetInput(polydata);
+#endif
+  
     edges->Update();
 
     // Calculate number of points

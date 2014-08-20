@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -77,14 +81,22 @@ int main(int argc, char **argv)
     target_reader->SetFileName(_target_name);
     target_reader->Modified();
     if (clean == true) {
-      target_cleaner->SetInput(target_reader->GetOutput());
+#if VTK_MAJOR_VERSION >= 6
+            target_cleaner->SetInputData(target_reader->GetOutput());
+#else //VTK_MAJOR_VERSION >= 6
+            target_cleaner->SetInput(target_reader->GetOutput());
+#endif //VTK_MAJOR_VERSION >= 6
+
       target_cleaner->Modified();
       target_cleaner->Update();
       target[i] = target_cleaner->GetOutput();
     } else {
       target[i] = target_reader->GetOutput();
     }
+#if VTK_MAJOR_VERSION < 6
     target[i]->Update();
+#endif
+
   }
 
   vtkPolyDataReader *source_reader = vtkPolyDataReader::New();
@@ -100,14 +112,22 @@ int main(int argc, char **argv)
     source_reader->SetFileName(_source_name);
     source_reader->Modified();
     if (clean == true) {
-      source_cleaner->SetInput(source_reader->GetOutput());
+#if VTK_MAJOR_VERSION >= 6
+           source_cleaner->SetInputData(source_reader->GetOutput());
+#else //VTK_MAJOR_VERSION >= 6
+           source_cleaner->SetInput(source_reader->GetOutput());
+#endif //VTK_MAJOR_VERSION >= 6
+ 
       source_cleaner->Modified();
       source_cleaner->Update();
       source[i] = source_cleaner->GetOutput();
     } else {
       source[i] = source_reader->GetOutput();
     }
+#if VTK_MAJOR_VERSION < 6
     source[i]->Update();
+#endif
+
   }
 
   // Parse remaining parameters

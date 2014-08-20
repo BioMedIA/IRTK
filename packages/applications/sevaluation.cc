@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -140,7 +144,10 @@ int main(int argc, char **argv)
 	target_reader->Update();
 	vtkPolyData *target = vtkPolyData::New();
 	target = target_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
 	target->Update();
+#endif
+
 
 	// Source pipeline
 	cout << "Reading source ... " << _source_name << endl;
@@ -150,7 +157,9 @@ int main(int argc, char **argv)
 	source_reader->Update();
 	vtkPolyData *source = vtkPolyData::New();
 	source = source_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
 	source->Update();
+#endif
 
 	if (ignoreEdges == true) {
 		MarkBoundary(target);
@@ -285,7 +294,12 @@ int main(int argc, char **argv)
 	if(scalar){
 		target->GetPointData()->SetScalars(array);
 		vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-		writer->SetInput(target);
+#if VTK_MAJOR_VERSION >= 6
+    		writer->SetInputData(target);
+#else //VTK_MAJOR_VERSION >= 6
+    		writer->SetInput(target);
+#endif //VTK_MAJOR_VERSION >= 6
+
 		writer->SetFileName(_target_name);
 		writer->Write();
 		writer->Delete();

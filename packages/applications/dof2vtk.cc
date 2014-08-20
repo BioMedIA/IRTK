@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -221,7 +225,11 @@ int main(int argc, char **argv)
   grid->GetPointData()->SetVectors(vectors);
 
   // Write structured grid
-  writer->SetInput(grid);
+#if VTK_MAJOR_VERSION >= 6
+    writer->SetInputData(grid);
+#else //VTK_MAJOR_VERSION >= 6
+    writer->SetInput(grid);
+#endif //VTK_MAJOR_VERSION >= 6
   writer->SetFileName(output_name);
   writer->SetFileTypeToBinary();
   writer->SetVectorsName("deformation vectors");

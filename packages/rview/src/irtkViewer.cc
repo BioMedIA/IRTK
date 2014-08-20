@@ -8,6 +8,10 @@
  Version   : $Revision$
  Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
  =========================================================================*/
 
 #include <irtkImage.h>
@@ -72,7 +76,9 @@ double _BeforeGridZ[MaxNumberOfCP][MaxNumberOfCP];
 
 // vtk includes
 #include <vtkPlane.h>
+#if VTK_MAJOR_VERSION < 6
 #include <vtkPolyDataSource.h>
+#endif
 #include <vtkCutter.h>
 #include <vtkPointData.h>
 #include <vtkFloatArray.h>
@@ -948,7 +954,12 @@ void irtkViewer::DrawObject(vtkPointSet *points, irtkGreyImage *image, int warp,
 		plane->SetOrigin(p1);
 		plane->SetNormal(normal);
 		cutter->SetCutFunction(plane);
-		cutter->SetInput(points);
+#if VTK_MAJOR_VERSION >= 6
+    		cutter->SetInputData(points);
+#else //VTK_MAJOR_VERSION >= 6
+    		cutter->SetInput(points);
+#endif //VTK_MAJOR_VERSION >= 6
+
 
 		// Reslice object
 		cutter->Modified();

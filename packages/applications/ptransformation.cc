@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #include <irtkImage.h>
@@ -173,7 +177,12 @@ int main(int argc, char **argv)
   // Write the final set
   vtkPolyDataWriter   *writer = vtkPolyDataWriter::New();
   writer->SetFileName(output_name);
-  writer->SetInput(surface);
+#if VTK_MAJOR_VERSION >= 6
+    writer->SetInputData(surface);
+#else //VTK_MAJOR_VERSION >= 6
+    writer->SetInput(surface);
+#endif //VTK_MAJOR_VERSION >= 6
+
   writer->Write();
 }
 

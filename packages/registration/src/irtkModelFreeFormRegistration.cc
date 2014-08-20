@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #include <irtkRegistration.h>
@@ -204,7 +208,12 @@ void irtkModelFreeFormRegistration::UpdateLUT() {
 	 */
 
 	vtkPolyDataNormals *filter = vtkPolyDataNormals::New();
-	filter->SetInput(_model);
+#if VTK_MAJOR_VERSION >= 6
+  	filter->SetInputData(_model);
+#else
+  	filter->SetInput(_model);
+#endif
+
 	filter->SplittingOff();
 	filter->Update();
 	_model->GetPointData()->SetNormals(

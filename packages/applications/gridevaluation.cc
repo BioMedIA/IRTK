@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -70,7 +74,10 @@ int main(int argc, char **argv)
   target_reader->Update();
   vtkUnstructuredGrid *target = vtkUnstructuredGrid::New();
   target = target_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
   target->Update();
+#endif
+ 
 
   // Source pipeline
   cout << "Reading source ... " << _source_name << endl;
@@ -80,7 +87,10 @@ int main(int argc, char **argv)
   source_reader->Update();
   vtkUnstructuredGrid *source = vtkUnstructuredGrid::New();
   source = source_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
   source->Update();
+#endif
+
 
   if (target->GetNumberOfPoints() != source->GetNumberOfPoints()) {
     cerr << "Landmarks should have equal number of points" << endl;

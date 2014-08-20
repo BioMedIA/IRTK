@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -55,7 +59,12 @@ void irtkLocator::SelectLocatorType(int type)
     point_locator->SetNumberOfPointsPerBucket(5);
     loc_type=1;
   } else if (type==2) {
+#if VTK_MAJOR_VERSION >= 6
     kd_locator = vtkKDTreePointLocator::New();
+#else
+    kd_locator = vtkKDTreePointLocator::New();
+#endif
+
     kd_locator->SetNumberOfPointsPerBucket(50);
     loc_type=2;
   } else {

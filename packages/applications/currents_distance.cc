@@ -8,6 +8,10 @@ Date      : $Date$
 Version   : $Revision$
 Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -163,13 +167,17 @@ int main(int argc, char **argv)
 
 	vtkPolyData *surfaceA;
 	surfaceA = surface_readerA->GetOutput();
+#if VTK_MAJOR_VERSION < 6
 	surfaceA->Update();
+#endif
 	surfaceA->BuildCells();
 	surfaceA->BuildLinks();
 
 	vtkPolyData *surfaceB;
 	surfaceB = surface_readerB->GetOutput();
+#if VTK_MAJOR_VERSION < 6
 	surfaceB->Update();
+#endif //VTK_MAJOR_VERSION >= 6
 	surfaceB->BuildCells();
 	surfaceB->BuildLinks();
 
@@ -189,7 +197,12 @@ int main(int argc, char **argv)
 	// associated with each point that are the normals of the faces.
 
 	vtkTriangleFilter *triFilterA = vtkTriangleFilter::New();
-	triFilterA->SetInput(surfaceA);
+#if VTK_MAJOR_VERSION >= 6
+  	triFilterA->SetInputData(surfaceA);
+#else //VTK_MAJOR_VERSION >= 6
+  	triFilterA->SetInput(surfaceA);
+#endif //VTK_MAJOR_VERSION >= 6
+
 	triFilterA->Update();
 	vtkPolyData *trianglesA = vtkPolyData::New();
 	trianglesA = triFilterA->GetOutput();
@@ -197,7 +210,12 @@ int main(int argc, char **argv)
 	trianglesA->BuildLinks();
 
 	vtkTriangleFilter *triFilterB = vtkTriangleFilter::New();
-	triFilterB->SetInput(surfaceB);
+#if VTK_MAJOR_VERSION >= 6
+  	triFilterB->SetInputData(surfaceB);
+#else //VTK_MAJOR_VERSION >= 6
+  	triFilterB->SetInput(surfaceB);
+#endif //VTK_MAJOR_VERSION >= 6
+
 	triFilterB->Update();
 	vtkPolyData *trianglesB = vtkPolyData::New();
 	trianglesB = triFilterB->GetOutput();
@@ -386,14 +404,18 @@ int main(int argc, char **argv)
 	currentA->SetPoints(centresA);
 	currentA->GetPointData()->AddArray(normalsA);
 	currentA->GetPointData()->AddArray(maskOutA);
+#if VTK_MAJOR_VERSION < 6
 	currentA->Update();
+#endif
+
 
 	vtkPolyData *currentB = vtkPolyData::New();
 	currentB->SetPoints(centresB);
 	currentB->GetPointData()->AddArray(normalsB);
 	currentB->GetPointData()->AddArray(maskOutB);
+#if VTK_MAJOR_VERSION < 6
 	currentB->Update();
-
+#endif
 
 	vtkPointLocator *point_locatorA = vtkPointLocator::New();
 	point_locatorA->SetNumberOfPointsPerBucket(5);

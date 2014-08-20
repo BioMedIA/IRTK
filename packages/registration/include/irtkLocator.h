@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #ifdef HAS_VTK
@@ -35,8 +39,12 @@ protected:
   vtkPointLocator *point_locator;
 
   /// VTK KD-tree point locator
+#if VTK_MAJOR_VERSION >= 6
   vtkKDTreePointLocator *kd_locator;
-
+#else
+  vtkKDTreePointLocator *kd_locator;
+#endif
+ 
   /// VTK Cell
   vtkGenericCell *cell;
 

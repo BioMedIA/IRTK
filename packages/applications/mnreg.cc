@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) IXICO LIMITED
+All rights reserved.
+See COPYRIGHT for details
+
 =========================================================================*/
 
 #include <irtkRegistration.h>
@@ -63,7 +67,9 @@ int main(int argc, char **argv)
   model_reader->Update();
   vtkPolyData *model = vtkPolyData::New();
   model = model_reader->GetOutput();
+#if VTK_MAJOR_VERSION < 6
   model->Update();
+#endif
 
   // Read image
   cout << "Reading image ... "; cout.flush();
