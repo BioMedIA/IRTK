@@ -8,6 +8,10 @@
   Version   : $Revision$
   Changes   : $Author$
 
+Copyright (c) 1999-2014 and onwards, Imperial College London
+All rights reserved.
+See LICENSE for details
+
 =========================================================================*/
 
 #include <irtkCommon.h>
@@ -22,9 +26,9 @@ double median(float q, float p0, float p1){
 }
 
 void sort2(int index, float *array1, float *array2) {
-    int indices[index];
-    float array1_store[index];
-    float array2_store[index];
+    int* indices = new int[index];
+    float* array1_store = new float[index];
+    float* array2_store = new float[index];
 
     for (int i = 0; i < index; i++) {
        // create array with indices to be sorted
@@ -42,6 +46,10 @@ void sort2(int index, float *array1, float *array2) {
        array1[i+1] = array1_store[indices[i]];
        array2[i+1] = array2_store[indices[i]];
     }
+
+	delete[] indices;
+	delete[] array1_store;
+	delete[] array2_store;
 }
 
 /// weight must be normalized to sum = 1 before entering here.
