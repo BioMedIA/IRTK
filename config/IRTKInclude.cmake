@@ -22,7 +22,8 @@ IF (GSL_FOUND)
 ENDIF (GSL_FOUND)
 
 # add boost dependencies
-find_package( Boost 1.46 REQUIRED)
+SET(BOOST_MIN_VERSION "1.48")
+find_package( Boost ${BOOST_MIN_VERSION} REQUIRED)
 
 if ( NOT Boost_FOUND )
 message( STATUS "Boost could not be found." )
