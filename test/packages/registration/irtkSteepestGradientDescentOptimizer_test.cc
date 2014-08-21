@@ -4,13 +4,47 @@
 #include <irtkRegistration.h>
 #include <irtkTransformation.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 const double EPSILON = 0.0001;
 
 TEST(Packages_Registration_irtkSteepestGradientDescientOptimizer, Run) {
    irtkGreyImage *target = new irtkGreyImage;
    irtkGreyImage *source = new irtkGreyImage;
-   target->Read("/vol/vipdata/data/brain/adni/images/ADNIGO/ADNI_002_S_0685_MR_MT1__GradWarp__N3m_Br_20120322163357822_S89145_I291874.nii.gz");
-   source->Read("/vol/vipdata/data/brain/adni/images/ADNIGO/ADNI_003_S_0907_MR_MT1__GradWarp__N3m_Br_20120322164718634_S99132_I291887.nii.gz");
+
+   std::string image_path = "";
+   
+#ifdef __linux__
+   const int buffer_size = 1024;
+   char buffer[buffer_size];
+   ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
+
+   std::string key ("irtk/");
+
+   if (len != -1) {
+       buffer[len] = '\0';
+       std::string app_path = std::string(buffer);
+       unsigned found = app_path.rfind(key);
+       image_path = app_path.substr(0, found) + key + "test/image_files/";
+   }
+   else {
+       std::cerr << "Could not get application path" << std::endl;
+       exit(1);
+   }
+#elif _WIN32
+   std::string key ("irtk\\");
+
+    char buffer[MAX_PATH];
+    GetModuleFileName( NULL, buffer, MAX_PATH );
+    std::string app_path = std::string(buffer);
+    unsigned found = app_path.rfind(key);
+    root_path = app_path.substr(0, found) + key + "test\\image_files\\";
+#endif
+
+   target->Read((image_path + "target.nii.gz").c_str());
+   source->Read((image_path + "source.nii.gz").c_str());
 
    irtkRigidTransformation transformation;
 
