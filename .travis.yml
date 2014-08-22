@@ -3,7 +3,7 @@ compiler:
   - gcc
 before_install:
   - sudo apt-get update
-  - sudo apt-get install libfltk1.3 libfltk1.3-dev libboost1.48-dev libgsl0-dev
+  - sudo apt-get install freeglut3-dev libfltk1.3 libfltk1.3-dev libboost1.48-dev libgsl0-dev
 script:
   - mkdir build
   - cd build
