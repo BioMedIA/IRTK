@@ -21,7 +21,7 @@ and Mac OS X. On Windows, [Cygwin](https://www.cygwin.com/) must be installed fi
 1. Clone the repository
 
     ```shell
-    git clone https://github.com/BioMedIA/IRTK.git IRTK
+    git clone --recurse-submodules https://github.com/BioMedIA/IRTK.git IRTK
     cd IRTK
     ```
 
