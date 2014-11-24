@@ -173,5 +173,6 @@ irtkMeanFilter.cc
 )
 
 ADD_LIBRARY(image++ ${IMAGE_SRCS} ${IMAGE_INCLUDES})
+TARGET_LINK_LIBRARIES(image++ rt)
 
 INSTALL_FILES(/include FILES ${IMAGE_INCLUDES})
