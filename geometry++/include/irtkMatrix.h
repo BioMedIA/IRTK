@@ -28,7 +28,7 @@ See LICENSE for details
 
 #include <iostream>
 #include <cmath>
-#include <float.h>  // DBL_MAX definition
+#include <cfloat>  // DBL_MAX definition
 
 /**
 
