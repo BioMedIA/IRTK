@@ -171,9 +171,9 @@ public:
   // Matrix square root.
   friend irtkMatrix sqrtm(irtkMatrix);
 
-  friend irtkMatrix FrechetMean(irtkMatrix *, int, int = 10);
+  friend irtkMatrix FrechetMean(irtkMatrix *, int, int);
 
-  friend irtkMatrix FrechetMean(irtkMatrix *, double *, int, int = 10);
+  friend irtkMatrix FrechetMean(irtkMatrix *, double *, int, int);
 
 #ifndef USE_STL
   /// Comparison operator != (if USE_STL is defined, negate == operator)
@@ -273,6 +273,10 @@ public:
 
 #endif
 };
+
+//Declare FrechetMean friend functions with default value
+irtkMatrix FrechetMean(irtkMatrix *, int, int = 10);
+irtkMatrix FrechetMean(irtkMatrix *, double *, int, int = 10);
 
 //
 // Access operators
