@@ -12,6 +12,8 @@ any direct, indirect, special, incidental, or consequential damages arising of t
 of this software, its documentation, or any derivatives thereof, even if the authors 
 have been advised of the possibility of such damage.
 
+The research software was supported by the National Institute for Health Research (NIHR) Biomedical Research Centre based at Imperial College Healthcare NHS Trust and Imperial College London. The views expressed are those of the author(s) and not necessarily those of the NHS, the NIHR or the Department of Health.
+
 Authors:
 
 The image registration software itself has been written by
