@@ -89,6 +89,12 @@ protected:
   /// Flag whether to use symmetric distance function
   bool _UseSymmetricDistance;
 
+  /// Step size for optimizer
+  double _StepSize;
+
+  /// Optimization method for registration
+  irtkOptimizationMethod _OptimizationMethod;
+
 public:
 
   /// Constructor
@@ -130,6 +136,12 @@ public:
   // Access parameters
   virtual SetMacro(NumberOfIterations, int);
   virtual GetMacro(NumberOfIterations, int);
+
+  virtual SetMacro(StepSize, double);
+  virtual GetMacro(StepSize, double);
+
+  virtual SetMacro(OptimizationMethod, irtkOptimizationMethod);
+  virtual GetMacro(OptimizationMethod, irtkOptimizationMethod);
 };
 
 inline void irtkSurfaceRegistration::SetTargetLocator(irtkLocator *locator)

@@ -44,6 +44,8 @@ void irtkSurfaceAffineRegistration::Initialize ()
 
   // Create point-based registration
   _preg = new irtkPointAffineRegistration;
+  _preg->SetStepSize(_StepSize);
+  _preg->SetOptimizationMethod(_OptimizationMethod);
 }
 
 void irtkSurfaceAffineRegistration::Finalize()

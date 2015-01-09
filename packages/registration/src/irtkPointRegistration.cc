@@ -28,6 +28,9 @@ irtkPointRegistration::irtkPointRegistration ()
 
   // Set output
   _transformation = NULL;
+
+  // Default Step size
+  _StepSize = 0.1;
 }
 
 irtkPointRegistration::~irtkPointRegistration ()
@@ -94,6 +97,7 @@ void irtkPointRegistration::Initialize ()
   if (_optimizer != NULL) {
     _optimizer->SetTransformation (_transformation);
     _optimizer->SetRegistration (this);
+    _optimizer->SetStepSize(_StepSize);
 
   }
 }

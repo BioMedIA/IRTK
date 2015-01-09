@@ -58,6 +58,9 @@ protected:
   /// Final set up for the registration
   virtual void Finalize();
 
+  /// Step size for optimizer.
+  double _StepSize;
+
 public:
 
   /// Constructor
@@ -87,6 +90,9 @@ public:
   // Access optimizer parameters
   virtual SetMacro(OptimizationMethod, irtkOptimizationMethod);
   virtual GetMacro(OptimizationMethod, irtkOptimizationMethod);
+
+  virtual SetMacro(StepSize, double);
+  virtual GetMacro(StepSize, double);
 };
 
 #include <irtkPointRigidRegistration.h>

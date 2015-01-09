@@ -41,6 +41,8 @@ void usage()
   cerr << "<-ignoreedges>      Ignores edges in ICP (default OFF)" << endl;
   cerr << "<-invert>           Save the inverse transformation (default OFF)" << endl;
   cerr << "<-iterations>       Number of 3D registration iterations (default 100)" << endl;
+  cerr << "<-stepSize>         Value for optimisation step size (default 0.1)" << endl;
+  cerr << "<-gradientDescent>  Use gradient descent instead of default optimisation method (conjugate gradient descent)" << endl;
   exit(1);
 }
 
@@ -49,6 +51,8 @@ int main(int argc, char **argv)
   float epsilon;
   int locatorType, iterations, ok;
   bool clean, invert, ignoreEdges, symmetricDistance;
+  double stepSize;
+  irtkOptimizationMethod optimizationMethod;
 
   if (argc < 3) {
     usage();
@@ -63,6 +67,8 @@ int main(int argc, char **argv)
   invert = false;
   ignoreEdges = false;
   symmetricDistance = false;
+  stepSize = 0.1;
+  optimizationMethod = ConjugateGradientDescent;
 
   // Parse filenames
   _target_name = argv[1];
@@ -137,6 +143,20 @@ int main(int argc, char **argv)
       iterations = atoi(argv[1]);
       argc--;
       argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-stepSize") == 0)) {
+      argc--;
+      argv++;
+      stepSize = atof(argv[1]);
+      argc--;
+      argv++;
+      ok = true;
+    }
+    if ((ok == false) && (strcmp(argv[1], "-gradientDescent") == 0)) {
+      argc--;
+      argv++;
+      optimizationMethod = GradientDescent;
       ok = true;
     }
     if (ok == false) {
@@ -214,6 +234,9 @@ int main(int argc, char **argv)
   registration->SetInput(target, source);
   registration->SetNumberOfIterations(iterations);
   registration->SetEpsilon(epsilon);
+  registration->SetStepSize(stepSize);
+  registration->SetOptimizationMethod(optimizationMethod);
+
 
   // Check if to do symmetric registration
   if (symmetricDistance == true) {

@@ -40,6 +40,8 @@ irtkSurfaceRegistration::irtkSurfaceRegistration ()
   _ignore_edges         = false;
   _UseSymmetricDistance = false;
   _Epsilon              = 0.01;
+  _StepSize             = 0.1;
+  _OptimizationMethod   = ConjugateGradientDescent;
 
 #ifdef HISTORY
   history = new irtkHistory;
